@@ -1,0 +1,171 @@
+import { Prisma } from '@prisma/client';
+import prisma from '../../lib/prisma.js';
+import { ApiError } from '../../middlewares/errorHandler.js';
+import { CreateCarInput, UpdateCarInput, CarQueryInput } from './cars.validators.js';
+import { CarWithBranch, PaginatedResponse } from './cars.types.js';
+
+export async function listCars(query: CarQueryInput): Promise<PaginatedResponse<CarWithBranch>> {
+    const {
+        brand, category, transmission, fuel,
+        minPrice, maxPrice, branch, minYear, maxYear, seats, status,
+        q, page, limit, sortBy, sortOrder
+    } = query;
+
+    // Build where clause
+    const where: Prisma.CarWhereInput = {};
+
+    if (brand) where.brand = { contains: brand, mode: 'insensitive' };
+    if (category) where.category = category;
+    if (transmission) where.transmission = transmission;
+    if (fuel) where.fuel = fuel;
+    if (status) where.status = status;
+    if (branch) where.branchId = branch;
+    if (seats) where.seats = { gte: seats };
+
+    if (minPrice || maxPrice) {
+        where.dailyPrice = {};
+        if (minPrice) where.dailyPrice.gte = minPrice;
+        if (maxPrice) where.dailyPrice.lte = maxPrice;
+    }
+
+    if (minYear || maxYear) {
+        where.year = {};
+        if (minYear) where.year.gte = minYear;
+        if (maxYear) where.year.lte = maxYear;
+    }
+
+    // Search query (brand or model)
+    if (q) {
+        where.OR = [
+            { brand: { contains: q, mode: 'insensitive' } },
+            { model: { contains: q, mode: 'insensitive' } },
+        ];
+    }
+
+    // Count total
+    const total = await prisma.car.count({ where });
+
+    // Fetch paginated results
+    const cars = await prisma.car.findMany({
+        where,
+        include: { branch: true },
+        orderBy: { [sortBy]: sortOrder },
+        skip: (page - 1) * limit,
+        take: limit,
+    });
+
+    return {
+        data: cars,
+        pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+        },
+    };
+}
+
+export async function getCarById(id: string): Promise<CarWithBranch> {
+    const car = await prisma.car.findUnique({
+        where: { id },
+        include: { branch: true },
+    });
+
+    if (!car) {
+        throw ApiError.notFound('Car not found');
+    }
+
+    return car;
+}
+
+export async function createCar(input: CreateCarInput): Promise<CarWithBranch> {
+    // Verify branch exists
+    const branch = await prisma.branch.findUnique({
+        where: { id: input.branchId },
+    });
+
+    if (!branch) {
+        throw ApiError.badRequest('Branch not found');
+    }
+
+    // Check for duplicate plate number
+    const existingCar = await prisma.car.findUnique({
+        where: { plateNumber: input.plateNumber },
+    });
+
+    if (existingCar) {
+        throw ApiError.conflict('Car with this plate number already exists');
+    }
+
+    const car = await prisma.car.create({
+        data: input,
+        include: { branch: true },
+    });
+
+    return car;
+}
+
+export async function updateCar(id: string, input: UpdateCarInput): Promise<CarWithBranch> {
+    // Verify car exists
+    const existingCar = await prisma.car.findUnique({
+        where: { id },
+    });
+
+    if (!existingCar) {
+        throw ApiError.notFound('Car not found');
+    }
+
+    // If updating branch, verify it exists
+    if (input.branchId) {
+        const branch = await prisma.branch.findUnique({
+            where: { id: input.branchId },
+        });
+
+        if (!branch) {
+            throw ApiError.badRequest('Branch not found');
+        }
+    }
+
+    // If updating plate number, check for duplicates
+    if (input.plateNumber && input.plateNumber !== existingCar.plateNumber) {
+        const duplicateCar = await prisma.car.findUnique({
+            where: { plateNumber: input.plateNumber },
+        });
+
+        if (duplicateCar) {
+            throw ApiError.conflict('Car with this plate number already exists');
+        }
+    }
+
+    const car = await prisma.car.update({
+        where: { id },
+        data: input,
+        include: { branch: true },
+    });
+
+    return car;
+}
+
+export async function deleteCar(id: string): Promise<void> {
+    const car = await prisma.car.findUnique({
+        where: { id },
+    });
+
+    if (!car) {
+        throw ApiError.notFound('Car not found');
+    }
+
+    // Check for active bookings
+    const activeBookings = await prisma.booking.count({
+        where: {
+            carId: id,
+            status: { in: ['RESERVED', 'ACTIVE'] },
+        },
+    });
+
+    if (activeBookings > 0) {
+        throw ApiError.conflict('Cannot delete car with active bookings');
+    }
+
+    await prisma.car.delete({ where: { id } });
+}

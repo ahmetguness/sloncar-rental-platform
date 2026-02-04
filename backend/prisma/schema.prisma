@@ -1,0 +1,267 @@
+// Prisma Schema for Rent-a-Car Application
+// Using PostgreSQL with hybrid JSONB approach for franchise applications
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum Transmission {
+  MANUAL
+  AUTO
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+  LPG
+}
+
+enum CarCategory {
+  ECONOMY
+  COMPACT
+  MIDSIZE
+  FULLSIZE
+  SUV
+  VAN
+  LUXURY
+}
+
+enum CarStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum BookingStatus {
+  RESERVED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+enum FranchiseApplicationStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+/// Branch represents a rental location/office
+model Branch {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  city      String
+  phone     String?
+  isActive  Boolean  @default(true)
+  
+  // Relations
+  cars            Car[]
+  pickupBookings  Booking[] @relation("PickupBranch")
+  dropoffBookings Booking[] @relation("DropoffBranch")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city])
+  @@index([isActive])
+}
+
+/// Car represents a vehicle available for rental
+model Car {
+  id           String       @id @default(uuid())
+  brand        String
+  model        String
+  year         Int
+  transmission Transmission
+  fuel         FuelType
+  category     CarCategory
+  seats        Int
+  doors        Int
+  color        String
+  plateNumber  String       @unique
+  dailyPrice   Decimal      @db.Decimal(10, 2)
+  weeklyPrice  Decimal?     @db.Decimal(10, 2)
+  deposit      Decimal?     @db.Decimal(10, 2)
+  mileage      Int
+  images       String[]     // Array of image URLs
+  status       CarStatus    @default(ACTIVE)
+  description  String?
+  
+  // Relations
+  branch   Branch    @relation(fields: [branchId], references: [id])
+  branchId String
+  bookings Booking[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brand])
+  @@index([category])
+  @@index([status])
+  @@index([branchId])
+  @@index([dailyPrice])
+}
+
+/// User represents a system user (customer or admin)
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         UserRole @default(USER)
+  
+  // Relations
+  bookings              Booking[]
+  franchiseApplications FranchiseApplication[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+/// Booking represents a car rental reservation
+model Booking {
+  id          String        @id @default(uuid())
+  bookingCode String        @unique  // Human-readable code like RNT-ABC123
+  
+  // Car relation
+  car   Car    @relation(fields: [carId], references: [id])
+  carId String
+  
+  // User relation (optional - for admin tracking only)
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+  
+  // Customer info (always required - no login needed)
+  customerName         String
+  customerSurname      String?
+  customerPhone        String
+  customerEmail        String?
+  customerTC           String?   // TC Kimlik No
+  customerDriverLicense String?  // Ehliyet No
+  notes                String?   // Customer notes
+  
+  // Rental period
+  pickupDate  DateTime
+  dropoffDate DateTime
+  originalDropoffDate DateTime? // For tracking extensions
+  
+  // Branch relations
+  pickupBranch    Branch @relation("PickupBranch", fields: [pickupBranchId], references: [id])
+  pickupBranchId  String
+  dropoffBranch   Branch @relation("DropoffBranch", fields: [dropoffBranchId], references: [id])
+  dropoffBranchId String
+  
+  // Pricing
+  totalPrice Decimal? @db.Decimal(10, 2)
+  
+  // Booking status
+  status BookingStatus @default(RESERVED)
+  
+  // Payment fields (for future payment integration)
+  paymentStatus   PaymentStatus @default(UNPAID)
+  paymentProvider String?
+  paymentRef      String?
+  paidAt          DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes
+  @@index([bookingCode])
+  @@index([carId, pickupDate, dropoffDate])
+  @@index([carId, status])
+  @@index([userId])
+  @@index([status])
+  @@index([customerPhone])
+}
+
+/// FranchiseApplication - Hybrid approach with normalized key fields + JSONB details
+model FranchiseApplication {
+  id     String                     @id @default(uuid())
+  status FranchiseApplicationStatus @default(DRAFT)
+  
+  // Applicant relation
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  
+  // Key searchable fields (normalized for indexing/filtering)
+  companyName  String?
+  contactName  String
+  contactEmail String
+  contactPhone String
+  city         String?
+  
+  // Extensible detailed form data (JSONB)
+  // Structure: { personalInfo, companyInfo, locationDetails, financials, 
+  //              experience, staffPlan, fleetPlan, marketingPlan, 
+  //              references, declarations, documentUrls }
+  details Json @default("{}")
+  
+  // Admin workflow fields
+  adminNotes String?
+  reviewedBy String?
+  reviewedAt DateTime?
+  submittedAt DateTime?
+  
+  // Audit trail
+  auditLogs FranchiseAuditLog[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([userId])
+  @@index([city])
+  @@index([submittedAt])
+}
+
+/// FranchiseAuditLog tracks all changes to franchise applications
+model FranchiseAuditLog {
+  id            String               @id @default(uuid())
+  
+  application   FranchiseApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicationId String
+  
+  action        String  // e.g., "CREATED", "UPDATED", "STATUS_CHANGE", "SUBMITTED"
+  previousValue Json?   // Previous state (for field changes)
+  newValue      Json?   // New state (for field changes)
+  performedBy   String  // User ID who performed the action
+  note          String? // Optional note/comment
+  
+  createdAt DateTime @default(now())
+
+  @@index([applicationId])
+  @@index([createdAt])
+}
