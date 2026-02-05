@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { tr } from 'date-fns/locale/tr';
@@ -9,7 +9,7 @@ import type { Car } from '../services/types';
 import { CarCard } from '../components/CarCard';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Loader2, Search, SlidersHorizontal, RotateCcw } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, RotateCcw, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Register Turkish locale
 registerLocale('tr', tr);
@@ -27,22 +27,131 @@ export const Home = () => {
         pickupDate: '',
         dropoffDate: '',
     });
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [isPaused, setIsPaused] = useState(false);
+    const animationRef = useRef<number | null>(null);
+    const scrollAccumulator = useRef(0);
 
-    const fetchCars = async () => {
+    // Prepare display brands (triple buffer for infinite scroll)
+    // Prepare display brands (triple buffer for infinite scroll)
+    const effectiveBrands = useMemo(() => brands.length > 0 ? brands : [
+        { name: 'BMW', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg' },
+        { name: 'Mercedes', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Benz_Logo_2010.svg' },
+    ], [brands]);
+
+    // Ensure we have enough items for scrolling to cover viewport + buffer
+    const displayBrands = useMemo(() => {
+        let base = effectiveBrands;
+        // Duplicate until we have a substantial number of items (e.g., > 20) to ensure one set > viewport width
+        while (base.length < 20) {
+            base = [...base, ...effectiveBrands];
+        }
+        return [...base, ...base, ...base]; // Triple buffer
+    }, [effectiveBrands]);
+
+    const scrollLeft = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+        }
+    };
+
+    const scrollRight = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+        }
+    };
+
+    // Robust Auto-scroll with requestAnimationFrame and sub-pixel accumulation
+    useEffect(() => {
+        // Initialize accumulator with current position
+        if (scrollContainerRef.current) {
+            scrollAccumulator.current = scrollContainerRef.current.scrollLeft;
+        }
+
+        const scrollLoop = () => {
+            if (!scrollContainerRef.current) return;
+
+            if (!isPaused) {
+                const oneSetWidth = scrollContainerRef.current.scrollWidth / 3;
+
+                // Increment accumulator
+                scrollAccumulator.current += 0.5; // Speed: 0.5px/frame (approx 30px/sec) - Slow and elegant
+
+                // Seamless Loop Logic: Triple buffer [0][1][2]
+                // We want to loop within the middle set.
+                // If we reach start of set 2 (2*width), jump back to start of set 1 (1*width)
+                if (scrollAccumulator.current >= oneSetWidth * 2) {
+                    scrollAccumulator.current -= oneSetWidth;
+                }
+                // If we go backwards to start of set 0 (0), jump forward to start of set 1 (1*width)
+                else if (scrollAccumulator.current <= 0) {
+                    scrollAccumulator.current += oneSetWidth;
+                }
+
+                // Apply to DOM
+                if (scrollContainerRef.current) {
+                    scrollContainerRef.current.scrollLeft = scrollAccumulator.current;
+                }
+            } else {
+                // While paused, track the DOM scroll position (user dragging)
+                if (scrollContainerRef.current) {
+                    scrollAccumulator.current = scrollContainerRef.current.scrollLeft;
+                }
+            }
+
+            animationRef.current = requestAnimationFrame(scrollLoop);
+        };
+
+        animationRef.current = requestAnimationFrame(scrollLoop);
+
+        return () => {
+            if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
+        };
+    }, [isPaused, displayBrands]); // Re-run if paused changes or brands update
+
+    // Initial positioning
+    useEffect(() => {
+        if (displayBrands.length > 0 && scrollContainerRef.current) {
+            // Initial center position setup
+            setTimeout(() => {
+                if (scrollContainerRef.current && scrollContainerRef.current.scrollLeft < 10) {
+                    const oneSetWidth = scrollContainerRef.current.scrollWidth / 3;
+                    scrollContainerRef.current.scrollLeft = oneSetWidth;
+                    scrollAccumulator.current = oneSetWidth;
+                }
+            }, 100);
+        }
+    }, [displayBrands]);
+
+    const fetchCars = async (pageToFetch = 1, append = false) => {
         setLoading(true);
         try {
             // Clean filters: remove empty strings
             const cleanedFilters: any = {
                 ...filters,
-                q: filters.brand // Map brand input to general search 'q'
+                q: filters.brand, // Map brand input to general search 'q'
+                limit: 12, // User requested limit 12 per page
+                page: pageToFetch
             };
             delete cleanedFilters.brand;
 
             const finalFilters = Object.fromEntries(
                 Object.entries(cleanedFilters).filter(([_, v]) => v !== '')
             );
-            const data = await carService.getAll(finalFilters);
-            setCars(data.data);
+
+            const response = await carService.getAll(finalFilters);
+
+            if (append) {
+                setCars(prev => [...prev, ...response.data]);
+            } else {
+                setCars(response.data);
+            }
+
+            setPagination(response.pagination);
+            setPage(pageToFetch);
+
         } catch (error) {
             console.error('Failed to fetch cars', error);
         } finally {
@@ -60,7 +169,7 @@ export const Home = () => {
     };
 
     useEffect(() => {
-        fetchCars();
+        fetchCars(1, false);
         fetchBrands();
     }, []);
 
@@ -228,7 +337,7 @@ export const Home = () => {
                         </div>
 
                         <div className="md:col-span-2 flex gap-2">
-                            <Button onClick={fetchCars} className="flex-1 h-[46px] text-base font-bold bg-white text-dark-bg hover:bg-primary-500 hover:text-white hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] transition-all">
+                            <Button onClick={() => fetchCars(1, false)} className="flex-1 h-[46px] text-base font-bold bg-white text-dark-bg hover:bg-primary-500 hover:text-white hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] transition-all">
                                 <Search className="w-5 h-5 mr-2" /> BUL
                             </Button>
                             {/* Clear Filters Button */}
@@ -236,7 +345,24 @@ export const Home = () => {
                                 <Button
                                     onClick={() => {
                                         setFilters({ brand: '', category: '', minPrice: '', maxPrice: '', pickupDate: '', dropoffDate: '' });
-                                        carService.getAll({}).then(res => setCars(res.data));
+                                        // Reset to page 1 and empty filters
+                                        // We need to call fetchCars with empty filters, but fetchCars reads from state 'filters'
+                                        // Since setState is async, we can pass a temporary override or just wait for effect if we had one on filters (which we don't)
+                                        // Better way: manual call with empty object passed to service, but here we reuse fetchCars
+                                        // Let's just reset filters and then trigger fetch in next tick or manually match logic
+
+                                        // For simplicity, we just reload window or modify fetchCars to accept filters param. 
+                                        // But reusing existing pattern:
+                                        setTimeout(() => {
+                                            // Trigger fetch after state update
+                                            // Actually state update might not be ready. 
+                                            // Let's manually call service here to be safe and fast UI response
+                                            carService.getAll({ limit: 12, page: 1 }).then(res => {
+                                                setCars(res.data);
+                                                setPagination(res.pagination);
+                                                setPage(1);
+                                            });
+                                        }, 0);
                                     }}
                                     className="h-[46px] px-4 bg-dark-bg text-gray-400 border border-white/10 hover:border-red-500/50 hover:text-red-500 hover:bg-red-500/10 transition-all group"
                                     title="Filtreleri Temizle"
@@ -249,34 +375,70 @@ export const Home = () => {
                 </div>
             </div>
 
-            {/* Brand Marquee / Filter Section */}
-            <div className="container mx-auto px-6 mt-16 mb-0">
-                <div className="flex flex-wrap justify-center gap-6 opacity-70 hover:opacity-100 transition-opacity">
-                    {(brands.length > 0 ? brands : [
-                        { name: 'BMW', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg' },
-                        { name: 'Mercedes', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Benz_Logo_2010.svg' },
-                    ]).slice(0, 8).map(brand => (
-                        <button
-                            key={brand.name}
-                            onClick={() => {
-                                setFilters(prev => ({ ...prev, brand: brand.name }));
-                                carService.getAll({ q: brand.name }).then(res => setCars(res.data));
-                            }}
-                            className={`group flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-300 w-28 h-32 md:w-32 md:h-36 
+            {/* Brand Carousel Section */}
+            <div className="container mx-auto px-6 mt-16 mb-0 relative group/carousel">
+                <div
+                    className="relative flex items-center justify-center"
+                    onMouseEnter={() => setIsPaused(true)}
+                    onMouseLeave={() => setIsPaused(false)}
+                    onTouchStart={() => setIsPaused(true)}
+                    onTouchEnd={() => setIsPaused(false)}
+                >
+                    {/* Prev Button - Absolute & Glassmorphism */}
+                    <button
+                        onClick={scrollLeft}
+                        className="absolute left-0 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/40 hover:border-primary-500/50 transition-all opacity-0 group-hover/carousel:opacity-100 -translate-x-4 md:-translate-x-6"
+                    >
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
+
+                    {/* Scrollable Container */}
+                    <div
+                        ref={scrollContainerRef}
+                        className="flex overflow-x-auto gap-6 pb-4 pt-2 px-12 scroll-auto no-scrollbar max-w-[1200px]"
+                        style={{
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                            maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+                            WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
+                        }}
+                    >
+                        {displayBrands.map((brand, index) => (
+                            <button
+                                key={`${brand.name}-${index}`}
+                                onClick={() => {
+                                    setFilters(prev => ({ ...prev, brand: brand.name }));
+                                    // Immediate fetch with new brand
+                                    carService.getAll({ q: brand.name, limit: 12, page: 1 }).then(res => {
+                                        setCars(res.data);
+                                        setPagination(res.pagination);
+                                        setPage(1);
+                                    });
+                                }}
+                                className={`flex-shrink-0 snap-center group flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-300 w-28 h-32 md:w-32 md:h-36 
                                 ${filters.brand.toLowerCase() === brand.name.toLowerCase()
-                                    ? 'bg-primary-500/10 border-primary-500 shadow-[0_0_20px_rgba(99,102,241,0.3)] scale-110'
-                                    : 'bg-dark-surface-lighter border-white/5 hover:border-primary-500/50 hover:bg-dark-surface-lighter/80 hover:scale-105'}`}
-                        >
-                            <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl flex items-center justify-center mb-3 p-2 shadow-inner transition-transform duration-300 group-hover:scale-110">
-                                <img
-                                    src={brand.logoUrl}
-                                    alt={brand.name}
-                                    className="w-full h-full object-contain"
-                                />
-                            </div>
-                            <span className={`text-xs font-bold tracking-widest uppercase truncate w-full px-1 ${filters.brand.toLowerCase() === brand.name.toLowerCase() ? 'text-primary-400' : 'text-gray-400 group-hover:text-white'}`}>{brand.name}</span>
-                        </button>
-                    ))}
+                                        ? 'bg-primary-500/10 border-primary-500 shadow-[0_0_20px_rgba(99,102,241,0.3)] scale-110'
+                                        : 'bg-dark-surface-lighter border-white/5 hover:border-primary-500/50 hover:bg-dark-surface-lighter/80 hover:scale-105'}`}
+                            >
+                                <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl flex items-center justify-center mb-3 p-2 shadow-inner transition-transform duration-300 group-hover:scale-110">
+                                    <img
+                                        src={brand.logoUrl}
+                                        alt={brand.name}
+                                        className="w-full h-full object-contain"
+                                    />
+                                </div>
+                                <span className={`text-xs font-bold tracking-widest uppercase truncate w-full px-1 ${filters.brand.toLowerCase() === brand.name.toLowerCase() ? 'text-primary-400' : 'text-gray-400 group-hover:text-white'}`}>{brand.name}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Next Button - Absolute & Glassmorphism */}
+                    <button
+                        onClick={scrollRight}
+                        className="absolute right-0 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/40 hover:border-primary-500/50 transition-all opacity-0 group-hover/carousel:opacity-100 translate-x-4 md:translate-x-6"
+                    >
+                        <ChevronRight className="w-6 h-6" />
+                    </button>
                 </div>
             </div>
 
@@ -293,7 +455,7 @@ export const Home = () => {
                     </div>
                 </div>
 
-                {loading ? (
+                {loading && cars.length === 0 ? (
                     <div className="flex justify-center items-center py-32">
                         <Loader2 className="w-12 h-12 animate-spin text-primary-500" />
                     </div>
@@ -306,15 +468,31 @@ export const Home = () => {
                         <p className="text-gray-400 max-w-md mx-auto">Aradığınız kriterlere uygun araç şu an filomuzda görünmüyor.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {cars.map(car => (
-                            <CarCard
-                                key={car.id}
-                                car={car}
-                                brandLogoUrl={getBrandLogoUrl(car.brand)}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            {cars.map(car => (
+                                <CarCard
+                                    key={car.id}
+                                    car={car}
+                                    brandLogoUrl={getBrandLogoUrl(car.brand)}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Load More Button */}
+                        {page < pagination.totalPages && (
+                            <div className="mt-12 flex justify-center">
+                                <Button
+                                    onClick={() => fetchCars(page + 1, true)}
+                                    disabled={loading}
+                                    className="bg-dark-surface-lighter border border-white/10 text-white hover:bg-primary-500 hover:border-primary-500 px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-primary-500/20 flex items-center gap-2"
+                                >
+                                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+                                    DAHA FAZLA GÖSTER
+                                </Button>
+                            </div>
+                        )}
+                    </>
                 )}
             </section>
         </div>

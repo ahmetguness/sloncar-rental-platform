@@ -228,7 +228,12 @@ export const Booking = () => {
         }
     };
 
-    if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-primary-600 w-10 h-10" /></div>;
+    if (loading) return (
+        <div className="min-h-[50vh] flex flex-col items-center justify-center pt-20">
+            <Loader2 className="animate-spin text-primary-600 w-12 h-12 mb-4" />
+            <p className="text-gray-400 font-medium">Araç bilgileri yükleniyor...</p>
+        </div>
+    );
     if (!car) return <div className="text-center p-20 text-white">Araç bulunamadı.</div>;
 
     if (successCode) {

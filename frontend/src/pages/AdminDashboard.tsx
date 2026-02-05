@@ -196,6 +196,7 @@ export const AdminDashboard = () => {
     const [franchiseApplications, setFranchiseApplications] = useState<any[]>([]);
     const [selectedFranchise, setSelectedFranchise] = useState<any | null>(null);
     const [franchiseLoading, setFranchiseLoading] = useState(false);
+    const [cancelingId, setCancelingId] = useState<string | null>(null);
     const ITEMS_PER_PAGE = 10;
 
     const STATUS_OPTIONS = [
@@ -268,11 +269,17 @@ export const AdminDashboard = () => {
 
     const handleCancel = async (id: string) => {
         if (!confirm('Bu rezervasyonu iptal etmek istediğinizden emin misiniz?')) return;
+        setCancelingId(id);
         try {
             await adminService.cancelBooking(id);
-            loadData();
+            // Refresh bookings and stats without full page reload
+            await loadBookings(currentPage, searchTerm, statusFilter);
+            const statsData = await adminService.getDashboard();
+            setStats(statsData);
         } catch (err) {
             alert('İptal işlemi başarısız');
+        } finally {
+            setCancelingId(null);
         }
     };
 
@@ -575,8 +582,16 @@ export const AdminDashboard = () => {
                                     <th className="p-4">İşlem</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {bookings.length === 0 ? (
+                            <tbody className="divide-y divide-white/5 relative">
+                                {bookingsLoading ? (
+                                    <tr>
+                                        <td colSpan={7} className="p-12 text-center">
+                                            <div className="flex justify-center items-center">
+                                                <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : bookings.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="p-12 text-center">
                                             <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
@@ -621,10 +636,11 @@ export const AdminDashboard = () => {
                                                 {booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
                                                     <Button
                                                         size="sm"
-                                                        className="text-xs px-3 py-1.5 bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 rounded-lg"
+                                                        className="text-xs px-3 py-1.5 bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 rounded-lg disabled:opacity-50"
                                                         onClick={() => handleCancel(booking.id)}
+                                                        disabled={cancelingId === booking.id}
                                                     >
-                                                        İptal Et
+                                                        {cancelingId === booking.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'İptal Et'}
                                                     </Button>
                                                 )}
                                             </td>
@@ -716,7 +732,11 @@ export const AdminDashboard = () => {
                             </thead>
                             <tbody>
                                 {franchiseLoading ? (
-                                    <tr><td colSpan={7} className="p-8 text-center text-gray-400">Yükleniyor...</td></tr>
+                                    <tr><td colSpan={7} className="p-8 text-center text-gray-400">
+                                        <div className="flex justify-center items-center">
+                                            <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
+                                        </div>
+                                    </td></tr>
                                 ) : franchiseApplications.length === 0 ? (
                                     <tr><td colSpan={7} className="p-8 text-center text-gray-400">Henüz franchise başvurusu yok</td></tr>
                                 ) : (

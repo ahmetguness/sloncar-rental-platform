@@ -75,6 +75,7 @@ export const AdminCars = () => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     const filteredCars = cars.filter(car =>
         car.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -184,11 +185,14 @@ export const AdminCars = () => {
 
     const handleDelete = async (id: string) => {
         if (!confirm('Bu aracı silmek istediğinizden emin misiniz?')) return;
+        setDeletingId(id);
         try {
             await adminService.deleteCar(id);
-            loadData();
+            await loadData();
         } catch (err: any) {
             alert(err.response?.data?.error?.message || 'Silme işlemi başarısız');
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -530,11 +534,11 @@ export const AdminCars = () => {
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(car.id)}
-                                                        disabled={submitting}
+                                                        disabled={submitting || deletingId === car.id}
                                                         className="p-2 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                                                         title="Sil"
                                                     >
-                                                        <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                        {deletingId === car.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />}
                                                     </button>
                                                 </div>
                                             </td>
