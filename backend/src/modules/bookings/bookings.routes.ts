@@ -173,4 +173,12 @@ adminBookingsRouter.patch(
     bookingsController.cancelBooking
 );
 
+adminBookingsRouter.patch(
+    '/:id/complete',
+    authMiddleware,
+    adminGuard,
+    validate(bookingIdParamSchema, 'params'),
+    bookingsController.completeBooking
+);
+
 export default router;

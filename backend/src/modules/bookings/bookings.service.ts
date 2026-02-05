@@ -32,15 +32,25 @@ function getDateRange(start: Date, end: Date): Date[] {
     return dates;
 }
 
+// Helper to normalize date to UTC midnight (00:00:00)
+function normalizeDate(date: Date): Date {
+    const normalized = new Date(date);
+    normalized.setUTCHours(0, 0, 0, 0);
+    return normalized;
+}
+
 // Calculate total price based on car daily rate and days
 function calculateTotalPrice(dailyPrice: number, pickupDate: Date, dropoffDate: Date): number {
+    // Ensure we calculate based on normalized days (24h chunks)
     const days = Math.ceil((dropoffDate.getTime() - pickupDate.getTime()) / (1000 * 60 * 60 * 24));
     return days * dailyPrice;
 }
 
 // Calculate days between two dates
 function calculateDays(start: Date, end: Date): number {
-    return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const s = normalizeDate(start);
+    const e = normalizeDate(end);
+    return Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 // PUBLIC - Create booking and return booking code
@@ -48,6 +58,19 @@ export async function createBooking(
     input: CreateBookingInput
 ): Promise<BookingWithRelations> {
     const booking = await prisma.$transaction(async (tx) => {
+        // Normalize dates to ensure daily granularity (Time is irrelevant for availability)
+        // This prevents "10:00-12:00" booking allowing another booking at "14:00-16:00" on same day
+        const pickupDate = normalizeDate(input.pickupDate);
+        let dropoffDate = normalizeDate(input.dropoffDate);
+
+        // If pickup and dropoff are the same day (or dropoff somehow before due to normalization),
+        // Force minimum 1 day duration
+        if (dropoffDate.getTime() <= pickupDate.getTime()) {
+            const nextDay = new Date(pickupDate);
+            nextDay.setDate(nextDay.getDate() + 1);
+            dropoffDate = nextDay;
+        }
+
         // Verify car exists and is active
         const car = await tx.car.findUnique({
             where: { id: input.carId },
@@ -59,6 +82,12 @@ export async function createBooking(
 
         if (car.status !== 'ACTIVE') {
             throw ApiError.badRequest('Bu araç şu anda kiralamaya uygun değil');
+        }
+
+        // Validate pickup branch matches car location
+        // This prevents booking a car from a branch where it is not physically located
+        if (car.branchId !== input.pickupBranchId) {
+            throw ApiError.badRequest('Araç seçilen alış şubesinde bulunmamaktadır. Lütfen aracın bulunduğu şubeyi (veya aracı) kontrol ediniz.');
         }
 
         // Verify branches exist
@@ -77,8 +106,8 @@ export async function createBooking(
                 carId: input.carId,
                 status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
                 AND: [
-                    { pickupDate: { lt: input.dropoffDate } },
-                    { dropoffDate: { gt: input.pickupDate } },
+                    { pickupDate: { lt: dropoffDate } },
+                    { dropoffDate: { gt: pickupDate } },
                 ],
             },
         });
@@ -98,7 +127,8 @@ export async function createBooking(
         }
 
         // Calculate total price
-        const totalPrice = calculateTotalPrice(Number(car.dailyPrice), input.pickupDate, input.dropoffDate);
+        // Use normalized dates for price calculation too
+        const totalPrice = calculateTotalPrice(Number(car.dailyPrice), pickupDate, dropoffDate);
 
         // Create booking
         const booking = await tx.booking.create({
@@ -112,8 +142,8 @@ export async function createBooking(
                 customerTC: input.customerTC,
                 customerDriverLicense: input.customerDriverLicense,
                 notes: input.notes,
-                pickupDate: input.pickupDate,
-                dropoffDate: input.dropoffDate,
+                pickupDate: pickupDate,
+                dropoffDate: dropoffDate,
                 pickupBranchId: input.pickupBranchId,
                 dropoffBranchId: input.dropoffBranchId,
                 totalPrice,
@@ -180,8 +210,12 @@ export async function extendBooking(
             throw ApiError.badRequest('Bu rezervasyon uzatılamaz');
         }
 
+        // Normalize new dropoff date
+        const newDropoffDate = normalizeDate(input.newDropoffDate);
+
         // New dropoff must be after current dropoff
-        if (input.newDropoffDate <= booking.dropoffDate) {
+        // booking.dropoffDate should already be normalized if created with new logic, but safe to compare
+        if (newDropoffDate <= booking.dropoffDate) {
             throw ApiError.badRequest('Yeni teslim tarihi mevcut tarihten sonra olmalı');
         }
 
@@ -192,7 +226,7 @@ export async function extendBooking(
                 id: { not: booking.id },
                 status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
                 AND: [
-                    { pickupDate: { lt: input.newDropoffDate } },
+                    { pickupDate: { lt: newDropoffDate } },
                     { dropoffDate: { gt: booking.dropoffDate } },
                 ],
             },
@@ -203,7 +237,7 @@ export async function extendBooking(
         }
 
         // Calculate additional price
-        const additionalDays = calculateDays(booking.dropoffDate, input.newDropoffDate);
+        const additionalDays = calculateDays(booking.dropoffDate, newDropoffDate);
         const additionalPrice = additionalDays * Number(booking.car.dailyPrice);
         const newTotalPrice = Number(booking.totalPrice || 0) + additionalPrice;
 
@@ -211,7 +245,7 @@ export async function extendBooking(
         const updatedBooking = await tx.booking.update({
             where: { id: booking.id },
             data: {
-                dropoffDate: input.newDropoffDate,
+                dropoffDate: newDropoffDate,
                 originalDropoffDate: booking.originalDropoffDate || booking.dropoffDate,
                 totalPrice: newTotalPrice,
                 notes: booking.notes
@@ -417,6 +451,55 @@ export async function cancelBooking(
     });
 
     return updatedBooking as BookingWithRelations;
+}
+
+// ADMIN - Complete booking (Car returned)
+export async function completeBooking(
+    bookingId: string
+): Promise<BookingWithRelations> {
+    const result = await prisma.$transaction(async (tx) => {
+        const booking = await tx.booking.findUnique({
+            where: { id: bookingId },
+            include: {
+                car: true,
+                pickupBranch: true,
+                dropoffBranch: true,
+            },
+        });
+
+        if (!booking) {
+            throw ApiError.notFound('Rezervasyon bulunamadı');
+        }
+
+        if (booking.status !== BookingStatus.ACTIVE) {
+            throw ApiError.badRequest('Sadece aktif rezervasyonlar tamamlanabilir');
+        }
+
+        // 1. Mark booking as COMPLETED
+        const updatedBooking = await tx.booking.update({
+            where: { id: bookingId },
+            data: { status: BookingStatus.COMPLETED },
+            include: {
+                car: { include: { branch: true } },
+                pickupBranch: true,
+                dropoffBranch: true,
+            },
+        });
+
+        // 2. Update Car Location and Status
+        // Even if branches are the same, setting status to ACTIVE is important
+        await tx.car.update({
+            where: { id: booking.carId },
+            data: {
+                status: 'ACTIVE',
+                branchId: booking.dropoffBranchId, // Move car to dropoff branch
+            },
+        });
+
+        return updatedBooking;
+    });
+
+    return result as BookingWithRelations;
 }
 
 // ADMIN - Get all bookings with filters

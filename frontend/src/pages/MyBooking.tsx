@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { bookingService } from '../services/api';
 import type { Booking as BookingType } from '../services/types';
 import { Input } from '../components/ui/Input';
@@ -12,6 +12,30 @@ export const MyBooking = () => {
     const [error, setError] = useState<string | null>(null);
     // Action loading states
     const [paying, setPaying] = useState(false);
+
+    // Auto-search if code is present in URL
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        if (code) {
+            setSearchCode(code);
+            // Trigger lookup
+            const fetchBooking = async () => {
+                setLoading(true);
+                setError(null);
+                setBooking(null);
+                try {
+                    const data = await bookingService.getByCode(code);
+                    setBooking(data.booking);
+                } catch (err: any) {
+                    setError(err.response?.data?.error?.message || 'Rezervasyon bulunamadı');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchBooking();
+        }
+    }, []);
 
     const handleLookup = async (e: React.FormEvent) => {
         e.preventDefault();

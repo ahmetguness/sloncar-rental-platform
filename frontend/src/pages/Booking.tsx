@@ -6,6 +6,7 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Loader2, CheckCircle, MapPin, Users, Fuel, Cog, Gauge } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { translateCategory, translateFuel } from '../utils/translate';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { tr } from 'date-fns/locale/tr';
@@ -127,8 +128,33 @@ export const Booking = () => {
         }
     }, [startDate, endDate, car]);
 
+    const formatPhoneNumber = (value: string) => {
+        // Remove all non-digit characters
+        const phoneNumber = value.replace(/\D/g, '');
+        const phoneNumberLength = phoneNumber.length;
+
+        if (phoneNumberLength < 4) return phoneNumber;
+        if (phoneNumberLength < 7) {
+            return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+        }
+        if (phoneNumberLength < 9) {
+            return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)} ${phoneNumber.slice(6)}`;
+        }
+        return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)} ${phoneNumber.slice(6, 8)} ${phoneNumber.slice(8, 10)}`;
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        let value = e.target.value;
+        if (e.target.name === 'customerPhone') {
+            // Handle backspace or direct valid input, but for simple masking we format the raw digits
+            // However, to allow deleting, we usually need to be careful. 
+            // Simple approach: unformat, slice if needed, reformat.
+            // But for a simple "formatter on typing", re-formatting the cleaned numeric string works well enough for valid inputs.
+            // Limit to 10 digits (plus format chars)
+            const raw = value.replace(/\D/g, '').slice(0, 10);
+            value = formatPhoneNumber(raw);
+        }
+        setFormData({ ...formData, [e.target.name]: value });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -213,12 +239,24 @@ export const Booking = () => {
                     <CheckCircle className="w-12 h-12 text-green-500" />
                 </div>
                 <h2 className="text-3xl font-bold text-white mb-2">Rezervasyon Başarılı!</h2>
-                <p className="text-gray-400 mb-8">Aracınız başarıyla ayrıldı.</p>
+                <p className="text-gray-400 mb-8 px-4">Ödemenizi tamamlamak için lütfen rezervasyonum sayfasına giderek ödeme yapın.</p>
 
                 <div className="bg-dark-bg p-6 rounded-2xl border border-white/5 mb-8 relative group">
                     <div className="absolute inset-0 bg-primary-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <p className="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">Rezervasyon Kodunuz</p>
-                    <p className="text-4xl font-mono font-bold text-primary-400 tracking-wider text-glow">{successCode}</p>
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                        <p className="text-3xl font-mono font-bold text-primary-400 tracking-wider text-glow">{successCode}</p>
+                        <button
+                            onClick={() => {
+                                navigator.clipboard.writeText(successCode);
+                                // Optional toast or feedback could go here
+                            }}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                            title="Kodu Kopyala"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                        </button>
+                    </div>
                     <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500 bg-white/5 py-2 rounded-lg">
                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                         Bu kodu saklayın, sorgulama için gereklidir.
@@ -226,7 +264,7 @@ export const Booking = () => {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                    <Link to="/my-booking">
+                    <Link to={`/my-booking?code=${successCode}`}>
                         <Button className="w-full h-12 text-base shadow-[0_0_20px_rgba(99,102,241,0.4)]">Rezervasyonumu Görüntüle</Button>
                     </Link>
                     <Link to="/">
@@ -258,7 +296,7 @@ export const Booking = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-dark-surface via-transparent to-transparent opacity-60" />
                         <div className="absolute top-3 left-3">
                             <span className="bg-black/40 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-lg text-xs font-bold text-white uppercase tracking-wider">
-                                {car.category}
+                                {translateCategory(car.category)}
                             </span>
                         </div>
                     </div>
@@ -278,7 +316,7 @@ export const Booking = () => {
                             </div>
                             <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col items-center justify-center text-center gap-2 group/spec hovered:bg-white/10 transition-colors">
                                 <Fuel className="w-5 h-5 text-gray-400 group-hover/spec:text-primary-500 transition-colors" />
-                                <span className="text-xs font-medium text-gray-300 capitalize">{car.fuel.toLowerCase()}</span>
+                                <span className="text-xs font-medium text-gray-300 capitalize">{translateFuel(car.fuel)}</span>
                             </div>
                             <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col items-center justify-center text-center gap-2 group/spec hovered:bg-white/10 transition-colors">
                                 <Users className="w-5 h-5 text-gray-400 group-hover/spec:text-primary-500 transition-colors" />
@@ -320,7 +358,7 @@ export const Booking = () => {
                     </div>
                     <div>
                         <h4 className="text-sm font-bold text-white mb-1">Teslimat Noktası</h4>
-                        <p className="text-sm text-gray-400 leading-relaxed">Aracınızı <span className="text-white font-medium">Merkez Ofis</span> şubemizden teslim alabilirsiniz.</p>
+                        <p className="text-sm text-gray-400 leading-relaxed">Aracınızı <span className="text-white font-medium">Manisa Merkez</span> şubemizden teslim alabilirsiniz.</p>
                     </div>
                 </div>
             </div>
@@ -346,6 +384,13 @@ export const Booking = () => {
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-10">
+                            {/* Branch Selection Hidden for Single Branch Mode */}
+                            {/* 
+                                Since there is only one branch (Manisa), we hide the selection UI.
+                                The backend still requires pickupBranchId and dropoffBranchId, 
+                                which are auto-filled in handleSubmit using car.branchId.
+                            */}
+
                             {/* Date Section */}
                             <div className="space-y-6">
                                 <div className="flex items-center gap-3 mb-2">

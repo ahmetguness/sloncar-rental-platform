@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { tr } from 'date-fns/locale/tr';
+import { translateCategory } from '../utils/translate';
 import "react-datepicker/dist/react-datepicker.css";
 import { carService, brandService } from '../services/api';
 import type { Car } from '../services/types';
@@ -188,12 +189,14 @@ export const Home = () => {
                                 value={filters.category}
                                 onChange={handleFilterChange}
                             >
-                                <option value="" className="bg-dark-bg">Tümü</option>
-                                <option value="ECONOMY" className="bg-dark-bg">Ekonomik</option>
-                                <option value="COMPACT" className="bg-dark-bg">Kompakt</option>
-                                <option value="SUV" className="bg-dark-bg">SUV</option>
-                                <option value="LUXURY" className="bg-dark-bg">Lüks</option>
-                                <option value="VAN" className="bg-dark-bg">Van</option>
+                                <option value="" className="bg-dark-bg">Tüm Kategoriler</option>
+                                <option value="ECONOMY" className="bg-dark-bg">{translateCategory('ECONOMY')}</option>
+                                <option value="COMPACT" className="bg-dark-bg">{translateCategory('COMPACT')}</option>
+                                <option value="MIDSIZE" className="bg-dark-bg">{translateCategory('MIDSIZE')}</option>
+                                <option value="FULLSIZE" className="bg-dark-bg">{translateCategory('FULLSIZE')}</option>
+                                <option value="SUV" className="bg-dark-bg">{translateCategory('SUV')}</option>
+                                <option value="VAN" className="bg-dark-bg">{translateCategory('VAN')}</option>
+                                <option value="LUXURY" className="bg-dark-bg">{translateCategory('LUXURY')}</option>
                             </select>
                         </div>
 
@@ -206,6 +209,7 @@ export const Home = () => {
                                 value={filters.minPrice}
                                 onChange={handleFilterChange}
                                 className="bg-dark-bg border-white/10 text-white placeholder-gray-600 focus:border-primary-500"
+                                step="100"
 
                             />
                         </div>
@@ -219,6 +223,7 @@ export const Home = () => {
                                 value={filters.maxPrice}
                                 onChange={handleFilterChange}
                                 className="bg-dark-bg border-white/10 text-white placeholder-gray-600 focus:border-primary-500"
+                                step="100"
                             />
                         </div>
 

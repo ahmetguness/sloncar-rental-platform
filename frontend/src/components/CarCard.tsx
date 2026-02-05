@@ -2,6 +2,7 @@ import type { Car } from '../services/types';
 import { Button } from './ui/Button';
 import { Fuel, Users, Cog, Car as CarIcon, ArrowRight, Gauge, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { translateCategory, translateFuel } from '../utils/translate';
 
 interface CarCardProps {
     car: Car;
@@ -42,7 +43,7 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
                 <div className="absolute top-4 left-4 z-20">
                     <span className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-lg uppercase tracking-wider border border-white/10 flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
-                        {car.category}
+                        {translateCategory(car.category)}
                     </span>
                 </div>
 
@@ -88,7 +89,7 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
                     <div className="bg-dark-bg/50 border border-white/5 rounded-xl p-2.5 flex items-center gap-3">
                         <Fuel className="w-4 h-4 text-primary-500/70" />
                         <span className="text-xs font-medium text-gray-400 capitalize">
-                            {car.fuel.toLowerCase()}
+                            {translateFuel(car.fuel)}
                         </span>
                     </div>
                     <div className="bg-dark-bg/50 border border-white/5 rounded-xl p-2.5 flex items-center gap-3">

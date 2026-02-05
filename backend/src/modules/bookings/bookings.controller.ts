@@ -171,6 +171,24 @@ export async function cancelBooking(
     }
 }
 
+// ADMIN - Complete booking
+export async function completeBooking(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const booking = await bookingsService.completeBooking(req.params.id!);
+        res.json({
+            success: true,
+            message: 'Rezervasyon tamamlandı. Araç teslim alındı ve lokasyonu güncellendi.',
+            data: booking,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 // ADMIN - List all bookings
 export async function getAdminBookings(
     req: Request,

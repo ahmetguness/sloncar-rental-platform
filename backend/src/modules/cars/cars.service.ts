@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, BookingStatus } from '@prisma/client';
 import prisma from '../../lib/prisma.js';
 import { ApiError } from '../../middlewares/errorHandler.js';
 import { CreateCarInput, UpdateCarInput, CarQueryInput } from './cars.validators.js';
@@ -153,6 +153,21 @@ export async function updateCar(id: string, input: UpdateCarInput): Promise<CarW
         }
     }
 
+    // Maintenance Safety Check
+    if (input.status === 'MAINTENANCE' || input.status === 'INACTIVE') {
+        const activeOrFutureBookings = await prisma.booking.findFirst({
+            where: {
+                carId: id,
+                status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
+                dropoffDate: { gt: new Date() } // Booking ends in future
+            }
+        });
+
+        if (activeOrFutureBookings) {
+            throw ApiError.conflict('Araçta aktif veya gelecek rezervasyonlar var. Önce bunları iptal etmelisiniz.');
+        }
+    }
+
     const car = await prisma.car.update({
         where: { id },
         data: input,
@@ -171,17 +186,35 @@ export async function deleteCar(id: string): Promise<void> {
         throw ApiError.notFound('Car not found');
     }
 
-    // Check for active bookings
-    const activeBookings = await prisma.booking.count({
-        where: {
-            carId: id,
-            status: { in: ['RESERVED', 'ACTIVE'] },
-        },
+    // Check for ANY history to prevent FK constraint errors
+    const hasHistory = await prisma.booking.count({
+        where: { carId: id }
     });
 
-    if (activeBookings > 0) {
-        throw ApiError.conflict('Cannot delete car with active bookings');
+    if (hasHistory > 0) {
+        // If it has history, we cannot hard delete.
+        // Check if there are ACTIVE bookings
+        const activeBookings = await prisma.booking.count({
+            where: {
+                carId: id,
+                status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
+            },
+        });
+
+        if (activeBookings > 0) {
+            throw ApiError.conflict('Aktif rezervasyonu olan araç silinemez/pasife alınamaz.');
+        }
+
+        // Soft Delete
+        await prisma.car.update({
+            where: { id },
+            data: { status: 'INACTIVE' }
+        });
+
+        // We implicitly return/succeed, equating "Delete" request to "Archive" action
+        return;
     }
 
+    // Only hard delete if NO history exists
     await prisma.car.delete({ where: { id } });
 }

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { adminService } from '../services/api';
 import type { DashboardStats, Booking } from '../services/types';
 import { Button } from '../components/ui/Button';
+import { translateCategory } from '../utils/translate';
 import { Loader2, DollarSign, Calendar, Car as CarIcon, Settings, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -120,7 +121,7 @@ const BookingDetailModal = ({ booking, onClose }: { booking: Booking; onClose: (
                                     </div>
                                     <div>
                                         <label className="text-xs text-gray-500 block mb-1">Kategori</label>
-                                        <span className="text-xs bg-white/10 px-2 py-1 rounded text-white">{booking.car?.category}</span>
+                                        <span className="text-xs bg-white/10 px-2 py-1 rounded text-white">{translateCategory(booking.car?.category || '')}</span>
                                     </div>
                                 </div>
                                 <div className="pt-2 border-t border-white/5 mt-2">
