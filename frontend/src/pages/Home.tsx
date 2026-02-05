@@ -257,20 +257,19 @@ export const Home = () => {
                                 setFilters(prev => ({ ...prev, brand: brand.name }));
                                 carService.getAll({ q: brand.name }).then(res => setCars(res.data));
                             }}
-                            className={`group flex flex-col items-center justify-center p-5 rounded-2xl border transition-all duration-300 w-28 h-28 md:w-32 md:h-32 
+                            className={`group flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-300 w-28 h-32 md:w-32 md:h-36 
                                 ${filters.brand.toLowerCase() === brand.name.toLowerCase()
                                     ? 'bg-primary-500/10 border-primary-500 shadow-[0_0_20px_rgba(99,102,241,0.3)] scale-110'
                                     : 'bg-dark-surface-lighter border-white/5 hover:border-primary-500/50 hover:bg-dark-surface-lighter/80 hover:scale-105'}`}
                         >
-                            <img
-                                src={brand.logoUrl}
-                                alt={brand.name}
-                                className={`w-12 h-12 md:w-14 md:h-14 object-contain mb-3 transition-all duration-300 
-                                    ${filters.brand.toLowerCase() === brand.name.toLowerCase()
-                                        ? 'filter-none drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]'
-                                        : 'filter grayscale opacity-50 group-hover:filter-none group-hover:opacity-100'}`}
-                            />
-                            <span className={`text-xs font-bold tracking-widest uppercase ${filters.brand.toLowerCase() === brand.name.toLowerCase() ? 'text-primary-400' : 'text-gray-500 group-hover:text-white'}`}>{brand.name}</span>
+                            <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl flex items-center justify-center mb-3 p-2 shadow-inner transition-transform duration-300 group-hover:scale-110">
+                                <img
+                                    src={brand.logoUrl}
+                                    alt={brand.name}
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                            <span className={`text-xs font-bold tracking-widest uppercase truncate w-full px-1 ${filters.brand.toLowerCase() === brand.name.toLowerCase() ? 'text-primary-400' : 'text-gray-400 group-hover:text-white'}`}>{brand.name}</span>
                         </button>
                     ))}
                 </div>

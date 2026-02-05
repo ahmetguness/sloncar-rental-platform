@@ -1,5 +1,5 @@
 import { PrismaClient, Transmission, FuelType, CarCategory, CarStatus, UserRole, FranchiseApplicationStatus } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -416,43 +416,43 @@ async function main() {
     console.log('Seeding car brands...');
     const brands = [
         // German
-        { name: 'BMW', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg' },
-        { name: 'Mercedes', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Benz_Logo_2010.svg' },
-        { name: 'Audi', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Audi-Logo_2016.svg' },
-        { name: 'Volkswagen', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg' },
-        { name: 'Opel', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Opel_Logo_2024.svg' },
-        { name: 'Porsche', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/8/8c/Porsche_logo.svg/1200px-Porsche_logo.svg.png' },
+        { name: 'BMW', logoUrl: '/brands/bmw.svg' },
+        { name: 'Mercedes', logoUrl: '/brands/mercedes.svg' },
+        { name: 'Audi', logoUrl: '/brands/audi.svg' },
+        { name: 'Volkswagen', logoUrl: '/brands/volkswagen.svg' },
+        { name: 'Opel', logoUrl: '/brands/opel.png' },
+        { name: 'Porsche', logoUrl: '/brands/porsche.png' },
         // French
-        { name: 'Renault', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Renault_2021_Textless_logo.svg' },
-        { name: 'Peugeot', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/f7/Peugeot_Logo.svg' },
-        { name: 'Citroen', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Citroen_2022_logo.svg' },
-        { name: 'Dacia', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Dacia_Logo.svg' },
+        { name: 'Renault', logoUrl: '/brands/renault.png' },
+        { name: 'Peugeot', logoUrl: '/brands/peugeot.svg' },
+        { name: 'Citroen', logoUrl: '/brands/citroen.png' },
+        { name: 'Dacia', logoUrl: '/brands/dacia.png' },
         // Italian
-        { name: 'Fiat', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/12/Fiat_Automobiles_logo.svg' },
-        { name: 'Alfa Romeo', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/9e/Alfa_Romeo_logo.png' },
+        { name: 'Fiat', logoUrl: '/brands/fiat.svg' },
+        { name: 'Alfa Romeo', logoUrl: '/brands/alfa-romeo.png' },
         // Japanese
-        { name: 'Toyota', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg' },
-        { name: 'Honda', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Honda_Logo.svg' },
-        { name: 'Nissan', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8c/Nissan_logo.png' },
-        { name: 'Suzuki', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/12/Suzuki_logo_2.svg' },
+        { name: 'Toyota', logoUrl: '/brands/toyota.svg' },
+        { name: 'Honda', logoUrl: '/brands/honda.svg' },
+        { name: 'Nissan', logoUrl: '/brands/nissan.png' },
+        { name: 'Suzuki', logoUrl: '/brands/suzuki.png' },
         // Korean
-        { name: 'Hyundai', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/41/Hyundai_Motor_Company_logo.svg' },
-        { name: 'Kia', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/47/Kia_logo.svg' },
+        { name: 'Hyundai', logoUrl: '/brands/hyundai.png' },
+        { name: 'Kia', logoUrl: '/brands/kia.png' },
         // American
-        { name: 'Ford', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/3e/Ford_logo_flat.svg' },
-        { name: 'Jeep', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/JEEP_logo.svg' },
-        { name: 'Tesla', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png' },
+        { name: 'Ford', logoUrl: '/brands/ford.svg' },
+        { name: 'Jeep', logoUrl: '/brands/jeep.png' },
+        { name: 'Tesla', logoUrl: '/brands/tesla.png' },
         // British
-        { name: 'Land Rover', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Land_Rover_logo.svg/1200px-Land_Rover_logo.svg.png' },
-        { name: 'Mini', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8d/Mini_logo.svg' },
+        { name: 'Land Rover', logoUrl: '/brands/land-rover.png' },
+        { name: 'Mini', logoUrl: '/brands/mini.svg' },
         // Other
-        { name: 'Volvo', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/29/Volvo_Iron_Mark.svg' },
-        { name: 'Skoda', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/ac/Skoda_Auto_logo_%282023%29.svg' },
-        { name: 'SEAT', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/SEAT_Logo_2021.svg' },
-        { name: 'Cupra', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Cupra_Logo.svg' },
-        { name: 'Chery', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7f/Chery_Automobile_logo.svg' },
-        { name: 'MG', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/MG_Motor_logo.svg' },
-        { name: 'TOGG', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Togg_logo.svg' },
+        { name: 'Volvo', logoUrl: '/brands/volvo.png' },
+        { name: 'Skoda', logoUrl: '/brands/skoda.png' },
+        { name: 'SEAT', logoUrl: '/brands/seat.png' },
+        { name: 'Cupra', logoUrl: '/brands/cupra.png' },
+        { name: 'Chery', logoUrl: '/brands/chery.png' },
+        { name: 'MG', logoUrl: '/brands/mg.svg' },
+        { name: 'TOGG', logoUrl: '/brands/togg.svg' },
     ];
 
     for (const brand of brands) {

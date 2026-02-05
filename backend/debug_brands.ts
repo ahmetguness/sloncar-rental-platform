@@ -1,36 +1,41 @@
+
 import { PrismaClient } from '@prisma/client';
+import * as fs from 'fs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('--- Debugging Brands ---');
+    let output = '--- Debugging Brands ---\n';
 
-    console.log('1. Checking Distinct Brands in Car Table:');
+    // 1. Get cars
     const cars = await prisma.car.findMany({
-        select: { brand: true, status: true },
-        distinct: ['brand', 'status']
+        select: { brand: true, model: true },
+        distinct: ['brand']
     });
-    console.log(JSON.stringify(cars, null, 2));
+    output += `Unique Brands in Car Table: ${cars.map(c => c.brand).join(', ')}\n`;
 
-    console.log('\n2. Checking CarBrand Table:');
-    const brands = await prisma.carBrand.findMany({
-        select: { name: true, isActive: true },
+    // 2. Get CarBrands
+    const carBrands = await prisma.carBrand.findMany();
+    output += '\nAll CarBrands in DB:\n';
+    carBrands.forEach(b => {
+        output += `- Name: "${b.name}", Active: ${b.isActive}, Logo: ${b.logoUrl}\n`;
     });
-    console.log(JSON.stringify(brands, null, 2));
 
-    console.log('\n3. Checking Intersection:');
-    const distinctNames = [...new Set(cars.map(c => c.brand))];
-    const brandNames = brands.map(b => b.name);
+    // 3. Match Logic
+    const existingBrandNames = new Set(cars.map(c => c.brand.toLowerCase()));
+    const matched = carBrands.filter(b => existingBrandNames.has(b.name.toLowerCase()));
 
-    const missing = distinctNames.filter(d => !brandNames.some(b => b.toLowerCase() === d.toLowerCase()));
-    console.log('Brands in Car but MISSING in CarBrand:', missing);
+    output += '\nMatched Brands (Sent to Frontend):\n';
+    matched.forEach(b => {
+        output += `- ${b.name}: ${b.logoUrl}\n`;
+    });
 
-    const match = brandNames.filter(b => distinctNames.some(d => d.toLowerCase() === b.toLowerCase()));
-    console.log('Matching Brands (should appear):', match);
+    fs.writeFileSync('debug_output.txt', output);
+    console.log('Output written to debug_output.txt');
 }
 
 main()
-    .catch(e => console.error(e))
+    .catch((e: unknown) => console.error(e))
     .finally(async () => {
         await prisma.$disconnect();
     });

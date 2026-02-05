@@ -1,0 +1,406 @@
+--- Debugging Brands ---
+Unique Brands in Car Table: Renault, Fiat, Volkswagen, BMW, Mercedes, Tesla, Ford, Hyundai, Toyota
+
+All CarBrands in DB:
+- Name: "Mercedes", Active: true, Logo: /brands/mercedes.svg
+- Name: "Audi", Active: true, Logo: /brands/audi.svg
+- Name: "Volkswagen", Active: true, Logo: /brands/volkswagen.svg
+- Name: "Peugeot", Active: true, Logo: /brands/peugeot.svg
+- Name: "Fiat", Active: true, Logo: /brands/fiat.svg
+- Name: "Toyota", Active: true, Logo: /brands/toyota.svg
+- Name: "Honda", Active: true, Logo: /brands/honda.svg
+- Name: "Ford", Active: true, Logo: /brands/ford.svg
+- Name: "Tesla", Active: true, Logo: /brands/tesla.png
+- Name: "Chevrolet", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/1/1e/Chevrolet-logo.png
+- Name: "Porsche", Active: true, Logo: /brands/porsche.png
+- Name: "Renault", Active: true, Logo: /brands/renault.png
+- Name: "Citroen", Active: true, Logo: /brands/citroen.png
+- Name: "9ff", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/9ff.png
+- Name: "Abadal", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/abadal.png
+- Name: "Abarth", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/abarth.png
+- Name: "Abbott-Detroit", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/abbott-detroit.png
+- Name: "ABT", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/abt.png
+- Name: "Nissan", Active: true, Logo: /brands/nissan.png
+- Name: "Hyundai", Active: true, Logo: /brands/hyundai.png
+- Name: "Kia", Active: true, Logo: /brands/kia.png
+- Name: "Jeep", Active: true, Logo: /brands/jeep.png
+- Name: "Land Rover", Active: true, Logo: /brands/land-rover.png
+- Name: "Volvo", Active: true, Logo: /brands/volvo.png
+- Name: "Skoda", Active: true, Logo: /brands/skoda.png
+- Name: "BMW", Active: true, Logo: /brands/bmw.svg
+- Name: "AC", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ac.png
+- Name: "Acura", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/acura.png
+- Name: "Aiways", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/aiways.png
+- Name: "Aixam", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/aixam.png
+- Name: "Alpina", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/alpina.png
+- Name: "Alpine", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/alpine.png
+- Name: "Alta", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/alta.png
+- Name: "Alvis", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/alvis.png
+- Name: "AMC", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/amc.png
+- Name: "Apollo", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/apollo.png
+- Name: "Arash", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/arash.png
+- Name: "Arcfox", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/arcfox.png
+- Name: "Ariel", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ariel.png
+- Name: "ARO", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/aro.png
+- Name: "Arrinera", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/arrinera.png
+- Name: "Arrival", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/arrival.png
+- Name: "Artega", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/artega.png
+- Name: "Ascari", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ascari.png
+- Name: "Askam", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/askam.png
+- Name: "Aspark", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/aspark.png
+- Name: "Atalanta", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/atalanta.png
+- Name: "Auburn", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/auburn.png
+- Name: "Audi Sport", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/audi-sport.png
+- Name: "Austin", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/austin.png
+- Name: "Autobacs", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/autobacs.png
+- Name: "Autobianchi", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/autobianchi.png
+- Name: "Axon", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/axon.png
+- Name: "BAC", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bac.png
+- Name: "BAIC Motor", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/baic-motor.png
+- Name: "Baojun", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/baojun.png
+- Name: "BeiBen", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/beiben.png
+- Name: "Berkeley", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/berkeley.png
+- Name: "Berliet", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/berliet.png
+- Name: "Bertone", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bertone.png
+- Name: "Bestune", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bestune.png
+- Name: "BharatBenz", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bharatbenz.png
+- Name: "Bitter", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bitter.png
+- Name: "Bizzarrini", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bizzarrini.png
+- Name: "Bentley", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/d/d5/Bentley_logo.svg
+- Name: "Aston Martin", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/4/48/Aston_Martin_logo.svg
+- Name: "Alfa Romeo", Active: true, Logo: /brands/alfa-romeo.png
+- Name: "BMW M", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bmw-m.png
+- Name: "Borgward", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/borgward.png
+- Name: "Bowler", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bowler.png
+- Name: "Brabus", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/brabus.png
+- Name: "Brammo", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/brammo.png
+- Name: "Brilliance", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/brilliance.png
+- Name: "Bristol", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bristol.png
+- Name: "Brooke", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/brooke.png
+- Name: "Bufori", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bufori.png
+- Name: "Bugatti", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/bugatti.png
+- Name: "Buick", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/buick.png
+- Name: "Byton", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/byton.png
+- Name: "CAMC", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/camc.png
+- Name: "Canoo", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/canoo.png
+- Name: "Caparo", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/caparo.png
+- Name: "Carlsson", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/carlsson.png
+- Name: "Caterham", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/caterham.png
+- Name: "Changan", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/changan.png
+- Name: "Changfeng", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/changfeng.png
+- Name: "Chevrolet Corvette", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/chevrolet-corvette.png
+- Name: "Chrysler", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/chrysler.png
+- Name: "Cisitalia", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/cisitalia.png
+- Name: "Citroën", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/citroen.png
+- Name: "Cizeta", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/cizeta.png
+- Name: "Cole", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/cole.png
+- Name: "Corre La Licorne", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/corre-la-licorne.png
+- Name: "Daewoo", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/daewoo.png
+- Name: "DAF", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/daf.png
+- Name: "Daihatsu", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/daihatsu.png
+- Name: "Daimler", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/daimler.png
+- Name: "Dartz", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/dartz.png
+- Name: "Datsun", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/datsun.png
+- Name: "David Brown", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/david-brown.png
+- Name: "Dayun", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/dayun.png
+- Name: "De Tomaso", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/de-tomaso.png
+- Name: "Delage", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/delage.png
+- Name: "Cupra", Active: true, Logo: /brands/cupra.png
+- Name: "Cadillac", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/b/b0/Cadillac_Logo.svg
+- Name: "BYD", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/e/e4/BYD_Auto_Logo.svg
+- Name: "Chery", Active: true, Logo: /brands/chery.png
+- Name: "Dacia", Active: true, Logo: /brands/dacia.png
+- Name: "DeSoto", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/desoto.png
+- Name: "Detroit Electric", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/detroit-electric.png
+- Name: "Devel Sixteen", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/devel-sixteen.png
+- Name: "Diatto", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/diatto.png
+- Name: "DINA", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/dina.png
+- Name: "DKW", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/dkw.png
+- Name: "DMC", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/dmc.png
+- Name: "Dodge Viper", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/dodge-viper.png
+- Name: "Dongfeng", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/dongfeng.png
+- Name: "Donkervoort", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/donkervoort.png
+- Name: "Drako", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/drako.png
+- Name: "DS", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ds.png
+- Name: "Duesenberg", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/duesenberg.png
+- Name: "Eagle", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/eagle.png
+- Name: "EDAG", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/edag.png
+- Name: "Edsel", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/edsel.png
+- Name: "Eicher", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/eicher.png
+- Name: "Elemental", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/elemental.png
+- Name: "Elfin", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/elfin.png
+- Name: "Elva", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/elva.png
+- Name: "Englon", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/englon.png
+- Name: "ERF", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/erf.png
+- Name: "Eterniti", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/eterniti.png
+- Name: "Exeed", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/exeed.png
+- Name: "Facel Vega", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/facel-vega.png
+- Name: "Faraday Future", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/faraday-future.png
+- Name: "FAW", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/faw.png
+- Name: "FAW Jiefang", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/faw-jiefang.png
+- Name: "Fioravanti", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/fioravanti.png
+- Name: "Fisker", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/fisker.png
+- Name: "Foden", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/foden.png
+- Name: "Force Motors", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/force-motors.png
+- Name: "Ford Mustang", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ford-mustang.png
+- Name: "Foton", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/foton.png
+- Name: "FPV", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/fpv.png
+- Name: "Franklin", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/franklin.png
+- Name: "Freightliner", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/freightliner.png
+- Name: "FSO", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/fso.png
+- Name: "GAC Group", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/gac-group.png
+- Name: "Ferrari", Active: true, Logo: https://upload.wikimedia.org/wikipedia/en/d/d9/FerrariShieldLogo.svg
+- Name: "Dodge", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/e/e1/Dodge_logo.svg
+- Name: "Gardner Douglas", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/gardner-douglas.png
+- Name: "GAZ", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/gaz.png
+- Name: "Geely", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/geely.png
+- Name: "General Motors", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/general-motors.png
+- Name: "Geo", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/geo.png
+- Name: "Geometry", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/geometry.png
+- Name: "Gilbern", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/gilbern.png
+- Name: "Gillet", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/gillet.png
+- Name: "Ginetta", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ginetta.png
+- Name: "GMC", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/gmc.png
+- Name: "Golden Dragon", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/golden-dragon.png
+- Name: "Gonow", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/gonow.png
+- Name: "Great Wall", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/great-wall.png
+- Name: "Grinnall", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/grinnall.png
+- Name: "Gumpert", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/gumpert.png
+- Name: "Hafei", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hafei.png
+- Name: "Haima", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/haima.png
+- Name: "Haval", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/haval.png
+- Name: "Hawtai", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hawtai.png
+- Name: "Hennessey", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hennessey.png
+- Name: "Higer", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/higer.png
+- Name: "Hillman", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hillman.png
+- Name: "Hindustan Motors", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hindustan-motors.png
+- Name: "Hino", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hino.png
+- Name: "HiPhi", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hiphi.png
+- Name: "Hispano-Suiza", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hispano-suiza.png
+- Name: "Holden", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/holden.png
+- Name: "Hommell", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hommell.png
+- Name: "Hongqi", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hongqi.png
+- Name: "Hongyan", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hongyan.png
+- Name: "Horch", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/horch.png
+- Name: "HSV", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hsv.png
+- Name: "Hudson", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hudson.png
+- Name: "Hummer", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hummer.png
+- Name: "Hupmobile", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hupmobile.png
+- Name: "IC Bus", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ic-bus.png
+- Name: "IH", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ih.png
+- Name: "IKCO", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ikco.png
+- Name: "Innocenti", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/innocenti.png
+- Name: "Infiniti", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/b/b1/Infiniti_logo.svg
+- Name: "Genesis", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/4/46/Genesis_Motor_logo.svg
+- Name: "Intermeccanica", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/intermeccanica.png
+- Name: "International", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/international.png
+- Name: "Irizar", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/irizar.png
+- Name: "Isdera", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/isdera.png
+- Name: "Iso", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/iso.png
+- Name: "Isuzu", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/isuzu.png
+- Name: "Iveco", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/iveco.png
+- Name: "JAC", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jac.png
+- Name: "Jawa", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jawa.png
+- Name: "JBA Motors", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jba-motors.png
+- Name: "Jensen", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jensen.png
+- Name: "Jetour", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jetour.png
+- Name: "Jetta", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jetta.png
+- Name: "JMC", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jmc.png
+- Name: "Kaiser", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/kaiser.png
+- Name: "Kamaz", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/kamaz.png
+- Name: "Karlmann King", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/karlmann-king.png
+- Name: "Karma", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/karma.png
+- Name: "Keating", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/keating.png
+- Name: "Kenworth", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/kenworth.png
+- Name: "King Long", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/king-long.png
+- Name: "Koenigsegg", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/koenigsegg.png
+- Name: "KTM", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ktm.png
+- Name: "Lada", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lada.png
+- Name: "Lagonda", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lagonda.png
+- Name: "Lancia", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lancia.png
+- Name: "Landwind", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/landwind.png
+- Name: "Laraki", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/laraki.png
+- Name: "Leapmotor", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/leapmotor.png
+- Name: "LEVC", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/levc.png
+- Name: "Leyland", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/leyland.png
+- Name: "Li Auto", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/li-auto.png
+- Name: "Lifan", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lifan.png
+- Name: "Ligier", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ligier.png
+- Name: "Lincoln", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lincoln.png
+- Name: "Lister", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lister.png
+- Name: "Lloyd", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lloyd.png
+- Name: "Lobini", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lobini.png
+- Name: "Lordstown", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lordstown.png
+- Name: "Lexus", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/d/d6/Lexus_division_emblem.svg
+- Name: "Jaguar", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/7/79/Jaguar_Cars_logo.svg
+- Name: "Lotus", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lotus.png
+- Name: "Lucid", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lucid.png
+- Name: "Luxgen", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/luxgen.png
+- Name: "Lynk & Co", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/lynk-and-co.png
+- Name: "Mack", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mack.png
+- Name: "Mahindra", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mahindra.png
+- Name: "MAN", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/man.png
+- Name: "Mansory", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mansory.png
+- Name: "Marcos", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/marcos.png
+- Name: "Marlin", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/marlin.png
+- Name: "Mastretta", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mastretta.png
+- Name: "Maxus", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/maxus.png
+- Name: "Maybach", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/maybach.png
+- Name: "MAZ", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/maz.png
+- Name: "Mazzanti", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mazzanti.png
+- Name: "McLaren", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mclaren.png
+- Name: "Melkus", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/melkus.png
+- Name: "Mercedes-AMG", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mercedes-amg.png
+- Name: "Mercedes-Benz", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mercedes-benz.png
+- Name: "Mercury", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mercury.png
+- Name: "Merkur", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/merkur.png
+- Name: "MEV", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mev.png
+- Name: "Microcar", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/microcar.png
+- Name: "Mitsuoka", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mitsuoka.png
+- Name: "MK", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mk.png
+- Name: "Morgan", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/morgan.png
+- Name: "Morris", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/morris.png
+- Name: "Mosler", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mosler.png
+- Name: "Navistar", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/navistar.png
+- Name: "NEVS", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/nevs.png
+- Name: "Nikola", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/nikola.png
+- Name: "NIO", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/nio.png
+- Name: "Nissan GT-R", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/nissan-gt-r.png
+- Name: "Nissan Nismo", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/nissan-nismo.png
+- Name: "Noble", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/noble.png
+- Name: "Oldsmobile", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/oldsmobile.png
+- Name: "Maserati", Active: true, Logo: https://upload.wikimedia.org/wikipedia/en/d/de/Maserati_logo.svg
+- Name: "Mazda", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/4/4a/Mazda_logo_with_emblem.svg
+- Name: "Mitsubishi", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/5/5a/Mitsubishi_logo.svg
+- Name: "Mini", Active: true, Logo: /brands/mini.svg
+- Name: "MG", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/b/b7/MG_Motor_logo.svg
+- Name: "Oltcit", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/oltcit.png
+- Name: "Omoda", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/omoda.png
+- Name: "OSCA", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/osca.png
+- Name: "Paccar", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/paccar.png
+- Name: "Packard", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/packard.png
+- Name: "Pagani", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/pagani.png
+- Name: "Panhard", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/panhard.png
+- Name: "Panoz", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/panoz.png
+- Name: "Pegaso", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/pegaso.png
+- Name: "Perodua", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/perodua.png
+- Name: "Peterbilt", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/peterbilt.png
+- Name: "PGO", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/pgo.png
+- Name: "Pierce-Arrow", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/pierce-arrow.png
+- Name: "Pininfarina", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/pininfarina.png
+- Name: "Plymouth", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/plymouth.png
+- Name: "Polestar", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/polestar.png
+- Name: "Pontiac", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/pontiac.png
+- Name: "Praga", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/praga.png
+- Name: "Premier", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/premier.png
+- Name: "Prodrive", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/prodrive.png
+- Name: "Proton", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/proton.png
+- Name: "Qoros", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/qoros.png
+- Name: "Radical", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/radical.png
+- Name: "RAM", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ram.png
+- Name: "Rambler", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/rambler.png
+- Name: "Ranz", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ranz.png
+- Name: "Renault Samsung", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/renault-samsung.png
+- Name: "Rezvani", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/rezvani.png
+- Name: "Riley", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/riley.png
+- Name: "Rimac", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/rimac.png
+- Name: "Rinspeed", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/rinspeed.png
+- Name: "Rivian", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/rivian.png
+- Name: "Roewe", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/roewe.png
+- Name: "Ronart", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ronart.png
+- Name: "Rossion", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/rossion.png
+- Name: "Rover", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/rover.png
+- Name: "RUF", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ruf.png
+- Name: "Saab", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/saab.png
+- Name: "SAIC Motor", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/saic-motor.png
+- Name: "Saipa", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/saipa.png
+- Name: "Rolls-Royce", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/9/99/Rolls-Royce_Motor_Cars_logo.svg
+- Name: "Saleen", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/saleen.png
+- Name: "Saturn", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/saturn.png
+- Name: "Scania", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/scania.png
+- Name: "Scion", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/scion.png
+- Name: "Setra", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/setra.png
+- Name: "SEV", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/sev.png
+- Name: "Shacman", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/shacman.png
+- Name: "Simca", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/simca.png
+- Name: "Singer", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/singer.png
+- Name: "Singulato", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/singulato.png
+- Name: "Sinotruk", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/sinotruk.png
+- Name: "Sisu", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/sisu.png
+- Name: "Škoda", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/skoda.png
+- Name: "Smart", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/smart.png
+- Name: "Soueast", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/soueast.png
+- Name: "Spania GTA", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/spania-gta.png
+- Name: "Spirra", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/spirra.png
+- Name: "Spyker", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/spyker.png
+- Name: "SsangYong", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ssangyong.png
+- Name: "SSC", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ssc.png
+- Name: "Sterling", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/sterling.png
+- Name: "Studebaker", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/studebaker.png
+- Name: "Stutz", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/stutz.png
+- Name: "Suffolk", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/suffolk.png
+- Name: "Talbot", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/talbot.png
+- Name: "Tata", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/tata.png
+- Name: "Tatra", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/tatra.png
+- Name: "Tauro", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/tauro.png
+- Name: "TechArt", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/techart.png
+- Name: "Toyota Alphard", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/toyota-alphard.png
+- Name: "Toyota Century", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/toyota-century.png
+- Name: "Toyota Crown", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/toyota-crown.png
+- Name: "Tramontana", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/tramontana.png
+- Name: "Trion", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/trion.png
+- Name: "Triumph", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/triumph.png
+- Name: "Troller", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/troller.png
+- Name: "Tucker", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/tucker.png
+- Name: "TVR", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/tvr.png
+- Name: "Subaru", Active: true, Logo: https://upload.wikimedia.org/wikipedia/commons/a/a0/Subaru_Logo.svg
+- Name: "Suzuki", Active: true, Logo: /brands/suzuki.png
+- Name: "SEAT", Active: true, Logo: /brands/seat.png
+- Name: "UAZ", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/uaz.png
+- Name: "UD", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ud.png
+- Name: "Ultima", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ultima.png
+- Name: "Vandenbrink", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/vandenbrink.png
+- Name: "Vauxhall", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/vauxhall.png
+- Name: "Vector", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/vector.png
+- Name: "Vencer", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/vencer.png
+- Name: "Venturi", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/venturi.png
+- Name: "Venucia", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/venucia.png
+- Name: "VinFast", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/vinfast.png
+- Name: "VLF", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/vlf.png
+- Name: "W Motors", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/w-motors.png
+- Name: "Wanderer", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/wanderer.png
+- Name: "Wartburg", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/wartburg.png
+- Name: "Weltmeister", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/weltmeister.png
+- Name: "Western Star", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/western-star.png
+- Name: "Westfield", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/westfield.png
+- Name: "WEY", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/wey.png
+- Name: "Wiesmann", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/wiesmann.png
+- Name: "Willys-Overland", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/willys-overland.png
+- Name: "Workhorse", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/workhorse.png
+- Name: "Wuling", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/wuling.png
+- Name: "XPeng", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/xpeng.png
+- Name: "Yulon", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/yulon.png
+- Name: "Yutong", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/yutong.png
+- Name: "Zarooq Motors", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/zarooq-motors.png
+- Name: "Zastava", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/zastava.png
+- Name: "ZAZ", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/zaz.png
+- Name: "Zeekr", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/zeekr.png
+- Name: "Zenos", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/zenos.png
+- Name: "Zenvo", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/zenvo.png
+- Name: "Zhongtong", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/zhongtong.png
+- Name: "Zinoro", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/zinoro.png
+- Name: "Zotye", Active: true, Logo: https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/zotye.png
+- Name: "Lamborghini", Active: true, Logo: https://upload.wikimedia.org/wikipedia/en/d/df/Lamborghini_Logo.svg
+- Name: "Opel", Active: true, Logo: /brands/opel.png
+- Name: "TOGG", Active: true, Logo: /brands/togg.svg
+
+Matched Brands (Sent to Frontend):
+- Mercedes: /brands/mercedes.svg
+- Volkswagen: /brands/volkswagen.svg
+- Fiat: /brands/fiat.svg
+- Toyota: /brands/toyota.svg
+- Ford: /brands/ford.svg
+- Tesla: /brands/tesla.png
+- Renault: /brands/renault.png
+- Hyundai: /brands/hyundai.png
+- BMW: /brands/bmw.svg
