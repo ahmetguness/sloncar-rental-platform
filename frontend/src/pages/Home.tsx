@@ -9,7 +9,7 @@ import type { Car } from '../services/types';
 import { CarCard } from '../components/CarCard';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Loader2, Search, SlidersHorizontal, RotateCcw, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, RotateCcw, Plus, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 
 // Register Turkish locale
 registerLocale('tr', tr);
@@ -33,6 +33,7 @@ export const Home = () => {
     const [isPaused, setIsPaused] = useState(false);
     const animationRef = useRef<number | null>(null);
     const scrollAccumulator = useRef(0);
+
 
     // Prepare display brands (triple buffer for infinite scroll)
     // Prepare display brands (triple buffer for infinite scroll)
@@ -229,11 +230,21 @@ export const Home = () => {
                     <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed font-light animate-fade-in-up delay-200">
                         Sıradan olanı reddet. SlonCar ile en prestijli araçları, en zahmetsiz deneyimle keşfet.
                     </p>
+
+                    <div className="animate-fade-in-up delay-300 pt-4">
+                        <Button
+                            onClick={() => document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' })}
+                            className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:shadow-[0_0_50px_rgba(99,102,241,0.7)] transition-all transform hover:scale-105 flex items-center gap-2 mx-auto"
+                        >
+                            <Sparkles className="w-5 h-5" />
+                            ARAÇLARI İNCELE
+                        </Button>
+                    </div>
                 </div>
             </section>
 
-            {/* Floating Search Bar */}
-            <div className="relative z-20 container mx-auto px-4 -mt-24">
+            {/* Floating Search Bar (Desktop) */}
+            <div className="relative z-20 container mx-auto px-4 -mt-24 hidden md:block">
                 <div className="max-w-6xl mx-auto bg-dark-surface-lighter/80 backdrop-blur-xl rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] p-8 border border-white/10">
 
                     {/* Date Row */}
@@ -443,7 +454,11 @@ export const Home = () => {
             </div>
 
             {/* Car Grid Section */}
-            <section id="fleet" className="container mx-auto px-6 pt-12 scroll-mt-24">
+            <section id="fleet" className="container mx-auto px-6 pt-12 scroll-mt-24 relative">
+                {/* Background Blobs */}
+                <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-primary-900/20 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-neon-purple/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
+
                 <div className="flex items-center justify-between mb-10">
                     <div>
                         <h2 className="text-4xl font-black text-white tracking-tight">ARAÇ <span className="text-primary-500">FİLOSU</span></h2>

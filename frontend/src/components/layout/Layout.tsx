@@ -1,8 +1,9 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, Menu, X, ChevronRight, Phone, MapPin, Instagram } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { adminService } from '../../services/api';
 import logo from '../../assets/logo/logo.jpg';
+import { Footer } from './Footer';
 
 export const Layout = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -93,93 +94,8 @@ export const Layout = () => {
             </main>
 
             {/* Footer */}
-            {!isAdmin && (
-                <footer className="bg-dark-surface border-t border-white/5 text-gray-400 py-16 relative overflow-hidden">
-                    {/* Background Glow */}
-                    <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-900/20 rounded-full blur-[128px] pointer-events-none" />
-
-                    <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-5 gap-12 relative z-10 w-full">
-                        <div className="col-span-1 md:col-span-2 space-y-6">
-                            <Link to="/" className="flex items-center gap-3 text-white font-bold text-2xl group w-fit">
-                                <img src={logo} alt="SlonCar" className="w-10 h-10 rounded-xl object-cover ring-2 ring-white/10 group-hover:ring-primary-500/50 transition-all" />
-                                <span className="group-hover:text-glow transition-all">Slon<span className="text-primary-500">Car</span></span>
-                            </Link>
-                            <p className="max-w-sm text-gray-500 leading-relaxed text-sm">
-                                Premium araç kiralama deneyimini yeniden tanımlıyoruz.
-                                <br />Yüksek performans, maksimum konfor ve fütüristik tasarım.
-                            </p>
-                        </div>
-
-                        <div>
-                            <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-[0.2em] text-primary-500">Hızlı Bağlantılar</h4>
-                            <ul className="space-y-4 text-sm">
-                                <li><Link to="/" className="hover:text-white hover:translate-x-1 transition-all duration-300 inline-block">Araçlar</Link></li>
-                                <li><Link to="/my-booking" className="hover:text-white hover:translate-x-1 transition-all duration-300 inline-block">Rezervasyon Yönetimi</Link></li>
-                                <li><a href="#" className="hover:text-white hover:translate-x-1 transition-all duration-300 inline-block">Kurumsal Kiralama</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-[0.2em] text-primary-500">İletişim</h4>
-                            <ul className="space-y-4 text-sm">
-                                <li className="flex items-center gap-3 group">
-                                    <div className="p-2 rounded-lg bg-white/5 group-hover:bg-primary-500/20 transition-colors">
-                                        <Phone className="w-4 h-4 text-primary-400" />
-                                    </div>
-                                    <a href="tel:05462392626" className="group-hover:text-white transition-colors">0546 239 26 26</a>
-                                </li>
-                                <li className="flex items-center gap-3 group">
-                                    <div className="p-2 rounded-lg bg-white/5 group-hover:bg-primary-500/20 transition-colors">
-                                        <Instagram className="w-4 h-4 text-primary-400" />
-                                    </div>
-                                    <a href="https://www.instagram.com/kiralamakguzeldir?igsh=MXM5cnA0MGVyZnd5cQ%3D%3D" target="_blank" rel="noopener noreferrer" className="group-hover:text-white transition-colors">Instagram</a>
-                                </li>
-                                <li className="flex items-start gap-3 group">
-                                    <div className="p-2 rounded-lg bg-white/5 group-hover:bg-primary-500/20 transition-colors mt-1">
-                                        <MapPin className="w-4 h-4 text-primary-400" />
-                                    </div>
-                                    <span className="group-hover:text-white transition-colors max-w-[200px]">Arda Mahallesi 3202 Sokak 7/C Şehzadeler, Manisa</span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-[0.2em] text-primary-500">Konum</h4>
-                            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative group h-[200px] w-full isolate">
-                                {/* Overlay with Text */}
-                                <a
-                                    href="https://maps.google.com/maps?q=Arda+Mahallesi+3202+Sokak+7%2FC+Şehzadeler%2C+Manisa"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="absolute inset-0 bg-dark-surface/60 group-hover:bg-transparent transition-all duration-500 z-20 flex items-center justify-center cursor-pointer"
-                                >
-                                    <div className="bg-dark/80 backdrop-blur-sm border border-white/10 px-4 py-2 rounded-full flex items-center gap-2 group-hover:opacity-0 transition-all duration-300 transform group-hover:scale-90 shadow-xl">
-                                        <MapPin className="w-4 h-4 text-primary-500" />
-                                        <span className="text-white text-xs font-bold tracking-wider">HARİTADA GÖSTER</span>
-                                    </div>
-                                </a>
-
-                                {/* Map Iframe with Dark Mode Filter */}
-                                <iframe
-                                    width="100%"
-                                    height="100%"
-                                    frameBorder="0"
-                                    scrolling="no"
-                                    marginHeight={0}
-                                    marginWidth={0}
-                                    src="https://maps.google.com/maps?q=Arda+Mahallesi+3202+Sokak+7%2FC+Şehzadeler%2C+Manisa&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                                    className="w-full h-full transition-all duration-700 ease-in-out opacity-80 group-hover:opacity-100"
-                                    style={{ filter: 'invert(90%) hue-rotate(180deg) brightness(85%) contrast(110%)' }}
-                                ></iframe>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="container mx-auto px-6 mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
-                        <p>&copy; 2026 SlonCar. Tüm hakları saklıdır.</p>
-                        <Link to="/admin/login" className="hover:text-primary-500 transition-colors">Yönetici Girişi</Link>
-                    </div>
-                </footer>
-            )}
+            {/* Footer */}
+            {!isAdmin && <Footer />}
         </div>
     );
 };

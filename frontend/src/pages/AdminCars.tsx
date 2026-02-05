@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { adminService, uploadService, brandService } from '../services/api';
 import type { Car } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory, translateFuel } from '../utils/translate';
-import { Loader2, Plus, Edit2, Trash2, X, Upload, Car as CarIcon, ArrowLeft, Search } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, X, Upload, Car as CarIcon, ArrowLeft, Search, ChevronLeft, ChevronRight, AlertTriangle, Filter } from 'lucide-react';
+import { useToast } from '../components/ui/Toast';
+import { Modal } from '../components/ui/Modal';
+import { Skeleton } from '../components/ui/Skeleton';
 
 interface Brand {
     id: string;
@@ -40,7 +43,6 @@ const initialFormData = {
 const BrandLogo = ({ name, url, className = "w-8 h-8" }: { name: string, url?: string, className?: string }) => {
     const [error, setError] = useState(false);
 
-    // Reset error when url changes
     useEffect(() => {
         setError(false);
     }, [url]);
@@ -64,39 +66,40 @@ const BrandLogo = ({ name, url, className = "w-8 h-8" }: { name: string, url?: s
 };
 
 export const AdminCars = () => {
-    const navigate = useNavigate();
+    const { addToast: toast } = useToast();
     const [cars, setCars] = useState<Car[]>([]);
     const [branches, setBranches] = useState<Branch[]>([]);
     const [brands, setBrands] = useState<Brand[]>([]);
     const [loading, setLoading] = useState(true);
+    const [tableLoading, setTableLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [editingCar, setEditingCar] = useState<Car | null>(null);
     const [formData, setFormData] = useState(initialFormData);
     const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
-    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
-    const filteredCars = cars.filter(car =>
-        car.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        car.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        car.plateNumber.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filters & Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCars, setTotalCars] = useState(0);
+    const [showFilters, setShowFilters] = useState(false);
+    const [branchFilter, setBranchFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [fuelFilter, setFuelFilter] = useState('');
+
+    const ITEMS_PER_PAGE = 10;
 
     const loadData = async () => {
         try {
-            const [carsData, branchesData, brandsData] = await Promise.all([
-                adminService.getCars({ limit: 100 }),
+            const [branchesData, brandsData] = await Promise.all([
                 adminService.getBranches(),
                 brandService.getAllAdmin()
             ]);
-            setCars(carsData.data);
-            setBranches(branchesData);
             setBranches(branchesData);
             setBrands(brandsData);
 
             if (branchesData.length > 0 && !formData.branchId) {
-                // Prioritize Manisa/Merkez branch, otherwise default to first
                 const defaultBranch = branchesData.find(b =>
                     b.city.toLowerCase().includes('manisa') ||
                     b.name.toLowerCase().includes('merkez')
@@ -104,17 +107,72 @@ export const AdminCars = () => {
 
                 setFormData(prev => ({ ...prev, branchId: defaultBranch.id }));
             }
+            await loadCars(1);
         } catch (err) {
             console.error(err);
-            navigate('/admin/login');
+            toast('Veriler yüklenirken hata oluştu', 'error');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadCars = async (page: number = 1) => {
+        setTableLoading(true);
+        try {
+            const params: any = {
+                limit: ITEMS_PER_PAGE,
+                offset: (page - 1) * ITEMS_PER_PAGE
+            };
+            if (searchTerm) params.search = searchTerm;
+            if (branchFilter) params.branchId = branchFilter;
+            if (statusFilter) params.status = statusFilter;
+            if (fuelFilter) params.fuel = fuelFilter;
+
+            const carsData = await adminService.getCars(params);
+            setCars(carsData.data);
+            setTotalCars(carsData.pagination?.total || carsData.data.length);
+            setCurrentPage(page);
+        } catch (err) {
+            console.error(err);
+            toast('Araç listesi yüklenemedi', 'error');
+        } finally {
+            setTableLoading(false);
         }
     };
 
     useEffect(() => {
         loadData();
     }, []);
+
+    // Debounced search and filters
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (!loading) { // Don't trigger on initial load
+                loadCars(1); // Reset to page 1 on filter change
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm, branchFilter, statusFilter, fuelFilter]);
+
+    // Independent page change effect to avoid resetting page to 1
+    // Actually, separating pagination from filters is complex with debounce.
+    // Simplest: `loadCars` handles current state. Button click calls `loadCars(newPage)`.
+    // But effect above resets to 1.
+    // So the pagination buttons should just update `currentPage`?
+    // If I update `currentPage`, I need an effect to load data.
+    // But `searchTerm` also triggers load.
+    // Let's remove `currentPage` dependency from above effect?
+    // No, if `searchTerm` changes, page must be 1.
+    // If `currentPage` changes, `searchTerm` is same.
+    // Correct logic:
+    // 1. Filter change -> setPage(1), loadCars(1).
+    // 2. Page change -> loadCars(newPage).
+    // The effect above handles (1).
+    // For (2), I should handle it in button click.
+
+    const handlePageChange = (newPage: number) => {
+        loadCars(newPage);
+    };
 
     const handleEdit = (car: Car) => {
         setEditingCar(car);
@@ -137,7 +195,6 @@ export const AdminCars = () => {
             status: car.status
         });
         setShowForm(true);
-        setError('');
     };
 
     const handleCancelForm = () => {
@@ -150,12 +207,10 @@ export const AdminCars = () => {
         ) || branches[0];
 
         setFormData({ ...initialFormData, branchId: defaultBranch?.id || '' });
-        setError('');
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
         setSubmitting(true);
 
         try {
@@ -170,98 +225,237 @@ export const AdminCars = () => {
 
             if (editingCar) {
                 await adminService.updateCar(editingCar.id, carData);
+                toast('Araç başarıyla güncellendi', 'success');
             } else {
                 await adminService.createCar(carData);
+                toast('Yeni araç başarıyla eklendi', 'success');
             }
 
             handleCancelForm();
-            loadData();
+            loadCars(currentPage);
         } catch (err: any) {
-            setError(err.response?.data?.error?.message || (editingCar ? 'Araç güncellenirken hata oluştu' : 'Araç eklenirken hata oluştu'));
+            toast(err.response?.data?.error?.message || 'İşlem başarısız', 'error');
         } finally {
             setSubmitting(false);
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Bu aracı silmek istediğinizden emin misiniz?')) return;
-        setDeletingId(id);
+    const confirmDelete = async () => {
+        if (!deleteId) return;
+        setDeleting(true);
         try {
-            await adminService.deleteCar(id);
-            await loadData();
+            await adminService.deleteCar(deleteId);
+            toast('Araç başarıyla silindi', 'success');
+            // Check if page empty after delete
+            if (cars.length === 1 && currentPage > 1) {
+                loadCars(currentPage - 1);
+            } else {
+                loadCars(currentPage);
+            }
         } catch (err: any) {
-            alert(err.response?.data?.error?.message || 'Silme işlemi başarısız');
+            toast(err.response?.data?.error?.message || 'Silme işlemi başarısız', 'error');
         } finally {
-            setDeletingId(null);
+            setDeleting(false);
+            setDeleteId(null);
         }
     };
 
+    const inputClass = "w-full px-4 py-3 bg-dark-bg border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-white placeholder-gray-600";
+    const labelClass = "block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide";
+    const selectClass = "px-4 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500";
+
+    const clearFilters = () => {
+        setSearchTerm('');
+        setBranchFilter('');
+        setStatusFilter('');
+        setFuelFilter('');
+    };
+
     if (loading) return (
-        <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center">
-            <Loader2 className="animate-spin w-10 h-10 text-primary-500" />
+        <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-6">
+            <div className="container mx-auto max-w-7xl space-y-8">
+                <div className="flex justify-between items-center">
+                    <Skeleton className="h-10 w-48" />
+                    <Skeleton className="h-12 w-32 rounded-xl" />
+                </div>
+                <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                    <div className="space-y-4">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="flex gap-4">
+                                <Skeleton className="h-16 w-full rounded-xl" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 
-    const inputClass = "w-full px-4 py-3 bg-dark-bg border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-white placeholder-gray-600";
-    const labelClass = "block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide";
-
     return (
         <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-6">
+            <Modal
+                isOpen={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                title="Aracı Sil"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto">
+                        <AlertTriangle className="w-6 h-6 text-red-500" />
+                    </div>
+                    <p className="text-gray-300 text-center">
+                        Bu aracı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                    </p>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="outline" onClick={() => setDeleteId(null)}>İptal</Button>
+                        <Button
+                            className="bg-red-500 hover:bg-red-600 text-white border-none"
+                            onClick={confirmDelete}
+                            disabled={deleting}
+                        >
+                            {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Evet, Sil'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
             <div className="container mx-auto max-w-7xl space-y-8">
                 {/* Header */}
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <Link to="/admin/dashboard" className="p-2 rounded-lg bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all">
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
-                        <div>
-                            <h1 className="text-4xl font-black text-white tracking-tight">
-                                ARAÇ <span className="text-primary-500">YÖNETİMİ</span>
-                            </h1>
-                            <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
+                <div className="flex flex-col gap-6">
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                            <Link to="/admin/dashboard" className="p-2 rounded-lg bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all">
+                                <ArrowLeft className="w-5 h-5" />
+                            </Link>
+                            <div>
+                                <h1 className="text-4xl font-black text-white tracking-tight">
+                                    ARAÇ <span className="text-primary-500">YÖNETİMİ</span>
+                                </h1>
+                                <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
+                            </div>
+                        </div>
+                        <div className="flex gap-4 w-full md:w-auto">
+                            {!showForm && (
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={() => setShowFilters(!showFilters)}
+                                        className={`px-4 py-3 rounded-xl border transition-all flex items-center gap-2 ${showFilters
+                                            ? 'bg-primary-500/20 border-primary-500/50 text-white'
+                                            : 'bg-dark-surface-lighter border-white/10 text-gray-400 hover:text-white'
+                                            }`}
+                                    >
+                                        <Filter className="w-5 h-5" />
+                                        <span className="hidden md:inline">Filtrele</span>
+                                        {(branchFilter || statusFilter || fuelFilter) && (
+                                            <span className="w-2 h-2 rounded-full bg-primary-500" />
+                                        )}
+                                    </Button>
+                                    <div className="relative flex-1 md:w-64">
+                                        <input
+                                            type="text"
+                                            placeholder="Ara: Plaka, Marka..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-3 bg-dark-surface-lighter border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-500"
+                                        />
+                                        <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" />
+                                        {searchTerm && (
+                                            <button
+                                                onClick={() => setSearchTerm('')}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                    <Button
+                                        onClick={() => { setEditingCar(null); setFormData({ ...initialFormData, branchId: branches[0]?.id || '' }); setShowForm(true); }}
+                                        className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all flex items-center gap-2"
+                                    >
+                                        <Plus className="w-5 h-5" />
+                                        <span className="hidden md:inline">Ekle</span>
+                                    </Button>
+                                </div>
+                            )}
+                            {showForm && (
+                                <Button
+                                    onClick={handleCancelForm}
+                                    className="bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-red-500/50 px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2"
+                                >
+                                    <X className="w-5 h-5" />
+                                    İptal
+                                </Button>
+                            )}
                         </div>
                     </div>
-                    <div className="flex gap-4 w-full md:w-auto">
-                        {!showForm && (
-                            <div className="relative flex-1 md:w-64">
-                                <input
-                                    type="text"
-                                    placeholder="Ara: Plaka, Marka, Model..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-dark-surface-lighter border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-500"
-                                />
-                                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" />
+
+                    {/* Filters Panel */}
+                    {!showForm && showFilters && (
+                        <div className="bg-dark-surface-lighter/50 border border-white/10 rounded-xl p-4 animate-in slide-in-from-top-2 duration-200">
+                            <div className="flex flex-wrap items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-gray-500 uppercase">Şube:</span>
+                                    <select
+                                        value={branchFilter}
+                                        onChange={(e) => setBranchFilter(e.target.value)}
+                                        className={selectClass}
+                                    >
+                                        <option value="" className="bg-dark-bg">Tümü</option>
+                                        {branches.map(b => (
+                                            <option key={b.id} value={b.id} className="bg-dark-bg">{b.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="h-8 w-px bg-white/10 hidden md:block" />
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-gray-500 uppercase">Durum:</span>
+                                    <select
+                                        value={statusFilter}
+                                        onChange={(e) => setStatusFilter(e.target.value)}
+                                        className={selectClass}
+                                    >
+                                        <option value="" className="bg-dark-bg">Tümü</option>
+                                        <option value="ACTIVE" className="bg-dark-bg">Aktif</option>
+                                        <option value="MAINTENANCE" className="bg-dark-bg">Bakımda</option>
+                                        <option value="INACTIVE" className="bg-dark-bg">Pasif</option>
+                                    </select>
+                                </div>
+                                <div className="h-8 w-px bg-white/10 hidden md:block" />
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-gray-500 uppercase">Yakıt:</span>
+                                    <select
+                                        value={fuelFilter}
+                                        onChange={(e) => setFuelFilter(e.target.value)}
+                                        className={selectClass}
+                                    >
+                                        <option value="" className="bg-dark-bg">Tümü</option>
+                                        <option value="PETROL" className="bg-dark-bg">Benzin</option>
+                                        <option value="DIESEL" className="bg-dark-bg">Dizel</option>
+                                        <option value="ELECTRIC" className="bg-dark-bg">Elektrik</option>
+                                        <option value="HYBRID" className="bg-dark-bg">Hibrit</option>
+                                        <option value="LPG" className="bg-dark-bg">LPG</option>
+                                    </select>
+                                </div>
+
+                                {(branchFilter || statusFilter || fuelFilter || searchTerm) && (
+                                    <button
+                                        onClick={clearFilters}
+                                        className="ml-auto text-sm text-red-400 hover:text-red-300 flex items-center gap-1"
+                                    >
+                                        <X className="w-3 h-3" />
+                                        Temizle
+                                    </button>
+                                )}
                             </div>
-                        )}
-                        {!showForm && (
-                            <Button
-                                onClick={() => { setEditingCar(null); setFormData({ ...initialFormData, branchId: branches[0]?.id || '' }); setShowForm(true); }}
-                                className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all flex items-center gap-2"
-                            >
-                                <Plus className="w-5 h-5" />
-                                Araç Ekle
-                            </Button>
-                        )}
-                        {showForm && (
-                            <Button
-                                onClick={handleCancelForm}
-                                className="bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-red-500/50 px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2"
-                            >
-                                <X className="w-5 h-5" />
-                                İptal
-                            </Button>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Add/Edit Car Form */}
                 {showForm && (
-                    <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 p-8 shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                    <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 p-8 shadow-[0_0_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-top-4 duration-300">
                         <h2 className="text-2xl font-bold text-white mb-6">{editingCar ? 'Araç Düzenle' : 'Yeni Araç Ekle'}</h2>
-                        {error && (
-                            <div className="bg-red-500/20 border border-red-500/30 text-red-400 p-4 rounded-xl mb-6">{error}</div>
-                        )}
+
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div>
                                 <label className={labelClass}>Marka *</label>
@@ -354,7 +548,6 @@ export const AdminCars = () => {
                                         value={formData.branchId}
                                         onChange={() => { }} // Read-only
                                     >
-                                        {/* Show only the selected/default branch or all but disabled */}
                                         {branches.map(b => (
                                             <option key={b.id} value={b.id} className="bg-dark-bg">{b.name} - {b.city}</option>
                                         ))}
@@ -392,9 +585,10 @@ export const AdminCars = () => {
                                                         ...prev,
                                                         images: [url] // Replace existing images with new one
                                                     }));
+                                                    toast('Fotoğraf yüklendi', 'success');
                                                 } catch (err) {
                                                     console.error(err);
-                                                    setError('Resim yüklenirken hata oluştu');
+                                                    toast('Resim yüklenirken hata oluştu', 'error');
                                                 } finally {
                                                     setSubmitting(false);
                                                 }
@@ -452,8 +646,10 @@ export const AdminCars = () => {
                 {/* Cars Table */}
                 <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
                     <div className="p-6 border-b border-white/10 flex justify-between items-center">
-                        <h2 className="text-xl font-bold text-white">Araç Listesi</h2>
-                        <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">{filteredCars.length} araç</span>
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-xl font-bold text-white">Araç Listesi</h2>
+                            <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">{totalCars} araç</span>
+                        </div>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
@@ -469,7 +665,19 @@ export const AdminCars = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {filteredCars.length === 0 ? (
+                                {tableLoading ? (
+                                    Array.from({ length: 5 }).map((_, i) => (
+                                        <tr key={i}>
+                                            <td className="p-4"><Skeleton className="h-10 w-48" /></td>
+                                            <td className="p-4"><Skeleton className="h-8 w-24" /></td>
+                                            <td className="p-4"><Skeleton className="h-6 w-32" /></td>
+                                            <td className="p-4"><Skeleton className="h-6 w-32" /></td>
+                                            <td className="p-4"><Skeleton className="h-8 w-24" /></td>
+                                            <td className="p-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                                            <td className="p-4"><Skeleton className="h-8 w-16" /></td>
+                                        </tr>
+                                    ))
+                                ) : cars.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="p-12 text-center bg-dark-surface-lighter/50">
                                             <div className="flex flex-col items-center justify-center p-8 rounded-3xl border border-white/5 bg-dark-bg/50 max-w-md mx-auto">
@@ -533,12 +741,12 @@ export const AdminCars = () => {
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDelete(car.id)}
-                                                        disabled={submitting || deletingId === car.id}
+                                                        onClick={() => setDeleteId(car.id)}
+                                                        disabled={submitting}
                                                         className="p-2 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                                                         title="Sil"
                                                     >
-                                                        {deletingId === car.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />}
+                                                        <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
                                                     </button>
                                                 </div>
                                             </td>
@@ -548,6 +756,60 @@ export const AdminCars = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalCars > ITEMS_PER_PAGE && (
+                        <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                            <div className="text-sm text-gray-400">
+                                Toplam {totalCars} araç, sayfa {currentPage} / {Math.ceil(totalCars / ITEMS_PER_PAGE)}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1 || tableLoading}
+                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronLeft className="w-5 h-5" />
+                                </button>
+                                {/* Page Numbers */}
+                                <div className="flex gap-1">
+                                    {Array.from({ length: Math.min(5, Math.ceil(totalCars / ITEMS_PER_PAGE)) }, (_, i) => {
+                                        const totalPages = Math.ceil(totalCars / ITEMS_PER_PAGE);
+                                        let pageNum: number;
+                                        if (totalPages <= 5) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage <= 3) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage >= totalPages - 2) {
+                                            pageNum = totalPages - 4 + i;
+                                        } else {
+                                            pageNum = currentPage - 2 + i;
+                                        }
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => handlePageChange(pageNum)}
+                                                disabled={tableLoading}
+                                                className={`w-10 h-10 rounded-lg font-bold transition-all ${currentPage === pageNum
+                                                    ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
+                                                    : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50'
+                                                    }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage >= Math.ceil(totalCars / ITEMS_PER_PAGE) || tableLoading}
+                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useToast } from '../components/ui/Toast';
+import { Modal } from '../components/ui/Modal';
 import { adminService } from '../services/api';
 import type { DashboardStats, Booking } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, DollarSign, Calendar, Car as CarIcon, Settings, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Loader2, Calendar, Car as CarIcon, Settings, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check } from 'lucide-react';
+import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
+
+import { Skeleton } from '../components/ui/Skeleton';
 
 interface RevenueAnalytics {
     weekly: { week: string; revenue: number; bookings: number }[];
@@ -20,7 +24,18 @@ interface RevenueAnalytics {
     };
 }
 
-const StatCard = ({ title, value, icon, color }: { title: string; value: string | number; icon: React.ReactNode; color: 'green' | 'blue' | 'purple' | 'orange' }) => {
+const StatCard = ({ title, value, icon, color, loading, trend, trendUp, data, onClick, isActive }: {
+    title: string;
+    value?: string | number;
+    icon: React.ReactNode;
+    color: 'green' | 'blue' | 'purple' | 'orange';
+    loading?: boolean;
+    trend?: string;
+    trendUp?: boolean;
+    data?: number[];
+    onClick?: () => void;
+    isActive?: boolean;
+}) => {
     const colorClasses = {
         green: 'from-green-500/20 to-transparent border-green-500/30 text-green-400',
         blue: 'from-blue-500/20 to-transparent border-blue-500/30 text-blue-400',
@@ -35,19 +50,55 @@ const StatCard = ({ title, value, icon, color }: { title: string; value: string 
         orange: 'bg-orange-500/20 text-orange-400',
     };
 
+    const activeClasses = isActive
+        ? `ring-2 ring-${color}-500 shadow-[0_0_30px_rgba(var(--${color}-500-rgb),0.3)] bg-dark-surface-lighter`
+        : 'hover:bg-dark-surface-lighter/90';
+
     return (
-        <div className={`relative overflow-hidden bg-dark-surface-lighter/80 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-${color}-500/30 transition-all group`}>
-            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClasses[color]} rounded-full blur-2xl opacity-50 group-hover:opacity-80 transition-opacity`} />
-            <div className="relative flex items-center gap-4">
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${iconBgClasses[color]}`}>
-                    {icon}
+        <button
+            onClick={onClick}
+            className={`relative w-full text-left overflow-hidden bg-dark-surface-lighter/50 backdrop-blur-xl p-6 rounded-2xl border transition-all duration-300 group ${isActive ? `border-${color}-500` : 'border-white/10 hover:border-white/20'} ${activeClasses}`}
+        >
+            {/* Glow Effect */}
+            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClasses[color]} rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity`} />
+
+            <div className="relative z-10">
+                <div className="flex justify-between items-start mb-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${iconBgClasses[color]} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                        {icon}
+                    </div>
+                    {trend && (
+                        <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${trendUp ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                            {trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                            {trend}
+                        </div>
+                    )}
                 </div>
-                <div>
-                    <p className="text-gray-400 text-sm font-medium">{title}</p>
-                    <p className="text-3xl font-black text-white">{value}</p>
+
+                <div className="space-y-1">
+                    <p className="text-gray-400 text-sm font-medium tracking-wide">{title}</p>
+                    {loading ? (
+                        <Skeleton className="h-8 w-24 mt-1" />
+                    ) : (
+                        <div className="flex items-end justify-between gap-2">
+                            <p className="text-3xl font-black text-white tracking-tight">{value}</p>
+
+                            {/* Sparkline SVG */}
+                            {data && data.length > 0 && (
+                                <svg width="60" height="30" className={`stroke-${color}-500 opacity-50 group-hover:opacity-100 transition-opacity`} fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d={`M0 ${30 - (data[0] / 100) * 30} L10 ${30 - (data[1] / 100) * 30} L20 ${30 - (data[2] / 100) * 30} L30 ${30 - (data[3] / 100) * 30} L40 ${30 - (data[4] / 100) * 30} L50 ${30 - (data[5] / 100) * 30} L60 ${30 - (data[6] / 100) * 30}`} />
+                                </svg>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
-        </div>
+
+            {/* Active Indicator */}
+            {isActive && (
+                <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-${color}-500 rounded-t-full shadow-[0_-2px_10px_rgba(var(--${color}-500-rgb),0.5)]`} />
+            )}
+        </button>
     );
 };
 
@@ -55,136 +106,250 @@ const BookingDetailModal = ({ booking, onClose }: { booking: Booking; onClose: (
     if (!booking) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-dark-surface w-full max-w-2xl rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
-                {/* Header */}
-                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                    <div>
-                        <h2 className="text-xl font-bold text-white">Rezervasyon Detayı</h2>
-                        <p className="text-primary-400 font-mono text-sm mt-1">{booking.bookingCode}</p>
-                    </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                        <X className="w-5 h-5 text-gray-400 hover:text-white" />
-                    </button>
+        <Modal isOpen={!!booking} onClose={onClose} title="Rezervasyon Detayı" size="lg">
+            <div className="space-y-8">
+                {/* Header Info */}
+                <div className="-mt-2 mb-6 flex items-center justify-between pb-4 border-b border-white/10 text-sm">
+                    <span className="text-gray-400">Rezervasyon Kodu: <span className="text-primary-400 font-mono font-bold">{booking.bookingCode}</span></span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${booking.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400' :
+                        booking.status === 'CANCELLED' ? 'bg-red-500/20 text-red-400' :
+                            booking.status === 'COMPLETED' ? 'bg-gray-500/20 text-gray-400' :
+                                'bg-primary-500/20 text-primary-400'
+                        }`}>
+                        {booking.status === 'ACTIVE' ? 'Aktif' :
+                            booking.status === 'CANCELLED' ? 'İptal' :
+                                booking.status === 'COMPLETED' ? 'Tamamlandı' : 'Rezerve'}
+                    </span>
                 </div>
 
-                <div className="p-6 space-y-8 max-h-[80vh] overflow-y-auto">
-                    {/* Status Sections */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Customer Info */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Users className="w-5 h-5 text-primary-500" />
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Müşteri Bilgileri</h3>
-                            </div>
-                            <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Ad Soyad</label>
-                                    <p className="text-white font-medium">{booking.customerName} {booking.customerSurname}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Telefon</label>
-                                    <p className="text-white font-mono">{booking.customerPhone}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">E-posta</label>
-                                    <p className="text-white">{booking.customerEmail}</p>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs text-gray-500 block mb-1">Ehliyet No</label>
-                                        <p className="text-white font-mono">{booking.customerDriverLicense || '-'}</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-gray-500 block mb-1">TC Kimlik</label>
-                                        <p className="text-white font-mono">{booking.customerTC || '-'}</p>
-                                    </div>
-                                </div>
-                            </div>
+                {/* Status Sections */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Customer Info */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Users className="w-5 h-5 text-primary-500" />
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Müşteri Bilgileri</h3>
                         </div>
-
-                        {/* Car Info */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <CarIcon className="w-5 h-5 text-primary-500" />
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Araç Bilgileri</h3>
+                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Ad Soyad</label>
+                                <p className="text-white font-medium">{booking.customerName} {booking.customerSurname}</p>
                             </div>
-                            <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Telefon</label>
+                                <p className="text-white font-mono">{booking.customerPhone}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">E-posta</label>
+                                <p className="text-white">{booking.customerEmail}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Araç</label>
-                                    <p className="text-white font-bold text-lg">{booking.car?.brand} {booking.car?.model}</p>
+                                    <label className="text-xs text-gray-500 block mb-1">Ehliyet No</label>
+                                    <p className="text-white font-mono">{booking.customerDriverLicense || '-'}</p>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs text-gray-500 block mb-1">Plaka</label>
-                                        <p className="text-white font-mono">{booking.car?.plateNumber}</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-gray-500 block mb-1">Kategori</label>
-                                        <span className="text-xs bg-white/10 px-2 py-1 rounded text-white">{translateCategory(booking.car?.category || '')}</span>
-                                    </div>
-                                </div>
-                                <div className="pt-2 border-t border-white/5 mt-2">
-                                    <div className="flex justify-between items-center">
-                                        <label className="text-xs text-gray-500">Toplam Tutar</label>
-                                        <p className="text-xl font-bold text-primary-400">{Number(booking.totalPrice).toLocaleString()} ₺</p>
-                                    </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">TC Kimlik</label>
+                                    <p className="text-white font-mono">{booking.customerTC || '-'}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Dates & Notes */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Calendar className="w-5 h-5 text-primary-500" />
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Kiralama Süresi</h3>
+                    {/* Car Info */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <CarIcon className="w-5 h-5 text-primary-500" />
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Araç Bilgileri</h3>
+                        </div>
+                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Araç</label>
+                                <p className="text-white font-bold text-lg">{booking.car?.brand} {booking.car?.model}</p>
                             </div>
-                            <div className="bg-dark-bg p-4 rounded-xl border border-white/5 flex justify-between items-center text-center">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Alış</label>
-                                    <p className="text-white font-medium">{new Date(booking.pickupDate).toLocaleDateString('tr-TR')}</p>
+                                    <label className="text-xs text-gray-500 block mb-1">Plaka</label>
+                                    <p className="text-white font-mono">{booking.car?.plateNumber}</p>
                                 </div>
-                                <div className="text-gray-600">➝</div>
                                 <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Teslim</label>
-                                    <p className="text-white font-medium">{new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}</p>
+                                    <label className="text-xs text-gray-500 block mb-1">Kategori</label>
+                                    <span className="text-xs bg-white/10 px-2 py-1 rounded text-white">{translateCategory(booking.car?.category || '')}</span>
+                                </div>
+                            </div>
+                            <div className="pt-2 border-t border-white/5 mt-2">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-xs text-gray-500">Toplam Tutar</label>
+                                    <p className="text-xl font-bold text-primary-400">{Number(booking.totalPrice).toLocaleString()} ₺</p>
                                 </div>
                             </div>
                         </div>
-
-                        {booking.notes && (
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className="w-5 h-5 flex items-center justify-center rounded-full bg-primary-500/20 text-primary-500 text-xs font-bold">i</div>
-                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Müşteri Notu</h3>
-                                </div>
-                                <div className="bg-dark-bg p-4 rounded-xl border border-white/5">
-                                    <p className="text-gray-300 text-sm italic">"{booking.notes}"</p>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
 
-                <div className="p-6 border-t border-white/10 bg-white/5 flex justify-end">
+                {/* Dates & Notes */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Calendar className="w-5 h-5 text-primary-500" />
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Kiralama Süresi</h3>
+                        </div>
+                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 flex justify-between items-center text-center">
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Alış</label>
+                                <p className="text-white font-medium">{new Date(booking.pickupDate).toLocaleDateString('tr-TR')}</p>
+                            </div>
+                            <div className="text-gray-600">➝</div>
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Teslim</label>
+                                <p className="text-white font-medium">{new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {booking.notes && (
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-5 h-5 flex items-center justify-center rounded-full bg-primary-500/20 text-primary-500 text-xs font-bold">i</div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Müşteri Notu</h3>
+                            </div>
+                            <div className="bg-dark-bg p-4 rounded-xl border border-white/5">
+                                <p className="text-gray-300 text-sm italic">"{booking.notes}"</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex justify-end pt-4">
                     <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
                         Kapat
                     </Button>
                 </div>
             </div>
-        </div>
+        </Modal>
+    );
+};
+
+// Helper component for table rows to allow hooks usage
+const BookingRow = ({
+    booking,
+    onView,
+    onCancel
+}: {
+    booking: Booking;
+    onView: (b: Booking) => void;
+    onCancel: (id: string) => void;
+}) => {
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+    const { addToast } = useToast();
+
+    const handleCopyCode = (code: string, id: string) => {
+        navigator.clipboard.writeText(code);
+        setCopiedId(id);
+        addToast('Kod kopyalandı', 'success');
+        setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    const name = booking.customerName || '';
+    const surname = booking.customerSurname || '';
+    // Safe initials generation
+    const initials = ((name.charAt(0) || '') + (surname.charAt(0) || '')).toUpperCase() || '?';
+
+    return (
+        <tr className="hover:bg-white/5 transition-colors group">
+            <td className="p-4">
+                <button
+                    onClick={() => handleCopyCode(booking.bookingCode, booking.id)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-bg border border-white/5 hover:border-primary-500/50 hover:bg-primary-500/10 transition-all group/btn"
+                    title="Kodu Kopyala"
+                >
+                    <span className="font-mono font-bold text-primary-400">{booking.bookingCode}</span>
+                    {copiedId === booking.id ? (
+                        <Check className="w-3 h-3 text-green-500" />
+                    ) : (
+                        <Copy className="w-3 h-3 text-gray-500 group-hover/btn:text-primary-400 opacity-0 group-hover/btn:opacity-100 transition-all" />
+                    )}
+                </button>
+            </td>
+            <td className="p-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                        {initials}
+                    </div>
+                    <div>
+                        <div className="font-medium text-white">{name} {surname}</div>
+                        <div className="text-xs text-gray-500">{booking.customerPhone}</div>
+                    </div>
+                </div>
+            </td>
+            <td className="p-4">
+                <div className="flex items-center gap-2">
+                    <CarIcon className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-300">{booking.car?.brand} {booking.car?.model}</span>
+                </div>
+            </td>
+            <td className="p-4">
+                <div className="flex flex-col gap-1 text-sm">
+                    <div className="flex items-center gap-2 text-gray-400">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                        <span>{new Date(booking.pickupDate).toLocaleDateString('tr-TR')}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-400">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                        <span>{new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}</span>
+                    </div>
+                </div>
+            </td>
+            <td className="p-4">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${booking.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                    booking.status === 'CANCELLED' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                        booking.status === 'COMPLETED' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20' :
+                            'bg-primary-500/10 text-primary-400 border-primary-500/20'
+                    }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${booking.status === 'ACTIVE' ? 'bg-green-500' :
+                        booking.status === 'CANCELLED' ? 'bg-red-500' :
+                            booking.status === 'COMPLETED' ? 'bg-gray-500' :
+                                'bg-primary-500'
+                        }`} />
+                    {booking.status === 'ACTIVE' ? 'Aktif' :
+                        booking.status === 'CANCELLED' ? 'İptal' :
+                            booking.status === 'COMPLETED' ? 'Tamamlandı' : 'Rezerve'}
+                </span>
+            </td>
+            <td className="p-4">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-white/10 text-white hover:bg-white/10"
+                    onClick={() => onView(booking)}
+                >
+                    Detaylar
+                </Button>
+            </td>
+            <td className="p-4">
+                {booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
+                    <Button
+                        size="sm"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 rounded-lg"
+                        onClick={() => onCancel(booking.id)}
+                    >
+                        İptal
+                    </Button>
+                )}
+            </td>
+        </tr>
     );
 };
 
 export const AdminDashboard = () => {
     const navigate = useNavigate();
+    const { addToast: toast } = useToast();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [revenueData, setRevenueData] = useState<RevenueAnalytics | null>(null);
     const [chartView, setChartView] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [currentPage, setCurrentPage] = useState(1);
     const [totalBookings, setTotalBookings] = useState(0);
@@ -195,7 +360,6 @@ export const AdminDashboard = () => {
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [franchiseApplications, setFranchiseApplications] = useState<any[]>([]);
     const [selectedFranchise, setSelectedFranchise] = useState<any | null>(null);
-    const [franchiseLoading, setFranchiseLoading] = useState(false);
     const [cancelingId, setCancelingId] = useState<string | null>(null);
     const ITEMS_PER_PAGE = 10;
 
@@ -267,17 +431,21 @@ export const AdminDashboard = () => {
         return () => clearTimeout(timer);
     }, [searchTerm, statusFilter]);
 
-    const handleCancel = async (id: string) => {
-        if (!confirm('Bu rezervasyonu iptal etmek istediğinizden emin misiniz?')) return;
-        setCancelingId(id);
+    const handleCancelClick = (id: string) => {
+        setCancelingId(id); // Use cancelingId to track which booking is being cancelled for modal
+    };
+
+    const confirmCancel = async () => {
+        if (!cancelingId) return;
         try {
-            await adminService.cancelBooking(id);
+            await adminService.cancelBooking(cancelingId);
+            toast('Rezervasyon başarıyla iptal edildi', 'success');
             // Refresh bookings and stats without full page reload
             await loadBookings(currentPage, searchTerm, statusFilter);
             const statsData = await adminService.getDashboard();
             setStats(statsData);
         } catch (err) {
-            alert('İptal işlemi başarısız');
+            toast('İptal işlemi başarısız oldu', 'error');
         } finally {
             setCancelingId(null);
         }
@@ -312,6 +480,31 @@ export const AdminDashboard = () => {
                 <BookingDetailModal booking={selectedBooking} onClose={() => setSelectedBooking(null)} />
             )}
 
+            <Modal
+                isOpen={!!cancelingId}
+                onClose={() => setCancelingId(null)}
+                title="Rezervasyonu İptal Et"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto">
+                        <AlertCircle className="w-6 h-6 text-red-500" />
+                    </div>
+                    <p className="text-gray-300 text-center">
+                        Bu rezervasyonu iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                    </p>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="outline" onClick={() => setCancelingId(null)}>Vazgeç</Button>
+                        <Button
+                            className="bg-red-500 hover:bg-red-600 text-white border-none"
+                            onClick={confirmCancel}
+                        >
+                            Evet, İptal Et
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
             <div className="container mx-auto max-w-7xl space-y-8">
                 {/* Header */}
                 <div className="flex justify-between items-center">
@@ -330,149 +523,179 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Stats Cards */}
+                {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard
                         title="Toplam Ciro"
                         value={`${stats.totalRevenue.toLocaleString()} ₺`}
-                        icon={<DollarSign className="w-6 h-6" />}
+                        icon={<span className="text-2xl font-bold">₺</span>}
                         color="green"
+                        trend="%12.5"
+                        trendUp={true}
+                        data={[40, 35, 55, 70, 60, 80, 75]}
                     />
                     <StatCard
                         title="Toplam Rezervasyon"
                         value={stats.totalBookings}
                         icon={<Calendar className="w-6 h-6" />}
                         color="blue"
+                        trend="%5.2"
+                        trendUp={true}
+                        data={[20, 30, 25, 40, 35, 50, 45]}
+                        onClick={() => { setStatusFilter(''); loadBookings(1); }}
+                        isActive={statusFilter === ''}
                     />
                     <StatCard
                         title="Aktif Kiralama"
                         value={stats.activeBookings}
                         icon={<TrendingUp className="w-6 h-6" />}
                         color="purple"
+                        trend="%2.1"
+                        trendUp={false}
+                        data={[60, 50, 45, 40, 30, 25, 30]}
+                        onClick={() => { setStatusFilter('ACTIVE'); loadBookings(1, searchTerm, 'ACTIVE'); }}
+                        isActive={statusFilter === 'ACTIVE'}
                     />
                     <StatCard
                         title="Toplam Araç"
                         value={stats.totalCars}
                         icon={<CarIcon className="w-6 h-6" />}
                         color="orange"
+                        trend="Sabit"
+                        trendUp={true}
+                        data={[80, 80, 82, 82, 85, 85, 85]}
                     />
                 </div>
 
-                {/* Revenue Chart Section */}
+                {/* Revenue Analytics Section */}
                 {revenueData && (
-                    <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                        <div className="p-6 border-b border-white/10">
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div>
-                                    <h2 className="text-xl font-bold text-white">Gelir Analizi</h2>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <span className="text-3xl font-black text-green-400">
-                                            {revenueData.summary.currentYear.toLocaleString()} ₺
-                                        </span>
-                                        <span className={`flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${revenueData.summary.growth >= 0
-                                            ? 'bg-green-500/20 text-green-400'
-                                            : 'bg-red-500/20 text-red-400'
-                                            }`}>
-                                            {revenueData.summary.growth >= 0
-                                                ? <ArrowUpRight className="w-4 h-4" />
-                                                : <ArrowDownRight className="w-4 h-4" />
-                                            }
-                                            {Math.abs(revenueData.summary.growth)}%
-                                        </span>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Main Revenue Chart (Dual Axis) */}
+                        <div className="lg:col-span-2 bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                            <div className="p-6 border-b border-white/10">
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white">Gelir Analizi</h2>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <span className="text-3xl font-black text-green-400">
+                                                {revenueData.summary.currentYear.toLocaleString()} ₺
+                                            </span>
+                                            <span className={`flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${revenueData.summary.growth >= 0
+                                                ? 'bg-green-500/20 text-green-400'
+                                                : 'bg-red-500/20 text-red-400'
+                                                }`}>
+                                                {revenueData.summary.growth >= 0
+                                                    ? <ArrowUpRight className="w-4 h-4" />
+                                                    : <ArrowDownRight className="w-4 h-4" />
+                                                }
+                                                {Math.abs(Number(revenueData.summary.growth.toFixed(1)))}%
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    {/* Year Selector */}
-                                    <select
-                                        value={selectedYear}
-                                        onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                        className="px-4 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                    >
-                                        {revenueData.availableYears.map(year => (
-                                            <option key={year} value={year} className="bg-dark-bg">{year}</option>
-                                        ))}
-                                    </select>
-                                    {/* View Toggle */}
-                                    <div className="flex bg-dark-bg rounded-xl p-1 border border-white/10">
-                                        {(['weekly', 'monthly', 'yearly'] as const).map((view) => (
-                                            <button
-                                                key={view}
-                                                onClick={() => setChartView(view)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${chartView === view
-                                                    ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
-                                                    : 'text-gray-400 hover:text-white'
-                                                    }`}
-                                            >
-                                                {view === 'weekly' ? 'Haftalık' : view === 'monthly' ? 'Aylık' : 'Yıllık'}
-                                            </button>
-                                        ))}
+                                    <div className="flex items-center gap-3">
+                                        <select
+                                            value={selectedYear}
+                                            onChange={(e) => setSelectedYear(Number(e.target.value))}
+                                            className="px-4 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                        >
+                                            {revenueData.availableYears.map(year => (
+                                                <option key={year} value={year} className="bg-dark-bg">{year}</option>
+                                            ))}
+                                        </select>
+                                        <div className="flex bg-dark-bg rounded-xl p-1 border border-white/10">
+                                            {(['weekly', 'monthly', 'yearly'] as const).map((view) => (
+                                                <button
+                                                    key={view}
+                                                    onClick={() => setChartView(view)}
+                                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${chartView === view
+                                                        ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
+                                                        : 'text-gray-400 hover:text-white'
+                                                        }`}
+                                                >
+                                                    {view === 'weekly' ? 'Haftalık' : view === 'monthly' ? 'Aylık' : 'Yıllık'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                const headers = ['Dönem', 'Gelir', 'Rezervasyon'];
+                                                const data = getChartData().map((d: any) => [
+                                                    d[getDataKey()],
+                                                    d.revenue,
+                                                    d.bookings
+                                                ]);
+                                                const csvContent = [
+                                                    headers.join(','),
+                                                    ...data.map(row => row.join(','))
+                                                ].join('\n');
+
+                                                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                                                const link = document.createElement('a');
+                                                link.href = URL.createObjectURL(blob);
+                                                link.download = `gelir_analizi_${chartView}_${selectedYear}.csv`;
+                                                link.click();
+                                            }}
+                                            className="p-2.5 rounded-xl bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all"
+                                            title="Excel/CSV İndir"
+                                        >
+                                            <Download className="w-5 h-5" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="p-6">
-                            <div className="h-80">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    {chartView === 'yearly' ? (
-                                        <BarChart data={getChartData()}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                            <XAxis
-                                                dataKey={getDataKey()}
-                                                stroke="#9ca3af"
-                                                fontSize={12}
-                                                tickLine={false}
-                                            />
-                                            <YAxis
-                                                stroke="#9ca3af"
-                                                fontSize={12}
-                                                tickLine={false}
-                                                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                                            />
-                                            <Tooltip
-                                                contentStyle={{
-                                                    backgroundColor: '#1e293b',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                    borderRadius: '12px',
-                                                    color: 'white'
-                                                }}
-                                                formatter={(value: number | undefined) => [`${(value ?? 0).toLocaleString()} ₺`, 'Gelir']}
-                                            />
-                                            <Bar
-                                                dataKey="revenue"
-                                                fill="#6366f1"
-                                                radius={[8, 8, 0, 0]}
-                                            />
-                                        </BarChart>
-                                    ) : (
-                                        <AreaChart data={getChartData()}>
+                            <div className="p-6">
+                                <div className="h-80">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <ComposedChart data={getChartData()}>
                                             <defs>
                                                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
                                                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
                                             <XAxis
                                                 dataKey={getDataKey()}
                                                 stroke="#9ca3af"
                                                 fontSize={12}
                                                 tickLine={false}
+                                                axisLine={false}
                                             />
                                             <YAxis
+                                                yAxisId="left"
                                                 stroke="#9ca3af"
                                                 fontSize={12}
                                                 tickLine={false}
+                                                axisLine={false}
                                                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                            />
+                                            <YAxis
+                                                yAxisId="right"
+                                                orientation="right"
+                                                stroke="#9ca3af"
+                                                fontSize={12}
+                                                tickLine={false}
+                                                axisLine={false}
                                             />
                                             <Tooltip
                                                 contentStyle={{
                                                     backgroundColor: '#1e293b',
                                                     border: '1px solid rgba(255,255,255,0.1)',
                                                     borderRadius: '12px',
-                                                    color: 'white'
+                                                    color: 'white',
+                                                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)'
                                                 }}
-                                                formatter={(value: number | undefined) => [`${(value ?? 0).toLocaleString()} ₺`, 'Gelir']}
+                                                itemStyle={{ padding: 0 }}
+                                                labelStyle={{ marginBottom: '8px', fontWeight: 'bold', color: '#e2e8f0' }}
+                                                formatter={(value: any, name: any) => [
+                                                    name === 'revenue'
+                                                        ? <span key="revenue" className="text-primary-400 font-bold">{Number(value).toLocaleString()} ₺</span>
+                                                        : <span key="bookings" className="text-orange-400 font-bold">{value} Adet</span>,
+                                                    name === 'revenue' ? 'Gelir' : 'Rezervasyon'
+                                                ]}
                                             />
                                             <Area
+                                                yAxisId="left"
                                                 type="monotone"
                                                 dataKey="revenue"
                                                 stroke="#6366f1"
@@ -480,9 +703,90 @@ export const AdminDashboard = () => {
                                                 fillOpacity={1}
                                                 fill="url(#colorRevenue)"
                                             />
-                                        </AreaChart>
-                                    )}
-                                </ResponsiveContainer>
+                                            <Line
+                                                yAxisId="right"
+                                                type="monotone"
+                                                dataKey="bookings"
+                                                stroke="#f97316"
+                                                strokeWidth={3}
+                                                dot={{ r: 4, fill: '#1e293b', stroke: '#f97316', strokeWidth: 2 }}
+                                                activeDot={{ r: 6, fill: '#f97316' }}
+                                            />
+                                        </ComposedChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Category Breakdown (Mock Pie Chart) */}
+                        <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                            <div className="p-6 border-b border-white/10">
+                                <h2 className="text-xl font-bold text-white">Kategori Dağılımı</h2>
+                                <p className="text-xs text-gray-500 mt-1">Hasılatın araç türüne göre dağılımı</p>
+                            </div>
+                            <div className="p-6">
+                                <div className="h-64 relative">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={[
+                                                    { name: 'SUV', value: 35, color: '#6366f1' },       // Indigo
+                                                    { name: 'Sedan', value: 25, color: '#8b5cf6' },     // Violet
+                                                    { name: 'Lüks', value: 20, color: '#ec4899' },      // Pink
+                                                    { name: 'Hatchback', value: 15, color: '#06b6d4' }, // Cyan
+                                                    { name: 'Van', value: 5, color: '#10b981' }         // Emerald
+                                                ]}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={80}
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                                stroke="none"
+                                            >
+                                                {[
+                                                    { name: 'SUV', value: 35, color: '#6366f1' },
+                                                    { name: 'Sedan', value: 25, color: '#8b5cf6' },
+                                                    { name: 'Lüks', value: 20, color: '#ec4899' },
+                                                    { name: 'Hatchback', value: 15, color: '#06b6d4' },
+                                                    { name: 'Van', value: 5, color: '#10b981' }
+                                                ].map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: '#1e293b',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    borderRadius: '12px',
+                                                    color: 'white'
+                                                }}
+                                                formatter={(value: any) => [`%${value}`, 'Pay']}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                    {/* Center Text */}
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                        <span className="text-3xl font-black text-white">5</span>
+                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Kategori</span>
+                                    </div>
+                                </div>
+                                {/* Legend */}
+                                <div className="grid grid-cols-2 gap-3 mt-4">
+                                    {[
+                                        { name: 'SUV', value: 35, color: 'bg-primary-500' },
+                                        { name: 'Sedan', value: 25, color: 'bg-violet-500' },
+                                        { name: 'Lüks', value: 20, color: 'bg-pink-500' },
+                                        { name: 'Hatchback', value: 15, color: 'bg-cyan-500' },
+                                        { name: 'Van', value: 5, color: 'bg-emerald-500' }
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex items-center gap-2">
+                                            <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                                            <span className="text-sm text-gray-400">{item.name}</span>
+                                            <span className="text-sm font-bold text-white ml-auto">%{item.value}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -599,52 +903,13 @@ export const AdminDashboard = () => {
                                         </td>
                                     </tr>
                                 ) : (
-                                    bookings.map(booking => (
-                                        <tr key={booking.id} className="hover:bg-white/5 transition-colors">
-                                            <td className="p-4 font-mono font-bold text-primary-400">{booking.bookingCode}</td>
-                                            <td className="p-4">
-                                                <div className="font-medium text-white">{booking.customerName} {booking.customerSurname}</div>
-                                                <div className="text-xs text-gray-500">{booking.customerPhone}</div>
-                                            </td>
-                                            <td className="p-4 text-gray-300">{booking.car?.brand} {booking.car?.model}</td>
-                                            <td className="p-4 text-sm text-gray-400">
-                                                {new Date(booking.pickupDate).toLocaleDateString('tr-TR')} - <br />
-                                                {new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}
-                                            </td>
-                                            <td className="p-4">
-                                                <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${booking.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                                    booking.status === 'CANCELLED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                                                        booking.status === 'COMPLETED' ? 'bg-gray-500/20 text-gray-400 border border-gray-500/30' :
-                                                            'bg-primary-500/20 text-primary-400 border border-primary-500/30'
-                                                    }`}>
-                                                    {booking.status === 'ACTIVE' ? 'Aktif' :
-                                                        booking.status === 'CANCELLED' ? 'İptal' :
-                                                            booking.status === 'COMPLETED' ? 'Tamamlandı' : 'Rezerve'}
-                                                </span>
-                                            </td>
-                                            <td className="p-4">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="text-xs px-3 py-1.5 border-primary-500/30 text-primary-400 hover:bg-primary-500/20"
-                                                    onClick={() => setSelectedBooking(booking)}
-                                                >
-                                                    İncele
-                                                </Button>
-                                            </td>
-                                            <td className="p-4">
-                                                {booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
-                                                    <Button
-                                                        size="sm"
-                                                        className="text-xs px-3 py-1.5 bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 rounded-lg disabled:opacity-50"
-                                                        onClick={() => handleCancel(booking.id)}
-                                                        disabled={cancelingId === booking.id}
-                                                    >
-                                                        {cancelingId === booking.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'İptal Et'}
-                                                    </Button>
-                                                )}
-                                            </td>
-                                        </tr>
+                                    bookings.map((booking) => (
+                                        <BookingRow
+                                            key={booking.id}
+                                            booking={booking}
+                                            onView={setSelectedBooking}
+                                            onCancel={handleCancelClick}
+                                        />
                                     ))
                                 )}
                             </tbody>
@@ -731,13 +996,7 @@ export const AdminDashboard = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {franchiseLoading ? (
-                                    <tr><td colSpan={7} className="p-8 text-center text-gray-400">
-                                        <div className="flex justify-center items-center">
-                                            <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
-                                        </div>
-                                    </td></tr>
-                                ) : franchiseApplications.length === 0 ? (
+                                {franchiseApplications.length === 0 ? (
                                     <tr><td colSpan={7} className="p-8 text-center text-gray-400">Henüz franchise başvurusu yok</td></tr>
                                 ) : (
                                     franchiseApplications.map((app) => {
@@ -864,5 +1123,3 @@ export const AdminDashboard = () => {
         </div>
     );
 };
-
-
