@@ -152,6 +152,7 @@ export const updateStatusSchema = z.object({
 // Query parameters
 export const franchiseQuerySchema = z.object({
     status: statusEnum.optional(),
+    search: z.string().optional(),
     city: z.string().optional(),
     fromDate: z.coerce.date().optional(),
     toDate: z.coerce.date().optional(),

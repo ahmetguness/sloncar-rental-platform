@@ -361,6 +361,13 @@ export const AdminDashboard = () => {
     const [franchiseApplications, setFranchiseApplications] = useState<any[]>([]);
     const [selectedFranchise, setSelectedFranchise] = useState<any | null>(null);
     const [cancelingId, setCancelingId] = useState<string | null>(null);
+
+    // Franchise States
+    const [franchisePage, setFranchisePage] = useState(1);
+    const [totalFranchises, setTotalFranchises] = useState(0);
+    const [franchiseLoading, setFranchiseLoading] = useState(false);
+    const [franchiseSearchTerm, setFranchiseSearchTerm] = useState('');
+
     const ITEMS_PER_PAGE = 10;
 
     const STATUS_OPTIONS = [
@@ -379,17 +386,27 @@ export const AdminDashboard = () => {
         REJECTED: { label: 'Reddedildi', color: 'red' },
     };
 
+    const FRANCHISE_STATUS_OPTIONS = [
+        { value: '', label: 'Tümü', color: 'gray' },
+        { value: 'SUBMITTED', label: 'Gönderildi', color: 'blue' },
+        { value: 'IN_REVIEW', label: 'İnceleniyor', color: 'yellow' },
+        { value: 'APPROVED', label: 'Onaylandı', color: 'green' },
+        { value: 'REJECTED', label: 'Reddedildi', color: 'red' },
+        { value: 'DRAFT', label: 'Taslak', color: 'gray' },
+    ];
+
     const loadData = async () => {
         try {
-            const [statsData, revenueAnalytics, franchiseData] = await Promise.all([
+            const [statsData, revenueAnalytics] = await Promise.all([
                 adminService.getDashboard(),
-                adminService.getRevenueAnalytics(selectedYear),
-                adminService.getFranchiseApplications({ limit: 50 })
+                adminService.getRevenueAnalytics(selectedYear)
             ]);
             setStats(statsData);
             setRevenueData(revenueAnalytics);
-            setFranchiseApplications(franchiseData.data || []);
-            await loadBookings(1);
+            await Promise.all([
+                loadBookings(1),
+                loadFranchiseApplications(1)
+            ]);
         } catch (err) {
             console.error(err);
             navigate('/admin/login');
@@ -419,6 +436,28 @@ export const AdminDashboard = () => {
         }
     };
 
+    const loadFranchiseApplications = async (page: number, search?: string, status?: string) => {
+        setFranchiseLoading(true);
+        try {
+            const params: any = {
+                limit: ITEMS_PER_PAGE,
+                offset: (page - 1) * ITEMS_PER_PAGE
+            };
+            if (search) params.search = search;
+
+
+            const franchiseData = await adminService.getFranchiseApplications(params);
+            setFranchiseApplications(franchiseData.data || []);
+            setTotalFranchises(franchiseData.pagination?.total || franchiseData.data?.length || 0);
+            setFranchisePage(page);
+        } catch (err) {
+            console.error(err);
+            toast('Franchise başvuruları yüklenirken hata oluştu', 'error');
+        } finally {
+            setFranchiseLoading(false);
+        }
+    };
+
     useEffect(() => {
         loadData();
     }, [selectedYear]);
@@ -430,6 +469,14 @@ export const AdminDashboard = () => {
         }, 300); // 300ms debounce
         return () => clearTimeout(timer);
     }, [searchTerm, statusFilter]);
+
+    // Auto-search with debounce for Franchise
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            loadFranchiseApplications(1, franchiseSearchTerm || undefined);
+        }, 300); // 300ms debounce
+        return () => clearTimeout(timer);
+    }, [franchiseSearchTerm]);
 
     const handleCancelClick = (id: string) => {
         setCancelingId(id); // Use cancelingId to track which booking is being cancelled for modal
@@ -971,38 +1018,76 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Franchise Applications Section */}
-                <div className="bg-dark-surface rounded-2xl border border-white/5 overflow-hidden shadow-xl">
-                    <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                                <Building2 className="w-5 h-5 text-purple-400" />
+                <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                    <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                                    <Building2 className="w-5 h-5 text-purple-400" />
+                                </div>
+                                Franchise Başvuruları
+                            </h2>
+                            <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                {totalFranchises} başvuru
+                            </span>
+                        </div>
+                        <div className="flex-1 max-w-md flex justify-end">
+                            <div className="relative w-full">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="İsim, Şirket veya Şehir ile ara..."
+                                    value={franchiseSearchTerm}
+                                    onChange={(e) => setFranchiseSearchTerm(e.target.value)}
+                                    className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
+                                />
+                                {franchiseSearchTerm && (
+                                    <button
+                                        onClick={() => setFranchiseSearchTerm('')}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                                    >
+                                        ×
+                                    </button>
+                                )}
                             </div>
-                            Franchise Başvuruları
-                        </h2>
-                        <span className="text-sm text-gray-400">{franchiseApplications.length} başvuru</span>
+                        </div>
                     </div>
 
+
                     <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-white/5 text-left text-sm text-gray-400">
-                                    <th className="p-4 font-semibold">Başvuran</th>
-                                    <th className="p-4 font-semibold">İletişim</th>
-                                    <th className="p-4 font-semibold">Şehir</th>
-                                    <th className="p-4 font-semibold">Bütçe</th>
-                                    <th className="p-4 font-semibold">Durum</th>
-                                    <th className="p-4 font-semibold">Tarih</th>
-                                    <th className="p-4 font-semibold">İşlem</th>
+                        <table className="w-full text-left">
+                            <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th className="p-4">Başvuran</th>
+                                    <th className="p-4">İletişim</th>
+                                    <th className="p-4">Lokasyon</th>
+                                    <th className="p-4">Bütçe</th>
+                                    <th className="p-4">Durum</th>
+                                    <th className="p-4">Tarih</th>
+                                    <th className="p-4">İşlem</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {franchiseApplications.length === 0 ? (
-                                    <tr><td colSpan={7} className="p-8 text-center text-gray-400">Henüz franchise başvurusu yok</td></tr>
+                            <tbody className="divide-y divide-white/5 relative">
+                                {franchiseLoading ? (
+                                    <tr>
+                                        <td colSpan={7} className="p-12 text-center">
+                                            <div className="flex justify-center items-center">
+                                                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : franchiseApplications.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="p-12 text-center">
+                                            <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                                            <p className="text-gray-400">Henüz franchise başvurusu yok</p>
+                                        </td>
+                                    </tr>
                                 ) : (
                                     franchiseApplications.map((app) => {
                                         const statusInfo = FRANCHISE_STATUS_LABELS[app.status] || { label: app.status, color: 'gray' };
                                         return (
-                                            <tr key={app.id} className="border-t border-white/5 hover:bg-white/5 transition-colors">
+                                            <tr key={app.id} className="hover:bg-white/5 transition-colors group">
                                                 <td className="p-4">
                                                     <div className="font-medium text-white">{app.contactName}</div>
                                                     {app.companyName && <div className="text-xs text-gray-400">{app.companyName}</div>}
@@ -1014,12 +1099,18 @@ export const AdminDashboard = () => {
                                                 <td className="p-4 text-gray-300">{app.city || '-'}</td>
                                                 <td className="p-4 text-sm text-gray-400">{app.details?.investmentBudget || '-'}</td>
                                                 <td className="p-4">
-                                                    <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${statusInfo.color === 'green' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                                        statusInfo.color === 'red' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                                                            statusInfo.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                                                                statusInfo.color === 'blue' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-                                                                    'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${statusInfo.color === 'green' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                                        statusInfo.color === 'red' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                            statusInfo.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                                                                statusInfo.color === 'blue' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                                    'bg-gray-500/10 text-gray-400 border-gray-500/20'
                                                         }`}>
+                                                        <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.color === 'green' ? 'bg-green-500' :
+                                                            statusInfo.color === 'red' ? 'bg-red-500' :
+                                                                statusInfo.color === 'yellow' ? 'bg-yellow-500' :
+                                                                    statusInfo.color === 'blue' ? 'bg-blue-500' :
+                                                                        'bg-gray-500'
+                                                            }`} />
                                                         {statusInfo.label}
                                                     </span>
                                                 </td>
@@ -1030,7 +1121,7 @@ export const AdminDashboard = () => {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="text-xs px-3 py-1.5 border-purple-500/30 text-purple-400 hover:bg-purple-500/20"
+                                                        className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-purple-500/30 text-purple-400 hover:bg-purple-500/20"
                                                         onClick={() => setSelectedFranchise(app)}
                                                     >
                                                         Detaylar
@@ -1043,6 +1134,60 @@ export const AdminDashboard = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalFranchises > ITEMS_PER_PAGE && (
+                        <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                            <div className="text-sm text-gray-400">
+                                Sayfa {franchisePage} / {Math.ceil(totalFranchises / ITEMS_PER_PAGE)} ({totalFranchises} kayıt)
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => loadFranchiseApplications(franchisePage - 1)}
+                                    disabled={franchisePage === 1 || franchiseLoading}
+                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronLeft className="w-5 h-5" />
+                                </button>
+                                {/* Page Numbers */}
+                                <div className="flex gap-1">
+                                    {Array.from({ length: Math.min(5, Math.ceil(totalFranchises / ITEMS_PER_PAGE)) }, (_, i) => {
+                                        const totalPages = Math.ceil(totalFranchises / ITEMS_PER_PAGE);
+                                        let pageNum: number;
+                                        if (totalPages <= 5) {
+                                            pageNum = i + 1;
+                                        } else if (franchisePage <= 3) {
+                                            pageNum = i + 1;
+                                        } else if (franchisePage >= totalPages - 2) {
+                                            pageNum = totalPages - 4 + i;
+                                        } else {
+                                            pageNum = franchisePage - 2 + i;
+                                        }
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => loadFranchiseApplications(pageNum)}
+                                                disabled={franchiseLoading}
+                                                className={`w-10 h-10 rounded-lg font-bold transition-all ${franchisePage === pageNum
+                                                    ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+                                                    : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50'
+                                                    }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <button
+                                    onClick={() => loadFranchiseApplications(franchisePage + 1)}
+                                    disabled={franchisePage >= Math.ceil(totalFranchises / ITEMS_PER_PAGE) || franchiseLoading}
+                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

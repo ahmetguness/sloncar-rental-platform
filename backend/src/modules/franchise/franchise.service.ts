@@ -210,9 +210,17 @@ export async function getUserApplications(
 export async function getAdminApplications(
     query: FranchiseQueryInput
 ): Promise<PaginatedResponse<FranchiseApplicationWithUser>> {
-    const { status, city, fromDate, toDate, page, limit } = query;
+    const { status, city, search, fromDate, toDate, page, limit } = query;
 
     const where: Prisma.FranchiseApplicationWhereInput = {};
+
+    if (search) {
+        where.OR = [
+            { contactName: { contains: search, mode: 'insensitive' } },
+            { companyName: { contains: search, mode: 'insensitive' } },
+            { city: { contains: search, mode: 'insensitive' } },
+        ];
+    }
 
     if (status) where.status = status;
     if (city) where.city = { contains: city, mode: 'insensitive' };

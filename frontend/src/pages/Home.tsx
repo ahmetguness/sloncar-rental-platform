@@ -9,7 +9,7 @@ import type { Car } from '../services/types';
 import { CarCard } from '../components/CarCard';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Loader2, Search, SlidersHorizontal, RotateCcw, Plus, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, RotateCcw, Plus, Minus, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 
 // Register Turkish locale
 registerLocale('tr', tr);
@@ -494,17 +494,34 @@ export const Home = () => {
                             ))}
                         </div>
 
-                        {/* Load More Button */}
-                        {page < pagination.totalPages && (
-                            <div className="mt-12 flex justify-center">
-                                <Button
-                                    onClick={() => fetchCars(page + 1, true)}
-                                    disabled={loading}
-                                    className="bg-dark-surface-lighter border border-white/10 text-white hover:bg-primary-500 hover:border-primary-500 px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-primary-500/20 flex items-center gap-2"
-                                >
-                                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                                    DAHA FAZLA GÖSTER
-                                </Button>
+                        {/* Load More & Show Less Buttons */}
+                        {(page < pagination.totalPages || page > 1) && (
+                            <div className="mt-12 flex justify-center gap-4">
+                                {page > 1 && (
+                                    <Button
+                                        onClick={() => {
+                                            fetchCars(1, false);
+                                            // Optional: Scroll back to top of fleet section
+                                            document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' });
+                                        }}
+                                        disabled={loading}
+                                        className="bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-white/20 px-8 py-4 rounded-xl font-bold transition-all flex items-center gap-2 group"
+                                    >
+                                        <Minus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                        DAHA AZ GÖSTER
+                                    </Button>
+                                )}
+
+                                {page < pagination.totalPages && (
+                                    <Button
+                                        onClick={() => fetchCars(page + 1, true)}
+                                        disabled={loading}
+                                        className="bg-dark-surface-lighter border border-white/10 text-white hover:bg-primary-500 hover:border-primary-500 px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-primary-500/20 flex items-center gap-2"
+                                    >
+                                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+                                        DAHA FAZLA GÖSTER
+                                    </Button>
+                                )}
                             </div>
                         )}
                     </>
