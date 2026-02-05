@@ -9,6 +9,10 @@ export interface DashboardStats {
     totalUsers: number;
     recentBookings: any[];
     revenueByMonth: any[];
+    pendingFranchiseApplications: number;
+    newBookingsCount: number;
+    latestNewBookings: any[];
+    latestPendingFranchiseApplications: any[];
 }
 
 export interface RevenueAnalytics {
@@ -34,6 +38,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         totalCars,
         totalUsers,
         recentBookings,
+        pendingFranchiseApplications,
+        newBookingsCount,
+        latestNewBookings,
+        latestPendingFranchiseApplications
     ] = await Promise.all([
         prisma.booking.count(),
         prisma.booking.count({ where: { status: BookingStatus.ACTIVE } }),
@@ -49,6 +57,19 @@ export async function getDashboardStats(): Promise<DashboardStats> {
             include: {
                 car: { select: { brand: true, model: true } }
             }
+        }),
+        prisma.franchiseApplication.count({ where: { status: 'SUBMITTED' } }),
+        prisma.booking.count({ where: { status: 'RESERVED' } }),
+        prisma.booking.findMany({
+            where: { status: 'RESERVED' },
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: { car: { select: { brand: true, model: true } } }
+        }),
+        prisma.franchiseApplication.findMany({
+            where: { status: 'SUBMITTED' },
+            take: 5,
+            orderBy: { submittedAt: 'desc' }
         })
     ]);
 
@@ -68,6 +89,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         totalUsers,
         recentBookings,
         revenueByMonth,
+        pendingFranchiseApplications,
+        newBookingsCount,
+        latestNewBookings,
+        latestPendingFranchiseApplications
     };
 }
 

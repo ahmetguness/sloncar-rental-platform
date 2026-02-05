@@ -89,6 +89,10 @@ export interface DashboardStats {
     totalCars: number;
     recentBookings: Booking[];
     revenueByMonth: { month: string; revenue: number }[];
+    pendingFranchiseApplications: number;
+    newBookingsCount: number;
+    latestNewBookings: any[];
+    latestPendingFranchiseApplications: any[];
 }
 
 export interface PaginatedResponse<T> {

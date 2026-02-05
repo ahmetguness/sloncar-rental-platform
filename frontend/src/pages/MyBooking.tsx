@@ -3,7 +3,7 @@ import { bookingService } from '../services/api';
 import type { Booking as BookingType } from '../services/types';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Search, AlertCircle, Loader2, Users, QrCode, CheckCircle, Car as CarIcon } from 'lucide-react';
+import { Search, AlertCircle, Loader2, Users, CheckCircle, Car as CarIcon } from 'lucide-react';
 import { getBrandLogo } from '../utils/brandLogos';
 
 export const MyBooking = () => {
@@ -84,7 +84,7 @@ export const MyBooking = () => {
 
             <div className="container mx-auto px-4 relative z-10">
                 {/* Search Section (Hero) */}
-                <div className={`transition-all duration-700 ease-out ${booking ? 'scale-90 opacity-80 hover:opacity-100 hover:scale-95 mb-8' : 'min-h-[60vh] flex flex-col justify-center'}`}>
+                <div className={`transition-all duration-700 ease-out ${booking ? 'scale-95 opacity-100 mb-12' : 'min-h-[60vh] flex flex-col justify-center'}`}>
                     <div className="max-w-xl mx-auto text-center space-y-8">
                         {!booking && (
                             <div className="space-y-4 animate-fade-in-up">
@@ -124,184 +124,203 @@ export const MyBooking = () => {
                     </div>
                 </div>
 
-                {/* Result Section: Boarding Pass Style */}
+                {/* Result Section: Full Screen Dashboard */}
                 {booking && (
-                    <div className="max-w-5xl mx-auto animate-slide-up pb-10">
-
-                        {/* The Pass Container with Hover Shine Effect */}
-                        <div className="group/card relative rounded-3xl transition-transform duration-500 hover:scale-[1.01]">
-                            {/* Shine Effect */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-200%] group-hover/card:translate-x-[200%] transition-transform duration-1000 ease-in-out z-30 pointer-events-none rounded-3xl" />
-
-                            <div className="flex flex-col md:flex-row bg-dark-surface border border-white/10 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] relative">
-
-                                {/* Decorative Top Line */}
-                                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary-500 via-neon-purple to-primary-500 z-20" />
-
-                                {/* LEFT SIDE: Car Visual & Primary Info */}
-                                <div className="md:w-[60%] p-8 md:p-10 bg-gradient-to-br from-dark-surface-lighter to-[#0a0a0f] relative overflow-hidden">
-
-                                    <div className="relative z-10 flex flex-col h-full justify-between">
-                                        {/* Header */}
-                                        <div className="flex justify-between items-start mb-6">
-                                            <button
-                                                onClick={copyToClipboard}
-                                                className="bg-white/5 backdrop-blur-md pl-4 pr-3 py-2 rounded-2xl border border-white/10 group hover:bg-white/10 transition-all flex items-center gap-3 active:scale-95 shadow-sm"
-                                            >
-                                                <div>
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block leading-tight">PNR KODU</span>
-                                                    <div className="text-xl font-mono font-bold text-white tracking-widest leading-none">{booking.bookingCode}</div>
-                                                </div>
-                                                <div className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center text-gray-400 group-hover:text-primary-400 transition-colors">
-                                                    {copied ? <CheckCircle size={16} className="text-green-500" /> : null}
-                                                </div>
-                                            </button>
-
-                                            {getBrandLogo(booking.car?.brand || '') && (
-                                                <div className="bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/5 shadow-inner">
-                                                    <img src={getBrandLogo(booking.car?.brand || '')} alt={booking.car?.brand} className="h-8 w-auto object-contain opacity-90 brightness-200 contrast-0 grayscale transition-all duration-300 hover:filter-none hover:opacity-100" />
-                                                </div>
-                                            )}
+                    <div className="w-full max-w-7xl mx-auto animate-slide-up pb-20">
+                        {/* Dashboard Header */}
+                        <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 border-b border-white/10 pb-6">
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    {getBrandLogo(booking.car?.brand || '') ? (
+                                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center p-2 shadow-lg">
+                                            <img src={getBrandLogo(booking.car?.brand || '')} alt={booking.car?.brand} className="w-full h-full object-contain" />
                                         </div>
-
-                                        {/* Main Content Area: Split Text and Image */}
-                                        <div className="flex flex-row items-center justify-between mb-8 flex-1">
-                                            {/* Text Info */}
-                                            <div className="flex-1 space-y-4 z-10">
-                                                <div className='drop-shadow-lg'>
-                                                    <h2 className="text-4xl xs:text-5xl font-black text-white leading-none tracking-tight">
-                                                        {booking.car?.brand}
-                                                    </h2>
-                                                    <p className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-neon-purple text-3xl font-bold tracking-wide">{booking.car?.model}</p>
-                                                </div>
-
-                                                <div className="flex flex-wrap gap-2 text-gray-300 text-[10px] xs:text-xs font-bold uppercase tracking-wider max-w-[200px]">
-                                                    <span className="bg-white/5 border border-white/5 px-2 py-1 rounded-md backdrop-blur-sm">{booking.car?.year}</span>
-                                                    <span className="bg-white/5 border border-white/5 px-2 py-1 rounded-md backdrop-blur-sm">{booking.car?.color}</span>
-                                                    <span className="bg-white/5 border border-white/5 px-2 py-1 rounded-md backdrop-blur-sm capitalize">{booking.car?.fuel}</span>
-                                                    <span className="bg-white/5 border border-white/5 px-2 py-1 rounded-md backdrop-blur-sm capitalize">{booking.car?.transmission === 'AUTO' ? 'Oto' : 'Man'}</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Car Image - Dedicated Right Area */}
-                                            {booking.car?.images?.[0] && (
-                                                <div className="w-[50%] h-[180px] relative flex flex-col justify-center items-end -mr-6">
-                                                    {/* Smooth Fade Mask Container */}
-                                                    <div className="relative w-full h-full rounded-2xl overflow-hidden" style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 30%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 30%)' }}>
-                                                        <img
-                                                            src={booking.car.images[0]}
-                                                            className="w-full h-full object-cover transform transition-transform duration-700 group-hover/card:scale-110"
-                                                            alt={booking.car?.model}
-                                                        />
-                                                        {/* Color Overlay for blending */}
-                                                        <div className="absolute inset-0 bg-primary-900/10 mix-blend-overlay" />
-                                                    </div>
-                                                </div>
-                                            )}
+                                    ) : (
+                                        <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center p-2 border border-white/5">
+                                            <CarIcon className="w-6 h-6 text-gray-400" />
                                         </div>
-
-                                        {/* Route / Dates Footer */}
-                                        <div className="flex items-center justify-between bg-black/30 backdrop-blur-xl p-4 rounded-2xl border border-white/5 shadow-lg relative z-20">
-                                            <div>
-                                                <span className="text-[10px] uppercase tracking-widest text-gray-500 font-bold block mb-1">ALIŞ TARİHİ</span>
-                                                <div className="text-white text-lg font-bold">{new Date(booking.pickupDate).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' })}</div>
-                                                <div className="text-gray-500 text-xs font-mono">{new Date(booking.pickupDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</div>
-                                            </div>
-
-                                            <div className="flex-1 px-4 xs:px-6 flex flex-col items-center gap-1 group/track">
-                                                <div className="w-full h-[2px] bg-white/10 relative rounded-full overflow-hidden">
-                                                    <div className="absolute left-0 top-0 h-full bg-primary-500 w-1/2 group-hover/track:w-full transition-all duration-1000" />
-                                                </div>
-                                                <div className="bg-dark-bg p-1.5 rounded-full border border-white/10 text-gray-500 group-hover/track:text-white group-hover/track:border-primary-500/50 transition-colors -mt-4 z-10 shadow-sm">
-                                                    <CarIcon size={14} />
-                                                </div>
-                                                <span className="text-[10px] text-gray-600 font-mono -mt-1">{getDaysLeft() || 0} GÜN</span>
-                                            </div>
-
-                                            <div className="text-right">
-                                                <span className="text-[10px] uppercase tracking-widest text-gray-500 font-bold block mb-1">TESLİM TARİHİ</span>
-                                                <div className="text-white text-lg font-bold">{new Date(booking.dropoffDate).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' })}</div>
-                                                <div className="text-gray-500 text-xs font-mono">{new Date(booking.dropoffDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    )}
+                                    <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight uppercase">
+                                        {booking.car?.brand} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-neon-purple">{booking.car?.model}</span>
+                                    </h1>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${booking.status === 'ACTIVE' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-primary-500/10 border-primary-500/20 text-primary-400'}`}>
+                                        {booking.status === 'ACTIVE' ? 'AKTİF SÜRÜŞ' : 'REZERVASYON'}
+                                    </span>
                                 </div>
-
-                                {/* PERFORATOR LINE with Realistic Notches */}
-                                <div className="hidden md:flex flex-col justify-between w-6 relative z-20 bg-dark-bg -ml-3 -mr-3">
-                                    <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 border-l-2 border-dashed border-white/20 h-full w-[2px]"></div>
-                                    {/* Top Notch - Using masking logic via simple colored divs for now as exact css mask needs more setups */}
-                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-dark-bg rounded-full shadow-[inset_0_-2px_4px_rgba(0,0,0,0.5)] z-20" />
-                                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-dark-bg rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] z-20" />
+                                <div className="flex items-center gap-4 text-gray-400 text-sm font-mono">
+                                    <span className="bg-white/5 px-2 py-1 rounded">PNR: <span className="text-white font-bold tracking-widest">{booking.bookingCode}</span></span>
+                                    <span className="hidden md:inline">•</span>
+                                    <span>{new Date(booking.createdAt).toLocaleDateString('tr-TR')} tarihinde oluşturuldu</span>
                                 </div>
+                            </div>
 
-                                {/* RIGHT SIDE: Stub Details */}
-                                <div className="md:w-[40%] bg-white/[0.03] p-8 flex flex-col justify-between relative backdrop-blur-sm">
-                                    <div className="space-y-8">
-                                        {/* Status Badge */}
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] -rotate-90 origin-left translate-y-8 translate-x-[-12px] whitespace-nowrap">SLONCAR PASS</span>
-                                            <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ml-auto ${booking.status === 'ACTIVE' ? 'bg-green-500/10 border-green-500/20 text-green-400' :
-                                                booking.status === 'RESERVED' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
-                                                    'bg-red-500/10 border-red-500/20 text-red-500'
-                                                } shadow-lg`}>
-                                                {booking.status === 'ACTIVE' ? 'SÜRÜŞTE' : booking.status === 'RESERVED' ? 'ONAYLANDI' : 'İPTAL'}
-                                            </span>
+                            <div className="text-right">
+                                <div className="text-3xl font-black text-white tracking-tight">{Number(booking.totalPrice).toLocaleString()} <span className="text-primary-500">₺</span></div>
+                                <div className="flex items-center justify-end gap-2 text-xs font-bold mt-1">
+                                    {booking.paymentStatus === 'PAID' ?
+                                        <span className="text-green-400 flex items-center gap-1"><CheckCircle size={12} /> ÖDENDİ</span> :
+                                        <span className="text-yellow-400 flex items-center gap-1"><AlertCircle size={12} /> ÖDEME BEKLENİYOR</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+                            {/* LEFT: Car Visuals & Specs */}
+                            <div className="lg:col-span-8 space-y-8">
+                                {/* Driver Info Row */}
+                                <div className="bg-dark-surface-lighter/30 border border-white/5 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-gray-400">
+                                            <Users size={24} />
                                         </div>
-
-                                        {/* Customer / Driver */}
-                                        <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
-                                            <div className="flex items-center gap-4">
-                                                <div className="bg-gradient-to-br from-white/10 to-transparent p-3 rounded-xl border border-white/10">
-                                                    <Users size={20} className="text-white" />
-                                                </div>
-                                                <div>
-                                                    <span className="text-[10px] uppercase tracking-widest text-gray-500 font-bold block mb-0.5">SÜRÜCÜ</span>
-                                                    <div className="text-white font-bold text-lg">{booking.customerName} {booking.customerSurname}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Price & Payment */}
                                         <div>
-                                            <span className="text-[10px] uppercase tracking-widest text-gray-500 font-bold block mb-2">TOPLAM TUTAR</span>
-                                            <div className="text-5xl font-black text-white tracking-tighter">{Number(booking.totalPrice).toLocaleString()} <span className="text-primary-500 text-3xl">₺</span></div>
-                                            <div className="mt-3 text-xs font-bold flex items-center gap-2 bg-white/5 py-2 px-3 rounded-lg w-fit border border-white/5">
-                                                {booking.paymentStatus === 'PAID' ?
-                                                    <span className="text-green-400 flex items-center gap-2"><CheckCircle size={14} className="fill-green-500/20" /> ÖDEME ALINDI</span> :
-                                                    <span className="text-yellow-400 flex items-center gap-2"><AlertCircle size={14} className="fill-yellow-500/20" /> ÖDEME BEKLENİYOR</span>
-                                                }
+                                            <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">SÜRÜCÜ BİLGİLERİ</div>
+                                            <div className="text-xl font-bold text-white tracking-wide">
+                                                {booking.customerName.substring(0, 2)}**** {booking.customerSurname.substring(0, 2)}****
+                                            </div>
+                                            <div className="flex flex-col gap-1 mt-2">
+                                                {booking.customerTC && (
+                                                    <div className="text-sm text-gray-400 font-mono flex items-center gap-2">
+                                                        <span className="text-gray-600">TC:</span>
+                                                        {booking.customerTC.replace(/(\d{3})\d{6}(\d{2})/, '$1******$2')}
+                                                    </div>
+                                                )}
+                                                <div className="text-sm text-gray-400 font-mono flex items-center gap-2">
+                                                    <span className="text-gray-600">TEL:</span>
+                                                    ******{booking.customerPhone.slice(-2)}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* QR Placeholder & Action */}
-                                    <div className="mt-auto pt-8 border-t border-dashed border-white/10 flex items-center justify-between gap-4">
-                                        <div className="bg-white p-2.5 rounded-xl shadow-lg shrink-0">
-                                            <QrCode className="w-14 h-14 text-black" />
-                                        </div>
-
-                                        {booking.paymentStatus !== 'PAID' && booking.status !== 'CANCELLED' ? (
+                                    {booking.paymentStatus !== 'PAID' && booking.status !== 'CANCELLED' && (
+                                        <div className="flex flex-col items-center md:items-end gap-3 w-full md:w-auto mt-4 md:mt-0">
+                                            <div className="flex items-center gap-2 text-yellow-400 text-[10px] font-black uppercase tracking-widest bg-yellow-400/10 px-3 py-1.5 rounded border border-yellow-400/20 animate-pulse">
+                                                <AlertCircle size={12} />
+                                                Ödeme Bekleniyor
+                                            </div>
                                             <Button
                                                 onClick={handlePay}
                                                 disabled={paying}
-                                                className="flex-1 bg-primary-500 hover:bg-primary-600 text-white font-bold h-full min-h-[64px] rounded-xl shadow-lg shadow-primary-500/20 transition-all hover:translate-y-[-2px]"
+                                                className="w-full md:w-auto px-10 h-16 bg-gradient-to-r from-primary-600 via-primary-500 to-primary-600 hover:from-primary-500 hover:to-primary-400 text-white font-black text-lg rounded-2xl shadow-[0_0_40px_rgba(99,102,241,0.4)] hover:shadow-[0_0_60px_rgba(99,102,241,0.6)] transition-all transform hover:scale-[1.02] border border-white/20 relative overflow-hidden group"
                                             >
-                                                {paying ? '...' : 'ÖDEME YAP'}
+                                                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                                                {paying ? <Loader2 className="animate-spin mr-2" /> : <span className="flex items-center gap-3">HEMEN ÖDE <CheckCircle size={20} className="text-white" /></span>}
                                             </Button>
-                                        ) : (
-                                            // <Button variant="outline" className="flex-1 border-white/10 text-gray-400 hover:text-white hover:border-white/30 hover:bg-white/5 h-full min-h-[64px] rounded-xl group/btn">
-                                            //     <ArrowDown size={20} className="group-hover/btn:scale-110 transition-transform" />
-                                            // </Button>
-                                            <div />
-                                        )}
+                                            <p className="text-[11px] text-gray-400 text-center md:text-right max-w-[300px] leading-relaxed">
+                                                <span className="text-red-400 font-bold">DİKKAT:</span> Rezervasyonunuzun kesinleşmesi ve araç teslimi için ödemenin <strong className="text-white">şimdi yapılması gerekmektedir</strong>.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Hero Image Container */}
+                                <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-dark-surface">
+                                    {booking.car?.images?.[0] && (
+                                        <>
+                                            <img
+                                                src={booking.car.images[0]}
+                                                alt={booking.car.model}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-dark-bg/90 via-transparent to-transparent" />
+
+                                            {/* Overlay Specs */}
+                                            <div className="absolute bottom-6 left-6 right-6 flex flex-wrap gap-3">
+                                                <div className="bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-white text-sm font-bold flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-primary-500"></span>
+                                                    {booking.car?.year} Model
+                                                </div>
+                                                <div className="bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-white text-sm font-bold capitalize">
+                                                    {booking.car?.fuel}
+                                                </div>
+                                                <div className="bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-white text-sm font-bold capitalize">
+                                                    {booking.car?.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'}
+                                                </div>
+                                                <div className="bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-white text-sm font-bold capitalize">
+                                                    {booking.car?.color}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* RIGHT: Timeline & Actions */}
+                            <div className="lg:col-span-4 space-y-6">
+                                {/* Timeline Card */}
+                                <div className="bg-dark-surface-lighter/30 border border-white/10 rounded-3xl p-8 h-full">
+                                    <h3 className="text-lg font-bold text-white mb-8 flex items-center gap-2">
+                                        <div className="w-1 h-6 bg-primary-500 rounded-full" />
+                                        Sürüş Planı
+                                    </h3>
+
+                                    <div className="relative pl-4 space-y-12">
+                                        {/* Timeline Line */}
+                                        <div className="absolute left-[23px] top-4 bottom-4 w-0.5 bg-gradient-to-b from-primary-500 via-white/10 to-primary-500/50" />
+
+                                        {/* Pickup */}
+                                        <div className="relative pl-20">
+                                            <div className="absolute left-0 top-1 w-12 h-12 bg-dark-bg border-2 border-primary-500 rounded-2xl flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.3)] z-10">
+                                                <span className="text-[10px] font-bold text-primary-500">ALIŞ</span>
+                                            </div>
+                                            <div>
+                                                <div className="text-2xl font-bold text-white tracking-tight">
+                                                    {new Date(booking.pickupDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
+                                                </div>
+                                                <div className="text-gray-400 font-mono text-lg mb-1">
+                                                    {new Date(booking.pickupDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-white/5 py-1 px-2 rounded inline-block">
+                                                    Başlangıç
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Duration Center */}
+                                        <div className="relative pl-20">
+                                            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-primary-500/10 border border-primary-500/30 text-primary-300 font-bold backdrop-blur-md">
+                                                <CarIcon size={16} />
+                                                {getDaysLeft() || 1} GÜN KİRALAMA
+                                            </div>
+                                        </div>
+
+                                        {/* Dropoff */}
+                                        <div className="relative pl-20">
+                                            <div className="absolute left-1 top-2 w-10 h-10 bg-dark-bg border-2 border-gray-600 rounded-xl flex items-center justify-center z-10">
+                                                <div className="w-3 h-3 bg-white rounded-full" />
+                                            </div>
+                                            <div>
+                                                <div className="text-2xl font-bold text-white tracking-tight">
+                                                    {new Date(booking.dropoffDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
+                                                </div>
+                                                <div className="text-gray-400 font-mono text-lg mb-1">
+                                                    {new Date(booking.dropoffDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-white/5 py-1 px-2 rounded inline-block">
+                                                    Bitiş
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-12 pt-8 border-t border-white/5">
+                                        <button
+                                            onClick={copyToClipboard}
+                                            className="w-full py-4 rounded-xl border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-primary-500/50 hover:bg-primary-500/5 transition-all text-sm font-medium flex items-center justify-center gap-2 group"
+                                        >
+                                            {copied ? <CheckCircle size={16} className="text-green-500" /> : <span className="group-hover:text-primary-400">PNR KOPYALA</span>}
+                                        </button>
                                     </div>
                                 </div>
-                            </div >
-                        </div >
-                    </div >
+                            </div>
+                        </div>
+                    </div>
                 )}
-            </div >
-        </div >
+            </div>
+        </div>
     );
 };

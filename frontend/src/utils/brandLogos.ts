@@ -1,11 +1,13 @@
 
 // Map of common car brands to Public CDN logos
 export const getBrandLogo = (brandName: string): string => {
-    const normalized = brandName.toLowerCase();
+    const normalized = brandName.toLowerCase().trim();
 
     const logos: Record<string, string> = {
         'bmw': 'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg',
-        'mercedes': 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Benz_Logo_2010.svg',
+        'mercedes': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mercedes-Benz_Logo_2010.svg/2048px-Mercedes-Benz_Logo_2010.svg.png',
+        'mercedes-benz': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mercedes-Benz_Logo_2010.svg/2048px-Mercedes-Benz_Logo_2010.svg.png',
+        'mercedes benz': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mercedes-Benz_Logo_2010.svg/2048px-Mercedes-Benz_Logo_2010.svg.png',
         'audi': 'https://upload.wikimedia.org/wikipedia/commons/9/92/Audi-Logo_2016.svg',
         'toyota': 'https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg',
         'honda': 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Honda_Logo.svg',
@@ -23,5 +25,18 @@ export const getBrandLogo = (brandName: string): string => {
 
     // Return specific logo or a generic fallback icon URL
     // For production, these should be local assets or a reliable CDN
-    return logos[normalized] || '';
+    // Check for explicit match first
+    if (logos[normalized]) return logos[normalized];
+
+    // Partial matching for Mercedes
+    if (normalized.includes('mercedes') || normalized.includes('benz')) {
+        return 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Benz_Logo_2010.svg';
+    }
+
+    // Partial matching for other common brands
+    if (normalized.includes('bmw')) return logos['bmw'];
+    if (normalized.includes('audi')) return logos['audi'];
+    if (normalized.includes('vw') || normalized.includes('volkswagen')) return logos['vw'];
+
+    return '';
 };

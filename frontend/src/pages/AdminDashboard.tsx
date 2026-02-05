@@ -234,11 +234,13 @@ const BookingDetailModal = ({ booking, onClose }: { booking: Booking; onClose: (
 const BookingRow = ({
     booking,
     onView,
-    onCancel
+    onCancel,
+    isHighlighted
 }: {
     booking: Booking;
     onView: (b: Booking) => void;
     onCancel: (id: string) => void;
+    isHighlighted?: boolean;
 }) => {
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const { addToast } = useToast();
@@ -256,7 +258,10 @@ const BookingRow = ({
     const initials = ((name.charAt(0) || '') + (surname.charAt(0) || '')).toUpperCase() || '?';
 
     return (
-        <tr className="hover:bg-white/5 transition-colors group">
+        <tr className={`transition-all group border-b border-white/5 last:border-0 ${isHighlighted
+            ? 'bg-primary-500/20 hover:bg-primary-500/30 shadow-[inset_0_0_20px_rgba(99,102,241,0.2)]'
+            : 'hover:bg-white/5'
+            }`}>
             <td className="p-4">
                 <button
                     onClick={() => handleCopyCode(booking.bookingCode, booking.id)}
@@ -361,12 +366,19 @@ export const AdminDashboard = () => {
     const [franchiseApplications, setFranchiseApplications] = useState<any[]>([]);
     const [selectedFranchise, setSelectedFranchise] = useState<any | null>(null);
     const [cancelingId, setCancelingId] = useState<string | null>(null);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [highlightedBookingId, setHighlightedBookingId] = useState<string | null>(null);
+    const [readNotificationIds, setReadNotificationIds] = useState<string[]>(() => {
+        const saved = localStorage.getItem('readNotificationIds');
+        return saved ? JSON.parse(saved) : [];
+    });
 
     // Franchise States
     const [franchisePage, setFranchisePage] = useState(1);
     const [totalFranchises, setTotalFranchises] = useState(0);
     const [franchiseLoading, setFranchiseLoading] = useState(false);
     const [franchiseSearchTerm, setFranchiseSearchTerm] = useState('');
+    const [highlightedFranchiseId, setHighlightedFranchiseId] = useState<string | null>(null);
 
     const ITEMS_PER_PAGE = 10;
 
@@ -394,6 +406,23 @@ export const AdminDashboard = () => {
         { value: 'REJECTED', label: 'Reddedildi', color: 'red' },
         { value: 'DRAFT', label: 'Taslak', color: 'gray' },
     ];
+
+    // Auto-refresh for notifications
+    useEffect(() => {
+        const interval = setInterval(() => {
+            refreshStats();
+        }, 60000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const refreshStats = async () => {
+        try {
+            const statsData = await adminService.getDashboard();
+            setStats(statsData);
+        } catch (err) {
+            console.error('Silent refresh failed', err);
+        }
+    };
 
     const loadData = async () => {
         try {
@@ -561,12 +590,165 @@ export const AdminDashboard = () => {
                         </h1>
                         <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
                     </div>
-                    <Link to="/admin/cars">
-                        <Button className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all flex items-center gap-2">
-                            <Settings className="w-5 h-5" />
-                            Araç Yönetimi
-                        </Button>
-                    </Link>
+
+                    <div className="flex items-center gap-4">
+                        {/* Notification Bell */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowNotifications(!showNotifications)}
+                                className="relative p-3 rounded-xl bg-dark-bg border border-white/10 hover:border-primary-500/50 hover:text-white text-gray-400 transition-all shadow-lg"
+                            >
+                                {(() => {
+                                    // Calculate merged notification count based on lastReadTime
+                                    const lastRead = localStorage.getItem('lastNotificationReadTime');
+                                    const lastReadTime = lastRead ? new Date(lastRead).getTime() : 0;
+
+                                    const newBookings = stats?.latestNewBookings || [];
+                                    const pendingFranchise = stats?.latestPendingFranchiseApplications || [];
+
+                                    const unreadCount = [
+                                        ...newBookings.filter(b => new Date(b.createdAt).getTime() > lastReadTime && !readNotificationIds.includes(b.id)),
+                                        ...pendingFranchise.filter(f => new Date(f.submittedAt).getTime() > lastReadTime && !readNotificationIds.includes(f.id))
+                                    ].length;
+
+                                    return unreadCount > 0 && (
+                                        <>
+                                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-dark-bg">
+                                                {unreadCount}
+                                            </span>
+                                        </>
+                                    );
+                                })()}
+                                <AlertCircle size={24} />
+                            </button>
+
+                            {/* Notification Dropdown */}
+                            {showNotifications && (
+                                <div className="absolute right-0 mt-4 w-96 bg-dark-surface border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                                    <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                                        <h3 className="font-bold text-white">Bildirimler</h3>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    localStorage.setItem('lastNotificationReadTime', new Date().toISOString());
+                                                    localStorage.removeItem('readNotificationIds');
+                                                    setReadNotificationIds([]);
+                                                    setShowNotifications(false);
+                                                }}
+                                                className="text-xs font-bold text-primary-400 hover:text-primary-300 transition-colors"
+                                            >
+                                                Tümünü Temizle
+                                            </button>
+                                            <button onClick={() => setShowNotifications(false)} className="text-gray-500 hover:text-white bg-transparent"><X size={16} /></button>
+                                        </div>
+                                    </div>
+                                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                                        {(() => {
+                                            const lastRead = localStorage.getItem('lastNotificationReadTime');
+                                            const lastReadTime = lastRead ? new Date(lastRead).getTime() : 0;
+
+                                            const newBookings = (stats?.latestNewBookings || []).map(b => ({
+                                                id: b.id,
+                                                type: 'booking',
+                                                title: 'Yeni Rezervasyon',
+                                                desc: `${b.car?.brand} ${b.car?.model}`,
+                                                code: b.bookingCode || b.id,
+                                                date: b.createdAt,
+                                                icon: <CarIcon size={16} />,
+                                                color: 'green'
+                                            }));
+
+                                            const pendingFranchise = (stats?.latestPendingFranchiseApplications || []).map(f => ({
+                                                id: f.id,
+                                                type: 'franchise',
+                                                title: 'Bayilik Başvurusu',
+                                                desc: f.companyName || f.contactName,
+                                                date: f.submittedAt,
+                                                icon: <Building2 size={16} />,
+                                                color: 'primary'
+                                            }));
+
+                                            const allNotifications = [...newBookings, ...pendingFranchise]
+                                                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                                            const unreadNotifications = allNotifications.filter(n =>
+                                                new Date(n.date).getTime() > lastReadTime && !readNotificationIds.includes(n.id)
+                                            );
+
+                                            if (unreadNotifications.length === 0) {
+                                                return (
+                                                    <div className="p-8 text-center text-gray-500 text-sm">
+                                                        <Check className="w-8 h-8 mx-auto mb-2 text-green-500/20" />
+                                                        Yeni bildiriminiz yok.
+                                                    </div>
+                                                );
+                                            }
+
+                                            return unreadNotifications.map((item, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    onClick={() => {
+                                                        const newReadIds = [...readNotificationIds, item.id];
+                                                        setReadNotificationIds(newReadIds);
+                                                        localStorage.setItem('readNotificationIds', JSON.stringify(newReadIds));
+                                                        setShowNotifications(false);
+                                                        if (item.type === 'booking') {
+                                                            // Clear search to show all, but highlight specific item
+                                                            setSearchTerm('');
+                                                            setHighlightedBookingId(item.id);
+                                                            loadBookings(1, '', statusFilter);
+
+                                                            // Clear highlight after 5 seconds
+                                                            setTimeout(() => setHighlightedBookingId(null), 5000);
+
+                                                            const element = document.getElementById('bookings-section');
+                                                            if (element) {
+                                                                element.scrollIntoView({ behavior: 'smooth' });
+                                                            }
+                                                        } else if (item.type === 'franchise') {
+                                                            setFranchiseSearchTerm('');
+                                                            setHighlightedFranchiseId(item.id);
+                                                            loadFranchiseApplications(1, '');
+
+                                                            setTimeout(() => setHighlightedFranchiseId(null), 5000);
+
+                                                            const element = document.getElementById('franchise-section');
+                                                            if (element) {
+                                                                element.scrollIntoView({ behavior: 'smooth' });
+                                                            }
+                                                        }
+                                                    }}
+                                                    className={`p-4 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors cursor-pointer flex gap-4 items-start ${item.color === 'green' ? 'border-l-2 border-l-green-500 bg-green-500/5' : 'border-l-2 border-l-primary-500 bg-primary-500/5'
+                                                        }`}>
+                                                    <div className={`mt-1 p-2 rounded-lg ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : 'bg-primary-500/20 text-primary-400'
+                                                        }`}>
+                                                        {item.icon}
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white">{item.title}</div>
+                                                        <div className="text-xs text-gray-300 mt-0.5">{item.desc}</div>
+                                                        <div className="text-[10px] text-gray-500 mt-2 font-medium">
+                                                            {new Date(item.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                                            <span className="mx-1">•</span>
+                                                            {new Date(item.date).toLocaleDateString('tr-TR')}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ));
+                                        })()}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <Link to="/admin/cars">
+                            <Button className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all flex items-center gap-2">
+                                <Settings className="w-5 h-5" />
+                                Araç Yönetimi
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Stats Cards */}
@@ -840,7 +1022,7 @@ export const AdminDashboard = () => {
                 )}
 
                 {/* All Bookings Table with Pagination */}
-                <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                <div id="bookings-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
                     <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <h2 className="text-xl font-bold text-white">Tüm Rezervasyonlar</h2>
@@ -956,6 +1138,7 @@ export const AdminDashboard = () => {
                                             booking={booking}
                                             onView={setSelectedBooking}
                                             onCancel={handleCancelClick}
+                                            isHighlighted={highlightedBookingId === booking.id}
                                         />
                                     ))
                                 )}
@@ -1018,7 +1201,7 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Franchise Applications Section */}
-                <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                <div id="franchise-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
                     <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <h2 className="text-xl font-bold text-white flex items-center gap-3">
@@ -1086,8 +1269,15 @@ export const AdminDashboard = () => {
                                 ) : (
                                     franchiseApplications.map((app) => {
                                         const statusInfo = FRANCHISE_STATUS_LABELS[app.status] || { label: app.status, color: 'gray' };
+                                        const isHighlighted = highlightedFranchiseId === app.id;
                                         return (
-                                            <tr key={app.id} className="hover:bg-white/5 transition-colors group">
+                                            <tr
+                                                key={app.id}
+                                                className={`transition-all group border-b border-white/5 last:border-0 ${isHighlighted
+                                                    ? 'bg-purple-500/20 hover:bg-purple-500/30 shadow-[inset_0_0_20px_rgba(168,85,247,0.2)]'
+                                                    : 'hover:bg-white/5'
+                                                    }`}
+                                            >
                                                 <td className="p-4">
                                                     <div className="font-medium text-white">{app.contactName}</div>
                                                     {app.companyName && <div className="text-xs text-gray-400">{app.companyName}</div>}

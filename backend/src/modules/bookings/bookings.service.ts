@@ -518,10 +518,18 @@ export async function getAdminBookings(
 
     // Search by customer name (first or last name)
     if (search) {
-        where.OR = [
-            { customerName: { contains: search, mode: 'insensitive' } },
-            { customerSurname: { contains: search, mode: 'insensitive' } },
-        ];
+        // Check if search term is a valid UUID
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(search);
+
+        if (isUUID) {
+            where.id = search;
+        } else {
+            where.OR = [
+                { customerName: { contains: search, mode: 'insensitive' } },
+                { customerSurname: { contains: search, mode: 'insensitive' } },
+                { bookingCode: { contains: search, mode: 'insensitive' } },
+            ];
+        }
     }
 
     const total = await prisma.booking.count({ where });
