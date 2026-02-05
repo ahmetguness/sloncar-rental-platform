@@ -55,6 +55,7 @@ export async function getBookingByCode(
                     daysUntilDropoff: daysUntilDropoff > 0 ? daysUntilDropoff : 0,
                     canExtend: booking.status === 'RESERVED' || booking.status === 'ACTIVE',
                     isExtended: !!booking.originalDropoffDate,
+                    isPaid: booking.paymentStatus === 'PAID',
                 },
             },
         });
@@ -81,6 +82,33 @@ export async function extendBooking(
                 additionalPrice: result.additionalPrice,
                 message: `Ek ödeme tutarı: ${result.additionalPrice} TL`,
             },
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// PUBLIC - Simulate Payment
+export async function payBooking(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const code = req.params.code as string;
+        // In real world, we'd process amount from booking details 
+        // For simulation, we just mark it as paid
+        const booking = await bookingsService.getBookingByCode(code);
+        const result = await bookingsService.payBooking(code, Number(booking.totalPrice));
+
+        res.json({
+            success: true,
+            message: 'Ödeme başarıyla alındı!',
+            data: {
+                paymentRef: result.paymentRef,
+                paidAt: result.paidAt,
+                booking: result,
+            }
         });
     } catch (error) {
         next(error);

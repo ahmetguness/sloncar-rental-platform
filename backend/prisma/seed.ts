@@ -93,7 +93,7 @@ async function main() {
                 weeklyPrice: 2800,
                 deposit: 1000,
                 mileage: 25000,
-                images: ['https://example.com/images/fiat-egea-1.jpg'],
+                images: ['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Economical and fuel-efficient sedan',
                 branchId: branches[0]!.id,
@@ -115,7 +115,7 @@ async function main() {
                 weeklyPrice: 3000,
                 deposit: 1000,
                 mileage: 35000,
-                images: ['https://example.com/images/renault-clio-1.jpg'],
+                images: ['https://images.unsplash.com/photo-1621007947382-bb3c3968e3bb?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Compact car perfect for city driving',
                 branchId: branches[0]!.id,
@@ -138,7 +138,7 @@ async function main() {
                 weeklyPrice: 4000,
                 deposit: 1500,
                 mileage: 15000,
-                images: ['https://example.com/images/vw-golf-1.jpg'],
+                images: ['https://images.unsplash.com/photo-1616423664033-22877bc95768?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Premium compact with excellent handling',
                 branchId: branches[1]!.id,
@@ -161,7 +161,7 @@ async function main() {
                 weeklyPrice: 6000,
                 deposit: 2500,
                 mileage: 12000,
-                images: ['https://example.com/images/toyota-rav4-1.jpg'],
+                images: ['https://images.unsplash.com/photo-1626077388041-33f11050d5ce?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Hybrid SUV with great fuel economy',
                 branchId: branches[2]!.id,
@@ -183,7 +183,7 @@ async function main() {
                 weeklyPrice: 7500,
                 deposit: 3000,
                 mileage: 28000,
-                images: ['https://example.com/images/bmw-x3-1.jpg'],
+                images: ['https://images.unsplash.com/photo-1555215695-3004980adade?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Luxury SUV with premium features',
                 branchId: branches[0]!.id,
@@ -206,7 +206,7 @@ async function main() {
                 weeklyPrice: 7000,
                 deposit: 2500,
                 mileage: 45000,
-                images: ['https://example.com/images/mercedes-vito-1.jpg'],
+                images: ['https://images.unsplash.com/photo-1565043666747-69f6646db940?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Spacious van for group travel',
                 branchId: branches[1]!.id,
@@ -229,7 +229,7 @@ async function main() {
                 weeklyPrice: 9000,
                 deposit: 5000,
                 mileage: 8000,
-                images: ['https://example.com/images/mercedes-e-1.jpg'],
+                images: ['https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Executive luxury sedan',
                 branchId: branches[0]!.id,
@@ -274,7 +274,7 @@ async function main() {
                 weeklyPrice: 8000,
                 deposit: 4000,
                 mileage: 5000,
-                images: ['https://example.com/images/tesla-model3-1.jpg'],
+                images: ['https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'All-electric sedan with autopilot',
                 branchId: branches[0]!.id,
@@ -296,7 +296,7 @@ async function main() {
                 weeklyPrice: 5000,
                 deposit: 2000,
                 mileage: 32000,
-                images: ['https://example.com/images/hyundai-tucson-1.jpg'],
+                images: ['https://images.unsplash.com/photo-1629831720876-0f3747b0e14c?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Modern SUV with hybrid technology',
                 branchId: branches[1]!.id,
@@ -324,6 +324,7 @@ async function main() {
             dropoffBranchId: branches[0]!.id,
             totalPrice: 3150,
             status: 'RESERVED',
+            bookingCode: 'RNT-SEED01',
         },
     });
 
@@ -410,6 +411,59 @@ async function main() {
     console.log('Test credentials:');
     console.log('  Admin: admin@rentacar.com / password123');
     console.log('  User:  user@example.com / password123');
+
+    // Seed Car Brands
+    console.log('Seeding car brands...');
+    const brands = [
+        // German
+        { name: 'BMW', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg' },
+        { name: 'Mercedes', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Benz_Logo_2010.svg' },
+        { name: 'Audi', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Audi-Logo_2016.svg' },
+        { name: 'Volkswagen', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg' },
+        { name: 'Opel', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Opel_Logo_2024.svg' },
+        { name: 'Porsche', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/8/8c/Porsche_logo.svg/1200px-Porsche_logo.svg.png' },
+        // French
+        { name: 'Renault', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Renault_2021_Textless_logo.svg' },
+        { name: 'Peugeot', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/f7/Peugeot_Logo.svg' },
+        { name: 'Citroen', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Citroen_2022_logo.svg' },
+        { name: 'Dacia', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Dacia_Logo.svg' },
+        // Italian
+        { name: 'Fiat', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/12/Fiat_Automobiles_logo.svg' },
+        { name: 'Alfa Romeo', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/9e/Alfa_Romeo_logo.png' },
+        // Japanese
+        { name: 'Toyota', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg' },
+        { name: 'Honda', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Honda_Logo.svg' },
+        { name: 'Nissan', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8c/Nissan_logo.png' },
+        { name: 'Suzuki', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/12/Suzuki_logo_2.svg' },
+        // Korean
+        { name: 'Hyundai', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/41/Hyundai_Motor_Company_logo.svg' },
+        { name: 'Kia', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/47/Kia_logo.svg' },
+        // American
+        { name: 'Ford', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/3e/Ford_logo_flat.svg' },
+        { name: 'Jeep', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/JEEP_logo.svg' },
+        { name: 'Tesla', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png' },
+        // British
+        { name: 'Land Rover', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Land_Rover_logo.svg/1200px-Land_Rover_logo.svg.png' },
+        { name: 'Mini', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8d/Mini_logo.svg' },
+        // Other
+        { name: 'Volvo', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/29/Volvo_Iron_Mark.svg' },
+        { name: 'Skoda', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/ac/Skoda_Auto_logo_%282023%29.svg' },
+        { name: 'SEAT', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/SEAT_Logo_2021.svg' },
+        { name: 'Cupra', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Cupra_Logo.svg' },
+        { name: 'Chery', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7f/Chery_Automobile_logo.svg' },
+        { name: 'MG', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/MG_Motor_logo.svg' },
+        { name: 'TOGG', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Togg_logo.svg' },
+    ];
+
+    for (const brand of brands) {
+        await prisma.carBrand.upsert({
+            where: { name: brand.name },
+            update: { logoUrl: brand.logoUrl },
+            create: { name: brand.name, logoUrl: brand.logoUrl },
+        });
+    }
+
+    console.log('✅ Car brands seeded.');
 }
 
 main()

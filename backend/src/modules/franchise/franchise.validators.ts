@@ -168,3 +168,17 @@ export type UpdateFranchiseInput = z.infer<typeof updateFranchiseSchema>;
 export type UpdateStatusInput = z.infer<typeof updateStatusSchema>;
 export type FranchiseQueryInput = z.infer<typeof franchiseQuerySchema>;
 export type FranchiseDetails = z.infer<typeof franchiseDetailsSchema>;
+
+// Public (no auth) application schema
+export const publicFranchiseSchema = z.object({
+    contactName: z.string().min(2, 'İsim gereklidir'),
+    contactEmail: z.string().email('Geçerli bir e-posta adresi giriniz'),
+    contactPhone: z.string().min(10, 'Geçerli bir telefon numarası giriniz'),
+    companyName: z.string().optional(),
+    city: z.string().min(2, 'Şehir gereklidir'),
+    investmentBudget: z.string().optional(),
+    experience: z.string().optional(),
+    message: z.string().optional(),
+});
+
+export type PublicFranchiseInput = z.infer<typeof publicFranchiseSchema>;

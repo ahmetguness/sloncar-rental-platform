@@ -18,6 +18,10 @@ import bookingsRoutes, {
 import franchiseRoutes, {
     adminFranchiseRouter
 } from './modules/franchise/franchise.routes.js';
+import adminRoutes from './modules/admin/admin.routes.js';
+import brandsRoutes from './modules/brands/brands.routes.js';
+import branchesRoutes from './modules/branches/branches.routes.js';
+import uploadRoutes from './modules/upload/upload.routes.js';
 
 const app = express();
 
@@ -28,21 +32,22 @@ app.use(cors({
     credentials: true,
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: env.RATE_LIMIT_WINDOW_MS,
-    max: env.RATE_LIMIT_MAX_REQUESTS,
-    message: {
-        success: false,
-        error: {
-            code: 'RATE_LIMIT_EXCEEDED',
-            message: 'Too many requests, please try again later',
-        },
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-app.use(limiter);
+// Rate limiting - DISABLED FOR DEVELOPMENT
+// TODO: Re-enable for production
+// const limiter = rateLimit({
+//     windowMs: env.RATE_LIMIT_WINDOW_MS,
+//     max: env.RATE_LIMIT_MAX_REQUESTS,
+//     message: {
+//         success: false,
+//         error: {
+//             code: 'RATE_LIMIT_EXCEEDED',
+//             message: 'Too many requests, please try again later',
+//         },
+//     },
+//     standardHeaders: true,
+//     legacyHeaders: false,
+// });
+// app.use(limiter);
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
@@ -70,11 +75,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/cars', carsRoutes);
 app.use('/api/cars/:id/availability', carAvailabilityRouter);
 app.use('/api/bookings', bookingsRoutes);
+app.use('/api/brands', brandsRoutes);
+app.use('/api/branches', branchesRoutes);
 app.use('/api/franchise-applications', franchiseRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Admin Routes
 app.use('/api/admin/bookings', adminBookingsRouter);
 app.use('/api/admin/franchise-applications', adminFranchiseRouter);
+app.use('/api/admin', adminRoutes); // Dashboard and other general admin routes
 
 // 404 handler
 app.use((_req, res) => {

@@ -10,6 +10,7 @@ import {
     lookupBookingSchema,
     bookingCodeParamSchema,
     extendBookingSchema,
+    payBookingSchema,
 } from './bookings.validators.js';
 
 const router = Router();
@@ -87,6 +88,42 @@ router.patch(
     validate(bookingCodeParamSchema, 'params'),
     validate(extendBookingSchema, 'body'),
     bookingsController.extendBooking
+);
+
+/**
+ * @openapi
+ * /api/bookings/{code}/pay:
+ *   post:
+ *     tags: [Bookings]
+ *     summary: Ödeme Taklidi
+ *     description: Rezervasyon için ödeme simülasyonu
+ *     parameters:
+ *       - name: code
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cardNumber:
+ *                 type: string
+ *               expiryDate:
+ *                 type: string
+ *               cvv:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Ödeme başarılı
+ */
+router.post(
+    '/:code/pay',
+    validate(bookingCodeParamSchema, 'params'),
+    validate(payBookingSchema, 'body'),
+    bookingsController.payBooking
 );
 
 /**

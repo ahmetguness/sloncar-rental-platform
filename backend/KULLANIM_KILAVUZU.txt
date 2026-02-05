@@ -30,23 +30,18 @@ nasıl kullanılacağını açıklamaktadır.
 E-posta: admin@rentacar.com
 Şifre: password123
 
-================================================================================
-              MÜŞTERİ AKIŞI (Giriş yapmaya gerek yok!)
-================================================================================
-
-1. Araç seç ve müsaitlik kontrol et
-2. Bilgileri doldur ve kirala → "RNT-ABC123" gibi kod al
-3. Kodu kullanarak rezervasyonu sorgula
-4. İstersen süreyi uzat
+NOT: "logs/notifications.log" dosyasını takip ederek gönderilen sahte mailleri
+görebilirsiniz!
 
 ================================================================================
-                     1. ARAÇ KİRALAMA (HERKESE AÇIK)
+                     1. MÜŞTERİ İŞLEMLERİ (HERKESE AÇIK)
 ================================================================================
 
 --- YENİ REZERVASYON OLUŞTUR ---
 POST /api/bookings
 
 Açıklama: Araç kiralar ve benzersiz rezervasyon kodu döner.
+Arka planda "logs/notifications.log" dosyasına mail simülasyonu yapılır.
 
 Örnek İstek:
 curl -X POST http://localhost:3000/api/bookings \
@@ -69,149 +64,91 @@ curl -X POST http://localhost:3000/api/bookings \
 Örnek Cevap:
 {
   "success": true,
-  "message": "Rezervasyonunuz başarıyla oluşturuldu!",
   "data": {
     "bookingCode": "RNT-XYZ789",
-    "message": "Rezervasyon kodunuz: RNT-XYZ789. Bu kodu saklayın!",
-    "booking": {
-      "id": "uuid-xxx",
-      "bookingCode": "RNT-XYZ789",
-      "customerName": "Ahmet",
-      "totalPrice": 3000,
-      "status": "RESERVED",
-      "car": { "brand": "Toyota", "model": "Corolla" }
-    }
+    "booking": { ... }
   }
 }
 
-================================================================================
-                     2. REZERVASYON SORGULA (KOD İLE)
-================================================================================
+--------------------------------------------------------------------------------
 
---- REZERVASYON DETAYLARI ---
-GET /api/bookings/:code
+--- REZERVASYON DETAYLARI VE DURUMU ---
+GET /api/bookings/RNT-XYZ789
 
-Açıklama: Rezervasyon kodu ile tüm detayları görüntüler.
+--------------------------------------------------------------------------------
 
-Örnek İstek:
-curl "http://localhost:3000/api/bookings/RNT-XYZ789"
+--- ÖDEME YAP (SİMÜLASYON) ---
+POST /api/bookings/RNT-XYZ789/pay
 
-Örnek Cevap:
-{
-  "success": true,
-  "data": {
-    "booking": {
-      "id": "uuid-xxx",
-      "bookingCode": "RNT-XYZ789",
-      "customerName": "Ahmet",
-      "customerSurname": "Yılmaz",
-      "customerPhone": "+90 532 111 2233",
-      "pickupDate": "2024-03-10T00:00:00.000Z",
-      "dropoffDate": "2024-03-15T00:00:00.000Z",
-      "totalPrice": 3000,
-      "status": "RESERVED",
-      "car": {
-        "brand": "Toyota",
-        "model": "Corolla",
-        "plateNumber": "34 ABC 123",
-        "dailyPrice": 600
-      },
-      "pickupBranch": { "name": "İstanbul Havalimanı", "address": "..." },
-      "dropoffBranch": { "name": "İstanbul Havalimanı", "address": "..." }
-    },
-    "summary": {
-      "totalDays": 5,
-      "daysUntilPickup": 3,
-      "daysUntilDropoff": 8,
-      "canExtend": true,
-      "isExtended": false
-    }
-  }
-}
-
-================================================================================
-                     3. KİRALAMA SÜRESİNİ UZAT
-================================================================================
-
---- SÜRE UZATMA ---
-PATCH /api/bookings/:code/extend
-
-Açıklama: Mevcut kiralama süresini uzatır. Ek ücret hesaplanır.
+Açıklama: Kredi kartı ile ödeme yapılmış gibi davranır. Durumu PAID yapar.
 
 Örnek İstek:
-curl -X PATCH http://localhost:3000/api/bookings/RNT-XYZ789/extend \
+curl -X POST http://localhost:3000/api/bookings/RNT-XYZ789/pay \
   -H "Content-Type: application/json" \
   -d '{
-    "newDropoffDate": "2024-03-20"
+    "cardNumber": "1234567890123456",
+    "expiryDate": "12/28",
+    "cvv": "123"
   }'
 
 Örnek Cevap:
 {
   "success": true,
-  "message": "Rezervasyonunuz uzatıldı!",
+  "message": "Ödeme başarıyla alındı!",
   "data": {
-    "booking": {
-      "bookingCode": "RNT-XYZ789",
-      "dropoffDate": "2024-03-20T00:00:00.000Z",
-      "originalDropoffDate": "2024-03-15T00:00:00.000Z",
-      "totalPrice": 6000,
-      "notes": "[Uzatıldı: 2024-03-15 -> 2024-03-20]"
-    },
-    "additionalPrice": 3000,
-    "message": "Ek ödeme tutarı: 3000 TL"
+    "paymentRef": "PAY-17070707070-123",
+    "paidAt": "2024-03-05T10:00:00.000Z"
   }
 }
 
-KURALLAR:
-- Sadece RESERVED veya ACTIVE durumundaki rezervasyonlar uzatılabilir
-- Yeni tarih mevcut teslim tarihinden sonra olmalı
-- Araç o tarihlerde başka bir rezervasyona sahip olmamalı
+--------------------------------------------------------------------------------
 
-================================================================================
-                     4. DİĞER MÜŞTERİ İŞLEMLERİ
-================================================================================
+--- KİRALAMA SÜRESİNİ UZAT ---
+PATCH /api/bookings/RNT-XYZ789/extend
 
---- TELEFON İLE REZERVASYON ARA ---
+Açıklama: Mevcut süreyi uzatır ve ek ücret yansıtır.
+
+Örnek İstek:
+curl -X PATCH http://localhost:3000/api/bookings/RNT-XYZ789/extend \
+  -d '{ "newDropoffDate": "2024-03-20" }'
+
+--------------------------------------------------------------------------------
+
+--- DİĞER SORGULAR ---
 GET /api/bookings/lookup/phone?phone=5321112233
-
---- ARAÇ MÜSAİTLİK TAKVİMİ ---
-GET /api/cars/:id/availability?from=2024-03-01&to=2024-03-31
-
---- ARAÇ LİSTESİ ---
-GET /api/cars?category=SUV&minPrice=500
+GET /api/cars/:id/availability?from=...&to=...
 
 ================================================================================
-                     5. ADMİN İŞLEMLERİ
+                     2. ADMİN İŞLEMLERİ
 ================================================================================
 
---- ADMİN GİRİŞ ---
-POST /api/auth/login
+--- DASHBOARD İSTATİSTİKLERİ ---
+GET /api/admin/dashboard
+Header: Authorization: Bearer <token>
+
+Açıklama: Yönetici paneli için özet veriler döner.
+
+Örnek Cevap:
 {
-  "email": "admin@rentacar.com",
-  "password": "password123"
+  "success": true,
+  "data": {
+    "totalRevenue": 45000,
+    "totalBookings": 150,
+    "activeBookings": 12,
+    "totalCars": 50,
+    "recentBookings": [ ... ],
+    "revenueByMonth": [
+      { "month": "Mart", "revenue": 15000 }
+    ]
+  }
 }
+
+--------------------------------------------------------------------------------
 
 --- TÜM REZERVASYONLAR ---
 GET /api/admin/bookings
 Header: Authorization: Bearer <token>
 
---- REZERVASYON İPTAL ---
-PATCH /api/admin/bookings/:id/cancel
-Header: Authorization: Bearer <token>
-
---- ARAÇ EKLE/GÜNCELLE/SİL ---
-POST/PATCH/DELETE /api/cars
-Header: Authorization: Bearer <token>
-
 ================================================================================
-                              HATA KODLARI
-================================================================================
-
-VALIDATION_ERROR (400) - Geçersiz veri
-BAD_REQUEST (400)      - Hatalı istek
-NOT_FOUND (404)        - Bulunamadı
-CONFLICT (409)         - Çakışma (araç müsait değil)
-
-================================================================================
-                    Hazırlayan: Rent-a-Car Backend API v1.1
+                    Hazırlayan: Rent-a-Car Backend API v1.2
 ================================================================================

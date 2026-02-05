@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as carsService from './cars.service.js';
-import { CreateCarInput, UpdateCarInput, CarQueryInput } from './cars.validators.js';
+import { CreateCarInput, UpdateCarInput, CarQueryInput, carQuerySchema } from './cars.validators.js';
 
 export async function listCars(
     req: Request,
@@ -8,7 +8,9 @@ export async function listCars(
     next: NextFunction
 ): Promise<void> {
     try {
-        const result = await carsService.listCars(req.query as unknown as CarQueryInput);
+        // Validate query parameters strictly
+        const query = carQuerySchema.parse(req.query);
+        const result = await carsService.listCars(query);
         res.json({
             success: true,
             ...result,

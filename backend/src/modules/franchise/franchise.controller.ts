@@ -149,3 +149,20 @@ export async function getApplicationAuditLog(
         next(error);
     }
 }
+
+// PUBLIC - Create franchise application without authentication
+export async function createPublicApplication(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const application = await franchiseService.createPublicApplication(req.body);
+        res.status(201).json({
+            success: true,
+            data: application,
+        });
+    } catch (error) {
+        next(error);
+    }
+}

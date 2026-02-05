@@ -13,6 +13,11 @@ const envSchema = z.object({
     CORS_ORIGIN: z.string().default('*'),
     RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000), // 15 minutes
     RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
+
+    // Cloudinary
+    CLOUDINARY_CLOUD_NAME: z.string(),
+    CLOUDINARY_API_KEY: z.string(),
+    CLOUDINARY_API_SECRET: z.string(),
 });
 
 const parsed = envSchema.safeParse(process.env);

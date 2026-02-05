@@ -35,11 +35,27 @@ export async function listCars(query: CarQueryInput): Promise<PaginatedResponse<
     }
 
     // Search query (brand or model)
+    // Search query (brand or model)
     if (q) {
         where.OR = [
             { brand: { contains: q, mode: 'insensitive' } },
             { model: { contains: q, mode: 'insensitive' } },
         ];
+    }
+
+    // Availability Filter
+    if (query.pickupDate && query.dropoffDate) {
+        where.bookings = {
+            none: {
+                OR: [
+                    {
+                        pickupDate: { lte: query.dropoffDate },
+                        dropoffDate: { gte: query.pickupDate },
+                        status: { in: ['RESERVED', 'ACTIVE'] }
+                    }
+                ]
+            }
+        };
     }
 
     // Count total

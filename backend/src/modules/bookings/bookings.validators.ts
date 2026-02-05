@@ -41,6 +41,14 @@ export const extendBookingSchema = z.object({
     { message: 'Yeni teslim tarihi gelecekte olmalı', path: ['newDropoffDate'] }
 );
 
+// Payment schema
+export const payBookingSchema = z.object({
+    // In a real app we'd need card info, for now we just simulate it
+    cardNumber: z.string().min(16, 'Geçersiz kart numarası').optional(),
+    expiryDate: z.string().regex(/^\d{2}\/\d{2}$/, 'AA/YY formatında olmalı').optional(),
+    cvv: z.string().min(3).max(4).optional(),
+});
+
 // Lookup by phone
 export const lookupBookingSchema = z.object({
     phone: z.string().min(10, 'Telefon numarası gerekli'),
@@ -53,8 +61,10 @@ export const bookingQuerySchema = z.object({
     fromDate: z.coerce.date().optional(),
     toDate: z.coerce.date().optional(),
     customerPhone: z.string().optional(),
+    search: z.string().optional(), // Search by customer name
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().max(100).default(10),
+    offset: z.coerce.number().int().min(0).optional(), // Alternative to page
 });
 
 // Car availability
@@ -84,4 +94,5 @@ export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 export type BookingQueryInput = z.infer<typeof bookingQuerySchema>;
 export type AvailabilityQueryInput = z.infer<typeof availabilityQuerySchema>;
 export type ExtendBookingInput = z.infer<typeof extendBookingSchema>;
+export type PayBookingInput = z.infer<typeof payBookingSchema>;
 export type LookupBookingInput = z.infer<typeof lookupBookingSchema>;

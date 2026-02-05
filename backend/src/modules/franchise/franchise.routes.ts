@@ -7,12 +7,58 @@ import {
     updateStatusSchema,
     franchiseQuerySchema,
     franchiseIdParamSchema,
+    publicFranchiseSchema,
 } from './franchise.validators.js';
 
 const router = Router();
 
 // ============================================================================
-// USER ENDPOINTS
+// PUBLIC ENDPOINTS (No authentication required)
+// ============================================================================
+
+/**
+ * @swagger
+ * /franchise-applications/public:
+ *   post:
+ *     tags: [Franchise]
+ *     summary: Submit a public franchise application (no login required)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [contactName, contactEmail, contactPhone, city]
+ *             properties:
+ *               contactName:
+ *                 type: string
+ *               contactEmail:
+ *                 type: string
+ *                 format: email
+ *               contactPhone:
+ *                 type: string
+ *               companyName:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               investmentBudget:
+ *                 type: string
+ *               experience:
+ *                 type: string
+ *               message:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Application submitted successfully
+ */
+router.post(
+    '/public',
+    validate(publicFranchiseSchema),
+    franchiseController.createPublicApplication
+);
+
+// ============================================================================
+// USER ENDPOINTS (Authentication required)
 // ============================================================================
 
 /**

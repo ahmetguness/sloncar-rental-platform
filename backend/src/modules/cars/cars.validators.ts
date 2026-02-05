@@ -43,6 +43,8 @@ export const carQuerySchema = z.object({
     maxYear: z.coerce.number().int().optional(),
     seats: z.coerce.number().int().optional(),
     status: carStatusEnum.optional(),
+    pickupDate: z.coerce.date().optional(),
+    dropoffDate: z.coerce.date().optional(),
 
     // Search
     q: z.string().optional(),

@@ -1,0 +1,13 @@
+# SlonCar Robots.txt
+# https://sloncar.com
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin/*
+
+# Sitemap
+Sitemap: https://sloncar.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1

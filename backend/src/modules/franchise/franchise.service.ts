@@ -6,6 +6,7 @@ import {
     UpdateFranchiseInput,
     UpdateStatusInput,
     FranchiseQueryInput,
+    PublicFranchiseInput,
 } from './franchise.validators.js';
 import { FranchiseApplicationWithUser, FranchiseApplicationWithAudit } from './franchise.types.js';
 import { PaginatedResponse } from '../cars/cars.types.js';
@@ -330,4 +331,39 @@ export async function getApplicationAuditLog(
     }
 
     return application.auditLogs;
+}
+
+// PUBLIC - Create franchise application without user authentication
+export async function createPublicApplication(
+    input: PublicFranchiseInput
+): Promise<{ id: string; applicationNumber: string }> {
+    // Generate unique application number
+    const date = new Date();
+    const prefix = 'FRN';
+    const datePart = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const applicationNumber = `${prefix}-${datePart}-${randomPart}`;
+
+    const application = await prisma.franchiseApplication.create({
+        data: {
+            contactName: input.contactName,
+            contactEmail: input.contactEmail,
+            contactPhone: input.contactPhone,
+            companyName: input.companyName || null,
+            city: input.city,
+            status: FranchiseApplicationStatus.SUBMITTED,
+            submittedAt: new Date(),
+            details: {
+                investmentBudget: input.investmentBudget,
+                experience: input.experience,
+                message: input.message,
+                applicationNumber,
+            },
+        },
+    });
+
+    return {
+        id: application.id,
+        applicationNumber,
+    };
 }

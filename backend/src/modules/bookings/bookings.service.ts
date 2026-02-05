@@ -1,9 +1,10 @@
-import { Prisma, BookingStatus } from '@prisma/client';
+import { Prisma, BookingStatus, PaymentStatus } from '@prisma/client';
 import prisma from '../../lib/prisma.js';
 import { ApiError } from '../../middlewares/errorHandler.js';
 import { CreateBookingInput, BookingQueryInput, AvailabilityQueryInput, ExtendBookingInput } from './bookings.validators.js';
 import { BookingWithRelations, AvailabilityResponse, DayAvailability, DateRange } from './bookings.types.js';
 import { PaginatedResponse } from '../cars/cars.types.js';
+import { notificationService } from '../../lib/notification.js';
 
 // Generate unique booking code like RNT-ABC123
 function generateBookingCode(): string {
@@ -46,7 +47,7 @@ function calculateDays(start: Date, end: Date): number {
 export async function createBooking(
     input: CreateBookingInput
 ): Promise<BookingWithRelations> {
-    return prisma.$transaction(async (tx) => {
+    const booking = await prisma.$transaction(async (tx) => {
         // Verify car exists and is active
         const car = await tx.car.findUnique({
             where: { id: input.carId },
@@ -124,10 +125,15 @@ export async function createBooking(
             },
         });
 
-        return booking as BookingWithRelations;
+        return booking;
     }, {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     });
+
+    // Send async Notification
+    notificationService.sendBookingConfirmation(booking).catch(err => console.error('Notification failed', err));
+
+    return booking as BookingWithRelations;
 }
 
 // PUBLIC - Lookup booking by code (for customers)
@@ -155,7 +161,7 @@ export async function extendBooking(
     bookingCode: string,
     input: ExtendBookingInput
 ): Promise<BookingWithRelations & { additionalPrice: number }> {
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
         const booking = await tx.booking.findUnique({
             where: { bookingCode: bookingCode.toUpperCase() },
             include: {
@@ -220,12 +226,67 @@ export async function extendBooking(
         });
 
         return {
-            ...updatedBooking,
+            updatedBooking,
             additionalPrice,
-        } as BookingWithRelations & { additionalPrice: number };
+        };
     }, {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     });
+
+    // Send async Notification
+    notificationService.sendExtensionConfirmation(result.updatedBooking, result.additionalPrice).catch(err => console.error('Notification failed', err));
+
+    return { ...result.updatedBooking, additionalPrice: result.additionalPrice } as BookingWithRelations & { additionalPrice: number };
+}
+
+// PUBLIC - Simulate Payment
+export async function payBooking(
+    bookingCode: string,
+    amount: number
+): Promise<BookingWithRelations> {
+    const booking = await prisma.booking.findUnique({
+        where: { bookingCode: bookingCode.toUpperCase() },
+        include: {
+            car: true, // Needed for notification name resolution if required
+            pickupBranch: true,
+            dropoffBranch: true,
+        }
+    });
+
+    if (!booking) {
+        throw ApiError.notFound('Rezervasyon bulunamadı.');
+    }
+
+    if (booking.paymentStatus === PaymentStatus.PAID) {
+        throw ApiError.badRequest('Bu rezervasyon zaten ödenmiş.');
+    }
+
+    if (booking.status === BookingStatus.CANCELLED) {
+        throw ApiError.badRequest('İptal edilmiş rezervasyon için ödeme yapılamaz.');
+    }
+
+    // Simulate payment processing
+    const paymentRef = `PAY-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    const updatedBooking = await prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+            paymentStatus: PaymentStatus.PAID,
+            paymentProvider: 'SIMULATED_BANK',
+            paymentRef: paymentRef,
+            paidAt: new Date(),
+        },
+        include: {
+            car: { include: { branch: true } },
+            pickupBranch: true,
+            dropoffBranch: true,
+        },
+    });
+
+    // Send async Notification
+    notificationService.sendPaymentReceipt(updatedBooking, amount).catch(err => console.error('Notification failed', err));
+
+    return updatedBooking as BookingWithRelations;
 }
 
 // PUBLIC - Get car availability calendar
@@ -362,7 +423,7 @@ export async function cancelBooking(
 export async function getAdminBookings(
     query: BookingQueryInput
 ): Promise<PaginatedResponse<BookingWithRelations>> {
-    const { carId, status, fromDate, toDate, customerPhone, page, limit } = query;
+    const { carId, status, fromDate, toDate, customerPhone, search, page, limit, offset } = query;
 
     const where: Prisma.BookingWhereInput = {};
 
@@ -372,7 +433,18 @@ export async function getAdminBookings(
     if (fromDate) where.pickupDate = { gte: fromDate };
     if (toDate) where.dropoffDate = { lte: toDate };
 
+    // Search by customer name (first or last name)
+    if (search) {
+        where.OR = [
+            { customerName: { contains: search, mode: 'insensitive' } },
+            { customerSurname: { contains: search, mode: 'insensitive' } },
+        ];
+    }
+
     const total = await prisma.booking.count({ where });
+
+    // Support both page-based and offset-based pagination
+    const skip = offset !== undefined ? offset : (page - 1) * limit;
 
     const bookings = await prisma.booking.findMany({
         where,
@@ -382,14 +454,14 @@ export async function getAdminBookings(
             dropoffBranch: true,
         },
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
+        skip,
         take: limit,
     });
 
     return {
         data: bookings as BookingWithRelations[],
         pagination: {
-            page,
+            page: offset !== undefined ? Math.floor(offset / limit) + 1 : page,
             limit,
             total,
             totalPages: Math.ceil(total / limit),

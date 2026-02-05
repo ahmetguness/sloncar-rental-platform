@@ -14,6 +14,20 @@ datasource db {
 // ENUMS
 // ============================================================================
 
+model CarBrand {
+  id        String   @id @default(uuid())
+  name      String   @unique // e.g. "BMW"
+  logoUrl   String   // URL to logo image
+  isActive  Boolean  @default(true)
+  
+  // Potential future relation: cars Car[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
 enum Transmission {
   MANUAL
   AUTO
@@ -212,9 +226,9 @@ model FranchiseApplication {
   id     String                     @id @default(uuid())
   status FranchiseApplicationStatus @default(DRAFT)
   
-  // Applicant relation
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  // Applicant relation (optional for public applications)
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
   
   // Key searchable fields (normalized for indexing/filtering)
   companyName  String?
