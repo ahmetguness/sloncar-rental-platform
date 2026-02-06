@@ -335,6 +335,16 @@ export const Booking = () => {
 
                         {/* Price Breakdown */}
                         <div className="space-y-3">
+                            <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Günlük Fiyat</span>
+                                <div className="text-right">
+                                    <span className="text-lg font-bold text-white">
+                                        {Number(car.dailyPrice).toLocaleString()}
+                                    </span>
+                                    <span className="text-xs font-semibold ml-1 text-gray-500">₺</span>
+                                </div>
+                            </div>
+
                             {totalDays > 0 && (
                                 <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
                                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Kiralama Süresi</span>
@@ -342,17 +352,19 @@ export const Booking = () => {
                                 </div>
                             )}
 
-                            <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${totalPrice > 0 ? 'bg-primary-500/20 border-primary-500/30' : 'bg-white/5 border-white/5'}`}>
-                                <span className={`text-xs font-bold uppercase tracking-widest ${totalPrice > 0 ? 'text-primary-200' : 'text-gray-400'}`}>
-                                    {totalPrice > 0 ? 'Toplam Tutar' : 'Günlük Fiyat'}
-                                </span>
-                                <div className="text-right">
-                                    <span className={`text-2xl font-bold tracking-tight ${totalPrice > 0 ? 'text-white text-glow' : 'text-gray-300'}`}>
-                                        {totalPrice > 0 ? Number(totalPrice).toLocaleString() : Number(car.dailyPrice).toLocaleString()}
+                            {totalPrice > 0 && (
+                                <div className="bg-primary-500/20 rounded-2xl p-4 border border-primary-500/30 flex items-center justify-between transition-colors">
+                                    <span className="text-xs font-bold text-primary-200 uppercase tracking-widest">
+                                        Toplam Tutar
                                     </span>
-                                    <span className={`text-sm font-semibold ml-1 ${totalPrice > 0 ? 'text-primary-400' : 'text-gray-500'}`}>₺</span>
+                                    <div className="text-right">
+                                        <span className="text-2xl font-bold tracking-tight text-white text-glow">
+                                            {Number(totalPrice).toLocaleString()}
+                                        </span>
+                                        <span className="text-sm font-semibold ml-1 text-primary-400">₺</span>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>

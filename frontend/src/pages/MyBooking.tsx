@@ -204,6 +204,45 @@ export const MyBooking = () => {
                             </div>
                         </div>
 
+                        {/* Active Booking Banner */}
+                        {booking.status === 'ACTIVE' && (
+                            <div className="mb-8 p-6 bg-gradient-to-r from-green-500/10 to-green-500/5 border border-green-500/20 rounded-2xl flex items-center gap-5 shadow-[0_0_30px_rgba(34,197,94,0.1)] animate-in slide-in-from-top-4 duration-500">
+                                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center shrink-0 shadow-lg border border-green-500/30">
+                                    <CheckCircle className="w-6 h-6 text-green-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-green-400 font-bold text-xl tracking-tight">Aracı Teslim Aldınız</h3>
+                                    <p className="text-gray-400 text-sm mt-1">Keyifli sürüşler dileriz. Sorularınız için 7/24 destek hattımızı arayabilirsiniz.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Ready for Pickup Banner */}
+                        {booking.status === 'RESERVED' && booking.paymentStatus === 'PAID' && new Date() >= new Date(booking.pickupDate) && (
+                            <div className="mb-8 p-6 bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-2xl flex items-center gap-5 shadow-[0_0_30px_rgba(59,130,246,0.1)] animate-in slide-in-from-top-4 duration-500">
+                                <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 shadow-lg border border-blue-500/30">
+                                    <CarIcon className="w-6 h-6 text-blue-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-blue-400 font-bold text-xl tracking-tight">Aracınız Hazır</h3>
+                                    <p className="text-gray-400 text-sm mt-1">Teslim alma zamanınız geldi. Aracınızı teslim almak için bayimize gelebilirsiniz.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Cancelled Booking Banner */}
+                        {booking.status === 'CANCELLED' && (
+                            <div className="mb-8 p-6 bg-gradient-to-r from-red-500/10 to-red-500/5 border border-red-500/20 rounded-2xl flex items-center gap-5 shadow-[0_0_30px_rgba(239,68,68,0.1)] animate-in slide-in-from-top-4 duration-500">
+                                <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 shadow-lg border border-red-500/30">
+                                    <AlertCircle className="w-6 h-6 text-red-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-red-400 font-bold text-xl tracking-tight">Rezervasyon İptal Edildi</h3>
+                                    <p className="text-gray-400 text-sm mt-1">Bu rezervasyon iptal edilmiştir. Detaylı bilgi için bizimle iletişime geçebilirsiniz.</p>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Main Grid */}
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
@@ -236,30 +275,37 @@ export const MyBooking = () => {
                                     </div>
 
                                     {booking.paymentStatus !== 'PAID' && booking.status !== 'CANCELLED' && (
-                                        <div className="flex flex-col items-center md:items-end gap-3 w-full md:w-auto mt-4 md:mt-0">
+                                        <div className="flex flex-col items-center md:items-end gap-4 w-full md:w-auto mt-6 md:mt-0 p-4 bg-white/5 rounded-2xl border border-dashed border-white/20">
                                             {timeLeft > 0 ? (
-                                                <div className="flex items-center gap-2 text-yellow-400 text-[10px] font-black uppercase tracking-widest bg-yellow-400/10 px-3 py-1.5 rounded border border-yellow-400/20 animate-pulse">
-                                                    <AlertCircle size={12} />
-                                                    Ödeme İçin Kalan Süre: {formatTimeLeft(timeLeft)}
+                                                <div className="flex flex-col items-center md:items-end">
+                                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ÖDEME İÇİN KALAN SÜRE</div>
+                                                    <div className="font-mono text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 tabular-nums animate-pulse tracking-tight">
+                                                        {formatTimeLeft(timeLeft)}
+                                                    </div>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-2 text-red-500 text-[10px] font-black uppercase tracking-widest bg-red-500/10 px-3 py-1.5 rounded border border-red-500/20">
-                                                    <AlertCircle size={12} />
-                                                    Süre Doldu
+                                                <div className="flex flex-col items-center md:items-end">
+                                                    <div className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">ÖDEME SÜRESİ</div>
+                                                    <div className="font-black text-2xl text-red-500 tracking-tight">SÜRE DOLDU</div>
                                                 </div>
                                             )}
 
                                             <Button
                                                 onClick={handlePay}
                                                 disabled={paying || timeLeft <= 0}
-                                                className={`w-full md:w-auto px-10 h-16 bg-gradient-to-r ${timeLeft > 0 ? 'from-primary-600 via-primary-500 to-primary-600 hover:from-primary-500 hover:to-primary-400' : 'from-gray-600 to-gray-700 cursor-not-allowed opacity-50'} text-white font-black text-lg rounded-2xl shadow-[0_0_40px_rgba(99,102,241,0.4)] transition-all transform hover:scale-[1.02] border border-white/20 relative overflow-hidden group`}
+                                                className={`w-full md:w-auto px-8 h-14 bg-gradient-to-r ${timeLeft > 0 ? 'from-primary-600 via-primary-500 to-primary-600 hover:from-primary-500 hover:to-primary-400' : 'from-gray-600 to-gray-700 cursor-not-allowed opacity-50'} text-white font-bold text-lg rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all transform hover:scale-[1.02] border border-white/10 relative overflow-hidden group`}
                                             >
                                                 <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
-                                                {paying ? <Loader2 className="animate-spin mr-2" /> : <span className="flex items-center gap-3">HEMEN ÖDE <CheckCircle size={20} className="text-white" /></span>}
+                                                {paying ? <Loader2 className="animate-spin mr-2" /> : <span className="flex items-center gap-2">HEMEN ÖDE <CheckCircle size={18} className="text-white fill-white/20" /></span>}
                                             </Button>
-                                            <p className="text-[11px] text-gray-400 text-center md:text-right max-w-[300px] leading-relaxed">
-                                                <span className="text-red-400 font-bold">DİKKAT:</span> Rezervasyonunuzun kesinleşmesi için <strong className="text-white">10 dakika</strong> içinde ödeme yapmalısınız.
-                                            </p>
+
+                                            <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/20 p-3 rounded-lg max-w-[320px]">
+                                                <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                                                <p className="text-xs text-gray-300 leading-relaxed text-left">
+                                                    <span className="text-red-400 font-bold block mb-0.5">ÖNEMLİ HATIRLATMA</span>
+                                                    Rezervasyonunuzun onayı için <strong className="text-white">10 dakika</strong> içinde ödeme işlemini tamamlamanız gerekmektedir.
+                                                </p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -377,6 +423,6 @@ export const MyBooking = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };

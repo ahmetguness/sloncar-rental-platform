@@ -1,14 +1,7 @@
 import { Prisma, BookingStatus } from '@prisma/client';
 import prisma from '../../lib/prisma.js';
 import { ApiError } from '../../middlewares/errorHandler.js';
-import { v2 as cloudinary } from 'cloudinary';
-
-// Configure Cloudinary
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
+import cloudinary from '../../lib/cloudinary.js';
 import { CreateCarInput, UpdateCarInput, CarQueryInput } from './cars.validators.js';
 import { CarWithBranch, PaginatedResponse } from './cars.types.js';
 

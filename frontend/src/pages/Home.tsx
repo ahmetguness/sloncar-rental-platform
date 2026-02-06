@@ -461,7 +461,11 @@ export const Home = () => {
             </div>
 
             {/* Car Grid Section */}
-            <section id="fleet" className="container mx-auto px-6 pt-12 scroll-mt-24 relative">
+            <section
+                id="fleet"
+                className="container mx-auto px-6 pt-12 scroll-mt-24 relative"
+                style={{ overflowAnchor: 'none' }}
+            >
                 {/* Background Blobs */}
                 <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-primary-900/20 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
                 <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-neon-purple/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
@@ -521,7 +525,14 @@ export const Home = () => {
 
                                 {page < pagination.totalPages && (
                                     <Button
-                                        onClick={() => fetchCars(page + 1, true)}
+                                        onClick={(e) => {
+                                            // Prevent default behavior and stop propagation
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            // Blur to avoid focus anchoring
+                                            e.currentTarget.blur();
+                                            fetchCars(page + 1, true);
+                                        }}
                                         disabled={loading}
                                         className="bg-dark-surface-lighter border border-white/10 text-white hover:bg-primary-500 hover:border-primary-500 px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-primary-500/20 flex items-center gap-2"
                                     >

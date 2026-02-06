@@ -107,118 +107,190 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
 export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalytics> {
     const currentYear = year || new Date().getFullYear();
+    const today = new Date();
 
-    // Get real bookings from database for calculation
-    const allBookings = await prisma.booking.findMany({
+    // 1. Monthly Data for selected year
+    const startOfYear = new Date(currentYear, 0, 1);
+    const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+
+    const monthlyBookings = await prisma.booking.findMany({
         where: {
-            OR: [
-                { status: BookingStatus.COMPLETED },
-                { status: BookingStatus.ACTIVE }
-            ]
+            paymentStatus: 'PAID',
+            status: { not: 'CANCELLED' },
+            pickupDate: {
+                gte: startOfYear,
+                lte: endOfYear
+            }
         },
         select: {
-            totalPrice: true,
-            createdAt: true,
-            status: true
+            pickupDate: true,
+            totalPrice: true
         }
     });
 
-    // Calculate real totals
-    const realTotal = allBookings.reduce((sum, b) => sum + Number(b.totalPrice || 0), 0);
-
-    // Generate dummy data with realistic patterns + real data
     const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
         'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 
-    // Weekly data - last 12 weeks with dummy values
-    const weekly: { week: string; revenue: number; bookings: number }[] = [];
-    const baseWeeklyRevenue = 5000 + Math.random() * 3000;
-    for (let i = 11; i >= 0; i--) {
-        const weekDate = new Date();
-        weekDate.setDate(weekDate.getDate() - (i * 7));
-        const weekNum = Math.ceil((weekDate.getDate()) / 7);
-        const monthName = monthNames[weekDate.getMonth()] || 'Oca';
+    const monthly = monthNames.map((name, index) => {
+        const bookingsInMonth = monthlyBookings.filter(b => b.pickupDate.getMonth() === index);
+        const revenue = bookingsInMonth.reduce((sum, b) => sum + Number(b.totalPrice || 0), 0);
+        return {
+            month: name,
+            revenue,
+            bookings: bookingsInMonth.length
+        };
+    });
 
-        // Add variation and trend
-        const seasonalMultiplier = 1 + Math.sin((weekDate.getMonth() / 6) * Math.PI) * 0.3;
-        const randomVariation = 0.8 + Math.random() * 0.4;
-        const revenue = Math.round(baseWeeklyRevenue * seasonalMultiplier * randomVariation);
-        const bookings = Math.round(revenue / 800);
+    // 2. Weekly Data (Last 12 weeks)
+    const weeksAgo12 = new Date();
+    weeksAgo12.setDate(weeksAgo12.getDate() - (12 * 7));
+
+    const weeklyBookings = await prisma.booking.findMany({
+        where: {
+            paymentStatus: 'PAID',
+            status: { not: 'CANCELLED' },
+            pickupDate: {
+                gte: weeksAgo12
+            }
+        },
+        select: {
+            pickupDate: true,
+            totalPrice: true
+        }
+    });
+
+    const weekly: { week: string; revenue: number; bookings: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+        const weekStart = new Date();
+        weekStart.setDate(weekStart.getDate() - (i * 7));
+        weekStart.setHours(0, 0, 0, 0);
+
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 7);
+
+        const bookingsInWeek = weeklyBookings.filter(b =>
+            b.pickupDate >= weekStart && b.pickupDate < weekEnd
+        );
+
+        const weekNum = Math.ceil(weekStart.getDate() / 7);
+        const monthName = monthNames[weekStart.getMonth()] || 'Oca';
 
         weekly.push({
             week: `${weekNum}. Hafta ${monthName.slice(0, 3)}`,
-            revenue: i === 0 ? revenue + realTotal : revenue,
-            bookings
+            revenue: bookingsInWeek.reduce((sum, b) => sum + Number(b.totalPrice || 0), 0),
+            bookings: bookingsInWeek.length
         });
     }
 
-    // Monthly data for selected year
-    const monthly: { month: string; revenue: number; bookings: number }[] = [];
-    const baseMonthlyRevenue = 25000;
-    const currentMonth = new Date().getMonth();
-
-    for (let i = 0; i < 12; i++) {
-        // Seasonal pattern - high in summer, low in winter
-        const seasonalMultiplier = 1 + Math.sin(((i - 2) / 6) * Math.PI) * 0.4;
-        const yearMultiplier = currentYear === new Date().getFullYear() ? 1 : 0.85 + (currentYear - 2020) * 0.03;
-        const randomVariation = 0.9 + Math.random() * 0.2;
-
-        let revenue = Math.round(baseMonthlyRevenue * seasonalMultiplier * yearMultiplier * randomVariation);
-        let bookings = Math.round(revenue / 750);
-
-        // For current year and current month, add real data
-        if (currentYear === new Date().getFullYear() && i === currentMonth) {
-            revenue += realTotal;
-            bookings += allBookings.length;
+    // 3. Yearly Data (Last 5 years)
+    const startOf5YearsAgo = new Date(today.getFullYear() - 4, 0, 1);
+    const yearlyBookings = await prisma.booking.findMany({
+        where: {
+            paymentStatus: 'PAID',
+            status: { not: 'CANCELLED' },
+            pickupDate: {
+                gte: startOf5YearsAgo
+            }
+        },
+        select: {
+            pickupDate: true,
+            totalPrice: true
         }
+    });
 
-        // Future months in current year should be 0
-        if (currentYear === new Date().getFullYear() && i > currentMonth) {
-            revenue = 0;
-            bookings = 0;
-        }
-
-        monthly.push({
-            month: monthNames[i] || `Ay ${i + 1}`,
-            revenue,
-            bookings
-        });
-    }
-
-    // Yearly data - last 5 years
     const yearly: { year: number; revenue: number; bookings: number }[] = [];
-    for (let y = currentYear - 4; y <= currentYear; y++) {
-        const growthFactor = 1 + (y - (currentYear - 4)) * 0.15; // 15% yearly growth
-        const randomVariation = 0.95 + Math.random() * 0.1;
-        let revenue = Math.round(200000 * growthFactor * randomVariation);
-        let bookings = Math.round(revenue / 800);
-
-        // Current year gets real data added
-        if (y === new Date().getFullYear()) {
-            revenue = monthly.reduce((sum, m) => sum + m.revenue, 0);
-            bookings = monthly.reduce((sum, m) => sum + m.bookings, 0);
-        }
-
-        yearly.push({ year: y, revenue, bookings });
+    for (let y = today.getFullYear() - 4; y <= today.getFullYear(); y++) {
+        const bookingsInYear = yearlyBookings.filter(b => b.pickupDate.getFullYear() === y);
+        yearly.push({
+            year: y,
+            revenue: bookingsInYear.reduce((sum, b) => sum + Number(b.totalPrice || 0), 0),
+            bookings: bookingsInYear.length
+        });
     }
 
-    // Available years for dropdown
+    // 4. Available Years (dynamically from DB + default range)
+    const oldestBooking = await prisma.booking.findFirst({
+        orderBy: { pickupDate: 'asc' },
+        select: { pickupDate: true }
+    });
+
+    const startYear = oldestBooking ? oldestBooking.pickupDate.getFullYear() : 2020;
     const availableYears = [];
-    for (let y = new Date().getFullYear(); y >= 2020; y--) {
+    for (let y = today.getFullYear(); y >= startYear; y--) {
         availableYears.push(y);
     }
+    if (!availableYears.includes(2024)) availableYears.push(2024); // Ensure at least consistent years
+    // Unique and sorted
+    const uniqueYears = Array.from(new Set(availableYears)).sort((a, b) => b - a);
 
-    // Summary calculations
-    const currentMonthRevenue = monthly[currentMonth]?.revenue || 0;
-    const lastMonthRevenue = monthly[currentMonth - 1]?.revenue || monthly[11]?.revenue || 0;
-    const currentYearRevenue = monthly.reduce((sum, m) => sum + m.revenue, 0);
-    const growth = lastMonthRevenue > 0 ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0;
+
+    // 5. Summary Stats
+    const currentMonthIdx = today.getMonth();
+    // Assuming summary is based on the *current* real time, not selectedYear
+    // But if we want consistent UI, we might check if selectedYear == currentYear. 
+    // Usually summary 'growth' implies current real month vs last month.
+
+    // Let's re-fetch current month data specifically to be safe/accurate if selectedYear is different
+    // Or we can just use the data if selectedYear IS currentYear.
+
+    let currentMonthRevenue = 0;
+    let lastMonthRevenue = 0;
+    let currentYearRevenue = 0;
+
+    // Use monthly array if selectedYear is current year, otherwise fetch?
+    // The UI 'Dashboard' might expect current stats regardless of filter.
+    // However, the interface puts summary INSIDE RevenueAnalytics which is year-filtered.
+    // Typically "Growth" is real-time status. 
+    // Let's use the 'monthly' array we just calculated IF it's for current year.
+
+    if (currentYear === today.getFullYear()) {
+        currentMonthRevenue = monthly[currentMonthIdx]?.revenue || 0;
+        lastMonthRevenue = monthly[currentMonthIdx - 1]?.revenue || 0;
+        currentYearRevenue = monthly.reduce((sum, m) => sum + m.revenue, 0);
+    } else {
+        // If viewing history, maybe show stats for THAT year?
+        // Let's stick to showing stats for the *selected* year's data to be consistent with the graph.
+        // But "Current Month" might be confusing if viewing 2020.
+        // Let's assume 'Summary' blocks in UI are for the selected period context.
+        // Actually, looking at UI code: 
+        // `revenueData.summary.currentYear` is shown as big number.
+        // `revenueData.summary.growth` is shown.
+        // If I select 2023, I expect to see 2023 total revenue.
+
+        currentYearRevenue = monthly.reduce((sum, m) => sum + m.revenue, 0);
+        // For growth, it's tricky in past years. Let's just zero it or calc relative to prev year?
+        // Let's leave growth as 0 for past years to avoid confusion, or calc monthly growth?
+        // Standard dashboard usually shows *current* company status.
+        // BUT the endpoint is `/revenue?year=...`.
+        // Let's calculate standard stats for the *selected* year.
+        currentMonthRevenue = 0; // Not really meaningful for past year unless we pick December?
+        lastMonthRevenue = 0;
+    }
+
+    // IF we really want "Current Month" validation as per user request (Checking March), 
+    // we need to make sure the graph (monthly array) is correct.
+    // The summary box in UI (checked earlier):
+    // <h2 ...>Gelir Analizi</h2>
+    // <span ...>{revenueData.summary.currentYear...}</span>
+
+    // So `summary.currentYear` MUST be the total for the selected year.
+    // `summary.growth` is used for the percentage badge.
+
+    // Let's ensure growth is calculated meaningfully. 
+    // If selectedYear == currentYear, use real current month vs last month.
+    if (currentYear === today.getFullYear()) {
+        // recalculated above
+    }
+
+    const growth = lastMonthRevenue > 0
+        ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
+        : 0;
 
     return {
         weekly,
         monthly,
         yearly,
-        availableYears,
+        availableYears: uniqueYears,
         summary: {
             currentMonth: currentMonthRevenue,
             lastMonth: lastMonthRevenue,

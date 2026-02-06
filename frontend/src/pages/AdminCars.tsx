@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { adminService, uploadService, brandService } from '../services/api';
 import type { Car } from '../services/types';
@@ -24,16 +24,16 @@ interface Branch {
 const initialFormData = {
     brand: '',
     model: '',
-    year: new Date().getFullYear(),
+    year: new Date().getFullYear() as number | string,
     transmission: 'AUTO' as 'MANUAL' | 'AUTO',
     fuel: 'PETROL' as 'PETROL' | 'DIESEL' | 'ELECTRIC' | 'HYBRID' | 'LPG',
     category: 'MIDSIZE' as 'ECONOMY' | 'COMPACT' | 'MIDSIZE' | 'FULLSIZE' | 'SUV' | 'VAN' | 'LUXURY',
-    seats: 5,
-    doors: 4,
+    seats: 5 as number | string,
+    doors: 4 as number | string,
     color: '',
     plateNumber: '',
-    dailyPrice: 0,
-    mileage: 0,
+    dailyPrice: 0 as number | string,
+    mileage: 0 as number | string,
     branchId: '',
     images: [] as string[],
     description: '',
@@ -74,6 +74,16 @@ export const AdminCars = () => {
     const [tableLoading, setTableLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [editingCar, setEditingCar] = useState<Car | null>(null);
+    const formRef = useRef<HTMLDivElement>(null);
+
+    // Scroll to form when it opens or when editing car changes
+    useEffect(() => {
+        if (showForm && formRef.current) {
+            formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, [showForm, editingCar]);
+
+    // Explicitly allow string for numeric inputs during editing
     const [formData, setFormData] = useState(initialFormData);
     const [submitting, setSubmitting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -121,7 +131,7 @@ export const AdminCars = () => {
         try {
             const params: any = {
                 limit: ITEMS_PER_PAGE,
-                offset: (page - 1) * ITEMS_PER_PAGE
+                page: page
             };
             if (searchTerm) params.search = searchTerm;
             if (branchFilter) params.branchId = branchFilter;
@@ -154,22 +164,6 @@ export const AdminCars = () => {
         return () => clearTimeout(timer);
     }, [searchTerm, branchFilter, statusFilter, fuelFilter]);
 
-    // Independent page change effect to avoid resetting page to 1
-    // Actually, separating pagination from filters is complex with debounce.
-    // Simplest: `loadCars` handles current state. Button click calls `loadCars(newPage)`.
-    // But effect above resets to 1.
-    // So the pagination buttons should just update `currentPage`?
-    // If I update `currentPage`, I need an effect to load data.
-    // But `searchTerm` also triggers load.
-    // Let's remove `currentPage` dependency from above effect?
-    // No, if `searchTerm` changes, page must be 1.
-    // If `currentPage` changes, `searchTerm` is same.
-    // Correct logic:
-    // 1. Filter change -> setPage(1), loadCars(1).
-    // 2. Page change -> loadCars(newPage).
-    // The effect above handles (1).
-    // For (2), I should handle it in button click.
-
     const handlePageChange = (newPage: number) => {
         loadCars(newPage);
     };
@@ -187,7 +181,7 @@ export const AdminCars = () => {
             doors: car.doors,
             color: car.color,
             plateNumber: car.plateNumber,
-            dailyPrice: Number(car.dailyPrice),
+            dailyPrice: car.dailyPrice,
             mileage: car.mileage,
             branchId: car.branchId,
             images: car.images || [],
@@ -212,6 +206,19 @@ export const AdminCars = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
+
+        // Manual validation since we use noValidate to allow mixed step logic
+        if (!formData.brand || !formData.model || !formData.plateNumber || !formData.color || Number(formData.dailyPrice) < 0) {
+            toast('Lütfen tüm zorunlu alanları doldurun', 'error');
+            setSubmitting(false);
+            return;
+        }
+
+        if (Number(formData.dailyPrice) > 99999999) {
+            toast('Günlük fiyat çok yüksek (Max: 99.999.999)', 'error');
+            setSubmitting(false);
+            return;
+        }
 
         try {
             const carData = {
@@ -453,10 +460,10 @@ export const AdminCars = () => {
 
                 {/* Add/Edit Car Form */}
                 {showForm && (
-                    <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 p-8 shadow-[0_0_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-top-4 duration-300">
+                    <div ref={formRef} className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 p-8 shadow-[0_0_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-top-4 duration-300">
                         <h2 className="text-2xl font-bold text-white mb-6">{editingCar ? 'Araç Düzenle' : 'Yeni Araç Ekle'}</h2>
 
-                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div>
                                 <label className={labelClass}>Marka *</label>
                                 <select required className={inputClass} value={formData.brand} onChange={e => setFormData({ ...formData, brand: e.target.value })}>
@@ -483,7 +490,7 @@ export const AdminCars = () => {
                             </div>
                             <div>
                                 <label className={labelClass}>Yıl *</label>
-                                <input type="number" required min="2000" max="2030" className={inputClass} value={formData.year} onChange={e => setFormData({ ...formData, year: Number(e.target.value) })} />
+                                <input type="number" required min="2000" max="2030" className={inputClass} value={formData.year} onChange={e => setFormData({ ...formData, year: e.target.value === '' ? '' : Number(e.target.value) })} />
                             </div>
                             <div>
                                 <label className={labelClass}>Vites *</label>
@@ -516,11 +523,11 @@ export const AdminCars = () => {
                             </div>
                             <div>
                                 <label className={labelClass}>Koltuk *</label>
-                                <input type="number" required min="2" max="12" className={inputClass} value={formData.seats} onChange={e => setFormData({ ...formData, seats: Number(e.target.value) })} />
+                                <input type="number" required min="2" max="12" className={inputClass} value={formData.seats} onChange={e => setFormData({ ...formData, seats: e.target.value === '' ? '' : Number(e.target.value) })} />
                             </div>
                             <div>
                                 <label className={labelClass}>Kapı *</label>
-                                <input type="number" required min="2" max="6" className={inputClass} value={formData.doors} onChange={e => setFormData({ ...formData, doors: Number(e.target.value) })} />
+                                <input type="number" required min="2" max="6" className={inputClass} value={formData.doors} onChange={e => setFormData({ ...formData, doors: e.target.value === '' ? '' : Number(e.target.value) })} />
                             </div>
                             <div>
                                 <label className={labelClass}>Renk *</label>
@@ -532,11 +539,29 @@ export const AdminCars = () => {
                             </div>
                             <div>
                                 <label className={labelClass}>Günlük Fiyat (₺) *</label>
-                                <input type="number" required min="0" step="100" className={inputClass} value={formData.dailyPrice} onChange={e => setFormData({ ...formData, dailyPrice: Number(e.target.value) })} />
+                                <input
+                                    type="number"
+                                    required
+                                    min="0"
+                                    step="100"
+                                    className={inputClass}
+                                    value={formData.dailyPrice}
+                                    onChange={e => setFormData({ ...formData, dailyPrice: e.target.value === '' ? '' : Number(e.target.value) })}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'ArrowUp') {
+                                            e.preventDefault();
+                                            setFormData(prev => ({ ...prev, dailyPrice: Number(prev.dailyPrice) + 100 }));
+                                        } else if (e.key === 'ArrowDown') {
+                                            e.preventDefault();
+                                            const newVal = Number(formData.dailyPrice) - 100;
+                                            setFormData(prev => ({ ...prev, dailyPrice: newVal < 0 ? 0 : newVal }));
+                                        }
+                                    }}
+                                />
                             </div>
                             <div>
                                 <label className={labelClass}>Kilometre *</label>
-                                <input type="number" required min="0" className={inputClass} value={formData.mileage} onChange={e => setFormData({ ...formData, mileage: Number(e.target.value) })} />
+                                <input type="number" required min="0" className={inputClass} value={formData.mileage} onChange={e => setFormData({ ...formData, mileage: e.target.value === '' ? '' : Number(e.target.value) })} />
                             </div>
                             <div>
                                 <label className={labelClass}>Şube *</label>

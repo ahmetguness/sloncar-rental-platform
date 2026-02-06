@@ -208,6 +208,14 @@ const BookingDetailModal = ({ booking, onClose, onUpdate }: { booking: Booking; 
                     </span>
                 </div>
 
+                <div className="-mt-4 mb-6 text-xs text-gray-500 text-right">
+                    {booking.createdAt && (
+                        <>
+                            Oluşturulma: <span className="text-gray-300 font-medium">{new Date(booking.createdAt).toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        </>
+                    )}
+                </div>
+
                 {/* Expired Warning */}
                 {(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt)) && (
                     <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 flex items-start gap-3">
@@ -649,6 +657,7 @@ const BookingRow = ({
     const surname = booking.customerSurname || '';
     // Safe initials generation
     const initials = ((name.charAt(0) || '') + (surname.charAt(0) || '')).toUpperCase() || '?';
+    const days = Math.ceil((new Date(booking.dropoffDate).getTime() - new Date(booking.pickupDate).getTime()) / (1000 * 60 * 60 * 24));
 
     return (
         <tr className={`transition-all group border-b border-white/5 last:border-0 ${isHighlighted
@@ -687,22 +696,30 @@ const BookingRow = ({
                 </div>
             </td>
             <td className="p-4">
-                <div className="flex flex-col gap-1 text-sm">
-                    <div className="flex items-center gap-2 text-gray-400">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                        <span>{new Date(booking.pickupDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
+                <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col gap-1 text-sm">
+                        <div className="flex items-center gap-2 text-gray-400">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                            <span>{new Date(booking.pickupDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-400">
+                            <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                            <span>{new Date(booking.dropoffDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-400">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                        <span>{new Date(booking.dropoffDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
+                    <div className="text-xs font-medium text-gray-500 bg-white/5 px-2 py-1 rounded">
+                        {days} Gün
                     </div>
                 </div>
+            </td>
+            <td className="p-4">
+                <div className="text-primary-400 font-bold whitespace-nowrap">{Number(booking.totalPrice).toLocaleString()} ₺</div>
             </td>
             <td className="p-4">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${booking.paymentStatus === 'PAID'
                     ? 'bg-green-500/10 text-green-400 border-green-500/20'
                     : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                    }`}>
+                    } whitespace-nowrap`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${booking.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-yellow-500'}`} />
                     {booking.paymentStatus === 'PAID' ? 'Ödendi' : 'Ödenmedi'}
                 </span>
@@ -714,7 +731,7 @@ const BookingRow = ({
                         : booking.status === 'CANCELLED' ? 'bg-red-500/10 text-red-400 border-red-500/20'
                             : booking.status === 'COMPLETED' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20'
                                 : 'bg-primary-500/10 text-primary-400 border-primary-500/20'
-                    }`}>
+                    } whitespace-nowrap`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
                         ? 'bg-orange-500'
                         : booking.status === 'ACTIVE' ? 'bg-green-500'
@@ -734,14 +751,14 @@ const BookingRow = ({
                 <Button
                     size="sm"
                     variant="outline"
-                    className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-white/10 text-white hover:bg-white/10"
+                    className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-white/10 text-white hover:bg-white/10 whitespace-nowrap"
                     onClick={() => onView(booking)}
                 >
                     Detaylar
                 </Button>
             </td>
             <td className="p-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 whitespace-nowrap">
                     {booking.status === 'RESERVED' && booking.paymentStatus === 'PAID' && (
                         (() => {
                             const today = new Date();
@@ -767,7 +784,7 @@ const BookingRow = ({
                             } else {
                                 return (
                                     <span className="text-xs text-gray-500 italic px-2 py-1.5 border border-white/5 rounded-lg bg-white/5 select-none whitespace-nowrap">
-                                        Teslim Tarihi Bekleniyor
+                                        Teslim Bekleniyor
                                     </span>
                                 );
                             }
@@ -776,7 +793,7 @@ const BookingRow = ({
                     {booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
                         <Button
                             size="sm"
-                            className="bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 transition-all font-medium rounded-lg"
+                            className="bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 transition-all font-medium rounded-lg whitespace-nowrap"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onAction('cancel', booking.id);
@@ -844,15 +861,6 @@ export const AdminDashboard = () => {
         REJECTED: { label: 'Reddedildi', color: 'red' },
     };
 
-    const FRANCHISE_STATUS_OPTIONS = [
-        { value: '', label: 'Tümü', color: 'gray' },
-        { value: 'SUBMITTED', label: 'Gönderildi', color: 'blue' },
-        { value: 'IN_REVIEW', label: 'İnceleniyor', color: 'yellow' },
-        { value: 'APPROVED', label: 'Onaylandı', color: 'green' },
-        { value: 'REJECTED', label: 'Reddedildi', color: 'red' },
-        { value: 'DRAFT', label: 'Taslak', color: 'gray' },
-    ];
-
     const [showManualModal, setShowManualModal] = useState(false);
 
     // Auto-refresh for notifications
@@ -913,7 +921,7 @@ export const AdminDashboard = () => {
         }
     };
 
-    const loadFranchiseApplications = async (page: number, search?: string, status?: string) => {
+    const loadFranchiseApplications = async (page: number, search?: string) => {
         setFranchiseLoading(true);
         try {
             const params: any = {
@@ -1594,14 +1602,15 @@ export const AdminDashboard = () => {
                     )}
 
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                    <div className="overflow-x-auto custom-scrollbar pb-4">
+                        <table className="w-full text-left min-w-[1200px]">
                             <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                 <tr>
                                     <th className="p-4">Kod</th>
                                     <th className="p-4">Müşteri</th>
                                     <th className="p-4">Araç</th>
                                     <th className="p-4">Tarihler</th>
+                                    <th className="p-4">Tutar</th>
                                     <th className="p-4">Ödeme</th>
                                     <th className="p-4">Durum</th>
                                     <th className="p-4">Detaylar</th>
@@ -1611,7 +1620,7 @@ export const AdminDashboard = () => {
                             <tbody className="divide-y divide-white/5 relative">
                                 {bookingsLoading ? (
                                     <tr>
-                                        <td colSpan={7} className="p-12 text-center">
+                                        <td colSpan={9} className="p-12 text-center">
                                             <div className="flex justify-center items-center">
                                                 <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
                                             </div>

@@ -15,9 +15,9 @@ const envSchema = z.object({
     RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
 
     // Cloudinary
-    CLOUDINARY_CLOUD_NAME: z.string(),
-    CLOUDINARY_API_KEY: z.string(),
-    CLOUDINARY_API_SECRET: z.string(),
+    CLOUDINARY_CLOUD_NAME: z.string().trim(),
+    CLOUDINARY_API_KEY: z.string().trim(),
+    CLOUDINARY_API_SECRET: z.string().trim(),
 });
 
 const parsed = envSchema.safeParse(process.env);
