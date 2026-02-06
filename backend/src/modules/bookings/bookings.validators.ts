@@ -3,8 +3,8 @@ import { BookingStatus } from '@prisma/client';
 
 const bookingStatusEnum = z.nativeEnum(BookingStatus);
 
-// Customer booking schema - no auth required
-export const createBookingSchema = z.object({
+// Base schema object to allow extension
+const baseBookingSchemaObject = z.object({
     carId: z.string().uuid('Geçersiz araç ID'),
     // Customer Information
     customerName: z.string().min(2, 'Müşteri adı gerekli'),
@@ -23,6 +23,20 @@ export const createBookingSchema = z.object({
     dropoffBranchId: z.string().uuid('Geçersiz teslim şubesi'),
     // Optional
     notes: z.string().max(500).optional(),
+});
+
+// Customer booking schema - no auth required
+export const createBookingSchema = baseBookingSchemaObject.refine(
+    (data) => data.dropoffDate > data.pickupDate,
+    { message: 'Teslim tarihi alış tarihinden sonra olmalı', path: ['dropoffDate'] }
+);
+
+// Admin manual booking schema
+export const createManualBookingSchema = baseBookingSchemaObject.extend({
+    // Add payment info
+    paymentMethod: z.enum(['CASH', 'POS']),
+    paymentRef: z.string().optional(),
+    isActive: z.boolean().default(true), // Direct to ACTIVE or RESERVED status
 }).refine(
     (data) => data.dropoffDate > data.pickupDate,
     { message: 'Teslim tarihi alış tarihinden sonra olmalı', path: ['dropoffDate'] }
@@ -91,6 +105,7 @@ export const bookingCodeParamSchema = z.object({
 
 // Types
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
+export type CreateManualBookingInput = z.infer<typeof createManualBookingSchema>;
 export type BookingQueryInput = z.infer<typeof bookingQuerySchema>;
 export type AvailabilityQueryInput = z.infer<typeof availabilityQuerySchema>;
 export type ExtendBookingInput = z.infer<typeof extendBookingSchema>;

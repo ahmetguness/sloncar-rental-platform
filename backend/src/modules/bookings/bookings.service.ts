@@ -1,7 +1,7 @@
 import { Prisma, BookingStatus, PaymentStatus } from '@prisma/client';
 import prisma from '../../lib/prisma.js';
 import { ApiError } from '../../middlewares/errorHandler.js';
-import { CreateBookingInput, BookingQueryInput, AvailabilityQueryInput, ExtendBookingInput } from './bookings.validators.js';
+import { CreateBookingInput, BookingQueryInput, AvailabilityQueryInput, ExtendBookingInput, CreateManualBookingInput } from './bookings.validators.js';
 import { BookingWithRelations, AvailabilityResponse, DayAvailability, DateRange } from './bookings.types.js';
 import { PaginatedResponse } from '../cars/cars.types.js';
 import { notificationService } from '../../lib/notification.js';
@@ -147,6 +147,7 @@ export async function createBooking(
                 pickupBranchId: input.pickupBranchId,
                 dropoffBranchId: input.dropoffBranchId,
                 totalPrice,
+                expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
             },
             include: {
                 car: { include: { branch: true } },
@@ -164,6 +165,113 @@ export async function createBooking(
     notificationService.sendBookingConfirmation(booking).catch(err => console.error('Notification failed', err));
 
     return booking as BookingWithRelations;
+    return booking as BookingWithRelations;
+}
+
+// ADMIN - Create Manual Booking (Walk-in)
+export async function createManualBooking(
+    input: CreateManualBookingInput
+): Promise<BookingWithRelations> {
+    const booking = await prisma.$transaction(async (tx) => {
+        const pickupDate = normalizeDate(input.pickupDate);
+        let dropoffDate = normalizeDate(input.dropoffDate);
+
+        if (dropoffDate.getTime() <= pickupDate.getTime()) {
+            const nextDay = new Date(pickupDate);
+            nextDay.setDate(nextDay.getDate() + 1);
+            dropoffDate = nextDay;
+        }
+
+        const car = await tx.car.findUnique({ where: { id: input.carId } });
+        if (!car) throw ApiError.notFound('Araç bulunamadı');
+        if (car.status !== 'ACTIVE') throw ApiError.badRequest('Araç kiralamaya uygun değil');
+
+        // Check overlaps
+        const hasOverlap = await tx.booking.findFirst({
+            where: {
+                carId: input.carId,
+                status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
+                AND: [
+                    { pickupDate: { lt: dropoffDate } },
+                    { dropoffDate: { gt: pickupDate } },
+                ],
+            },
+        });
+
+        if (hasOverlap) throw ApiError.conflict('Araç seçilen tarihlerde müsait değil');
+
+        let bookingCode = generateBookingCode();
+        // Simple loop to ensure uniqueness
+        for (let i = 0; i < 5; i++) {
+            if (!await tx.booking.findUnique({ where: { bookingCode } })) break;
+            bookingCode = generateBookingCode();
+        }
+
+        const totalPrice = calculateTotalPrice(Number(car.dailyPrice), pickupDate, dropoffDate);
+
+        // Determine status: If pickup is today (or past) and isActive is true -> ACTIVE
+        // Otherwise -> RESERVED (but PAID)
+        const today = normalizeDate(new Date());
+        let status: BookingStatus = BookingStatus.RESERVED;
+
+        if (input.isActive && pickupDate.getTime() <= today.getTime()) {
+            status = BookingStatus.ACTIVE;
+        }
+
+        const booking = await tx.booking.create({
+            data: {
+                bookingCode,
+                carId: input.carId,
+                customerName: input.customerName,
+                customerSurname: input.customerSurname,
+                customerPhone: input.customerPhone,
+                customerEmail: input.customerEmail,
+                customerTC: input.customerTC,
+                customerDriverLicense: input.customerDriverLicense,
+                notes: input.notes ? `[MANUAL - ${input.paymentMethod}] ${input.notes}` : `[MANUAL - ${input.paymentMethod}]`,
+                pickupDate,
+                dropoffDate,
+                pickupBranchId: input.pickupBranchId,
+                dropoffBranchId: input.dropoffBranchId,
+                totalPrice,
+                status: status,
+                paymentStatus: PaymentStatus.PAID,
+                paymentProvider: input.paymentMethod,
+                paymentRef: input.paymentRef || `MANUAL-${Date.now()}`,
+                paidAt: new Date(),
+            },
+            include: {
+                car: { include: { branch: true } },
+                pickupBranch: true,
+                dropoffBranch: true,
+            },
+        });
+
+        return booking;
+    });
+
+    return booking as BookingWithRelations;
+}
+
+// Helper to check and expire booking if needed
+async function checkAndExpireBooking(booking: BookingWithRelations): Promise<BookingWithRelations> {
+    if (
+        booking.status === BookingStatus.RESERVED &&
+        booking.paymentStatus === PaymentStatus.UNPAID &&
+        booking.expiresAt &&
+        new Date() > booking.expiresAt
+    ) {
+        return await prisma.booking.update({
+            where: { id: booking.id },
+            data: { status: BookingStatus.CANCELLED },
+            include: {
+                car: { include: { branch: true } },
+                pickupBranch: true,
+                dropoffBranch: true,
+            },
+        }) as BookingWithRelations;
+    }
+    return booking;
 }
 
 // PUBLIC - Lookup booking by code (for customers)
@@ -183,7 +291,7 @@ export async function getBookingByCode(
         throw ApiError.notFound('Rezervasyon bulunamadı. Kodu kontrol edin.');
     }
 
-    return booking as BookingWithRelations;
+    return await checkAndExpireBooking(booking as BookingWithRelations);
 }
 
 // PUBLIC - Extend booking (customer self-service)
@@ -278,7 +386,7 @@ export async function payBooking(
     bookingCode: string,
     amount: number
 ): Promise<BookingWithRelations> {
-    const booking = await prisma.booking.findUnique({
+    let booking = await prisma.booking.findUnique({
         where: { bookingCode: bookingCode.toUpperCase() },
         include: {
             car: true, // Needed for notification name resolution if required
@@ -289,6 +397,13 @@ export async function payBooking(
 
     if (!booking) {
         throw ApiError.notFound('Rezervasyon bulunamadı.');
+    }
+
+    // CHECK EXPIRATION
+    booking = await checkAndExpireBooking(booking as BookingWithRelations);
+
+    if (booking.status === BookingStatus.CANCELLED) {
+        throw ApiError.badRequest('Rezervasyon süresi dolduğu için iptal edilmiştir.');
     }
 
     if (booking.paymentStatus === PaymentStatus.PAID) {
@@ -355,7 +470,16 @@ export async function getAvailability(
     const allDates = getDateRange(query.from, query.to);
     const calendar: DayAvailability[] = allDates.map((date) => {
         const dateStr = formatDate(date);
+        // Find blocking booking
         const booking = bookings.find((b) => {
+            // Check if ignored (Expired)
+            if (b.status === BookingStatus.RESERVED &&
+                b.paymentStatus === PaymentStatus.UNPAID &&
+                b.expiresAt &&
+                new Date() > b.expiresAt) {
+                return false; // Treat as available
+            }
+
             const pickupStr = formatDate(b.pickupDate);
             const dropoffStr = formatDate(b.dropoffDate);
             return dateStr >= pickupStr && dateStr < dropoffStr;
@@ -445,6 +569,40 @@ export async function cancelBooking(
         data: { status: BookingStatus.CANCELLED },
         include: {
             car: true,
+            pickupBranch: true,
+            dropoffBranch: true,
+        },
+    });
+
+    return updatedBooking as BookingWithRelations;
+}
+
+// ADMIN - Start booking (Car picked up)
+export async function startBooking(
+    bookingId: string
+): Promise<BookingWithRelations> {
+    const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: { car: true }
+    });
+
+    if (!booking) {
+        throw ApiError.notFound('Rezervasyon bulunamadı');
+    }
+
+    if (booking.status !== BookingStatus.RESERVED) {
+        throw ApiError.badRequest('Sadece rezervasyon durumundaki işlemler başlatılabilir');
+    }
+
+    if (booking.paymentStatus !== PaymentStatus.PAID) {
+        throw ApiError.badRequest('Ödemesi alınmamış rezervasyon başlatılamaz');
+    }
+
+    const updatedBooking = await prisma.booking.update({
+        where: { id: booking.id },
+        data: { status: BookingStatus.ACTIVE },
+        include: {
+            car: { include: { branch: true } },
             pickupBranch: true,
             dropoffBranch: true,
         },

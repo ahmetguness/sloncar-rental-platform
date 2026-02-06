@@ -52,6 +52,7 @@ export interface Booking {
     paymentStatus: 'UNPAID' | 'PAID';
     paymentRef?: string;
     paidAt?: string;
+    expiresAt?: string;
     createdAt: string;
 }
 
@@ -93,6 +94,7 @@ export interface DashboardStats {
     newBookingsCount: number;
     latestNewBookings: any[];
     latestPendingFranchiseApplications: any[];
+    latestPaidBookings: any[];
 }
 
 export interface PaginatedResponse<T> {

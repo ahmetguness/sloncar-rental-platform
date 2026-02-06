@@ -171,6 +171,43 @@ export async function cancelBooking(
     }
 }
 
+// ADMIN - Start booking
+export async function startBooking(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const booking = await bookingsService.startBooking(req.params.id!);
+        res.json({
+            success: true,
+            message: 'Rezervasyon başlatıldı. Araç teslim edildi.',
+            data: booking,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// ADMIN - Create Manual Booking
+export async function createManualBooking(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const booking = await bookingsService.createManualBooking(req.body);
+        res.status(201).json({
+            success: true,
+            message: 'Manual rezervasyon oluşturuldu.',
+            data: booking,
+        });
+    } catch (error) {
+        console.error('Manual Booking Error:', error);
+        next(error);
+    }
+}
+
 // ADMIN - Complete booking
 export async function completeBooking(
     req: Request,

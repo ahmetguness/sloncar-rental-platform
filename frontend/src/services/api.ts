@@ -100,6 +100,14 @@ export const adminService = {
         const response = await api.patch(`/admin/bookings/${id}/cancel`);
         return response.data;
     },
+    startBooking: async (id: string) => {
+        const response = await api.patch(`/admin/bookings/${id}/start`);
+        return response.data;
+    },
+    createManualBooking: async (data: any) => {
+        const response = await api.post('/admin/bookings', data);
+        return response.data;
+    },
     // Car management
     getCars: async (params?: any) => {
         const response = await api.get<PaginatedResponse<Car>>('/cars', { params });

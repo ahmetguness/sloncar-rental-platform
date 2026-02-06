@@ -208,6 +208,7 @@ model Booking {
   paymentProvider String?
   paymentRef      String?
   paidAt          DateTime?
+  expiresAt       DateTime? // For 10-minute payment window
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

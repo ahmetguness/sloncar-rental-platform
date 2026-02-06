@@ -6,8 +6,13 @@ import { adminService } from '../services/api';
 import type { DashboardStats, Booking } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, Settings, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, Settings, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote } from 'lucide-react';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { tr } from 'date-fns/locale';
+
+registerLocale('tr', tr);
 
 import { Skeleton } from '../components/ui/Skeleton';
 
@@ -230,16 +235,259 @@ const BookingDetailModal = ({ booking, onClose }: { booking: Booking; onClose: (
     );
 };
 
+const ManualBookingModal = ({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) => {
+    const { addToast } = useToast();
+    // Helper to use addToast with 'toast' name if preferred, or just use addToast directly
+    const toast = (msg: string, type: 'success' | 'error') => addToast(msg, type);
+
+    const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [dates, setDates] = useState<{ pickup: Date | null; dropoff: Date | null }>({ pickup: null, dropoff: null });
+    const [availableCars, setAvailableCars] = useState<any[]>([]);
+    const [selectedCar, setSelectedCar] = useState<any>(null);
+    const [customer, setCustomer] = useState({
+        name: '', surname: '', phone: '', email: '', tc: '', license: '', notes: ''
+    });
+    const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'POS'>('CASH');
+
+    const formatDateForAPI = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const handleSearchCars = async () => {
+        if (!dates.pickup || !dates.dropoff) {
+            toast('Lütfen tarihleri seçiniz', 'error');
+            return;
+        }
+        setLoading(true);
+        try {
+            const res = await adminService.getCars({
+                status: 'ACTIVE',
+                pickupDate: formatDateForAPI(dates.pickup),
+                dropoffDate: formatDateForAPI(dates.dropoff),
+                limit: 100
+            });
+            setAvailableCars(res.data);
+            setStep(2);
+        } catch (err) {
+            toast('Araçlar yüklenemedi', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        try {
+            if (!dates.pickup || !dates.dropoff) return; // Should not happen
+
+            // Sanitize payload: valid inputs only
+            const payload: any = {
+                carId: selectedCar.id,
+                customerName: customer.name,
+                customerSurname: customer.surname,
+                customerPhone: customer.phone,
+                customerEmail: customer.email,
+                customerDriverLicense: customer.license,
+                pickupDate: formatDateForAPI(dates.pickup),
+                dropoffDate: formatDateForAPI(dates.dropoff),
+                pickupBranchId: selectedCar.branchId,
+                dropoffBranchId: selectedCar.branchId,
+                paymentMethod,
+                isActive: true
+            };
+
+            if (customer.tc && customer.tc.trim() !== '') {
+                payload.customerTC = customer.tc;
+            }
+            if (customer.notes && customer.notes.trim() !== '') {
+                payload.notes = customer.notes;
+            }
+
+            await adminService.createManualBooking(payload);
+            toast('Rezervasyon oluşturuldu', 'success');
+            onSuccess();
+            onClose();
+            // Reset form
+            setStep(1);
+            setDates({ pickup: null, dropoff: null });
+            setSelectedCar(null);
+            setCustomer({ name: '', surname: '', phone: '', email: '', tc: '', license: '', notes: '' });
+        } catch (err: any) {
+            const errorData = err.response?.data?.error;
+            let errorMessage = errorData?.message || 'Rezervasyon oluşturulamadı';
+
+            // Should show specific validation error if available
+            if (errorData?.code === 'VALIDATION_ERROR' && errorData?.details?.[0]) {
+                errorMessage = errorData.details[0].message;
+            }
+
+            toast(errorMessage, 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Yeni Manuel Rezervasyon">
+            <div className="space-y-6">
+                {/* Progress Steps */}
+                <div className="flex items-center justify-between mb-8 px-2 relative">
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-white/10 -z-10" />
+                    {[1, 2, 3, 4].map((s) => (
+                        <div key={s} className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all ${step >= s ? 'bg-primary-500 text-white' : 'bg-dark-bg border border-white/20 text-gray-500'}`}>
+                            {s}
+                        </div>
+                    ))}
+                </div>
+
+                {step === 1 && (
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col">
+                                <label className="block text-sm text-gray-400 mb-1">Alış Tarihi</label>
+                                <DatePicker
+                                    selected={dates.pickup}
+                                    onChange={(date: Date | null) => setDates({ ...dates, pickup: date })}
+                                    className="w-full bg-dark-bg border border-white/10 rounded-lg p-2 text-white"
+                                    placeholderText="Tarih seçiniz"
+                                    dateFormat="dd/MM/yyyy"
+                                    locale="tr"
+                                    minDate={new Date()}
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <label className="block text-sm text-gray-400 mb-1">Teslim Tarihi</label>
+                                <DatePicker
+                                    selected={dates.dropoff}
+                                    onChange={(date: Date | null) => setDates({ ...dates, dropoff: date })}
+                                    className="w-full bg-dark-bg border border-white/10 rounded-lg p-2 text-white"
+                                    placeholderText="Tarih seçiniz"
+                                    dateFormat="dd/MM/yyyy"
+                                    locale="tr"
+                                    minDate={dates.pickup ? new Date(dates.pickup.getTime() + 24 * 60 * 60 * 1000) : new Date()}
+                                />
+                            </div>
+                        </div>
+                        <Button className="w-full mt-4" onClick={handleSearchCars} disabled={loading}>
+                            {loading ? <Loader2 className="animate-spin" /> : 'Müsait Araçları Ara'}
+                        </Button>
+                    </div>
+                )}
+
+                {step === 2 && (
+                    <div className="space-y-4">
+                        <h3 className="text-white font-bold">Araç Seçimi</h3>
+                        <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                            {availableCars.map(car => (
+                                <div
+                                    key={car.id}
+                                    onClick={() => setSelectedCar(car)}
+                                    className={`p-3 rounded-lg border cursor-pointer flex justify-between items-center transition-all ${selectedCar?.id === car.id ? 'bg-primary-500/20 border-primary-500' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <img src={car.images?.[0] || '/placeholder-car.png'} alt="" className="w-12 h-8 object-cover rounded" />
+                                        <div>
+                                            <div className="text-white font-medium">{car.brand} {car.model}</div>
+                                            <div className="text-xs text-gray-500">{car.plateNumber}</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-primary-400 font-bold">{car.dailyPrice} TL</div>
+                                </div>
+                            ))}
+                            {availableCars.length === 0 && <div className="text-center text-gray-500 py-4">Müsait araç bulunamadı.</div>}
+                        </div>
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => setStep(1)} className="flex-1">Geri</Button>
+                            <Button onClick={() => setStep(3)} disabled={!selectedCar} className="flex-1">Devam Et</Button>
+                        </div>
+                    </div>
+                )}
+
+                {step === 3 && (
+                    <div className="space-y-4">
+                        <h3 className="text-white font-bold">Müşteri Bilgileri</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            <input placeholder="Ad" className="bg-dark-bg border border-white/10 rounded p-2 text-white" value={customer.name} onChange={e => setCustomer({ ...customer, name: e.target.value })} />
+                            <input placeholder="Soyad" className="bg-dark-bg border border-white/10 rounded p-2 text-white" value={customer.surname} onChange={e => setCustomer({ ...customer, surname: e.target.value })} />
+                            <input placeholder="Telefon (+90...)" className="bg-dark-bg border border-white/10 rounded p-2 text-white col-span-2" value={customer.phone} onChange={e => setCustomer({ ...customer, phone: e.target.value })} />
+                            <input placeholder="E-posta" className="bg-dark-bg border border-white/10 rounded p-2 text-white col-span-2" value={customer.email} onChange={e => setCustomer({ ...customer, email: e.target.value })} />
+                            <input placeholder="TC Kimlik No (Opsiyonel)" className="bg-dark-bg border border-white/10 rounded p-2 text-white" value={customer.tc} onChange={e => setCustomer({ ...customer, tc: e.target.value })} />
+                            <input placeholder="Ehliyet No" className="bg-dark-bg border border-white/10 rounded p-2 text-white" value={customer.license} onChange={e => setCustomer({ ...customer, license: e.target.value })} />
+                            <input placeholder="Notlar" className="bg-dark-bg border border-white/10 rounded p-2 text-white col-span-2" value={customer.notes} onChange={e => setCustomer({ ...customer, notes: e.target.value })} />
+                        </div>
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => setStep(2)} className="flex-1">Geri</Button>
+                            <Button onClick={() => setStep(4)} disabled={!customer.name || !customer.phone} className="flex-1">Devam Et</Button>
+                        </div>
+                    </div>
+                )}
+
+                {step === 4 && (
+                    <div className="space-y-6">
+                        <h3 className="text-white font-bold text-center">Ödeme Yöntemi</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <button
+                                onClick={() => setPaymentMethod('CASH')}
+                                className={`p-6 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'CASH' ? 'bg-primary-500/20 border-primary-500 text-primary-400' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
+                            >
+                                <Banknote className="w-8 h-8" />
+                                <span className="font-bold">Nakit</span>
+                            </button>
+                            <button
+                                onClick={() => setPaymentMethod('POS')}
+                                className={`p-6 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'POS' ? 'bg-primary-500/20 border-primary-500 text-primary-400' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
+                            >
+                                <CreditCard className="w-8 h-8" />
+                                <span className="font-bold">Kredi Kartı / POS</span>
+                            </button>
+                        </div>
+                        <div className="bg-white/5 p-4 rounded-lg space-y-2 text-sm text-gray-400">
+                            <div className="flex justify-between"><span>Araç:</span> <span className="text-white">{selectedCar?.brand} {selectedCar?.model}</span></div>
+                            <div className="flex justify-between">
+                                <span>Gün:</span>
+                                <span className="text-white">
+                                    {dates.pickup && dates.dropoff ? Math.ceil((dates.dropoff.getTime() - dates.pickup.getTime()) / (1000 * 60 * 60 * 24)) : 0} Gün
+                                </span>
+                            </div>
+                            <div className="flex justify-between border-t border-white/10 pt-2 text-lg font-bold text-white">
+                                <span>Toplam:</span>
+                                <span className="text-green-400">
+                                    {dates.pickup && dates.dropoff && selectedCar
+                                        ? (selectedCar.dailyPrice * Math.ceil((dates.dropoff.getTime() - dates.pickup.getTime()) / (1000 * 60 * 60 * 24))).toLocaleString()
+                                        : 0} TL
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => setStep(3)} className="flex-1">Geri</Button>
+                            <Button onClick={handleSubmit} disabled={loading} className="flex-1 bg-green-500 hover:bg-green-600 text-white border-none">
+                                {loading ? <Loader2 className="animate-spin" /> : 'Rezervasyonu Tamamla'}
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </Modal>
+    );
+};
+
 // Helper component for table rows to allow hooks usage
 const BookingRow = ({
     booking,
     onView,
-    onCancel,
+    onAction,
     isHighlighted
 }: {
     booking: Booking;
     onView: (b: Booking) => void;
-    onCancel: (id: string) => void;
+    onAction: (action: 'cancel' | 'start', id: string) => void;
     isHighlighted?: boolean;
 }) => {
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -297,13 +545,22 @@ const BookingRow = ({
                 <div className="flex flex-col gap-1 text-sm">
                     <div className="flex items-center gap-2 text-gray-400">
                         <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                        <span>{new Date(booking.pickupDate).toLocaleDateString('tr-TR')}</span>
+                        <span>{new Date(booking.pickupDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-400">
                         <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                        <span>{new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}</span>
+                        <span>{new Date(booking.dropoffDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
                     </div>
                 </div>
+            </td>
+            <td className="p-4">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${booking.paymentStatus === 'PAID'
+                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                    : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                    }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${booking.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                    {booking.paymentStatus === 'PAID' ? 'Ödendi' : 'Ödenmedi'}
+                </span>
             </td>
             <td className="p-4">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${booking.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
@@ -332,15 +589,33 @@ const BookingRow = ({
                 </Button>
             </td>
             <td className="p-4">
-                {booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
-                    <Button
-                        size="sm"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 rounded-lg"
-                        onClick={() => onCancel(booking.id)}
-                    >
-                        İptal
-                    </Button>
-                )}
+                <div className="flex items-center gap-2">
+                    {booking.status === 'RESERVED' && booking.paymentStatus === 'PAID' && (
+                        <Button
+                            size="sm"
+                            className="bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 hover:border-green-500/30 transition-all font-medium rounded-lg whitespace-nowrap"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAction('start', booking.id);
+                            }}
+                        >
+                            <Key className="w-4 h-4 mr-1.5" />
+                            Teslim Et
+                        </Button>
+                    )}
+                    {booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
+                        <Button
+                            size="sm"
+                            className="bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 transition-all font-medium rounded-lg"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAction('cancel', booking.id);
+                            }}
+                        >
+                            İptal
+                        </Button>
+                    )}
+                </div>
             </td>
         </tr>
     );
@@ -366,6 +641,7 @@ export const AdminDashboard = () => {
     const [franchiseApplications, setFranchiseApplications] = useState<any[]>([]);
     const [selectedFranchise, setSelectedFranchise] = useState<any | null>(null);
     const [cancelingId, setCancelingId] = useState<string | null>(null);
+    const [bookingAction, setBookingAction] = useState<'cancel' | 'start' | null>(null);
     const [showNotifications, setShowNotifications] = useState(false);
     const [highlightedBookingId, setHighlightedBookingId] = useState<string | null>(null);
     const [readNotificationIds, setReadNotificationIds] = useState<string[]>(() => {
@@ -407,11 +683,13 @@ export const AdminDashboard = () => {
         { value: 'DRAFT', label: 'Taslak', color: 'gray' },
     ];
 
+    const [showManualModal, setShowManualModal] = useState(false);
+
     // Auto-refresh for notifications
     useEffect(() => {
         const interval = setInterval(() => {
             refreshStats();
-        }, 60000);
+        }, 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -507,23 +785,31 @@ export const AdminDashboard = () => {
         return () => clearTimeout(timer);
     }, [franchiseSearchTerm]);
 
-    const handleCancelClick = (id: string) => {
-        setCancelingId(id); // Use cancelingId to track which booking is being cancelled for modal
+    const handleAction = (action: 'cancel' | 'start', id: string) => {
+        setCancelingId(id);
+        setBookingAction(action);
     };
 
-    const confirmCancel = async () => {
-        if (!cancelingId) return;
+    const confirmAction = async () => {
+        if (!cancelingId || !bookingAction) return;
         try {
-            await adminService.cancelBooking(cancelingId);
-            toast('Rezervasyon başarıyla iptal edildi', 'success');
+            if (bookingAction === 'cancel') {
+                await adminService.cancelBooking(cancelingId);
+                toast('Rezervasyon başarıyla iptal edildi', 'success');
+            } else if (bookingAction === 'start') {
+                await adminService.startBooking(cancelingId);
+                toast('Kiralama başlatıldı (Teslim Edildi)', 'success');
+            }
+
             // Refresh bookings and stats without full page reload
             await loadBookings(currentPage, searchTerm, statusFilter);
             const statsData = await adminService.getDashboard();
             setStats(statsData);
-        } catch (err) {
-            toast('İptal işlemi başarısız oldu', 'error');
+        } catch (err: any) {
+            toast(err.response?.data?.message || 'İşlem başarısız', 'error');
         } finally {
             setCancelingId(null);
+            setBookingAction(null);
         }
     };
 
@@ -559,27 +845,39 @@ export const AdminDashboard = () => {
             <Modal
                 isOpen={!!cancelingId}
                 onClose={() => setCancelingId(null)}
-                title="Rezervasyonu İptal Et"
+                title={bookingAction === 'start' ? "Kiralamayı Başlat" : "Rezervasyonu İptal Et"}
                 size="sm"
             >
                 <div className="space-y-4">
-                    <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto">
-                        <AlertCircle className="w-6 h-6 text-red-500" />
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto ${bookingAction === 'start' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+                        {bookingAction === 'start' ? <Key className="w-6 h-6 text-green-500" /> : <AlertCircle className="w-6 h-6 text-red-500" />}
                     </div>
                     <p className="text-gray-300 text-center">
-                        Bu rezervasyonu iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                        {bookingAction === 'start'
+                            ? 'Aracı teslim etmek ve kiralamayı başlatmak istediğinize emin misiniz?'
+                            : 'Bu rezervasyonu iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'}
                     </p>
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="outline" onClick={() => setCancelingId(null)}>Vazgeç</Button>
                         <Button
-                            className="bg-red-500 hover:bg-red-600 text-white border-none"
-                            onClick={confirmCancel}
+                            className={`${bookingAction === 'start' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white border-none`}
+                            onClick={confirmAction}
                         >
-                            Evet, İptal Et
+                            {bookingAction === 'start' ? 'Evet, Başlat' : 'Evet, İptal Et'}
                         </Button>
                     </div>
                 </div>
             </Modal>
+
+            {/* Manual Booking Modal */}
+            <ManualBookingModal
+                isOpen={showManualModal}
+                onClose={() => setShowManualModal(false)}
+                onSuccess={() => {
+                    loadBookings(1);
+                    refreshStats();
+                }}
+            />
 
             <div className="container mx-auto max-w-7xl space-y-8">
                 {/* Header */}
@@ -592,6 +890,14 @@ export const AdminDashboard = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <Button
+                            className="bg-primary-500 hover:bg-primary-600 text-white border-none shadow-lg shadow-primary-500/20"
+                            onClick={() => setShowManualModal(true)}
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Yeni Rezervasyon
+                        </Button>
+
                         {/* Notification Bell */}
                         <div className="relative">
                             <button
@@ -605,10 +911,12 @@ export const AdminDashboard = () => {
 
                                     const newBookings = stats?.latestNewBookings || [];
                                     const pendingFranchise = stats?.latestPendingFranchiseApplications || [];
+                                    const paidBookings = stats?.latestPaidBookings || [];
 
                                     const unreadCount = [
                                         ...newBookings.filter(b => new Date(b.createdAt).getTime() > lastReadTime && !readNotificationIds.includes(b.id)),
-                                        ...pendingFranchise.filter(f => new Date(f.submittedAt).getTime() > lastReadTime && !readNotificationIds.includes(f.id))
+                                        ...pendingFranchise.filter(f => new Date(f.submittedAt).getTime() > lastReadTime && !readNotificationIds.includes(f.id)),
+                                        ...paidBookings.filter(b => new Date(b.paidAt).getTime() > lastReadTime && !readNotificationIds.includes(b.id + '_paid'))
                                     ].length;
 
                                     return unreadCount > 0 && (
@@ -651,11 +959,23 @@ export const AdminDashboard = () => {
                                             const newBookings = (stats?.latestNewBookings || []).map(b => ({
                                                 id: b.id,
                                                 type: 'booking',
-                                                title: 'Yeni Rezervasyon',
-                                                desc: `${b.car?.brand} ${b.car?.model}`,
+                                                title: 'Yeni Rezervasyon (Bekliyor)',
+                                                desc: `${b.car?.brand} ${b.car?.model} - ${b.customerName} ${b.customerSurname}`,
                                                 code: b.bookingCode || b.id,
                                                 date: b.createdAt,
                                                 icon: <CarIcon size={16} />,
+                                                color: 'primary'
+                                            }));
+
+                                            const paidBookings = (stats?.latestPaidBookings || []).map(b => ({
+                                                id: b.id + '_paid', // Unique ID for notification
+                                                originalId: b.id,
+                                                type: 'booking',
+                                                title: 'Ödeme Alındı',
+                                                desc: `${b.car?.brand} ${b.car?.model} - ${b.customerName} ${b.customerSurname}`,
+                                                code: b.bookingCode || b.id,
+                                                date: b.paidAt,
+                                                icon: <Check size={16} />,
                                                 color: 'green'
                                             }));
 
@@ -666,10 +986,10 @@ export const AdminDashboard = () => {
                                                 desc: f.companyName || f.contactName,
                                                 date: f.submittedAt,
                                                 icon: <Building2 size={16} />,
-                                                color: 'primary'
+                                                color: 'yellow' // Changed to yellow for distinction
                                             }));
 
-                                            const allNotifications = [...newBookings, ...pendingFranchise]
+                                            const allNotifications = [...newBookings, ...paidBookings, ...pendingFranchise]
                                                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
                                             const unreadNotifications = allNotifications.filter(n =>
@@ -696,7 +1016,9 @@ export const AdminDashboard = () => {
                                                         if (item.type === 'booking') {
                                                             // Clear search to show all, but highlight specific item
                                                             setSearchTerm('');
-                                                            setHighlightedBookingId(item.id);
+                                                            // Use originalId if present (for paid notifications), otherwise id
+                                                            const bookingId = (item as any).originalId || item.id;
+                                                            setHighlightedBookingId(bookingId);
                                                             loadBookings(1, '', statusFilter);
 
                                                             // Clear highlight after 5 seconds
@@ -1110,6 +1432,7 @@ export const AdminDashboard = () => {
                                     <th className="p-4">Müşteri</th>
                                     <th className="p-4">Araç</th>
                                     <th className="p-4">Tarihler</th>
+                                    <th className="p-4">Ödeme</th>
                                     <th className="p-4">Durum</th>
                                     <th className="p-4">Detaylar</th>
                                     <th className="p-4">İşlem</th>
@@ -1137,7 +1460,7 @@ export const AdminDashboard = () => {
                                             key={booking.id}
                                             booking={booking}
                                             onView={setSelectedBooking}
-                                            onCancel={handleCancelClick}
+                                            onAction={handleAction}
                                             isHighlighted={highlightedBookingId === booking.id}
                                         />
                                     ))

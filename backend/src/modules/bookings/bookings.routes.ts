@@ -11,6 +11,7 @@ import {
     bookingCodeParamSchema,
     extendBookingSchema,
     payBookingSchema,
+    createManualBookingSchema,
 } from './bookings.validators.js';
 
 const router = Router();
@@ -173,12 +174,29 @@ adminBookingsRouter.patch(
     bookingsController.cancelBooking
 );
 
+// Admin: Create Manual Booking
+adminBookingsRouter.post(
+    '/',
+    authMiddleware,
+    adminGuard,
+    validate(createManualBookingSchema),
+    bookingsController.createManualBooking
+);
+
 adminBookingsRouter.patch(
     '/:id/complete',
     authMiddleware,
     adminGuard,
     validate(bookingIdParamSchema, 'params'),
     bookingsController.completeBooking
+);
+
+adminBookingsRouter.patch(
+    '/:id/start',
+    authMiddleware,
+    adminGuard,
+    validate(bookingIdParamSchema, 'params'),
+    bookingsController.startBooking
 );
 
 export default router;

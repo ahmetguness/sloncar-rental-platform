@@ -95,18 +95,18 @@ export const Booking = () => {
     // Calculate total price when dates change
     // Update formData when dates change
     useEffect(() => {
+        const formatDateForAPI = (date: Date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
         if (startDate) {
-            // Adjust to local time string to avoid UTC shift if needed, or stick to ISO
-            // Using a simple local format "YYYY-MM-DD" might be safer for backend if it expects date only
-            // But types say ISO string. Let's use ISO for now.
-            const offset = startDate.getTimezoneOffset();
-            const localDate = new Date(startDate.getTime() - (offset * 60 * 1000));
-            setFormData(prev => ({ ...prev, pickupDate: localDate.toISOString().split('T')[0] }));
+            setFormData(prev => ({ ...prev, pickupDate: formatDateForAPI(startDate) }));
         }
         if (endDate) {
-            const offset = endDate.getTimezoneOffset();
-            const localDate = new Date(endDate.getTime() - (offset * 60 * 1000));
-            setFormData(prev => ({ ...prev, dropoffDate: localDate.toISOString().split('T')[0] }));
+            setFormData(prev => ({ ...prev, dropoffDate: formatDateForAPI(endDate) }));
         }
     }, [startDate, endDate]);
 
@@ -244,7 +244,7 @@ export const Booking = () => {
                     <CheckCircle className="w-12 h-12 text-green-500" />
                 </div>
                 <h2 className="text-3xl font-bold text-white mb-2">Rezervasyon Başarılı!</h2>
-                <p className="text-gray-400 mb-8 px-4">Ödemenizi tamamlamak için lütfen rezervasyonum sayfasına giderek ödeme yapın.</p>
+                <p className="text-gray-400 mb-8 px-4">Rezervasyonunuzun kesinleşmesi için <span className="text-yellow-400 font-bold">10 dakika</span> içinde ödeme yapmanız gerekmektedir.</p>
 
                 <div className="bg-dark-bg p-6 rounded-2xl border border-white/5 mb-8 relative group">
                     <div className="absolute inset-0 bg-primary-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />

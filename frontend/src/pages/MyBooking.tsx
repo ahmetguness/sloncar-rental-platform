@@ -65,13 +65,52 @@ export const MyBooking = () => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const getDaysLeft = () => {
+    const [timeLeft, setTimeLeft] = useState<number>(0);
+
+    useEffect(() => {
+        if (!booking || booking.status !== 'RESERVED' || booking.paymentStatus === 'PAID') {
+            setTimeLeft(0);
+            return;
+        }
+
+        const checkTimer = () => {
+            if (!booking.expiresAt) return;
+            const expireTime = new Date(booking.expiresAt).getTime();
+            const now = new Date().getTime();
+            const diff = expireTime - now;
+
+            if (diff <= 0) {
+                setTimeLeft(0);
+                // Optionally reload to get updated status if just expired
+                if (booking.status === 'RESERVED') {
+                    // Trigger a reload or just let the UI show expired
+                    // We can't automatically reload here easily without causing loops, 
+                    // so we just rely on the diff <= 0 state to block the UI.
+                }
+            } else {
+                setTimeLeft(diff);
+            }
+        };
+
+        checkTimer();
+        const interval = setInterval(checkTimer, 1000);
+        return () => clearInterval(interval);
+    }, [booking]);
+
+    const formatTimeLeft = (ms: number) => {
+        const totalSeconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const getRentalDays = () => {
         if (!booking) return null;
-        const now = new Date();
         const pickup = new Date(booking.pickupDate);
-        const diffTime = pickup.getTime() - now.getTime();
+        const dropoff = new Date(booking.dropoffDate);
+        const diffTime = dropoff.getTime() - pickup.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays > 0 ? diffDays : null;
+        return diffDays > 0 ? diffDays : 1;
     };
 
 
@@ -198,20 +237,28 @@ export const MyBooking = () => {
 
                                     {booking.paymentStatus !== 'PAID' && booking.status !== 'CANCELLED' && (
                                         <div className="flex flex-col items-center md:items-end gap-3 w-full md:w-auto mt-4 md:mt-0">
-                                            <div className="flex items-center gap-2 text-yellow-400 text-[10px] font-black uppercase tracking-widest bg-yellow-400/10 px-3 py-1.5 rounded border border-yellow-400/20 animate-pulse">
-                                                <AlertCircle size={12} />
-                                                Ödeme Bekleniyor
-                                            </div>
+                                            {timeLeft > 0 ? (
+                                                <div className="flex items-center gap-2 text-yellow-400 text-[10px] font-black uppercase tracking-widest bg-yellow-400/10 px-3 py-1.5 rounded border border-yellow-400/20 animate-pulse">
+                                                    <AlertCircle size={12} />
+                                                    Ödeme İçin Kalan Süre: {formatTimeLeft(timeLeft)}
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2 text-red-500 text-[10px] font-black uppercase tracking-widest bg-red-500/10 px-3 py-1.5 rounded border border-red-500/20">
+                                                    <AlertCircle size={12} />
+                                                    Süre Doldu
+                                                </div>
+                                            )}
+
                                             <Button
                                                 onClick={handlePay}
-                                                disabled={paying}
-                                                className="w-full md:w-auto px-10 h-16 bg-gradient-to-r from-primary-600 via-primary-500 to-primary-600 hover:from-primary-500 hover:to-primary-400 text-white font-black text-lg rounded-2xl shadow-[0_0_40px_rgba(99,102,241,0.4)] hover:shadow-[0_0_60px_rgba(99,102,241,0.6)] transition-all transform hover:scale-[1.02] border border-white/20 relative overflow-hidden group"
+                                                disabled={paying || timeLeft <= 0}
+                                                className={`w-full md:w-auto px-10 h-16 bg-gradient-to-r ${timeLeft > 0 ? 'from-primary-600 via-primary-500 to-primary-600 hover:from-primary-500 hover:to-primary-400' : 'from-gray-600 to-gray-700 cursor-not-allowed opacity-50'} text-white font-black text-lg rounded-2xl shadow-[0_0_40px_rgba(99,102,241,0.4)] transition-all transform hover:scale-[1.02] border border-white/20 relative overflow-hidden group`}
                                             >
                                                 <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
                                                 {paying ? <Loader2 className="animate-spin mr-2" /> : <span className="flex items-center gap-3">HEMEN ÖDE <CheckCircle size={20} className="text-white" /></span>}
                                             </Button>
                                             <p className="text-[11px] text-gray-400 text-center md:text-right max-w-[300px] leading-relaxed">
-                                                <span className="text-red-400 font-bold">DİKKAT:</span> Rezervasyonunuzun kesinleşmesi ve araç teslimi için ödemenin <strong className="text-white">şimdi yapılması gerekmektedir</strong>.
+                                                <span className="text-red-400 font-bold">DİKKAT:</span> Rezervasyonunuzun kesinleşmesi için <strong className="text-white">10 dakika</strong> içinde ödeme yapmalısınız.
                                             </p>
                                         </div>
                                     )}
@@ -253,6 +300,15 @@ export const MyBooking = () => {
                             <div className="lg:col-span-4 space-y-6">
                                 {/* Timeline Card */}
                                 <div className="bg-dark-surface-lighter/30 border border-white/10 rounded-3xl p-8 h-full">
+                                    {booking.car?.plateNumber && (
+                                        <div className="mb-8 p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between group hover:bg-white/10 transition-colors">
+                                            <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">ARAÇ PLAKASI</div>
+                                            <div className="bg-white/10 border border-white/20 px-4 py-2 rounded-xl text-white text-xl font-black tracking-widest uppercase flex items-center gap-3 shadow-lg">
+                                                {booking.car.plateNumber}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <h3 className="text-lg font-bold text-white mb-8 flex items-center gap-2">
                                         <div className="w-1 h-6 bg-primary-500 rounded-full" />
                                         Sürüş Planı
@@ -284,7 +340,7 @@ export const MyBooking = () => {
                                         <div className="relative pl-20">
                                             <div className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-primary-500/10 border border-primary-500/30 text-primary-300 font-bold backdrop-blur-md">
                                                 <CarIcon size={16} />
-                                                {getDaysLeft() || 1} GÜN KİRALAMA
+                                                {getRentalDays()} GÜN KİRALAMA
                                             </div>
                                         </div>
 

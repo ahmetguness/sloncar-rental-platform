@@ -196,6 +196,13 @@ export const Home = () => {
         setFilters(prev => ({ ...prev, [name]: value }));
     };
 
+    const formatDateForAPI = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     const parseDateString = (dateStr: string) => {
         if (!dateStr) return null;
         return new Date(dateStr);
@@ -255,7 +262,7 @@ export const Home = () => {
                                 <DatePicker
                                     selected={parseDateString(filters.pickupDate)}
                                     onChange={(date: Date | null) => {
-                                        const val = date ? date.toISOString() : '';
+                                        const val = date ? formatDateForAPI(date) : '';
                                         setFilters(prev => ({ ...prev, pickupDate: val }));
                                     }}
                                     dateFormat="dd/MM/yyyy"
@@ -274,7 +281,7 @@ export const Home = () => {
                                 <DatePicker
                                     selected={parseDateString(filters.dropoffDate)}
                                     onChange={(date: Date | null) => {
-                                        const val = date ? date.toISOString() : '';
+                                        const val = date ? formatDateForAPI(date) : '';
                                         setFilters(prev => ({ ...prev, dropoffDate: val }));
                                     }}
                                     dateFormat="dd/MM/yyyy"
