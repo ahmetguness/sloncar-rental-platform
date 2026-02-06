@@ -18,7 +18,17 @@ export async function listCars(query: CarQueryInput): Promise<PaginatedResponse<
     if (category) where.category = category;
     if (transmission) where.transmission = transmission;
     if (fuel) where.fuel = fuel;
-    if (status) where.status = status;
+
+    // Status Filter:
+    // If status is explicitly provided, use it.
+    // If not provided, DEFAULT to excluding 'INACTIVE' (Soft Deleted) cars.
+    // This ensures deleted cars don't show up in public lists or default admin views.
+    if (status) {
+        where.status = status;
+    } else {
+        where.status = { not: 'INACTIVE' };
+    }
+
     if (branch) where.branchId = branch;
     if (seats) where.seats = { gte: seats };
 
