@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
-import { adminService } from '../services/api';
+import { adminService, bookingService } from '../services/api';
 import type { DashboardStats, Booking } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
@@ -107,8 +107,84 @@ const StatCard = ({ title, value, icon, color, loading, trend, trendUp, data, on
     );
 };
 
-const BookingDetailModal = ({ booking, onClose }: { booking: Booking; onClose: () => void }) => {
+const BookingDetailModal = ({ booking, onClose, onUpdate }: { booking: Booking; onClose: () => void; onUpdate?: () => void }) => {
+    const { addToast } = useToast();
+    const [isEditing, setIsEditing] = useState(false);
+    const [editDates, setEditDates] = useState({
+        pickup: booking ? new Date(booking.pickupDate) : new Date(),
+        dropoff: booking ? new Date(booking.dropoffDate) : new Date()
+    });
+    const [loading, setLoading] = useState(false);
+    const [unavailableIntervals, setUnavailableIntervals] = useState<{ start: Date; end: Date }[]>([]);
+
+    useEffect(() => {
+        if (booking) {
+            setEditDates({
+                pickup: new Date(booking.pickupDate),
+                dropoff: new Date(booking.dropoffDate)
+            });
+        }
+    }, [booking]);
+
+    useEffect(() => {
+        if (isEditing && booking?.carId) {
+            fetchUnavailableDates();
+        }
+    }, [isEditing, booking?.carId]);
+
+    const fetchUnavailableDates = async () => {
+        try {
+            // Fetch all bookings for this car to calculate availability
+            const res = await adminService.getBookings({ // Using adminService.getBookings which calls /admin/bookings
+                carId: booking.carId,
+                limit: 100 // Should be enough for near-term conflicts
+            });
+
+            if (res.data) {
+                const intervals = res.data
+                    .filter(b =>
+                        // Exclude current booking
+                        b.id !== booking.id &&
+                        // Only count blocking statuses
+                        (b.status === 'ACTIVE' || b.status === 'RESERVED') &&
+                        // Exclude expired unpaid reservations
+                        !(
+                            b.status === 'RESERVED' &&
+                            b.paymentStatus === 'UNPAID' &&
+                            b.expiresAt &&
+                            new Date() > new Date(b.expiresAt)
+                        )
+                    )
+                    .map(b => ({
+                        start: new Date(b.pickupDate),
+                        end: new Date(b.dropoffDate)
+                    }));
+                setUnavailableIntervals(intervals);
+            }
+        } catch (err) {
+            console.error('Failed to fetch availability', err);
+        }
+    };
+
     if (!booking) return null;
+
+    const handleSaveDates = async () => {
+        if (!editDates.pickup || !editDates.dropoff) return;
+        setLoading(true);
+        try {
+            await adminService.updateBookingDates(booking.id, {
+                pickupDate: editDates.pickup,
+                dropoffDate: editDates.dropoff
+            });
+            addToast('Rezervasyon tarihleri güncellendi', 'success');
+            setIsEditing(false);
+            if (onUpdate) onUpdate();
+        } catch (err: any) {
+            addToast(err.response?.data?.error?.message || 'Tarihler güncellenemedi', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <Modal isOpen={!!booking} onClose={onClose} title="Rezervasyon Detayı" size="lg">
@@ -116,16 +192,36 @@ const BookingDetailModal = ({ booking, onClose }: { booking: Booking; onClose: (
                 {/* Header Info */}
                 <div className="-mt-2 mb-6 flex items-center justify-between pb-4 border-b border-white/10 text-sm">
                     <span className="text-gray-400">Rezervasyon Kodu: <span className="text-primary-400 font-mono font-bold">{booking.bookingCode}</span></span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${booking.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400' :
-                        booking.status === 'CANCELLED' ? 'bg-red-500/20 text-red-400' :
-                            booking.status === 'COMPLETED' ? 'bg-gray-500/20 text-gray-400' :
-                                'bg-primary-500/20 text-primary-400'
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
+                        ? 'bg-orange-500/20 text-orange-400'
+                        : booking.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400'
+                            : booking.status === 'CANCELLED' ? 'bg-red-500/20 text-red-400'
+                                : booking.status === 'COMPLETED' ? 'bg-gray-500/20 text-gray-400'
+                                    : 'bg-primary-500/20 text-primary-400'
                         }`}>
-                        {booking.status === 'ACTIVE' ? 'Aktif' :
-                            booking.status === 'CANCELLED' ? 'İptal' :
-                                booking.status === 'COMPLETED' ? 'Tamamlandı' : 'Rezerve'}
+                        {(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
+                            ? 'Süre Doldu'
+                            : booking.status === 'ACTIVE' ? 'Aktif'
+                                : booking.status === 'CANCELLED' ? 'İptal'
+                                    : booking.status === 'COMPLETED' ? 'Tamamlandı'
+                                        : 'Rezerve'}
                     </span>
                 </div>
+
+                {/* Expired Warning */}
+                {(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt)) && (
+                    <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                        <div>
+                            <h4 className="text-sm font-bold text-orange-400 mb-1">Ödeme Süresi Doldu</h4>
+                            <p className="text-sm text-gray-400">
+                                Müşteri 10 dakika içinde ödeme yapmadığı için bu rezervasyonun süresi dolmuştur.
+                                <br />
+                                <span className="text-gray-500 text-xs">Bitiş Zamanı: {new Date(booking.expiresAt).toLocaleTimeString('tr-TR')}</span>
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Status Sections */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -195,21 +291,70 @@ const BookingDetailModal = ({ booking, onClose }: { booking: Booking; onClose: (
                 {/* Dates & Notes */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Calendar className="w-5 h-5 text-primary-500" />
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Kiralama Süresi</h3>
-                        </div>
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 flex justify-between items-center text-center">
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Alış</label>
-                                <p className="text-white font-medium">{new Date(booking.pickupDate).toLocaleDateString('tr-TR')}</p>
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-5 h-5 text-primary-500" />
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Kiralama Süresi</h3>
                             </div>
-                            <div className="text-gray-600">➝</div>
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Teslim</label>
-                                <p className="text-white font-medium">{new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}</p>
-                            </div>
+                            {!isEditing && (
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="text-xs text-primary-400 hover:text-primary-300 font-bold transition-colors"
+                                >
+                                    DÜZENLE
+                                </button>
+                            )}
                         </div>
+
+                        {isEditing ? (
+                            <div className="bg-dark-bg p-4 rounded-xl border border-primary-500/30 space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs text-gray-500 block mb-1">Alış Tarihi</label>
+                                        <DatePicker
+                                            selected={editDates.pickup}
+                                            onChange={(date: Date | null) => date && setEditDates({ ...editDates, pickup: date })}
+                                            className="w-full bg-dark-surface border border-white/10 rounded px-2 py-1.5 text-sm text-white focus:border-primary-500 focus:outline-none"
+                                            dateFormat="dd/MM/yyyy"
+                                            locale="tr"
+                                            excludeDateIntervals={unavailableIntervals}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-gray-500 block mb-1">Teslim Tarihi</label>
+                                        <DatePicker
+                                            selected={editDates.dropoff}
+                                            onChange={(date: Date | null) => date && setEditDates({ ...editDates, dropoff: date })}
+                                            className="w-full bg-dark-surface border border-white/10 rounded px-2 py-1.5 text-sm text-white focus:border-primary-500 focus:outline-none"
+                                            dateFormat="dd/MM/yyyy"
+                                            minDate={editDates.pickup}
+                                            locale="tr"
+                                            excludeDateIntervals={unavailableIntervals}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end gap-2 pt-2">
+                                    <Button size="sm" variant="outline" onClick={() => setIsEditing(false)} className="h-8 text-xs border-white/10 text-gray-400">
+                                        İptal
+                                    </Button>
+                                    <Button size="sm" onClick={handleSaveDates} disabled={loading} className="h-8 text-xs bg-primary-500 text-white">
+                                        {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Kaydet'}
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-dark-bg p-4 rounded-xl border border-white/5 flex justify-between items-center text-center">
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Alış</label>
+                                    <p className="text-white font-medium">{new Date(booking.pickupDate).toLocaleDateString('tr-TR')}</p>
+                                </div>
+                                <div className="text-gray-600">➝</div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Teslim</label>
+                                    <p className="text-white font-medium">{new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {booking.notes && (
@@ -563,19 +708,26 @@ const BookingRow = ({
                 </span>
             </td>
             <td className="p-4">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${booking.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                    booking.status === 'CANCELLED' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                        booking.status === 'COMPLETED' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20' :
-                            'bg-primary-500/10 text-primary-400 border-primary-500/20'
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
+                    ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                    : booking.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                        : booking.status === 'CANCELLED' ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                            : booking.status === 'COMPLETED' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                : 'bg-primary-500/10 text-primary-400 border-primary-500/20'
                     }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${booking.status === 'ACTIVE' ? 'bg-green-500' :
-                        booking.status === 'CANCELLED' ? 'bg-red-500' :
-                            booking.status === 'COMPLETED' ? 'bg-gray-500' :
-                                'bg-primary-500'
+                    <span className={`w-1.5 h-1.5 rounded-full ${(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
+                        ? 'bg-orange-500'
+                        : booking.status === 'ACTIVE' ? 'bg-green-500'
+                            : booking.status === 'CANCELLED' ? 'bg-red-500'
+                                : booking.status === 'COMPLETED' ? 'bg-gray-500'
+                                    : 'bg-primary-500'
                         }`} />
-                    {booking.status === 'ACTIVE' ? 'Aktif' :
-                        booking.status === 'CANCELLED' ? 'İptal' :
-                            booking.status === 'COMPLETED' ? 'Tamamlandı' : 'Rezerve'}
+                    {(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
+                        ? 'Süre Doldu'
+                        : booking.status === 'ACTIVE' ? 'Aktif'
+                            : booking.status === 'CANCELLED' ? 'İptal'
+                                : booking.status === 'COMPLETED' ? 'Tamamlandı'
+                                    : 'Rezerve'}
                 </span>
             </td>
             <td className="p-4">
@@ -591,17 +743,35 @@ const BookingRow = ({
             <td className="p-4">
                 <div className="flex items-center gap-2">
                     {booking.status === 'RESERVED' && booking.paymentStatus === 'PAID' && (
-                        <Button
-                            size="sm"
-                            className="bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 hover:border-green-500/30 transition-all font-medium rounded-lg whitespace-nowrap"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onAction('start', booking.id);
-                            }}
-                        >
-                            <Key className="w-4 h-4 mr-1.5" />
-                            Teslim Et
-                        </Button>
+                        (() => {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const pickup = new Date(booking.pickupDate);
+                            pickup.setHours(0, 0, 0, 0);
+                            const isArrived = today >= pickup;
+
+                            if (isArrived) {
+                                return (
+                                    <Button
+                                        size="sm"
+                                        className="bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 hover:border-green-500/30 transition-all font-medium rounded-lg whitespace-nowrap"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onAction('start', booking.id);
+                                        }}
+                                    >
+                                        <Key className="w-4 h-4 mr-1.5" />
+                                        Teslim Et
+                                    </Button>
+                                );
+                            } else {
+                                return (
+                                    <span className="text-xs text-gray-500 italic px-2 py-1.5 border border-white/5 rounded-lg bg-white/5 select-none whitespace-nowrap">
+                                        Teslim Tarihi Bekleniyor
+                                    </span>
+                                );
+                            }
+                        })()
                     )}
                     {booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
                         <Button
@@ -1703,6 +1873,35 @@ export const AdminDashboard = () => {
                     )}
                 </div>
             </div>
+
+            {/* Booking Detail Modal */}
+            {selectedBooking && (
+                <BookingDetailModal
+                    booking={selectedBooking}
+                    onClose={() => setSelectedBooking(null)}
+                    onUpdate={() => {
+                        loadBookings(currentPage, searchTerm, statusFilter);
+                        // Also refresh selected booking to show new dates immediately if staying open?
+                        // But finding the updated booking in the list might be complex.
+                        // For now just reloading the list is good. The modal might still show old data if 'booking' prop isn't updated.
+                        // To fix that, we can close the modal or fetch the single booking.
+                        // Let's close the modal for simplicity on successful update? 
+                        // No, handleSaveDates sets isEditing(false). Modal stays open.
+                        // We should re-fetch the specific booking or update the local 'booking' object if possible.
+                        // Since 'bookings' array will be refreshed, if we find the booking in 'bookings' it might be updated?
+                        // Not automatically.
+                        // Let's just close the modal for now to avoid sync issues, OR fetch single booking.
+                        // Actually, loadBookings updates 'bookings' state.
+                        // If 'selectedBooking' is just a reference to an object in 'bookings' array, it won't update automatically because loadBookings creates NEW objects.
+                        // We need to sync selectedBooking.
+                        bookingService.getByCode(selectedBooking.bookingCode).then(res => {
+                            if (res && res.booking) {
+                                setSelectedBooking(res.booking);
+                            }
+                        });
+                    }}
+                />
+            )}
 
             {/* Franchise Detail Modal */}
             {selectedFranchise && (

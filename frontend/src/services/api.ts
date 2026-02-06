@@ -96,6 +96,10 @@ export const adminService = {
         const response = await api.get<PaginatedResponse<Booking>>('/admin/bookings', { params });
         return response.data;
     },
+    updateBookingDates: async (id: string, dates: { pickupDate: Date; dropoffDate: Date }) => {
+        const response = await api.patch(`/admin/bookings/${id}/dates`, dates);
+        return response.data;
+    },
     cancelBooking: async (id: string) => {
         const response = await api.patch(`/admin/bookings/${id}/cancel`);
         return response.data;

@@ -1,7 +1,7 @@
 import { Prisma, BookingStatus, PaymentStatus } from '@prisma/client';
 import prisma from '../../lib/prisma.js';
 import { ApiError } from '../../middlewares/errorHandler.js';
-import { CreateBookingInput, BookingQueryInput, AvailabilityQueryInput, ExtendBookingInput, CreateManualBookingInput } from './bookings.validators.js';
+import { CreateBookingInput, BookingQueryInput, AvailabilityQueryInput, ExtendBookingInput, CreateManualBookingInput, UpdateBookingDatesInput } from './bookings.validators.js';
 import { BookingWithRelations, AvailabilityResponse, DayAvailability, DateRange } from './bookings.types.js';
 import { PaginatedResponse } from '../cars/cars.types.js';
 import { notificationService } from '../../lib/notification.js';
@@ -101,7 +101,7 @@ export async function createBooking(
         }
 
         // Check for overlapping bookings
-        const hasOverlap = await tx.booking.findFirst({
+        const conflictingBookings = await tx.booking.findMany({
             where: {
                 carId: input.carId,
                 status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
@@ -112,7 +112,25 @@ export async function createBooking(
             },
         });
 
-        if (hasOverlap) {
+        const now = new Date();
+        const hasActiveOverlap = conflictingBookings.some(b => {
+            // Active bookings always block
+            if (b.status === BookingStatus.ACTIVE) return true;
+
+            // Paid bookings always block
+            if (b.paymentStatus === PaymentStatus.PAID) return true;
+
+            // Unpaid Reserved bookings block ONLY if NOT expired
+            if (b.status === BookingStatus.RESERVED && b.paymentStatus === PaymentStatus.UNPAID) {
+                if (b.expiresAt && b.expiresAt < now) {
+                    return false; // Expired, does not block
+                }
+            }
+
+            return true; // Default to blocking
+        });
+
+        if (hasActiveOverlap) {
             throw ApiError.conflict('Bu araç seçilen tarihlerde müsait değil');
         }
 
@@ -187,7 +205,7 @@ export async function createManualBooking(
         if (car.status !== 'ACTIVE') throw ApiError.badRequest('Araç kiralamaya uygun değil');
 
         // Check overlaps
-        const hasOverlap = await tx.booking.findFirst({
+        const conflictingBookings = await tx.booking.findMany({
             where: {
                 carId: input.carId,
                 status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
@@ -198,7 +216,17 @@ export async function createManualBooking(
             },
         });
 
-        if (hasOverlap) throw ApiError.conflict('Araç seçilen tarihlerde müsait değil');
+        const now = new Date();
+        const hasActiveOverlap = conflictingBookings.some(b => {
+            if (b.status === BookingStatus.ACTIVE) return true;
+            if (b.paymentStatus === PaymentStatus.PAID) return true;
+            if (b.status === BookingStatus.RESERVED && b.paymentStatus === PaymentStatus.UNPAID) {
+                if (b.expiresAt && b.expiresAt < now) return false;
+            }
+            return true;
+        });
+
+        if (hasActiveOverlap) throw ApiError.conflict('Araç seçilen tarihlerde müsait değil');
 
         let bookingCode = generateBookingCode();
         // Simple loop to ensure uniqueness
@@ -328,7 +356,7 @@ export async function extendBooking(
         }
 
         // Check for overlapping bookings in the extended period
-        const hasOverlap = await tx.booking.findFirst({
+        const conflictingBookings = await tx.booking.findMany({
             where: {
                 carId: booking.carId,
                 id: { not: booking.id },
@@ -340,7 +368,17 @@ export async function extendBooking(
             },
         });
 
-        if (hasOverlap) {
+        const now = new Date();
+        const hasActiveOverlap = conflictingBookings.some(b => {
+            if (b.status === BookingStatus.ACTIVE) return true;
+            if (b.paymentStatus === PaymentStatus.PAID) return true;
+            if (b.status === BookingStatus.RESERVED && b.paymentStatus === PaymentStatus.UNPAID) {
+                if (b.expiresAt && b.expiresAt < now) return false;
+            }
+            return true;
+        });
+
+        if (hasActiveOverlap) {
             throw ApiError.conflict('Araç uzatmak istediğiniz tarihlerde başka bir rezervasyona sahip');
         }
 
@@ -410,9 +448,7 @@ export async function payBooking(
         throw ApiError.badRequest('Bu rezervasyon zaten ödenmiş.');
     }
 
-    if (booking.status === BookingStatus.CANCELLED) {
-        throw ApiError.badRequest('İptal edilmiş rezervasyon için ödeme yapılamaz.');
-    }
+
 
     // Simulate payment processing
     const paymentRef = `PAY-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -658,6 +694,79 @@ export async function completeBooking(
     });
 
     return result as BookingWithRelations;
+}
+
+// ADMIN - Update booking dates
+export async function updateBookingDates(
+    bookingId: string,
+    input: UpdateBookingDatesInput
+): Promise<BookingWithRelations> {
+    const booking = await prisma.$transaction(async (tx) => {
+        const existingBooking = await tx.booking.findUnique({
+            where: { id: bookingId },
+            include: { car: true },
+        });
+
+        if (!existingBooking) {
+            throw ApiError.notFound('Rezervasyon bulunamadı');
+        }
+
+        const pickupDate = normalizeDate(input.pickupDate);
+        const dropoffDate = normalizeDate(input.dropoffDate);
+
+        // Check availability (excluding current booking)
+        const conflictingBookings = await tx.booking.findMany({
+            where: {
+                carId: existingBooking.carId,
+                id: { not: bookingId },
+                status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
+                AND: [
+                    { pickupDate: { lt: dropoffDate } },
+                    { dropoffDate: { gt: pickupDate } },
+                ],
+            },
+        });
+
+        const now = new Date();
+        const hasActiveOverlap = conflictingBookings.some(b => {
+            if (b.status === BookingStatus.ACTIVE) return true;
+            if (b.paymentStatus === PaymentStatus.PAID) return true;
+            if (b.status === BookingStatus.RESERVED && b.paymentStatus === PaymentStatus.UNPAID) {
+                if (b.expiresAt && b.expiresAt < now) return false;
+            }
+            return true;
+        });
+
+        if (hasActiveOverlap) {
+            throw ApiError.conflict('Araç seçilen yeni tarihlerde müsait değil');
+        }
+
+        // Calculate new price
+        // Note: Using current car daily price. This is a design choice.
+        const dailyPrice = Number(existingBooking.car.dailyPrice);
+        const totalPrice = calculateTotalPrice(dailyPrice, pickupDate, dropoffDate);
+
+        const updatedBooking = await tx.booking.update({
+            where: { id: bookingId },
+            data: {
+                pickupDate,
+                dropoffDate,
+                totalPrice,
+                notes: existingBooking.notes
+                    ? `${existingBooking.notes}\n[ADMIN UPDATE: Tarihler güncellendi]`
+                    : `[ADMIN UPDATE: Tarihler güncellendi]`,
+            },
+            include: {
+                car: { include: { branch: true } },
+                pickupBranch: true,
+                dropoffBranch: true,
+            },
+        });
+
+        return updatedBooking;
+    });
+
+    return booking as BookingWithRelations;
 }
 
 // ADMIN - Get all bookings with filters

@@ -63,6 +63,15 @@ export const payBookingSchema = z.object({
     cvv: z.string().min(3).max(4).optional(),
 });
 
+// Update booking dates
+export const updateBookingDatesSchema = z.object({
+    pickupDate: z.coerce.date(),
+    dropoffDate: z.coerce.date(),
+}).refine(
+    (data) => data.dropoffDate > data.pickupDate,
+    { message: 'Teslim tarihi alış tarihinden sonra olmalı', path: ['dropoffDate'] }
+);
+
 // Lookup by phone
 export const lookupBookingSchema = z.object({
     phone: z.string().min(10, 'Telefon numarası gerekli'),
@@ -111,3 +120,4 @@ export type AvailabilityQueryInput = z.infer<typeof availabilityQuerySchema>;
 export type ExtendBookingInput = z.infer<typeof extendBookingSchema>;
 export type PayBookingInput = z.infer<typeof payBookingSchema>;
 export type LookupBookingInput = z.infer<typeof lookupBookingSchema>;
+export type UpdateBookingDatesInput = z.infer<typeof updateBookingDatesSchema>;

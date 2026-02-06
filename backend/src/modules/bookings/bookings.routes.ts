@@ -12,6 +12,7 @@ import {
     extendBookingSchema,
     payBookingSchema,
     createManualBookingSchema,
+    updateBookingDatesSchema,
 } from './bookings.validators.js';
 
 const router = Router();
@@ -189,6 +190,15 @@ adminBookingsRouter.patch(
     adminGuard,
     validate(bookingIdParamSchema, 'params'),
     bookingsController.completeBooking
+);
+
+adminBookingsRouter.patch(
+    '/:id/dates',
+    authMiddleware,
+    adminGuard,
+    validate(bookingIdParamSchema, 'params'),
+    validate(updateBookingDatesSchema, 'body'),
+    bookingsController.updateBookingDates
 );
 
 adminBookingsRouter.patch(

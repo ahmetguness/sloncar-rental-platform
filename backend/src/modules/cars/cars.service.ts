@@ -1,6 +1,14 @@
 import { Prisma, BookingStatus } from '@prisma/client';
 import prisma from '../../lib/prisma.js';
 import { ApiError } from '../../middlewares/errorHandler.js';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 import { CreateCarInput, UpdateCarInput, CarQueryInput } from './cars.validators.js';
 import { CarWithBranch, PaginatedResponse } from './cars.types.js';
 
@@ -226,5 +234,35 @@ export async function deleteCar(id: string): Promise<void> {
     }
 
     // Only hard delete if NO history exists
+
+    // Delete images from Cloudinary
+    if (car.images && car.images.length > 0) {
+        for (const imageUrl of car.images) {
+            try {
+                // Extract public_id from URL
+                // Example: https://res.cloudinary.com/cloud_name/image/upload/v1234/folder/image.jpg
+                // We need 'folder/image' (without extension)
+                const parts = imageUrl.split('/');
+                const filenameWithExt = parts[parts.length - 1];
+                const folder = parts[parts.length - 2];
+
+                // If the folder is 'upload' or a version number (v1234), it might be in root. 
+                // But typically our uploads might be in a specific folder. 
+                // A safer regex approach:
+                const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/;
+                const match = imageUrl.match(regex);
+
+                if (match && match[1]) {
+                    const publicId = match[1];
+                    await cloudinary.uploader.destroy(publicId);
+                    console.log(`[Cloudinary] Deleted image: ${publicId}`);
+                }
+            } catch (error) {
+                console.error(`[Cloudinary] Failed to delete image ${imageUrl}:`, error);
+                // Continue deleting other images and the record even if one image fails
+            }
+        }
+    }
+
     await prisma.car.delete({ where: { id } });
 }

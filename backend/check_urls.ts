@@ -42,7 +42,7 @@ async function checkUrls() {
             } else {
                 console.log(`❌ ${url} - Status: ${res.status}`);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.log(`❌ ${url} - Error: ${err.message}`);
         }
     }

@@ -4,6 +4,9 @@ import prisma from '../../lib/prisma.js';
 export async function listBrands() {
     // 1. Get distinct brands from the Car table (ignoring status to match general visibility)
     const distinctCarBrands = await prisma.car.findMany({
+        where: {
+            status: { not: 'INACTIVE' }
+        },
         select: { brand: true },
         distinct: ['brand']
     });

@@ -22,7 +22,7 @@ async function main() {
         if (existing) {
             await prisma.carBrand.update({
                 where: { id: existing.id },
-                data: { logoUrl } // e.g. /brands/bmw.svg
+                data: { logoUrl: logoUrl as string } // e.g. /brands/bmw.svg
             });
             console.log(`Updated ${name} -> ${logoUrl}`);
         } else {

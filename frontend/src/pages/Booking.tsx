@@ -413,6 +413,7 @@ export const Booking = () => {
                                                     selectsStart
                                                     startDate={startDate}
                                                     endDate={endDate}
+                                                    minDate={new Date()}
                                                     dateFormat="dd/MM/yyyy"
                                                     locale="tr"
                                                     placeholderText="Seçiniz"

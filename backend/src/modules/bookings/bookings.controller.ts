@@ -5,6 +5,7 @@ import {
     BookingQueryInput,
     AvailabilityQueryInput,
     ExtendBookingInput,
+    UpdateBookingDatesInput,
 } from './bookings.validators.js';
 
 // PUBLIC - Create booking and get booking code
@@ -204,6 +205,27 @@ export async function createManualBooking(
         });
     } catch (error) {
         console.error('Manual Booking Error:', error);
+        next(error);
+    }
+}
+
+// ADMIN - Update booking dates
+export async function updateBookingDates(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const booking = await bookingsService.updateBookingDates(
+            req.params.id!,
+            req.body as UpdateBookingDatesInput
+        );
+        res.json({
+            success: true,
+            message: 'Rezervasyon tarihleri güncellendi.',
+            data: booking,
+        });
+    } catch (error) {
         next(error);
     }
 }
