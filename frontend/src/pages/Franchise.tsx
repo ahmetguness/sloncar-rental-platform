@@ -188,9 +188,9 @@ export const Franchise = () => {
                     {/* Top Decorative Line */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-500 via-neon-purple to-primary-500 opacity-50" />
 
-                    <div className="flex flex-col md:flex-row min-h-[600px]">
+                    <div className="flex flex-col md:flex-row min-h-[auto] md:min-h-[600px]">
                         {/* LEFT SIDE: Progress Tracker */}
-                        <div className="md:w-1/3 bg-black/20 border-r border-white/5 p-8 relative overflow-hidden">
+                        <div className="md:w-1/3 bg-black/20 border-b md:border-b-0 md:border-r border-white/5 p-6 md:p-8 relative overflow-hidden">
                             {/* Floating Elements */}
                             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-primary-500/5 to-transparent pointer-events-none" />
 
@@ -221,7 +221,7 @@ export const Franchise = () => {
                         </div>
 
                         {/* RIGHT SIDE: Form Content */}
-                        <div className="md:w-2/3 p-8 md:p-12 relative">
+                        <div className="md:w-2/3 p-6 md:p-12 relative min-h-[500px]">
                             {/* Step 1: Contact Info */}
                             {step === 1 && (
                                 <div className="space-y-8 animate-fade-in absolute inset-0 p-8 md:p-12 overflow-y-auto custom-scrollbar">
@@ -372,7 +372,7 @@ export const Franchise = () => {
                             )}
 
                             {/* Sticky Bottom Actions */}
-                            <div className="absolute bottom-0 left-0 right-0 p-8 bg-dark-surface/95 backdrop-blur-md border-t border-white/5 flex justify-between items-center z-20 rounded-br-[2rem] md:rounded-bl-none rounded-bl-[2rem]">
+                            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 bg-dark-surface/95 backdrop-blur-md border-t border-white/5 flex justify-between items-center z-20 rounded-br-[2rem] rounded-bl-[2rem] md:rounded-bl-none">
                                 <button
                                     onClick={() => setStep(s => s - 1)}
                                     disabled={step === 1}

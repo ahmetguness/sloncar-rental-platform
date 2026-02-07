@@ -24,7 +24,7 @@ export const Layout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg flex flex-col font-sans">
+        <div className="min-h-screen bg-dark-bg flex flex-col font-sans overflow-x-hidden">
             {/* Header */}
             <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || isMenuOpen ? 'bg-white/80 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
                 }`}>
@@ -52,7 +52,7 @@ export const Layout = () => {
                             </>
                         ) : (
                             <div className="flex items-center gap-4">
-                                <span className="text-xs font-bold text-primary-800 bg-primary-100 px-3 py-1.5 rounded-full tracking-wide">ADMIN PANEL</span>
+                                <span className="text-xs font-bold text-primary-800 bg-primary-100 px-3 py-1.5 rounded-full tracking-wide">Yönetici Paneli</span>
                                 <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 transition-colors">
                                     <LogOut className="w-5 h-5" />
                                 </button>
@@ -72,7 +72,7 @@ export const Layout = () => {
 
                 {/* Mobile Menu */}
                 {isMenuOpen && (
-                    <div className="md:hidden bg-dark-surface/95 backdrop-blur-xl border-t border-white/10 px-6 py-4 flex flex-col gap-4 shadow-2xl absolute w-full left-0">
+                    <div className="md:hidden fixed top-[60px] left-0 w-full h-[calc(100vh-60px)] bg-dark-bg/95 backdrop-blur-xl border-t border-white/10 px-6 py-8 flex flex-col gap-6 shadow-2xl z-40 overflow-y-auto">
                         {!isAdmin ? (
                             <>
                                 <Link to="/#fleet" className="block py-3 text-lg font-medium text-gray-200 border-b border-white/5 hover:text-primary-400" onClick={() => setIsMenuOpen(false)}>Araç Filosu</Link>

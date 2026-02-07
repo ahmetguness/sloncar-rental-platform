@@ -27,6 +27,7 @@ export const Home = () => {
         pickupDate: '',
         dropoffDate: '',
     });
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -230,7 +231,7 @@ export const Home = () => {
                             Premium Kiralama Deneyimi
                         </span>
                     </div>
-                    <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter leading-none animate-fade-in-up delay-100 drop-shadow-2xl">
+                    <h1 className="text-4xl md:text-6xl lg:text-8xl font-black text-white tracking-tighter leading-none animate-fade-in-up delay-100 drop-shadow-2xl">
                         YOLCULUĞUN <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-neon-purple text-glow">GELECEĞİNİ</span> SÜR
                     </h1>
@@ -393,6 +394,161 @@ export const Home = () => {
                 </div>
             </div>
 
+            {/* Mobile Search Trigger Button */}
+            <div className="md:hidden relative z-20 px-4 -mt-10">
+                <Button
+                    onClick={() => setIsMobileSearchOpen(true)}
+                    className="w-full h-16 bg-dark-surface-lighter/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-between px-6"
+                >
+                    <div className="flex flex-col items-start">
+                        <span className="text-xs font-bold text-primary-400 uppercase tracking-wider">Müsait Araçları Ara</span>
+                        <span className="text-white font-medium text-sm truncate">
+                            {filters.pickupDate || filters.dropoffDate ?
+                                `${filters.pickupDate ? filters.pickupDate : 'Tarih'} - ${filters.dropoffDate ? filters.dropoffDate : 'Seçiniz'}`
+                                : 'Tarih ve Araç Seçimi Yapınız'}
+                        </span>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center shadow-lg shadow-primary-500/30">
+                        <Search className="w-5 h-5 text-white" />
+                    </div>
+                </Button>
+            </div>
+
+            {/* Mobile Search Modal */}
+            {isMobileSearchOpen && (
+                <div className="fixed inset-0 z-50 bg-dark-bg/95 backdrop-blur-sm flex flex-col md:hidden">
+                    <div className="flex items-center justify-between p-6 border-b border-white/10">
+                        <h2 className="text-xl font-bold text-white">Filtrele & Ara</h2>
+                        <button
+                            onClick={() => setIsMobileSearchOpen(false)}
+                            className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white"
+                        >
+                            <Minus className="w-6 h-6 rotate-45" />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        {/* Dates */}
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wide">Alış Tarihi</label>
+                                <DatePicker
+                                    selected={parseDateString(filters.pickupDate)}
+                                    onChange={(date: Date | null) => {
+                                        const val = date ? formatDateForAPI(date) : '';
+                                        setFilters(prev => ({ ...prev, pickupDate: val }));
+                                    }}
+                                    dateFormat="dd/MM/yyyy"
+                                    locale="tr"
+                                    placeholderText="Seçiniz"
+                                    className="w-full px-4 py-4 bg-dark-surface border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-white font-medium text-lg"
+                                    minDate={new Date()}
+                                    withPortal
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wide">Teslim Tarihi</label>
+                                <DatePicker
+                                    selected={parseDateString(filters.dropoffDate)}
+                                    onChange={(date: Date | null) => {
+                                        const val = date ? formatDateForAPI(date) : '';
+                                        setFilters(prev => ({ ...prev, dropoffDate: val }));
+                                    }}
+                                    dateFormat="dd/MM/yyyy"
+                                    locale="tr"
+                                    placeholderText="Seçiniz"
+                                    className="w-full px-4 py-4 bg-dark-surface border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-white font-medium text-lg"
+                                    minDate={parseDateString(filters.pickupDate) || new Date()}
+                                    withPortal
+                                />
+                            </div>
+                        </div>
+
+                        {/* Filters */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                            <Input
+                                label="Marka / Model"
+                                name="brand"
+                                placeholder="Örn: BMW"
+                                value={filters.brand}
+                                onChange={handleFilterChange}
+                                className="bg-dark-surface border-white/10 text-white h-12"
+                            />
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wide">Kategori</label>
+                                <select
+                                    name="category"
+                                    className="w-full px-4 py-3 bg-dark-surface border border-white/10 rounded-xl text-white appearance-none h-12"
+                                    value={filters.category}
+                                    onChange={handleFilterChange}
+                                >
+                                    <option value="" className="bg-dark-bg">Tüm Kategoriler</option>
+                                    <option value="ECONOMY" className="bg-dark-bg">{translateCategory('ECONOMY')}</option>
+                                    <option value="COMPACT" className="bg-dark-bg">{translateCategory('COMPACT')}</option>
+                                    <option value="MIDSIZE" className="bg-dark-bg">{translateCategory('MIDSIZE')}</option>
+                                    <option value="FULLSIZE" className="bg-dark-bg">{translateCategory('FULLSIZE')}</option>
+                                    <option value="SUV" className="bg-dark-bg">{translateCategory('SUV')}</option>
+                                    <option value="VAN" className="bg-dark-bg">{translateCategory('VAN')}</option>
+                                    <option value="LUXURY" className="bg-dark-bg">{translateCategory('LUXURY')}</option>
+                                </select>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <Input
+                                    label="Min (₺)"
+                                    name="minPrice"
+                                    type="number"
+                                    placeholder="0"
+                                    value={filters.minPrice}
+                                    onChange={handleFilterChange}
+                                    className="bg-dark-surface border-white/10 text-white"
+                                />
+                                <Input
+                                    label="Max (₺)"
+                                    name="maxPrice"
+                                    type="number"
+                                    placeholder="Max"
+                                    value={filters.maxPrice}
+                                    onChange={handleFilterChange}
+                                    className="bg-dark-surface border-white/10 text-white"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-6 border-t border-white/10 bg-dark-surface">
+                        <Button
+                            onClick={() => {
+                                fetchCars(1, false);
+                                setIsMobileSearchOpen(false);
+                            }}
+                            className="w-full h-14 text-lg font-bold bg-primary-600 text-white hover:bg-primary-500 shadow-lg shadow-primary-500/30 rounded-xl flex items-center justify-center gap-2"
+                        >
+                            <Search className="w-5 h-5" /> SONUÇLARI GÖSTER
+                        </Button>
+                        {Object.values(filters).some(x => x !== '') && (
+                            <button
+                                onClick={() => {
+                                    setFilters({ brand: '', category: '', minPrice: '', maxPrice: '', pickupDate: '', dropoffDate: '' });
+                                    setTimeout(() => {
+                                        carService.getAll({ limit: 12, page: 1 }).then(res => {
+                                            setCars(res.data);
+                                            setPagination(res.pagination);
+                                            setPage(1);
+                                        });
+                                    }, 0);
+                                    setIsMobileSearchOpen(false);
+                                }}
+                                className="w-full mt-3 py-3 text-sm font-medium text-gray-400 hover:text-white"
+                            >
+                                Filtreleri Temizle
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* Brand Carousel Section */}
             <div className="container mx-auto px-6 mt-16 mb-0 relative group/carousel">
                 <div
@@ -405,7 +561,7 @@ export const Home = () => {
                     {/* Prev Button - Absolute & Glassmorphism */}
                     <button
                         onClick={scrollLeft}
-                        className="absolute left-0 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/40 hover:border-primary-500/50 transition-all opacity-0 group-hover/carousel:opacity-100 -translate-x-4 md:-translate-x-6"
+                        className="hidden md:block absolute left-0 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/40 hover:border-primary-500/50 transition-all opacity-0 group-hover/carousel:opacity-100 -translate-x-6"
                     >
                         <ChevronLeft className="w-6 h-6" />
                     </button>
@@ -453,7 +609,7 @@ export const Home = () => {
                     {/* Next Button - Absolute & Glassmorphism */}
                     <button
                         onClick={scrollRight}
-                        className="absolute right-0 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/40 hover:border-primary-500/50 transition-all opacity-0 group-hover/carousel:opacity-100 translate-x-4 md:translate-x-6"
+                        className="hidden md:block absolute right-0 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/40 hover:border-primary-500/50 transition-all opacity-0 group-hover/carousel:opacity-100 translate-x-6"
                     >
                         <ChevronRight className="w-6 h-6" />
                     </button>

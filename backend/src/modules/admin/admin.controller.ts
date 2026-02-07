@@ -34,3 +34,35 @@ export async function getRevenueAnalytics(
     }
 }
 
+export async function markNotificationRead(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const { id, type } = req.body;
+        if (!id || !type) {
+            res.status(400).json({ success: false, message: 'ID and type required' });
+            return;
+        }
+        await adminService.markNotificationRead(id, type);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error marking notification read:', error);
+        next(error);
+    }
+}
+
+export async function markAllNotificationsRead(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        await adminService.markAllNotificationsRead();
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error marking all notifications read:', error);
+        next(error);
+    }
+}

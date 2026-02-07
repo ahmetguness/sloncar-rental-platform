@@ -460,6 +460,7 @@ export async function payBooking(
             paymentProvider: 'SIMULATED_BANK',
             paymentRef: paymentRef,
             paidAt: new Date(),
+            adminRead: false, // Reset read status so it shows up as a new notification
         },
         include: {
             car: { include: { branch: true } },

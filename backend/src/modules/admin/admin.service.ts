@@ -16,6 +16,38 @@ export interface DashboardStats {
     latestPaidBookings: any[];
 }
 
+export async function markNotificationRead(id: string, type: 'booking' | 'franchise'): Promise<void> {
+    if (type === 'booking') {
+        // ID might have suffix like _paid, remove it if present, though usually we pass raw ID
+        // The frontend passes exact ID. For paid bookings, we might have a suffix in frontend state but we should pass distinct ID?
+        // Actually, for paid bookings, the notification ID in frontend is "id_paid".
+        // We should handle that.
+        const cleanId = id.replace('_paid', '');
+        await prisma.booking.update({
+            where: { id: cleanId },
+            data: { adminRead: true }
+        });
+    } else if (type === 'franchise') {
+        await prisma.franchiseApplication.update({
+            where: { id },
+            data: { adminRead: true }
+        });
+    }
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+    await Promise.all([
+        prisma.booking.updateMany({
+            where: { adminRead: false },
+            data: { adminRead: true }
+        }),
+        prisma.franchiseApplication.updateMany({
+            where: { adminRead: false },
+            data: { adminRead: true }
+        })
+    ]);
+}
+
 export interface RevenueAnalytics {
     weekly: { week: string; revenue: number; bookings: number }[];
     monthly: { month: string; revenue: number; bookings: number }[];

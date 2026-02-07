@@ -203,6 +203,9 @@ model Booking {
   // Booking status
   status BookingStatus @default(RESERVED)
   
+  // Admin notification status
+  adminRead Boolean @default(false)
+  
   // Payment fields (for future payment integration)
   paymentStatus   PaymentStatus @default(UNPAID)
   paymentProvider String?
@@ -226,6 +229,9 @@ model Booking {
 model FranchiseApplication {
   id     String                     @id @default(uuid())
   status FranchiseApplicationStatus @default(DRAFT)
+  
+  // Admin notification status
+  adminRead Boolean @default(false)
   
   // Applicant relation (optional for public applications)
   user   User?   @relation(fields: [userId], references: [id])

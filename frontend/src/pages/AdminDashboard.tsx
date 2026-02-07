@@ -831,10 +831,6 @@ export const AdminDashboard = () => {
     const [bookingAction, setBookingAction] = useState<'cancel' | 'start' | null>(null);
     const [showNotifications, setShowNotifications] = useState(false);
     const [highlightedBookingId, setHighlightedBookingId] = useState<string | null>(null);
-    const [readNotificationIds, setReadNotificationIds] = useState<string[]>(() => {
-        const saved = localStorage.getItem('readNotificationIds');
-        return saved ? JSON.parse(saved) : [];
-    });
 
     // Franchise States
     const [franchisePage, setFranchisePage] = useState(1);
@@ -1083,18 +1079,14 @@ export const AdminDashboard = () => {
                                 className="relative p-3 rounded-xl bg-dark-bg border border-white/10 hover:border-primary-500/50 hover:text-white text-gray-400 transition-all shadow-lg"
                             >
                                 {(() => {
-                                    // Calculate merged notification count based on lastReadTime
-                                    const lastRead = localStorage.getItem('lastNotificationReadTime');
-                                    const lastReadTime = lastRead ? new Date(lastRead).getTime() : 0;
-
                                     const newBookings = stats?.latestNewBookings || [];
                                     const pendingFranchise = stats?.latestPendingFranchiseApplications || [];
                                     const paidBookings = stats?.latestPaidBookings || [];
 
                                     const unreadCount = [
-                                        ...newBookings.filter(b => new Date(b.createdAt).getTime() > lastReadTime && !readNotificationIds.includes(b.id)),
-                                        ...pendingFranchise.filter(f => new Date(f.submittedAt).getTime() > lastReadTime && !readNotificationIds.includes(f.id)),
-                                        ...paidBookings.filter(b => new Date(b.paidAt).getTime() > lastReadTime && !readNotificationIds.includes(b.id + '_paid'))
+                                        ...newBookings.filter(b => !b.adminRead),
+                                        ...pendingFranchise.filter(f => !f.adminRead),
+                                        ...paidBookings.filter(b => !b.adminRead)
                                     ].length;
 
                                     return unreadCount > 0 && (
@@ -1116,24 +1108,30 @@ export const AdminDashboard = () => {
                                         <h3 className="font-bold text-white">Bildirimler</h3>
                                         <div className="flex items-center gap-2">
                                             <button
-                                                onClick={() => {
-                                                    localStorage.setItem('lastNotificationReadTime', new Date().toISOString());
-                                                    localStorage.removeItem('readNotificationIds');
-                                                    setReadNotificationIds([]);
-                                                    setShowNotifications(false);
+                                                onClick={async () => {
+                                                    try {
+                                                        setShowNotifications(false); // Close immediately for better UX
+                                                        await adminService.markAllNotificationsRead();
+                                                        refreshStats();
+                                                    } catch (err) {
+                                                        console.error("Failed to mark all read", err);
+                                                    }
                                                 }}
-                                                className="text-xs font-bold text-primary-400 hover:text-primary-300 transition-colors"
+                                                className="text-xs font-bold text-primary-400 hover:text-primary-300 transition-colors mr-2"
                                             >
                                                 Tümünü Temizle
+                                            </button>
+                                            <button
+                                                onClick={() => setShowNotifications(false)}
+                                                className="text-xs font-bold text-gray-400 hover:text-gray-300 transition-colors"
+                                            >
+                                                Kapat
                                             </button>
                                             <button onClick={() => setShowNotifications(false)} className="text-gray-500 hover:text-white bg-transparent"><X size={16} /></button>
                                         </div>
                                     </div>
                                     <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                                         {(() => {
-                                            const lastRead = localStorage.getItem('lastNotificationReadTime');
-                                            const lastReadTime = lastRead ? new Date(lastRead).getTime() : 0;
-
                                             const newBookings = (stats?.latestNewBookings || []).map(b => ({
                                                 id: b.id,
                                                 type: 'booking',
@@ -1142,11 +1140,12 @@ export const AdminDashboard = () => {
                                                 code: b.bookingCode || b.id,
                                                 date: b.createdAt,
                                                 icon: <CarIcon size={16} />,
-                                                color: 'primary'
+                                                color: 'primary',
+                                                read: b.adminRead
                                             }));
 
                                             const paidBookings = (stats?.latestPaidBookings || []).map(b => ({
-                                                id: b.id + '_paid', // Unique ID for notification
+                                                id: b.id + '_paid',
                                                 originalId: b.id,
                                                 type: 'booking',
                                                 title: 'Ödeme Alındı',
@@ -1154,7 +1153,8 @@ export const AdminDashboard = () => {
                                                 code: b.bookingCode || b.id,
                                                 date: b.paidAt,
                                                 icon: <Check size={16} />,
-                                                color: 'green'
+                                                color: 'green',
+                                                read: b.adminRead
                                             }));
 
                                             const pendingFranchise = (stats?.latestPendingFranchiseApplications || []).map(f => ({
@@ -1164,69 +1164,67 @@ export const AdminDashboard = () => {
                                                 desc: f.companyName || f.contactName,
                                                 date: f.submittedAt,
                                                 icon: <Building2 size={16} />,
-                                                color: 'yellow' // Changed to yellow for distinction
+                                                color: 'yellow',
+                                                read: f.adminRead
                                             }));
 
                                             const allNotifications = [...newBookings, ...paidBookings, ...pendingFranchise]
+                                                .filter(item => !item.read)
                                                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-                                            const unreadNotifications = allNotifications.filter(n =>
-                                                new Date(n.date).getTime() > lastReadTime && !readNotificationIds.includes(n.id)
-                                            );
-
-                                            if (unreadNotifications.length === 0) {
+                                            if (allNotifications.length === 0) {
                                                 return (
                                                     <div className="p-8 text-center text-gray-500 text-sm">
                                                         <Check className="w-8 h-8 mx-auto mb-2 text-green-500/20" />
-                                                        Yeni bildiriminiz yok.
+                                                        Bildirim yok.
                                                     </div>
                                                 );
                                             }
 
-                                            return unreadNotifications.map((item, idx) => (
+                                            return allNotifications.map((item, idx) => (
                                                 <div
                                                     key={idx}
                                                     onClick={() => {
-                                                        const newReadIds = [...readNotificationIds, item.id];
-                                                        setReadNotificationIds(newReadIds);
-                                                        localStorage.setItem('readNotificationIds', JSON.stringify(newReadIds));
+                                                        // 1. Immediate UI Feedback (Navigation)
                                                         setShowNotifications(false);
+
                                                         if (item.type === 'booking') {
-                                                            // Clear search to show all, but highlight specific item
-                                                            setSearchTerm('');
-                                                            // Use originalId if present (for paid notifications), otherwise id
                                                             const bookingId = (item as any).originalId || item.id;
+                                                            setSearchTerm('');
                                                             setHighlightedBookingId(bookingId);
                                                             loadBookings(1, '', statusFilter);
-
-                                                            // Clear highlight after 5 seconds
                                                             setTimeout(() => setHighlightedBookingId(null), 5000);
-
                                                             const element = document.getElementById('bookings-section');
-                                                            if (element) {
-                                                                element.scrollIntoView({ behavior: 'smooth' });
-                                                            }
+                                                            if (element) element.scrollIntoView({ behavior: 'smooth' });
                                                         } else if (item.type === 'franchise') {
                                                             setFranchiseSearchTerm('');
                                                             setHighlightedFranchiseId(item.id);
                                                             loadFranchiseApplications(1, '');
-
                                                             setTimeout(() => setHighlightedFranchiseId(null), 5000);
-
                                                             const element = document.getElementById('franchise-section');
-                                                            if (element) {
-                                                                element.scrollIntoView({ behavior: 'smooth' });
-                                                            }
+                                                            if (element) element.scrollIntoView({ behavior: 'smooth' });
+                                                        }
+
+                                                        // 2. Background API Call
+                                                        if (!item.read) {
+                                                            const idToMark = (item as any).originalId || item.id;
+                                                            // Fire and forget, don't await
+                                                            adminService.markNotificationRead(idToMark, item.type as any)
+                                                                .then(() => refreshStats())
+                                                                .catch(err => console.error("Failed to mark read", err));
                                                         }
                                                     }}
-                                                    className={`p-4 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors cursor-pointer flex gap-4 items-start ${item.color === 'green' ? 'border-l-2 border-l-green-500 bg-green-500/5' : 'border-l-2 border-l-primary-500 bg-primary-500/5'
-                                                        }`}>
-                                                    <div className={`mt-1 p-2 rounded-lg ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : 'bg-primary-500/20 text-primary-400'
-                                                        }`}>
+                                                    className={`p-4 border-b border-white/5 last:border-0 transition-colors cursor-pointer flex gap-4 items-start ${!item.read ? 'bg-white/5 hover:bg-white/10' : 'hover:bg-white/5 opacity-60'
+                                                        } ${item.color === 'green' ? 'border-l-2 border-l-green-500' : 'border-l-2 border-l-primary-500'}`}
+                                                >
+                                                    <div className={`mt-1 p-2 rounded-lg ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : 'bg-primary-500/20 text-primary-400'}`}>
                                                         {item.icon}
                                                     </div>
-                                                    <div>
-                                                        <div className="text-sm font-bold text-white">{item.title}</div>
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between items-start">
+                                                            <div className={`text-sm font-bold ${!item.read ? 'text-white' : 'text-gray-400'}`}>{item.title}</div>
+                                                            {!item.read && <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5" />}
+                                                        </div>
                                                         <div className="text-xs text-gray-300 mt-0.5">{item.desc}</div>
                                                         <div className="text-[10px] text-gray-500 mt-2 font-medium">
                                                             {new Date(item.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
@@ -1884,108 +1882,112 @@ export const AdminDashboard = () => {
             </div>
 
             {/* Booking Detail Modal */}
-            {selectedBooking && (
-                <BookingDetailModal
-                    booking={selectedBooking}
-                    onClose={() => setSelectedBooking(null)}
-                    onUpdate={() => {
-                        loadBookings(currentPage, searchTerm, statusFilter);
-                        // Also refresh selected booking to show new dates immediately if staying open?
-                        // But finding the updated booking in the list might be complex.
-                        // For now just reloading the list is good. The modal might still show old data if 'booking' prop isn't updated.
-                        // To fix that, we can close the modal or fetch the single booking.
-                        // Let's close the modal for simplicity on successful update? 
-                        // No, handleSaveDates sets isEditing(false). Modal stays open.
-                        // We should re-fetch the specific booking or update the local 'booking' object if possible.
-                        // Since 'bookings' array will be refreshed, if we find the booking in 'bookings' it might be updated?
-                        // Not automatically.
-                        // Let's just close the modal for now to avoid sync issues, OR fetch single booking.
-                        // Actually, loadBookings updates 'bookings' state.
-                        // If 'selectedBooking' is just a reference to an object in 'bookings' array, it won't update automatically because loadBookings creates NEW objects.
-                        // We need to sync selectedBooking.
-                        bookingService.getByCode(selectedBooking.bookingCode).then(res => {
-                            if (res && res.booking) {
-                                setSelectedBooking(res.booking);
-                            }
-                        });
-                    }}
-                />
-            )}
+            {
+                selectedBooking && (
+                    <BookingDetailModal
+                        booking={selectedBooking}
+                        onClose={() => setSelectedBooking(null)}
+                        onUpdate={() => {
+                            loadBookings(currentPage, searchTerm, statusFilter);
+                            // Also refresh selected booking to show new dates immediately if staying open?
+                            // But finding the updated booking in the list might be complex.
+                            // For now just reloading the list is good. The modal might still show old data if 'booking' prop isn't updated.
+                            // To fix that, we can close the modal or fetch the single booking.
+                            // Let's close the modal for simplicity on successful update? 
+                            // No, handleSaveDates sets isEditing(false). Modal stays open.
+                            // We should re-fetch the specific booking or update the local 'booking' object if possible.
+                            // Since 'bookings' array will be refreshed, if we find the booking in 'bookings' it might be updated?
+                            // Not automatically.
+                            // Let's just close the modal for now to avoid sync issues, OR fetch single booking.
+                            // Actually, loadBookings updates 'bookings' state.
+                            // If 'selectedBooking' is just a reference to an object in 'bookings' array, it won't update automatically because loadBookings creates NEW objects.
+                            // We need to sync selectedBooking.
+                            bookingService.getByCode(selectedBooking.bookingCode).then(res => {
+                                if (res && res.booking) {
+                                    setSelectedBooking(res.booking);
+                                }
+                            });
+                        }}
+                    />
+                )
+            }
 
             {/* Franchise Detail Modal */}
-            {selectedFranchise && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedFranchise(null)}>
-                    <div className="bg-dark-surface rounded-2xl border border-white/10 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-                        <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-dark-surface z-10">
-                            <div>
-                                <h3 className="text-xl font-bold text-white">Franchise Başvuru Detayları</h3>
-                                <p className="text-sm text-gray-400 mt-1">{selectedFranchise.details?.applicationNumber || selectedFranchise.id}</p>
-                            </div>
-                            <button onClick={() => setSelectedFranchise(null)} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-6">
-                            {/* Contact Info */}
-                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">İletişim Bilgileri</h4>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><span className="text-gray-500">Ad Soyad:</span> <span className="text-white ml-2">{selectedFranchise.contactName}</span></div>
-                                    <div><span className="text-gray-500">E-posta:</span> <span className="text-white ml-2">{selectedFranchise.contactEmail}</span></div>
-                                    <div><span className="text-gray-500">Telefon:</span> <span className="text-white ml-2">{selectedFranchise.contactPhone}</span></div>
-                                    {selectedFranchise.companyName && <div><span className="text-gray-500">Şirket:</span> <span className="text-white ml-2">{selectedFranchise.companyName}</span></div>}
+            {
+                selectedFranchise && (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedFranchise(null)}>
+                        <div className="bg-dark-surface rounded-2xl border border-white/10 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+                            <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-dark-surface z-10">
+                                <div>
+                                    <h3 className="text-xl font-bold text-white">Franchise Başvuru Detayları</h3>
+                                    <p className="text-sm text-gray-400 mt-1">{selectedFranchise.details?.applicationNumber || selectedFranchise.id}</p>
                                 </div>
+                                <button onClick={() => setSelectedFranchise(null)} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10">
+                                    <X className="w-5 h-5" />
+                                </button>
                             </div>
-
-                            {/* Location & Investment */}
-                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Lokasyon & Yatırım</h4>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><span className="text-gray-500">Şehir:</span> <span className="text-white ml-2">{selectedFranchise.city || '-'}</span></div>
-                                    <div><span className="text-gray-500">Bütçe:</span> <span className="text-white ml-2">{selectedFranchise.details?.investmentBudget || '-'}</span></div>
-                                </div>
-                            </div>
-
-                            {/* Experience & Message */}
-                            {(selectedFranchise.details?.experience || selectedFranchise.details?.message) && (
+                            <div className="p-6 space-y-6">
+                                {/* Contact Info */}
                                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Deneyim & Mesaj</h4>
-                                    {selectedFranchise.details?.experience && (
-                                        <div className="mb-4">
-                                            <span className="text-gray-500 text-sm block mb-1">Deneyim:</span>
-                                            <p className="text-gray-300 text-sm">{selectedFranchise.details.experience}</p>
-                                        </div>
-                                    )}
-                                    {selectedFranchise.details?.message && (
-                                        <div>
-                                            <span className="text-gray-500 text-sm block mb-1">Mesaj:</span>
-                                            <p className="text-gray-300 text-sm">{selectedFranchise.details.message}</p>
-                                        </div>
-                                    )}
+                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">İletişim Bilgileri</h4>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div><span className="text-gray-500">Ad Soyad:</span> <span className="text-white ml-2">{selectedFranchise.contactName}</span></div>
+                                        <div><span className="text-gray-500">E-posta:</span> <span className="text-white ml-2">{selectedFranchise.contactEmail}</span></div>
+                                        <div><span className="text-gray-500">Telefon:</span> <span className="text-white ml-2">{selectedFranchise.contactPhone}</span></div>
+                                        {selectedFranchise.companyName && <div><span className="text-gray-500">Şirket:</span> <span className="text-white ml-2">{selectedFranchise.companyName}</span></div>}
+                                    </div>
                                 </div>
-                            )}
 
-                            {/* Status */}
-                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Durum</h4>
-                                <div className="flex items-center justify-between">
-                                    <span className={`px-4 py-2 rounded-full text-sm font-bold ${selectedFranchise.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
-                                        selectedFranchise.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
-                                            selectedFranchise.status === 'IN_REVIEW' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                selectedFranchise.status === 'SUBMITTED' ? 'bg-blue-500/20 text-blue-400' :
-                                                    'bg-gray-500/20 text-gray-400'
-                                        }`}>
-                                        {FRANCHISE_STATUS_LABELS[selectedFranchise.status]?.label || selectedFranchise.status}
-                                    </span>
-                                    <span className="text-sm text-gray-400">
-                                        {new Date(selectedFranchise.submittedAt || selectedFranchise.createdAt).toLocaleString('tr-TR')}
-                                    </span>
+                                {/* Location & Investment */}
+                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Lokasyon & Yatırım</h4>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div><span className="text-gray-500">Şehir:</span> <span className="text-white ml-2">{selectedFranchise.city || '-'}</span></div>
+                                        <div><span className="text-gray-500">Bütçe:</span> <span className="text-white ml-2">{selectedFranchise.details?.investmentBudget || '-'}</span></div>
+                                    </div>
+                                </div>
+
+                                {/* Experience & Message */}
+                                {(selectedFranchise.details?.experience || selectedFranchise.details?.message) && (
+                                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                        <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Deneyim & Mesaj</h4>
+                                        {selectedFranchise.details?.experience && (
+                                            <div className="mb-4">
+                                                <span className="text-gray-500 text-sm block mb-1">Deneyim:</span>
+                                                <p className="text-gray-300 text-sm">{selectedFranchise.details.experience}</p>
+                                            </div>
+                                        )}
+                                        {selectedFranchise.details?.message && (
+                                            <div>
+                                                <span className="text-gray-500 text-sm block mb-1">Mesaj:</span>
+                                                <p className="text-gray-300 text-sm">{selectedFranchise.details.message}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Status */}
+                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Durum</h4>
+                                    <div className="flex items-center justify-between">
+                                        <span className={`px-4 py-2 rounded-full text-sm font-bold ${selectedFranchise.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
+                                            selectedFranchise.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
+                                                selectedFranchise.status === 'IN_REVIEW' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                    selectedFranchise.status === 'SUBMITTED' ? 'bg-blue-500/20 text-blue-400' :
+                                                        'bg-gray-500/20 text-gray-400'
+                                            }`}>
+                                            {FRANCHISE_STATUS_LABELS[selectedFranchise.status]?.label || selectedFranchise.status}
+                                        </span>
+                                        <span className="text-sm text-gray-400">
+                                            {new Date(selectedFranchise.submittedAt || selectedFranchise.createdAt).toLocaleString('tr-TR')}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };

@@ -48,5 +48,54 @@ router.get(
     adminController.getRevenueAnalytics
 );
 
+/**
+ * @openapi
+ * /api/admin/notifications/mark-read:
+ *   post:
+ *     tags: [Admin - Notifications]
+ *     summary: Bildirimi okundu olarak işaretle
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: İşlem başarılı
+ */
+router.post(
+    '/notifications/mark-read',
+    authMiddleware,
+    adminGuard,
+    adminController.markNotificationRead
+);
+
+/**
+ * @openapi
+ * /api/admin/notifications/mark-all-read:
+ *   post:
+ *     tags: [Admin - Notifications]
+ *     summary: Tüm bildirimleri okundu olarak işaretle
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: İşlem başarılı
+ */
+router.post(
+    '/notifications/mark-all-read',
+    authMiddleware,
+    adminGuard,
+    adminController.markAllNotificationsRead
+);
+
 export default router;
 

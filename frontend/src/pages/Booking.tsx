@@ -382,7 +382,7 @@ export const Booking = () => {
 
             {/* Form Section */}
             <div className="lg:col-span-2">
-                <div className="bg-dark-surface rounded-[2rem] border border-white/5 p-8 md:p-10 relative shadow-2xl">
+                <div className="bg-dark-surface rounded-[2rem] border border-white/5 px-5 py-8 md:p-10 relative shadow-2xl">
                     <div className="absolute inset-0 rounded-[2rem] overflow-hidden pointer-events-none">
                         <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/5 rounded-full blur-[128px]" />
                     </div>

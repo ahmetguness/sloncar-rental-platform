@@ -139,17 +139,17 @@ export const MyBooking = () => {
 
                         <div className="bg-dark-surface-lighter/60 backdrop-blur-xl border border-white/10 p-2 rounded-3xl shadow-2xl animate-fade-in-up delay-100 group focus-within:ring-2 focus-within:ring-primary-500/50 transition-all">
                             <form onSubmit={handleLookup} className="relative flex items-center">
-                                <Search className="absolute left-6 text-gray-400 w-6 h-6 group-focus-within:text-primary-500 transition-colors" />
+                                <Search className="absolute left-4 md:left-6 text-gray-400 w-5 h-5 md:w-6 md:h-6 group-focus-within:text-primary-500 transition-colors" />
                                 <Input
                                     placeholder="Rezervasyon Kodu"
                                     value={searchCode}
                                     onChange={(e) => setSearchCode(e.target.value.toUpperCase())}
-                                    className="w-full h-16 pl-16 pr-36 md:pr-48 bg-transparent border-none text-white text-lg md:text-xl font-mono tracking-widest uppercase focus:ring-0 placeholder:text-gray-600 rounded-2xl"
+                                    className="w-full h-16 pl-12 md:pl-16 pr-32 md:pr-48 bg-transparent border-none text-white text-base md:text-xl font-mono tracking-normal md:tracking-widest uppercase focus:ring-0 placeholder:text-gray-600 rounded-2xl"
                                 />
                                 <Button
                                     type="submit"
                                     disabled={loading || !searchCode}
-                                    className="absolute right-2 h-12 px-4 md:px-8 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold shadow-lg shadow-primary-500/30 transition-all hover:scale-105 text-sm md:text-base"
+                                    className="absolute right-2 h-12 px-3 md:px-8 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold shadow-lg shadow-primary-500/30 transition-all hover:scale-105 text-sm md:text-base"
                                 >
                                     {loading ? <Loader2 className="animate-spin" /> : 'SORGULA'}
                                 </Button>
