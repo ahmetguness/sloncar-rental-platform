@@ -6,7 +6,7 @@ import { adminService, bookingService } from '../services/api';
 import type { DashboardStats, Booking } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, Settings, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, Settings, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle } from 'lucide-react';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -640,7 +640,7 @@ const BookingRow = ({
 }: {
     booking: Booking;
     onView: (b: Booking) => void;
-    onAction: (action: 'cancel' | 'start', id: string) => void;
+    onAction: (action: 'cancel' | 'start' | 'complete', id: string) => void;
     isHighlighted?: boolean;
 }) => {
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -790,7 +790,22 @@ const BookingRow = ({
                             }
                         })()
                     )}
-                    {booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
+
+                    {
+                        booking.status === 'ACTIVE' && (
+                            <Button
+                                size="sm"
+                                className="bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/30 transition-all font-medium rounded-lg whitespace-nowrap"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onAction('complete', booking.id);
+                                }}
+                            >
+                                <CheckCircle className="w-4 h-4 mr-1.5" />
+                                Teslim Al
+                            </Button>
+                        )
+                    }{booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
                         <Button
                             size="sm"
                             className="bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 transition-all font-medium rounded-lg whitespace-nowrap"
@@ -828,7 +843,7 @@ export const AdminDashboard = () => {
     const [franchiseApplications, setFranchiseApplications] = useState<any[]>([]);
     const [selectedFranchise, setSelectedFranchise] = useState<any | null>(null);
     const [cancelingId, setCancelingId] = useState<string | null>(null);
-    const [bookingAction, setBookingAction] = useState<'cancel' | 'start' | null>(null);
+    const [bookingAction, setBookingAction] = useState<'cancel' | 'start' | 'complete' | null>(null);
     const [showNotifications, setShowNotifications] = useState(false);
     const [highlightedBookingId, setHighlightedBookingId] = useState<string | null>(null);
 
@@ -896,6 +911,8 @@ export const AdminDashboard = () => {
         }
     };
 
+
+
     const loadBookings = async (page: number, search?: string, status?: string) => {
         setBookingsLoading(true);
         try {
@@ -959,7 +976,7 @@ export const AdminDashboard = () => {
         return () => clearTimeout(timer);
     }, [franchiseSearchTerm]);
 
-    const handleAction = (action: 'cancel' | 'start', id: string) => {
+    const handleAction = (action: 'cancel' | 'start' | 'complete', id: string) => {
         setCancelingId(id);
         setBookingAction(action);
     };
@@ -973,6 +990,9 @@ export const AdminDashboard = () => {
             } else if (bookingAction === 'start') {
                 await adminService.startBooking(cancelingId);
                 toast('Kiralama başlatıldı (Teslim Edildi)', 'success');
+            } else if (bookingAction === 'complete') {
+                await adminService.completeBooking(cancelingId);
+                toast('Araç teslim alındı (Tamamlandı)', 'success');
             }
 
             // Refresh bookings and stats without full page reload
@@ -1019,25 +1039,27 @@ export const AdminDashboard = () => {
             <Modal
                 isOpen={!!cancelingId}
                 onClose={() => setCancelingId(null)}
-                title={bookingAction === 'start' ? "Kiralamayı Başlat" : "Rezervasyonu İptal Et"}
+                title={bookingAction === 'start' ? "Kiralamayı Başlat" : bookingAction === 'complete' ? "Teslim Al" : "Rezervasyonu İptal Et"}
                 size="sm"
             >
                 <div className="space-y-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto ${bookingAction === 'start' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-                        {bookingAction === 'start' ? <Key className="w-6 h-6 text-green-500" /> : <AlertCircle className="w-6 h-6 text-red-500" />}
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto ${bookingAction === 'start' ? 'bg-green-500/20' : bookingAction === 'complete' ? 'bg-blue-500/20' : 'bg-red-500/20'}`}>
+                        {bookingAction === 'start' ? <Key className="w-6 h-6 text-green-500" /> : bookingAction === 'complete' ? <CheckCircle className="w-6 h-6 text-blue-500" /> : <AlertCircle className="w-6 h-6 text-red-500" />}
                     </div>
                     <p className="text-gray-300 text-center">
                         {bookingAction === 'start'
                             ? 'Aracı teslim etmek ve kiralamayı başlatmak istediğinize emin misiniz?'
-                            : 'Bu rezervasyonu iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'}
+                            : bookingAction === 'complete'
+                                ? 'Aracı teslim almak ve kiralamayı tamamlamak istediğinize emin misiniz?'
+                                : 'Bu rezervasyonu iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'}
                     </p>
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="outline" onClick={() => setCancelingId(null)}>Vazgeç</Button>
                         <Button
-                            className={`${bookingAction === 'start' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white border-none`}
+                            className={`${bookingAction === 'start' ? 'bg-green-500 hover:bg-green-600' : bookingAction === 'complete' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-red-500 hover:bg-red-600'} text-white border-none`}
                             onClick={confirmAction}
                         >
-                            {bookingAction === 'start' ? 'Evet, Başlat' : 'Evet, İptal Et'}
+                            {bookingAction === 'start' ? 'Evet, Başlat' : bookingAction === 'complete' ? 'Evet, Teslim Al' : 'Evet, İptal Et'}
                         </Button>
                     </div>
                 </div>

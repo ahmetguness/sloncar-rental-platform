@@ -217,6 +217,18 @@ export const MyBooking = () => {
                             </div>
                         )}
 
+                        {booking.status === 'COMPLETED' && (
+                            <div className="mb-8 p-6 bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-2xl flex items-center gap-5 shadow-[0_0_30px_rgba(59,130,246,0.1)] animate-in slide-in-from-top-4 duration-500">
+                                <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 shadow-lg border border-blue-500/30">
+                                    <CheckCircle className="w-6 h-6 text-blue-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-blue-400 font-bold text-xl tracking-tight">Kiralama Tamamlandı</h3>
+                                    <p className="text-gray-400 text-sm mt-1">Aracı başarıyla teslim ettiniz. Bizi tercih ettiğiniz için teşekkür ederiz.</p>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Ready for Pickup Banner */}
                         {booking.status === 'RESERVED' && booking.paymentStatus === 'PAID' && new Date() >= new Date(booking.pickupDate) && (
                             <div className="mb-8 p-6 bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-2xl flex items-center gap-5 shadow-[0_0_30px_rgba(59,130,246,0.1)] animate-in slide-in-from-top-4 duration-500">

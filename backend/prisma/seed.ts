@@ -6,15 +6,9 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🌱 Starting seed...');
 
-    // Clean existing data
-    await prisma.franchiseAuditLog.deleteMany();
-    await prisma.franchiseApplication.deleteMany();
-    await prisma.booking.deleteMany();
-    await prisma.car.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.branch.deleteMany();
-
-    console.log('✅ Cleaned existing data');
+    // Data cleaning is handled by scripts/clean_db.ts
+    // to avoid foreign key issues and Prisma errors.
+    console.log('✨ Database assumed clean (run scripts/clean_db.ts if needed)');
 
     // Create branches
     const branches = await Promise.all([
@@ -405,7 +399,7 @@ async function main() {
     console.log('\n🎉 Seed completed successfully!\n');
     console.log('Test credentials:');
     console.log('  Admin: sloncar@gmail.com / sloncar');
-    console.log('  User:  user@example.com / password123');
+
 
     // Seed Car Brands
     console.log('Seeding car brands...');
