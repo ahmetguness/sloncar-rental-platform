@@ -1,5 +1,5 @@
 import { PrismaClient, Transmission, FuelType, CarCategory, CarStatus, UserRole, FranchiseApplicationStatus } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -27,34 +27,16 @@ async function main() {
                 isActive: true,
             },
         }),
-        prisma.branch.create({
-            data: {
-                name: 'Ankara Esenboğa Airport',
-                address: 'Esenboğa Havalimanı, Çubuk',
-                city: 'Ankara',
-                phone: '+90 312 555 0002',
-                isActive: true,
-            },
-        }),
-        prisma.branch.create({
-            data: {
-                name: 'Izmir Adnan Menderes Airport',
-                address: 'Adnan Menderes Havalimanı, Gaziemir',
-                city: 'Izmir',
-                phone: '+90 232 555 0003',
-                isActive: true,
-            },
-        }),
     ]);
 
     console.log(`✅ Created ${branches.length} branches`);
 
     // Create users
-    const passwordHash = await bcrypt.hash('password123', 12);
+    const passwordHash = await bcrypt.hash('sloncar', 12);
 
     const adminUser = await prisma.user.create({
         data: {
-            email: 'admin@rentacar.com',
+            email: 'sloncar@gmail.com',
             passwordHash,
             name: 'Admin User',
             phone: '+90 555 000 0001',
@@ -62,17 +44,7 @@ async function main() {
         },
     });
 
-    const regularUser = await prisma.user.create({
-        data: {
-            email: 'user@example.com',
-            passwordHash,
-            name: 'John Doe',
-            phone: '+90 555 000 0002',
-            role: UserRole.USER,
-        },
-    });
-
-    console.log('✅ Created 2 users (1 admin, 1 regular)');
+    console.log('✅ Created 1 admin user');
 
     // Create cars
     const cars = await Promise.all([
@@ -141,7 +113,30 @@ async function main() {
                 images: ['https://images.unsplash.com/photo-1616423664033-22877bc95768?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Premium compact with excellent handling',
-                branchId: branches[1]!.id,
+                branchId: branches[0]!.id,
+            },
+        }),
+        // Compact
+        prisma.car.create({
+            data: {
+                brand: 'Volkswagen',
+                model: 'Golf',
+                year: 2023,
+                transmission: Transmission.AUTO,
+                fuel: FuelType.PETROL,
+                category: CarCategory.COMPACT,
+                seats: 5,
+                doors: 4,
+                color: 'Gray',
+                plateNumber: '06 GHI 790',
+                dailyPrice: 650,
+                weeklyPrice: 4000,
+                deposit: 1500,
+                mileage: 15000,
+                images: ['https://images.unsplash.com/photo-1616423664033-22877bc95768?auto=format&fit=crop&w=800&q=80'],
+                status: CarStatus.ACTIVE,
+                description: 'Premium compact with excellent handling',
+                branchId: branches[0]!.id,
             },
         }),
         // SUV
@@ -156,7 +151,7 @@ async function main() {
                 seats: 5,
                 doors: 5,
                 color: 'Black',
-                plateNumber: '35 JKL 012',
+                plateNumber: '35 JKL 013',
                 dailyPrice: 950,
                 weeklyPrice: 6000,
                 deposit: 2500,
@@ -164,7 +159,7 @@ async function main() {
                 images: ['https://images.unsplash.com/photo-1626077388041-33f11050d5ce?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Hybrid SUV with great fuel economy',
-                branchId: branches[2]!.id,
+                branchId: branches[0]!.id,
             },
         }),
         prisma.car.create({
@@ -178,7 +173,7 @@ async function main() {
                 seats: 5,
                 doors: 5,
                 color: 'White',
-                plateNumber: '34 MNO 345',
+                plateNumber: '34 MNO 346',
                 dailyPrice: 1200,
                 weeklyPrice: 7500,
                 deposit: 3000,
@@ -201,7 +196,7 @@ async function main() {
                 seats: 8,
                 doors: 4,
                 color: 'Silver',
-                plateNumber: '06 PQR 678',
+                plateNumber: '06 PQR 679',
                 dailyPrice: 1100,
                 weeklyPrice: 7000,
                 deposit: 2500,
@@ -209,7 +204,7 @@ async function main() {
                 images: ['https://images.unsplash.com/photo-1565043666747-69f6646db940?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Spacious van for group travel',
-                branchId: branches[1]!.id,
+                branchId: branches[0]!.id,
             },
         }),
         // Luxury
@@ -224,7 +219,7 @@ async function main() {
                 seats: 5,
                 doors: 4,
                 color: 'Black',
-                plateNumber: '34 STU 901',
+                plateNumber: '34 STU 902',
                 dailyPrice: 1500,
                 weeklyPrice: 9000,
                 deposit: 5000,
@@ -247,14 +242,14 @@ async function main() {
                 seats: 5,
                 doors: 4,
                 color: 'Blue',
-                plateNumber: '35 VWX 234',
+                plateNumber: '35 VWX 235',
                 dailyPrice: 450,
                 deposit: 1000,
                 mileage: 68000,
                 images: [],
                 status: CarStatus.MAINTENANCE,
                 description: 'Currently in maintenance',
-                branchId: branches[2]!.id,
+                branchId: branches[0]!.id,
             },
         }),
         // Electric
@@ -269,7 +264,7 @@ async function main() {
                 seats: 5,
                 doors: 4,
                 color: 'White',
-                plateNumber: '34 YZA 567',
+                plateNumber: '34 YZA 568',
                 dailyPrice: 1300,
                 weeklyPrice: 8000,
                 deposit: 4000,
@@ -291,7 +286,7 @@ async function main() {
                 seats: 5,
                 doors: 5,
                 color: 'Green',
-                plateNumber: '06 BCD 890',
+                plateNumber: '06 BCD 891',
                 dailyPrice: 800,
                 weeklyPrice: 5000,
                 deposit: 2000,
@@ -299,7 +294,7 @@ async function main() {
                 images: ['https://images.unsplash.com/photo-1629831720876-0f3747b0e14c?auto=format&fit=crop&w=800&q=80'],
                 status: CarStatus.ACTIVE,
                 description: 'Modern SUV with hybrid technology',
-                branchId: branches[1]!.id,
+                branchId: branches[0]!.id,
             },
         }),
     ]);
@@ -315,9 +310,9 @@ async function main() {
     await prisma.booking.create({
         data: {
             carId: cars[0]!.id,
-            userId: regularUser.id,
-            customerName: 'John Doe',
-            customerPhone: '+90 555 000 0002',
+            userId: adminUser.id,
+            customerName: 'Slon Car Admin',
+            customerPhone: '+90 555 000 0001',
             pickupDate: tomorrow,
             dropoffDate: nextWeek,
             pickupBranchId: branches[0]!.id,
@@ -333,7 +328,7 @@ async function main() {
     // Create sample franchise application (submitted)
     const franchiseApp = await prisma.franchiseApplication.create({
         data: {
-            userId: regularUser.id,
+            userId: adminUser.id,
             status: FranchiseApplicationStatus.SUBMITTED,
             contactName: 'Ali Yılmaz',
             contactEmail: 'ali.yilmaz@example.com',
@@ -392,13 +387,13 @@ async function main() {
             {
                 applicationId: franchiseApp.id,
                 action: 'CREATED',
-                performedBy: regularUser.id,
+                performedBy: adminUser.id,
                 newValue: { status: 'DRAFT' },
             },
             {
                 applicationId: franchiseApp.id,
                 action: 'SUBMITTED',
-                performedBy: regularUser.id,
+                performedBy: adminUser.id,
                 previousValue: { status: 'DRAFT' },
                 newValue: { status: 'SUBMITTED' },
             },
@@ -409,7 +404,7 @@ async function main() {
 
     console.log('\n🎉 Seed completed successfully!\n');
     console.log('Test credentials:');
-    console.log('  Admin: admin@rentacar.com / password123');
+    console.log('  Admin: sloncar@gmail.com / sloncar');
     console.log('  User:  user@example.com / password123');
 
     // Seed Car Brands

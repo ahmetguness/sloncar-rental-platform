@@ -70,7 +70,7 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
         userId: user.id,
         email: user.email,
         role: user.role,
-    });
+    }, input.rememberMe ? { expiresIn: '30d' } : undefined);
 
     return {
         user: {

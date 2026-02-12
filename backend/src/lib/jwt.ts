@@ -7,10 +7,10 @@ export interface JwtPayload {
     role: string;
 }
 
-export function signToken(payload: JwtPayload): string {
+export function signToken(payload: JwtPayload, options?: { expiresIn?: string }): string {
     // Cast expiresIn to proper type - it's a string like '7d' or '24h'
     return jwt.sign(payload, env.JWT_SECRET, {
-        expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'],
+        expiresIn: (options?.expiresIn || env.JWT_EXPIRES_IN) as jwt.SignOptions['expiresIn'],
     });
 }
 

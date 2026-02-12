@@ -319,7 +319,18 @@ export async function getBookingByCode(
         throw ApiError.notFound('Rezervasyon bulunamadı. Kodu kontrol edin.');
     }
 
-    return await checkAndExpireBooking(booking as BookingWithRelations);
+    const processedBooking = await checkAndExpireBooking(booking as BookingWithRelations);
+
+    // MASK SENSITIVE PII
+    if (processedBooking.customerTC) {
+        // Keep only last 2 digits visible for verification context if needed, mask rest
+        processedBooking.customerTC = processedBooking.customerTC.replace(/./g, (char, index, str) => index < str.length - 2 ? '*' : char);
+    }
+    if (processedBooking.customerDriverLicense) {
+        processedBooking.customerDriverLicense = '******'; // Fully mask
+    }
+
+    return processedBooking;
 }
 
 // PUBLIC - Extend booking (customer self-service)
@@ -557,23 +568,34 @@ export async function getAvailability(
 }
 
 // PUBLIC - Lookup bookings by phone (for customers)
+// PUBLIC - Lookup bookings by phone (for customers) with PII protection
 export async function lookupBookingsByPhone(
     phone: string
-): Promise<BookingWithRelations[]> {
+): Promise<Partial<BookingWithRelations>[]> {
     const bookings = await prisma.booking.findMany({
         where: {
             customerPhone: { contains: phone },
         },
-        include: {
-            car: { include: { branch: true } },
+        select: {
+            bookingCode: true,
+            pickupDate: true,
+            dropoffDate: true,
+            status: true,
+            totalPrice: true,
+            paymentStatus: true,
+            car: {
+                include: { branch: true }
+            },
             pickupBranch: true,
             dropoffBranch: true,
+            // EXPLICITLY EXCLUDED:
+            // customerName, customerSurname, customerEmail, customerTC, customerDriverLicense
         },
         orderBy: { createdAt: 'desc' },
         take: 10,
     });
 
-    return bookings as BookingWithRelations[];
+    return bookings as unknown as Partial<BookingWithRelations>[];
 }
 
 // ADMIN - Cancel booking

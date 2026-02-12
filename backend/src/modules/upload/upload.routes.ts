@@ -2,14 +2,26 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { uploadFile } from './upload.controller.js';
-import { authMiddleware, adminGuard } from '../../middlewares/index.js';
+import { authMiddleware, adminGuard, ApiError } from '../../middlewares/index.js';
 
 const router = Router();
 const fs = await import('fs');
 if (!fs.existsSync('temp')) {
     fs.mkdirSync('temp');
 }
-const upload = multer({ dest: 'temp/' });
+const upload = multer({
+    dest: 'temp/',
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+    fileFilter: (_req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(ApiError.badRequest('Only image files are allowed!'));
+        }
+    }
+});
 
 /**
  * @swagger

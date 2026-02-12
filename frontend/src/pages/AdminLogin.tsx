@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { adminService } from '../services/api';
 
 import { Button } from '../components/ui/Button';
-import { Lock, Mail, Eye, EyeOff, Shield } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Shield, Check } from 'lucide-react';
 import logo from '../assets/logo/logo.jpg';
 
 export const AdminLogin = () => {
@@ -12,6 +12,7 @@ export const AdminLogin = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,7 +20,7 @@ export const AdminLogin = () => {
         setError(null);
 
         try {
-            await adminService.login(credentials);
+            await adminService.login({ ...credentials, rememberMe });
             navigate('/admin/dashboard');
         } catch (err: any) {
             setError('Giriş başarısız. Bilgilerinizi kontrol edin.');
@@ -106,6 +107,24 @@ export const AdminLogin = () => {
                             </div>
                         </div>
 
+                        <div className="flex items-center justify-between text-sm">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-primary-500 border-primary-500' : 'border-white/20 bg-dark-bg group-hover:border-primary-500/50'}`}>
+                                    {rememberMe && <Check className="w-3.5 h-3.5 text-white" />}
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    className="hidden"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                />
+                                <span className={rememberMe ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'}>Oturumu açık tut</span>
+                            </label>
+                            <a href="#" className="text-primary-500 hover:text-primary-400 font-medium transition-colors">
+                                Şifremi unuttum?
+                            </a>
+                        </div>
+
                         <Button
                             type="submit"
                             className="w-full h-14 text-base font-bold mt-6 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all"
@@ -120,17 +139,6 @@ export const AdminLogin = () => {
                         </Button>
                     </form>
 
-                    {/* Demo Credentials */}
-                    <div className="mt-8 pt-6 border-t border-white/5">
-                        <div className="bg-dark-bg/50 rounded-xl p-4 border border-white/5">
-                            <p className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-2">Demo Hesabı</p>
-                            <div className="flex items-center gap-2 text-sm text-gray-400">
-                                <code className="bg-white/5 px-2 py-1 rounded text-primary-400">admin@rentacar.com</code>
-                                <span>/</span>
-                                <code className="bg-white/5 px-2 py-1 rounded text-primary-400">password123</code>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Footer */}

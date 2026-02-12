@@ -34,20 +34,24 @@ app.use(cors({
 
 // Rate limiting - DISABLED FOR DEVELOPMENT
 // TODO: Re-enable for production
-// const limiter = rateLimit({
-//     windowMs: env.RATE_LIMIT_WINDOW_MS,
-//     max: env.RATE_LIMIT_MAX_REQUESTS,
-//     message: {
-//         success: false,
-//         error: {
-//             code: 'RATE_LIMIT_EXCEEDED',
-//             message: 'Too many requests, please try again later',
-//         },
-//     },
-//     standardHeaders: true,
-//     legacyHeaders: false,
-// });
-// app.use(limiter);
+const limiter = rateLimit({
+    windowMs: env.RATE_LIMIT_WINDOW_MS,
+    max: env.RATE_LIMIT_MAX_REQUESTS,
+    message: {
+        success: false,
+        error: {
+            code: 'RATE_LIMIT_EXCEEDED',
+            message: 'Too many requests, please try again later',
+        },
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+
+if (env.NODE_ENV === 'production') {
+    app.use(limiter);
+}
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
