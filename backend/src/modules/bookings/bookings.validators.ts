@@ -9,7 +9,7 @@ const baseBookingSchemaObject = z.object({
     // Customer Information
     customerName: z.string().min(2, 'Müşteri adı gerekli'),
     customerSurname: z.string().min(2, 'Müşteri soyadı gerekli'),
-    customerPhone: z.string().min(10, 'Telefon numarası gerekli'),
+    customerPhone: z.string().min(7, 'Telefon numarası gerekli'),
     customerEmail: z.string().email('Geçerli e-posta adresi giriniz'),
     customerTC: z.string().length(11, 'TC kimlik numarası 11 haneli olmalı').optional(),
     customerDriverLicense: z.string().min(5, 'Ehliyet numarası gerekli'),
@@ -74,7 +74,7 @@ export const updateBookingDatesSchema = z.object({
 
 // Lookup by phone
 export const lookupBookingSchema = z.object({
-    phone: z.string().min(10, 'Telefon numarası gerekli'),
+    phone: z.string().min(7, 'Telefon numarası gerekli'),
 });
 
 // Admin query schema

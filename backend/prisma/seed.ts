@@ -14,10 +14,10 @@ async function main() {
     const branches = await Promise.all([
         prisma.branch.create({
             data: {
-                name: 'Istanbul Atatürk Airport',
-                address: 'Yeşilköy Mah, Atatürk Havalimanı, Bakırköy',
-                city: 'Istanbul',
-                phone: '+90 212 555 0001',
+                name: 'Manisa Şehzadeler',
+                address: 'Şehzadeler, Manisa',
+                city: 'Manisa',
+                phone: '+90 555 555 5555',
                 isActive: true,
             },
         }),
