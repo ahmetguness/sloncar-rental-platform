@@ -7,7 +7,7 @@ import { CarWithBranch, PaginatedResponse } from './cars.types.js';
 
 export async function listCars(query: CarQueryInput): Promise<PaginatedResponse<CarWithBranch>> {
     const {
-        brand, category, transmission, fuel,
+        brand, category, transmission, fuel, type,
         minPrice, maxPrice, branch, minYear, maxYear, seats, status,
         q, page, limit, sortBy, sortOrder
     } = query;
@@ -15,6 +15,7 @@ export async function listCars(query: CarQueryInput): Promise<PaginatedResponse<
     // Build where clause
     const where: Prisma.CarWhereInput = {};
 
+    if (type) where.type = type;
     if (brand) where.brand = { contains: brand, mode: 'insensitive' };
     if (category) where.category = category;
     if (transmission) where.transmission = transmission;
@@ -34,9 +35,16 @@ export async function listCars(query: CarQueryInput): Promise<PaginatedResponse<
     if (seats) where.seats = { gte: seats };
 
     if (minPrice || maxPrice) {
-        where.dailyPrice = {};
-        if (minPrice) where.dailyPrice.gte = minPrice;
-        if (maxPrice) where.dailyPrice.lte = maxPrice;
+        if (type === 'SALE') {
+            where.salePrice = {};
+            if (minPrice) where.salePrice.gte = minPrice;
+            if (maxPrice) where.salePrice.lte = maxPrice;
+        } else {
+            // Default to dailyPrice for RENTAL or if type is mixed/undefined
+            where.dailyPrice = {};
+            if (minPrice) where.dailyPrice.gte = minPrice;
+            if (maxPrice) where.dailyPrice.lte = maxPrice;
+        }
     }
 
     if (minYear || maxYear) {
@@ -46,7 +54,6 @@ export async function listCars(query: CarQueryInput): Promise<PaginatedResponse<
     }
 
     // Search query (brand or model)
-    // Search query (brand or model)
     if (q) {
         where.OR = [
             { brand: { contains: q, mode: 'insensitive' } },
@@ -54,8 +61,10 @@ export async function listCars(query: CarQueryInput): Promise<PaginatedResponse<
         ];
     }
 
-    // Availability Filter
-    if (query.pickupDate && query.dropoffDate) {
+    // Availability Filter (Only for RENTALS)
+    // If type is explicitly SALE, we skip this availability check (sale cars don't have date-based availability in the same way)
+    // If type is RENTAL or undefined (default), we check availability.
+    if ((type === 'RENTAL' || !type) && query.pickupDate && query.dropoffDate) {
         where.bookings = {
             none: {
                 OR: [

@@ -14,6 +14,8 @@ export interface Car {
     mileage: number;
     images: string[];
     status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
+    type?: 'RENTAL' | 'SALE';
+    salePrice?: string | number;
     description?: string;
     branchId: string;
     branch?: Branch;

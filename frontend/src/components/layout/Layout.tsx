@@ -47,6 +47,8 @@ export const Layout = () => {
                                     }`}>Araçlar</Link>
                                 <Link to="/my-booking" className={`font-medium transition-colors hover:text-primary-600 ${scrolled ? 'text-gray-600' : 'text-white/90'
                                     }`}>Rezervasyonum</Link>
+                                <Link to="/second-hand" className={`font-medium transition-colors hover:text-primary-600 ${scrolled ? 'text-gray-600' : 'text-white/90'
+                                    }`}>2. El Satış</Link>
                                 <Link to="/franchise" className={`font-medium transition-colors hover:text-primary-600 ${scrolled ? 'text-gray-600' : 'text-white/90'
                                     }`}>Franchise</Link>
                             </>
@@ -77,6 +79,7 @@ export const Layout = () => {
                             <>
                                 <Link to="/#fleet" className="block py-3 text-lg font-medium text-gray-200 border-b border-white/5 hover:text-primary-400" onClick={() => setIsMenuOpen(false)}>Araç Filosu</Link>
                                 <Link to="/my-booking" className="block py-3 text-lg font-medium text-gray-200 border-b border-white/5 hover:text-primary-400" onClick={() => setIsMenuOpen(false)}>Rezervasyon Sorgula</Link>
+                                <Link to="/second-hand" className="block py-3 text-lg font-medium text-gray-200 border-b border-white/5 hover:text-primary-400" onClick={() => setIsMenuOpen(false)}>2. El Satış</Link>
                                 <Link to="/franchise" className="block py-3 text-lg font-medium text-gray-200 border-b border-white/5 hover:text-primary-400" onClick={() => setIsMenuOpen(false)}>Franchise Başvurusu</Link>
                             </>
                         ) : (

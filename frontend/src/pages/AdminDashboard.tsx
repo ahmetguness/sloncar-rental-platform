@@ -1086,9 +1086,27 @@ export const AdminDashboard = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        {/* Navigation Modules */}
+                        <div className="flex items-center gap-3 mr-4 border-r border-white/10 pr-4">
+                            <Link to="/admin/campaigns">
+                                <Button variant="secondary" className="flex items-center gap-2">
+                                    <Megaphone className="w-4 h-4" />
+                                    Kampanyalar
+                                </Button>
+                            </Link>
+                            <Link to="/admin/cars">
+                                <Button variant="secondary" className="flex items-center gap-2">
+                                    <CarIcon className="w-4 h-4" />
+                                    Araçlar
+                                </Button>
+                            </Link>
+                        </div>
+
+                        {/* Primary Action */}
                         <Button
-                            className="bg-primary-500 hover:bg-primary-600 text-white border-none shadow-lg shadow-primary-500/20"
+                            variant="primary"
                             onClick={() => setShowManualModal(true)}
+                            className="mr-2"
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             Yeni Rezervasyon
@@ -1096,9 +1114,10 @@ export const AdminDashboard = () => {
 
                         {/* Notification Bell */}
                         <div className="relative">
-                            <button
+                            <Button
+                                variant="secondary"
                                 onClick={() => setShowNotifications(!showNotifications)}
-                                className="relative p-3 rounded-xl bg-dark-bg border border-white/10 hover:border-primary-500/50 hover:text-white text-gray-400 transition-all shadow-lg"
+                                className="relative w-11 h-11 p-0 rounded-xl"
                             >
                                 {(() => {
                                     const newBookings = stats?.latestNewBookings || [];
@@ -1112,16 +1131,13 @@ export const AdminDashboard = () => {
                                     ].length;
 
                                     return unreadCount > 0 && (
-                                        <>
-                                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-                                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-dark-bg">
-                                                {unreadCount}
-                                            </span>
-                                        </>
+                                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-dark-bg">
+                                            {unreadCount}
+                                        </span>
                                     );
                                 })()}
-                                <AlertCircle size={24} />
-                            </button>
+                                <AlertCircle size={20} />
+                            </Button>
 
                             {/* Notification Dropdown */}
                             {showNotifications && (
@@ -1261,19 +1277,6 @@ export const AdminDashboard = () => {
                                 </div>
                             )}
                         </div>
-
-                        <Link to="/admin/campaigns">
-                            <Button className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all flex items-center gap-2">
-                                <Megaphone className="w-5 h-5" />
-                                Kampanya Yönetimi
-                            </Button>
-                        </Link>
-                        <Link to="/admin/cars">
-                            <Button className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all flex items-center gap-2">
-                                <Settings className="w-5 h-5" />
-                                Araç Yönetimi
-                            </Button>
-                        </Link>
                     </div>
                 </div>
 

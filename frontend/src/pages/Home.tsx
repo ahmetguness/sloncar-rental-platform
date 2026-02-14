@@ -136,7 +136,8 @@ export const Home = () => {
                 ...filters,
                 q: filters.brand, // Map brand input to general search 'q'
                 limit: 12, // User requested limit 12 per page
-                page: pageToFetch
+                page: pageToFetch,
+                type: 'RENTAL' // Enforce RENTAL type for Home page
             };
             delete cleanedFilters.brand;
 
@@ -553,6 +554,45 @@ export const Home = () => {
             {/* Campaign Carousel Section */}
             <div className="container mx-auto px-4 mt-12 md:mt-24">
                 <CampaignCarousel />
+            </div>
+
+            {/* Second Hand Teaser Section */}
+            <div className="container mx-auto px-4 mt-20">
+                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-gray-900 to-gray-800 border border-white/10 shadow-2xl">
+                    <div className="absolute inset-0 z-0">
+                        <img
+                            src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+                            alt="Luxury Car Interior"
+                            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/90 to-transparent" />
+                    </div>
+
+                    <div className="relative z-10 p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="max-w-2xl space-y-6">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-widest">
+                                <Sparkles className="w-3 h-3" /> YENİ HİZMET
+                            </div>
+                            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+                                SADECE KİRALAMA,<br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">SAHİP OL.</span>
+                            </h2>
+                            <p className="text-gray-400 text-lg leading-relaxed">
+                                SlonCar güvencesiyle, bakımlı ve ekspertiz garantili 2. el lüks araçlarımız satışta. Hayalinizdeki araca hemen ulaşın.
+                            </p>
+                            <div className="flex flex-wrap gap-4 pt-2">
+                                <Button
+                                    onClick={() => window.location.href = '/second-hand'}
+                                    className="bg-white text-gray-900 hover:bg-blue-50 text-base px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-white/20 flex items-center gap-2"
+                                >
+                                    ARAÇLARI İNCELE <ChevronRight className="w-5 h-5" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Decorative or additional content could go here, for now keeping it clean with text left, empty right (image bg) */}
+                    </div>
+                </div>
             </div>
 
             {/* Brand Carousel Section */}

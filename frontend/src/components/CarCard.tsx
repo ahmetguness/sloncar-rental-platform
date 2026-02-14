@@ -104,9 +104,11 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
 
                 <div className="mt-auto pt-5 border-t border-white/5 flex items-end justify-between">
                     <div>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Günlük</p>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">
+                            {car.type === 'SALE' ? 'Satış Fiyatı' : 'Günlük'}
+                        </p>
                         <p className="text-2xl font-bold text-white tracking-tight flex items-baseline gap-1">
-                            {Number(car.dailyPrice).toLocaleString()} <span className="text-sm font-semibold text-primary-500">₺</span>
+                            {Number(car.type === 'SALE' ? car.salePrice : car.dailyPrice).toLocaleString()} <span className="text-sm font-semibold text-primary-500">₺</span>
                         </p>
                     </div>
                     <Link to={`/book/${car.id}`}>

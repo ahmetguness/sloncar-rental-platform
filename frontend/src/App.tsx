@@ -5,6 +5,7 @@ import { Home } from './pages/Home';
 import { Booking } from './pages/Booking';
 import { MyBooking } from './pages/MyBooking';
 import { Franchise } from './pages/Franchise';
+import { SecondHand } from './pages/SecondHand'; // Import
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminCars } from './pages/AdminCars';
@@ -17,6 +18,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
+          <Route path="second-hand" element={<SecondHand />} />
           <Route path="book/:carId" element={<Booking />} />
           <Route path="my-booking" element={<MyBooking />} />
           <Route path="franchise" element={<Franchise />} />

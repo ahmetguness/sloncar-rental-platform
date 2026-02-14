@@ -108,12 +108,18 @@ model Branch {
   @@index([isActive])
 }
 
-/// Car represents a vehicle available for rental
+enum CarType {
+  RENTAL
+  SALE
+}
+
+/// Car represents a vehicle available for rental or sale
 model Car {
   id           String       @id @default(uuid())
   brand        String
   model        String
   year         Int
+  type         CarType      @default(RENTAL) // Default to rental
   transmission Transmission
   fuel         FuelType
   category     CarCategory
@@ -121,8 +127,9 @@ model Car {
   doors        Int
   color        String
   plateNumber  String       @unique
-  dailyPrice   Decimal      @db.Decimal(10, 2)
+  dailyPrice   Decimal?     @db.Decimal(10, 2) // Optional for SALE cars
   weeklyPrice  Decimal?     @db.Decimal(10, 2)
+  salePrice    Decimal?     @db.Decimal(12, 2) // Price for SALE cars
   deposit      Decimal?     @db.Decimal(10, 2)
   mileage      Int
   images       String[]     // Array of image URLs
@@ -142,6 +149,8 @@ model Car {
   @@index([status])
   @@index([branchId])
   @@index([dailyPrice])
+  @@index([salePrice])
+  @@index([type])
 }
 
 /// User represents a system user (customer or admin)

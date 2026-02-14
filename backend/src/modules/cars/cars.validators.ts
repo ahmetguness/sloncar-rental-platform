@@ -1,16 +1,18 @@
 import { z } from 'zod';
-import { Transmission, FuelType, CarCategory, CarStatus } from '@prisma/client';
+import { Transmission, FuelType, CarCategory, CarStatus, CarType } from '@prisma/client';
 
 // Enums as Zod schemas
 const transmissionEnum = z.nativeEnum(Transmission);
 const fuelTypeEnum = z.nativeEnum(FuelType);
 const carCategoryEnum = z.nativeEnum(CarCategory);
 const carStatusEnum = z.nativeEnum(CarStatus);
+const carTypeEnum = z.nativeEnum(CarType);
 
-export const createCarSchema = z.object({
+const baseCarSchema = z.object({
     brand: z.string().min(1, 'Brand is required'),
     model: z.string().min(1, 'Model is required'),
     year: z.number().int().min(1900).max(new Date().getFullYear() + 1),
+    type: carTypeEnum.default('RENTAL'),
     transmission: transmissionEnum,
     fuel: fuelTypeEnum,
     category: carCategoryEnum,
@@ -18,8 +20,9 @@ export const createCarSchema = z.object({
     doors: z.number().int().min(1).max(10),
     color: z.string().min(1, 'Color is required'),
     plateNumber: z.string().min(1, 'Plate number is required'),
-    dailyPrice: z.number().positive('Daily price must be positive').max(99999999.99, 'Price exceeds maximum limit'),
+    dailyPrice: z.number().positive('Daily price must be positive').max(99999999.99, 'Price exceeds maximum limit').optional(), // Optional if SALE
     weeklyPrice: z.number().positive().max(99999999.99).optional(),
+    salePrice: z.number().positive().max(999999999.99).optional(), // Max ~1 billion
     deposit: z.number().nonnegative().max(99999999.99).optional(),
     mileage: z.number().int().nonnegative(),
     images: z.array(z.string().url()).default([]),
@@ -28,10 +31,24 @@ export const createCarSchema = z.object({
     branchId: z.string().uuid('Invalid branch ID'),
 });
 
-export const updateCarSchema = createCarSchema.partial();
+export const createCarSchema = baseCarSchema.refine(data => {
+    if (data.type === 'RENTAL' && !data.dailyPrice) {
+        return false;
+    }
+    if (data.type === 'SALE' && !data.salePrice) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Rental cars require dailyPrice, Sale cars require salePrice",
+    path: ["dailyPrice", "salePrice"]
+});
+
+export const updateCarSchema = baseCarSchema.partial();
 
 export const carQuerySchema = z.object({
     // Filters
+    type: carTypeEnum.optional(),
     brand: z.string().optional(),
     category: carCategoryEnum.optional(),
     transmission: transmissionEnum.optional(),
@@ -54,7 +71,7 @@ export const carQuerySchema = z.object({
     limit: z.coerce.number().int().positive().max(100).default(10),
 
     // Sorting
-    sortBy: z.enum(['dailyPrice', 'year', 'brand', 'model', 'createdAt']).default('createdAt'),
+    sortBy: z.enum(['dailyPrice', 'salePrice', 'year', 'brand', 'model', 'createdAt']).default('createdAt'),
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
 
