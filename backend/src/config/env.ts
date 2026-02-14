@@ -18,6 +18,9 @@ const envSchema = z.object({
     CLOUDINARY_CLOUD_NAME: z.string().trim(),
     CLOUDINARY_API_KEY: z.string().trim(),
     CLOUDINARY_API_SECRET: z.string().trim(),
+
+    // Logging
+    LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
 });
 
 const parsed = envSchema.safeParse(process.env);

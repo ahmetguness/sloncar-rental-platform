@@ -43,6 +43,7 @@
     "multer": "^2.0.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
+    "winston": "^3.19.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {

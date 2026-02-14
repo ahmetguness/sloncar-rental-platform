@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import app from '../src/app.js';
+import prisma from '../src/lib/prisma.js';
 
 describe('Auth Module', () => {
     const testUser = {
@@ -25,6 +26,12 @@ describe('Auth Module', () => {
             expect(response.body.data.token).toBeDefined();
 
             authToken = response.body.data.token;
+
+            // Promote to ADMIN for login tests (Controller enforces ADMIN role)
+            await prisma.user.update({
+                where: { email: testUser.email },
+                data: { role: 'ADMIN' },
+            });
         });
 
         it('should reject duplicate email', async () => {

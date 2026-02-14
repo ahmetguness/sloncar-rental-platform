@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { Logger } from '../lib/logger.js';
+import { ApiResponse } from '../lib/api-response.js';
 
 export interface AppError extends Error {
     statusCode?: number;
@@ -53,45 +55,27 @@ export function errorHandler(
 ): void {
     // Handle Zod validation errors
     if (err instanceof ZodError) {
-        res.status(400).json({
-            success: false,
-            error: {
-                code: 'VALIDATION_ERROR',
-                message: 'Invalid request data',
-                details: err.errors.map((e) => ({
-                    path: e.path.join('.'),
-                    message: e.message,
-                })),
-            },
-        });
+        const details = err.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+        }));
+        Logger.warn(`Validation Error: ${JSON.stringify(details)}`);
+
+        ApiResponse.error(res, 'Invalid request data', 'VALIDATION_ERROR', 400, details);
         return;
     }
 
     // Handle known API errors
     if (err instanceof ApiError) {
-        res.status(err.statusCode).json({
-            success: false,
-            error: {
-                code: err.code,
-                message: err.message,
-                details: err.details,
-            },
-        });
+        Logger.warn(`API Error [${err.code}]: ${err.message}`);
+        ApiResponse.error(res, err.message, err.code, err.statusCode, err.details);
         return;
     }
 
     // Log unknown errors
-    console.error('Unhandled error:', err);
+    Logger.error(`Unhandled Error: ${err.message}`, { stack: err.stack });
 
     // Handle unknown errors
-    const statusCode = err.statusCode || 500;
-    res.status(statusCode).json({
-        success: false,
-        error: {
-            code: err.code || 'INTERNAL_ERROR',
-            message: process.env.NODE_ENV === 'production'
-                ? 'Internal server error'
-                : err.message,
-        },
-    });
+    const message = process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message;
+    ApiResponse.error(res, message, 'INTERNAL_ERROR', 500);
 }

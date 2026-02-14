@@ -5,6 +5,8 @@ import { CreateBookingInput, BookingQueryInput, AvailabilityQueryInput, ExtendBo
 import { BookingWithRelations, AvailabilityResponse, DayAvailability, DateRange } from './bookings.types.js';
 import { PaginatedResponse } from '../cars/cars.types.js';
 import { notificationService } from '../../lib/notification.js';
+import { formatDate, getDateRange, normalizeDate, calculateTotalPrice, calculateDays } from '../../utils/date.utils.js';
+import { checkBookingOverlap } from './booking.validation.service.js';
 
 // Generate unique booking code like RNT-ABC123
 function generateBookingCode(): string {
@@ -14,43 +16,6 @@ function generateBookingCode(): string {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return `RNT-${code}`;
-}
-
-// Format date as YYYY-MM-DD
-function formatDate(date: Date): string {
-    return date.toISOString().split('T')[0]!;
-}
-
-// Generate array of dates between two dates
-function getDateRange(start: Date, end: Date): Date[] {
-    const dates: Date[] = [];
-    const current = new Date(start);
-    while (current <= end) {
-        dates.push(new Date(current));
-        current.setDate(current.getDate() + 1);
-    }
-    return dates;
-}
-
-// Helper to normalize date to UTC midnight (00:00:00)
-function normalizeDate(date: Date): Date {
-    const normalized = new Date(date);
-    normalized.setUTCHours(0, 0, 0, 0);
-    return normalized;
-}
-
-// Calculate total price based on car daily rate and days
-function calculateTotalPrice(dailyPrice: number, pickupDate: Date, dropoffDate: Date): number {
-    // Ensure we calculate based on normalized days (24h chunks)
-    const days = Math.ceil((dropoffDate.getTime() - pickupDate.getTime()) / (1000 * 60 * 60 * 24));
-    return days * dailyPrice;
-}
-
-// Calculate days between two dates
-function calculateDays(start: Date, end: Date): number {
-    const s = normalizeDate(start);
-    const e = normalizeDate(end);
-    return Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 // PUBLIC - Create booking and return booking code
@@ -101,38 +66,7 @@ export async function createBooking(
         }
 
         // Check for overlapping bookings
-        const conflictingBookings = await tx.booking.findMany({
-            where: {
-                carId: input.carId,
-                status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
-                AND: [
-                    { pickupDate: { lt: dropoffDate } },
-                    { dropoffDate: { gt: pickupDate } },
-                ],
-            },
-        });
-
-        const now = new Date();
-        const hasActiveOverlap = conflictingBookings.some(b => {
-            // Active bookings always block
-            if (b.status === BookingStatus.ACTIVE) return true;
-
-            // Paid bookings always block
-            if (b.paymentStatus === PaymentStatus.PAID) return true;
-
-            // Unpaid Reserved bookings block ONLY if NOT expired
-            if (b.status === BookingStatus.RESERVED && b.paymentStatus === PaymentStatus.UNPAID) {
-                if (b.expiresAt && b.expiresAt < now) {
-                    return false; // Expired, does not block
-                }
-            }
-
-            return true; // Default to blocking
-        });
-
-        if (hasActiveOverlap) {
-            throw ApiError.conflict('Bu araç seçilen tarihlerde müsait değil');
-        }
+        await checkBookingOverlap(tx, input.carId, pickupDate, dropoffDate);
 
         // Generate unique booking code
         let bookingCode = generateBookingCode();
@@ -205,28 +139,7 @@ export async function createManualBooking(
         if (car.status !== 'ACTIVE') throw ApiError.badRequest('Araç kiralamaya uygun değil');
 
         // Check overlaps
-        const conflictingBookings = await tx.booking.findMany({
-            where: {
-                carId: input.carId,
-                status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
-                AND: [
-                    { pickupDate: { lt: dropoffDate } },
-                    { dropoffDate: { gt: pickupDate } },
-                ],
-            },
-        });
-
-        const now = new Date();
-        const hasActiveOverlap = conflictingBookings.some(b => {
-            if (b.status === BookingStatus.ACTIVE) return true;
-            if (b.paymentStatus === PaymentStatus.PAID) return true;
-            if (b.status === BookingStatus.RESERVED && b.paymentStatus === PaymentStatus.UNPAID) {
-                if (b.expiresAt && b.expiresAt < now) return false;
-            }
-            return true;
-        });
-
-        if (hasActiveOverlap) throw ApiError.conflict('Araç seçilen tarihlerde müsait değil');
+        await checkBookingOverlap(tx, input.carId, pickupDate, dropoffDate);
 
         let bookingCode = generateBookingCode();
         // Simple loop to ensure uniqueness
@@ -367,31 +280,8 @@ export async function extendBooking(
         }
 
         // Check for overlapping bookings in the extended period
-        const conflictingBookings = await tx.booking.findMany({
-            where: {
-                carId: booking.carId,
-                id: { not: booking.id },
-                status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
-                AND: [
-                    { pickupDate: { lt: newDropoffDate } },
-                    { dropoffDate: { gt: booking.dropoffDate } },
-                ],
-            },
-        });
-
-        const now = new Date();
-        const hasActiveOverlap = conflictingBookings.some(b => {
-            if (b.status === BookingStatus.ACTIVE) return true;
-            if (b.paymentStatus === PaymentStatus.PAID) return true;
-            if (b.status === BookingStatus.RESERVED && b.paymentStatus === PaymentStatus.UNPAID) {
-                if (b.expiresAt && b.expiresAt < now) return false;
-            }
-            return true;
-        });
-
-        if (hasActiveOverlap) {
-            throw ApiError.conflict('Araç uzatmak istediğiniz tarihlerde başka bir rezervasyona sahip');
-        }
+        // We check from current dropoffDate to newDropoffDate
+        await checkBookingOverlap(tx, booking.carId, booking.dropoffDate, newDropoffDate, booking.id);
 
         // Calculate additional price
         const additionalDays = calculateDays(booking.dropoffDate, newDropoffDate);
@@ -738,31 +628,7 @@ export async function updateBookingDates(
         const dropoffDate = normalizeDate(input.dropoffDate);
 
         // Check availability (excluding current booking)
-        const conflictingBookings = await tx.booking.findMany({
-            where: {
-                carId: existingBooking.carId,
-                id: { not: bookingId },
-                status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
-                AND: [
-                    { pickupDate: { lt: dropoffDate } },
-                    { dropoffDate: { gt: pickupDate } },
-                ],
-            },
-        });
-
-        const now = new Date();
-        const hasActiveOverlap = conflictingBookings.some(b => {
-            if (b.status === BookingStatus.ACTIVE) return true;
-            if (b.paymentStatus === PaymentStatus.PAID) return true;
-            if (b.status === BookingStatus.RESERVED && b.paymentStatus === PaymentStatus.UNPAID) {
-                if (b.expiresAt && b.expiresAt < now) return false;
-            }
-            return true;
-        });
-
-        if (hasActiveOverlap) {
-            throw ApiError.conflict('Araç seçilen yeni tarihlerde müsait değil');
-        }
+        await checkBookingOverlap(tx, existingBooking.carId, pickupDate, dropoffDate, bookingId);
 
         // Calculate new price
         // Note: Using current car daily price. This is a design choice.

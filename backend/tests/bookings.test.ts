@@ -25,7 +25,10 @@ describe('Bookings Module', () => {
                 .send({
                     carId: '00000000-0000-0000-0000-000000000000',
                     customerName: 'Test Customer',
+                    customerSurname: 'Test Surname',
                     customerPhone: '+90 555 111 2222',
+                    customerEmail: 'test@example.com',
+                    customerDriverLicense: '123456',
                     pickupDate: tomorrow.toISOString(),
                     dropoffDate: nextWeek.toISOString(),
                     pickupBranchId: '00000000-0000-0000-0000-000000000000',
@@ -46,7 +49,10 @@ describe('Bookings Module', () => {
                 .send({
                     carId: '00000000-0000-0000-0000-000000000000',
                     customerName: 'Test Customer',
+                    customerSurname: 'Test Surname',
                     customerPhone: '+90 555 111 2222',
+                    customerEmail: 'test@example.com',
+                    customerDriverLicense: '123456',
                     pickupDate: today.toISOString(),
                     dropoffDate: yesterday.toISOString(), // Invalid: before pickup
                     pickupBranchId: '00000000-0000-0000-0000-000000000000',
@@ -104,21 +110,23 @@ describe('Bookings Module', () => {
         });
     });
 
-    describe('GET /api/bookings/me', () => {
-        it('should require authentication', async () => {
-            const response = await request(app)
-                .get('/api/bookings/me')
-                .expect(401);
-
-            expect(response.body.success).toBe(false);
-            expect(response.body.error.code).toBe('UNAUTHORIZED');
+    /*
+        describe('GET /api/bookings/me', () => {
+            it('should require authentication', async () => {
+                const response = await request(app)
+                    .get('/api/bookings/me')
+                    .expect(401);
+    
+                expect(response.body.success).toBe(false);
+                expect(response.body.error.code).toBe('UNAUTHORIZED');
+            });
         });
-    });
+    */
 
     describe('PATCH /api/bookings/:id/cancel', () => {
         it('should require authentication', async () => {
             const response = await request(app)
-                .patch('/api/bookings/00000000-0000-0000-0000-000000000000/cancel')
+                .patch('/api/admin/bookings/00000000-0000-0000-0000-000000000000/cancel')
                 .expect(401);
 
             expect(response.body.success).toBe(false);

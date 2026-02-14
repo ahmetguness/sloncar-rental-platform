@@ -8,7 +8,7 @@ import { env } from './config/env.js';
 import { swaggerSpec } from './config/swagger.js';
 import { errorHandler, requestLogger } from './middlewares/index.js';
 
-// Import routes
+
 import authRoutes from './modules/auth/auth.routes.js';
 import carsRoutes from './modules/cars/cars.routes.js';
 import bookingsRoutes, {
@@ -25,15 +25,14 @@ import uploadRoutes from './modules/upload/upload.routes.js';
 
 const app = express();
 
-// Security middleware
+
 app.use(helmet());
 app.use(cors({
     origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(','),
     credentials: true,
 }));
 
-// Rate limiting - DISABLED FOR DEVELOPMENT
-// TODO: Re-enable for production
+
 const limiter = rateLimit({
     windowMs: env.RATE_LIMIT_WINDOW_MS,
     max: env.RATE_LIMIT_MAX_REQUESTS,
@@ -49,23 +48,33 @@ const limiter = rateLimit({
 });
 
 
-if (env.NODE_ENV === 'production') {
-    app.use(limiter);
-}
+// Rate limiter temporarily disabled
+// if (env.NODE_ENV === 'production') {
+//     app.use(limiter);
+// }
 
-// Body parsing
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging
-app.use(requestLogger);
 
-// Health check endpoint
+// Logger integration
+import morgan from 'morgan';
+import { Logger } from './lib/logger.js';
+
+// Stream for morgan to use our custom logger
+const stream = {
+    write: (message: string) => Logger.http(message.trim()),
+};
+
+app.use(morgan('combined', { stream }));
+
+
 app.get('/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API Documentation
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     explorer: true,
     customCss: '.swagger-ui .topbar { display: none }',
@@ -74,7 +83,7 @@ app.get('/api-docs.json', (_req, res) => {
     res.json(swaggerSpec);
 });
 
-// API Routes
+
 app.use('/api/auth', authRoutes);
 app.use('/api/cars', carsRoutes);
 app.use('/api/cars/:id/availability', carAvailabilityRouter);
@@ -84,12 +93,12 @@ app.use('/api/branches', branchesRoutes);
 app.use('/api/franchise-applications', franchiseRoutes);
 app.use('/api/upload', uploadRoutes);
 
-// Admin Routes
+
 app.use('/api/admin/bookings', adminBookingsRouter);
 app.use('/api/admin/franchise-applications', adminFranchiseRouter);
-app.use('/api/admin', adminRoutes); // Dashboard and other general admin routes
+app.use('/api/admin', adminRoutes);
 
-// 404 handler
+
 app.use((_req, res) => {
     res.status(404).json({
         success: false,
@@ -100,7 +109,7 @@ app.use((_req, res) => {
     });
 });
 
-// Error handler (must be last)
+
 app.use(errorHandler);
 
 export default app;
