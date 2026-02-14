@@ -10,6 +10,7 @@ import { CarCard } from '../components/CarCard';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Loader2, Search, SlidersHorizontal, RotateCcw, Plus, Minus, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { CampaignCarousel } from '../components/CampaignCarousel';
 
 // Register Turkish locale
 registerLocale('tr', tr);
@@ -548,6 +549,11 @@ export const Home = () => {
                     </div>
                 </div>
             )}
+
+            {/* Campaign Carousel Section */}
+            <div className="container mx-auto px-4 mt-12 md:mt-24">
+                <CampaignCarousel />
+            </div>
 
             {/* Brand Carousel Section */}
             <div className="container mx-auto px-6 mt-16 mb-0 relative group/carousel">

@@ -286,3 +286,21 @@ model FranchiseAuditLog {
   @@index([applicationId])
   @@index([createdAt])
 }
+
+/// Campaign represents a homepage banner
+model Campaign {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  imageUrl    String
+  ctaText     String?
+  ctaLink     String?
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([order])
+}

@@ -8,6 +8,7 @@ import { Franchise } from './pages/Franchise';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminCars } from './pages/AdminCars';
+import { AdminCampaigns } from './pages/AdminCampaigns';
 
 function App() {
   return (
@@ -25,9 +26,10 @@ function App() {
           <Route path="admin/login" element={<AdminLogin />} />
           <Route path="admin/dashboard" element={<AdminDashboard />} />
           <Route path="admin/cars" element={<AdminCars />} />
+          <Route path="admin/campaigns" element={<AdminCampaigns />} />
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<div>Page Not Found: {window.location.pathname}</div>} />
         </Route>
       </Routes>
     </BrowserRouter>

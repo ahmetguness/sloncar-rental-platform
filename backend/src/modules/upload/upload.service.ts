@@ -9,7 +9,7 @@ export const uploadImage = async (filePath: string): Promise<string> => {
             folder: 'rent-a-car/cars',
             resource_type: 'image',
             transformation: [
-                { width: 1200, crop: "limit" }, // Resize if too big
+                { width: 1920, crop: "limit" }, // Resize if too big
                 { quality: "auto", fetch_format: "auto" } // Auto optimize
             ]
         });
