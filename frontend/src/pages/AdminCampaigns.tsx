@@ -19,6 +19,8 @@ export const AdminCampaigns = () => {
         title: '',
         description: '',
         imageUrl: '',
+        tag: '',
+        requiredCondition: '',
         isActive: true
     });
     const [saving, setSaving] = useState(false);
@@ -47,9 +49,11 @@ export const AdminCampaigns = () => {
             title: campaign.title,
             description: campaign.description,
             imageUrl: campaign.imageUrl,
+            tag: campaign.tag || '',
+            requiredCondition: campaign.requiredCondition || '',
             isActive: campaign.isActive
         });
-        setPreviewUrl(campaign.imageUrl);
+        setPreviewUrl(campaign.imageUrl || null);
         setImageFile(null);
         setIsModalOpen(true);
     };
@@ -60,6 +64,8 @@ export const AdminCampaigns = () => {
             title: '',
             description: '',
             imageUrl: '',
+            tag: '',
+            requiredCondition: '',
             isActive: true
         });
         setPreviewUrl(null);
@@ -105,11 +111,12 @@ export const AdminCampaigns = () => {
 
             const dataToSubmit = { ...formData, imageUrl: finalImageUrl };
 
-            if (!dataToSubmit.imageUrl) {
-                addToast('Lütfen bir görsel seçin', 'error');
-                setSaving(false);
-                return;
-            }
+            // Image is no longer required
+            // if (!dataToSubmit.imageUrl) {
+            //     addToast('Lütfen bir görsel seçin', 'error');
+            //     setSaving(false);
+            //     return;
+            // }
 
             if (editingCampaign) {
                 await campaignService.update(editingCampaign.id, dataToSubmit);
@@ -184,7 +191,13 @@ export const AdminCampaigns = () => {
                                         campaigns.map((campaign) => (
                                             <tr key={campaign.id} className="hover:bg-white/5 transition-colors">
                                                 <td className="p-4">
-                                                    <img src={campaign.imageUrl} alt={campaign.title} className="w-24 h-16 object-cover rounded-lg border border-white/10" />
+                                                    {campaign.imageUrl ? (
+                                                        <img src={campaign.imageUrl} alt={campaign.title} className="w-24 h-16 object-cover rounded-lg border border-white/10" />
+                                                    ) : (
+                                                        <div className="w-24 h-16 rounded-lg border border-white/10 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-xs text-gray-500">
+                                                            Görsel Yok
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="font-bold text-white">{campaign.title}</div>
@@ -239,7 +252,7 @@ export const AdminCampaigns = () => {
 
                     {/* Image Upload */}
                     <div className="space-y-2">
-                        <label className="text-sm text-gray-400">Kampanya Görseli</label>
+                        <label className="text-sm text-gray-400">Kampanya Görseli (Opsiyonel)</label>
                         <div className="border-2 border-dashed border-white/10 rounded-xl p-6 flex flex-col items-center justify-center gap-4 hover:border-primary-500/50 transition-colors bg-dark-bg/50">
                             {previewUrl ? (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden group">

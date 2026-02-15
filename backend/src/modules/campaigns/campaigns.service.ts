@@ -16,9 +16,11 @@ export async function listAllCampaigns() {
 export async function createCampaign(data: {
     title: string;
     description: string;
-    imageUrl: string;
+    imageUrl?: string;
     ctaText?: string;
     ctaLink?: string;
+    tag?: string;
+    requiredCondition?: string;
     order?: number;
     isActive?: boolean;
 }) {
@@ -33,6 +35,8 @@ export async function updateCampaign(id: string, data: {
     imageUrl?: string;
     ctaText?: string;
     ctaLink?: string;
+    tag?: string;
+    requiredCondition?: string;
     order?: number;
     isActive?: boolean;
 }) {

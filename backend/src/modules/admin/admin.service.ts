@@ -52,6 +52,8 @@ export interface RevenueAnalytics {
     weekly: { week: string; revenue: number; bookings: number }[];
     monthly: { month: string; revenue: number; bookings: number }[];
     yearly: { year: number; revenue: number; bookings: number }[];
+    byCategory: { name: string; value: number }[];
+    byBrand: { name: string; value: number }[];
     availableYears: number[];
     summary: {
         currentMonth: number;
@@ -156,7 +158,13 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
         },
         select: {
             pickupDate: true,
-            totalPrice: true
+            totalPrice: true,
+            car: {
+                select: {
+                    brand: true,
+                    category: true
+                }
+            }
         }
     });
 
@@ -172,6 +180,31 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
             bookings: bookingsInMonth.length
         };
     });
+
+    // Calculate Category and Brand stats from the SAME dataset (bookings of the selected year)
+    const categoryMap = new Map<string, number>();
+    const brandMap = new Map<string, number>();
+
+    monthlyBookings.forEach(b => {
+        const revenue = Number(b.totalPrice || 0);
+
+        // Category
+        const category = b.car?.category || 'Diğer';
+        categoryMap.set(category, (categoryMap.get(category) || 0) + revenue);
+
+        // Brand
+        const brand = b.car?.brand || 'Diğer';
+        brandMap.set(brand, (brandMap.get(brand) || 0) + revenue);
+    });
+
+    const byCategory = Array.from(categoryMap.entries())
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
+
+    const byBrand = Array.from(brandMap.entries())
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 10); // Top 10 brands
 
     // 2. Weekly Data (Last 12 weeks)
     const weeksAgo12 = new Date();
@@ -322,6 +355,8 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
         weekly,
         monthly,
         yearly,
+        byCategory,
+        byBrand,
         availableYears: uniqueYears,
         summary: {
             currentMonth: currentMonthRevenue,

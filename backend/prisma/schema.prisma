@@ -307,9 +307,11 @@ model Campaign {
   id          String   @id @default(uuid())
   title       String
   description String
-  imageUrl    String
+  imageUrl    String?
   ctaText     String?
   ctaLink     String?
+  tag         String?  // e.g. "YENİ HİZMET"
+  requiredCondition String? // e.g. "HAS_SALE_CARS"
   isActive    Boolean  @default(true)
   order       Int      @default(0)
 

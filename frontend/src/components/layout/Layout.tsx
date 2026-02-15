@@ -1,13 +1,14 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { adminService } from '../../services/api';
+import { adminService, carService } from '../../services/api';
 import logo from '../../assets/logo/logo.jpg';
 import { Footer } from './Footer';
 
 export const Layout = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [hasSaleCars, setHasSaleCars] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     const isAdmin = location.pathname.startsWith('/admin');
@@ -15,8 +16,24 @@ export const Layout = () => {
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
+
+        // Check for sale cars
+        const checkSaleCars = async () => {
+            try {
+                const result = await carService.getAll({ type: 'SALE', limit: 1 });
+                // Check if we have data and verify total > 0 or data length > 0
+                // @ts-ignore - pagination might be optional in type but exists in response
+                const total = result.pagination?.total ?? result.data?.length ?? 0;
+                setHasSaleCars(total > 0);
+            } catch (error) {
+                console.error('Failed to check sale cars', error);
+                setHasSaleCars(false);
+            }
+        };
+        checkSaleCars();
+
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    }, [location.pathname]);
 
     const handleLogout = () => {
         adminService.logout();
@@ -47,8 +64,10 @@ export const Layout = () => {
                                     }`}>Araçlar</Link>
                                 <Link to="/my-booking" className={`font-medium transition-colors hover:text-primary-600 ${scrolled ? 'text-gray-600' : 'text-white/90'
                                     }`}>Rezervasyonum</Link>
-                                <Link to="/second-hand" className={`font-medium transition-colors hover:text-primary-600 ${scrolled ? 'text-gray-600' : 'text-white/90'
-                                    }`}>2. El Satış</Link>
+                                {hasSaleCars && (
+                                    <Link to="/second-hand" className={`font-medium transition-colors hover:text-primary-600 ${scrolled ? 'text-gray-600' : 'text-white/90'
+                                        }`}>2. El Satış</Link>
+                                )}
                                 <Link to="/franchise" className={`font-medium transition-colors hover:text-primary-600 ${scrolled ? 'text-gray-600' : 'text-white/90'
                                     }`}>Franchise</Link>
                             </>
@@ -79,7 +98,9 @@ export const Layout = () => {
                             <>
                                 <Link to="/#fleet" className="block py-3 text-lg font-medium text-gray-200 border-b border-white/5 hover:text-primary-400" onClick={() => setIsMenuOpen(false)}>Araç Filosu</Link>
                                 <Link to="/my-booking" className="block py-3 text-lg font-medium text-gray-200 border-b border-white/5 hover:text-primary-400" onClick={() => setIsMenuOpen(false)}>Rezervasyon Sorgula</Link>
-                                <Link to="/second-hand" className="block py-3 text-lg font-medium text-gray-200 border-b border-white/5 hover:text-primary-400" onClick={() => setIsMenuOpen(false)}>2. El Satış</Link>
+                                {hasSaleCars && (
+                                    <Link to="/second-hand" className="block py-3 text-lg font-medium text-gray-200 border-b border-white/5 hover:text-primary-400" onClick={() => setIsMenuOpen(false)}>2. El Satış</Link>
+                                )}
                                 <Link to="/franchise" className="block py-3 text-lg font-medium text-gray-200 border-b border-white/5 hover:text-primary-400" onClick={() => setIsMenuOpen(false)}>Franchise Başvurusu</Link>
                             </>
                         ) : (

@@ -82,18 +82,25 @@ export const CampaignCarousel = () => {
             >
                 {campaigns.map((campaign) => (
                     <div key={campaign.id} className="w-full h-full flex-shrink-0 relative" style={{ width: `${100 / campaigns.length}%` }}>
-                        {/* Background Image with Overlay */}
-                        <div className="absolute inset-0">
-                            <img
-                                src={campaign.imageUrl}
-                                alt={campaign.title}
-                                className="w-full h-full object-cover object-center"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+                        {/* Background Image or Gradient Overlay */}
+                        <div className={`absolute inset-0 ${!campaign.imageUrl ? 'bg-gradient-to-br from-primary-900 via-dark-surface to-dark-bg' : ''}`}>
+                            {campaign.imageUrl && (
+                                <>
+                                    <img
+                                        src={campaign.imageUrl}
+                                        alt={campaign.title}
+                                        className="w-full h-full object-cover object-center"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+                                </>
+                            )}
+                            {!campaign.imageUrl && (
+                                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary-500/20 via-transparent to-transparent" />
+                            )}
                         </div>
 
                         {/* Content */}
-                        <div className="absolute inset-0 flex flex-col justify-center px-12 md:px-24 max-w-3xl relative z-30">
+                        <div className="absolute inset-0 flex flex-col justify-start items-start text-left pt-24 px-12 md:pl-32 relative z-30 max-w-4xl">
                             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 animate-fade-in-up">
                                 {campaign.title}
                             </h2>

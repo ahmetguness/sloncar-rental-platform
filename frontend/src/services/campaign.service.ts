@@ -10,9 +10,11 @@ export interface Campaign {
     id: string;
     title: string;
     description: string;
-    imageUrl: string;
+    imageUrl?: string;
     ctaText?: string;
     ctaLink?: string;
+    tag?: string;
+    requiredCondition?: string;
     isActive: boolean;
     order: number;
     createdAt: string;

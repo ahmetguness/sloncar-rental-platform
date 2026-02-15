@@ -309,8 +309,8 @@ export const Booking = () => {
                     {/* Content */}
                     <div className="p-5">
                         <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-white leading-tight mb-1">{car.brand}</h2>
-                            <p className="text-lg text-gray-400 font-medium">{car.model}</p>
+                            <h2 className="text-2xl font-bold text-white leading-tight mb-1 break-words">{car.brand}</h2>
+                            <p className="text-lg text-gray-400 font-medium break-words">{car.model}</p>
                         </div>
 
                         {/* Specs Grid */}

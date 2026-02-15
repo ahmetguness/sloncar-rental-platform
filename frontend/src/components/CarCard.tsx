@@ -1,6 +1,5 @@
 import type { Car } from '../services/types';
-import { Button } from './ui/Button';
-import { Fuel, Users, Cog, Car as CarIcon, ArrowRight, Gauge, Check } from 'lucide-react';
+import { Fuel, Cog, Car as CarIcon, ArrowRight, Gauge, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { translateCategory, translateFuel } from '../utils/translate';
 
@@ -15,14 +14,18 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
     // Fallback to helper if prop not provided (or for now, just prioritize prop)
     const logoUrl = brandLogoUrl || getBrandLogo(car.brand);
 
-    return (
-        <div className="group relative bg-dark-surface-lighter rounded-3xl shadow-lg border border-white/5 hover:border-primary-500/30 overflow-hidden flex flex-col h-full hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_0_30px_rgba(30,27,75,0.5)]">
+    const targetLink = car.type === 'SALE' ? `/car/${car.id}` : `/book/${car.id}`;
 
+    return (
+        <Link
+            to={targetLink}
+            className="group block h-full relative bg-dark-surface-lighter rounded-3xl shadow-lg border border-white/5 hover:border-primary-500/30 overflow-hidden hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_0_30px_rgba(30,27,75,0.5)]"
+        >
             {/* Glow Effect behind card */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
             {/* Image Area */}
-            <div className="h-64 bg-dark-bg relative overflow-hidden">
+            <div className="h-56 bg-dark-bg relative overflow-hidden">
                 {car.images && car.images.length > 0 ? (
                     <>
                         <div className="absolute inset-0 bg-gradient-to-t from-dark-surface-lighter to-transparent z-10 opacity-60" />
@@ -39,85 +42,83 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
                     </div>
                 )}
 
-                {/* Overlay Badge */}
-                <div className="absolute top-4 left-4 z-20">
-                    <span className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-lg uppercase tracking-wider border border-white/10 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+                {/* Top Badges */}
+                <div className="absolute top-4 left-4 z-20 flex gap-2">
+                    <span className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-lg uppercase tracking-wider border border-white/10 flex items-center gap-1.5">
                         {translateCategory(car.category)}
                     </span>
+                    {car.isFeatured && (
+                        <span className="bg-primary-500/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-lg border border-primary-400/20 flex items-center gap-1 animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                            Fırsat
+                        </span>
+                    )}
                 </div>
 
-                <div className="absolute bottom-4 right-4 z-20">
-                    <span className="bg-primary-600/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-lg flex items-center gap-1.5 border border-primary-400/20">
-                        <Check size={12} className="stroke-[3px]" /> Müsait
-                    </span>
+                {/* Bottom Badge (Status or Mileage) */}
+                <div className="absolute bottom-4 left-4 z-20">
+                    {car.type === 'SALE' ? (
+                        <div className="bg-dark-surface/80 backdrop-blur px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-lg flex items-center gap-1.5 border border-white/10">
+                            <Gauge className="w-3.5 h-3.5 text-primary-500" />
+                            {car.mileage.toLocaleString()} KM
+                        </div>
+                    ) : (
+                        <span className="bg-green-600/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-lg flex items-center gap-1.5 border border-green-400/20">
+                            <Check size={12} className="stroke-[3px]" /> Müsait
+                        </span>
+                    )}
                 </div>
             </div>
 
             {/* Content Area */}
-            <div className="p-6 flex flex-col flex-grow relative z-10">
-                <div className="mb-5">
-                    <div className="flex justify-between items-center mb-1">
-                        <div className="flex items-center gap-3">
-                            {logoUrl && (
-                                <div className="p-1.5 bg-white/5 rounded-lg border border-white/5 group-hover:border-primary-500/20 transition-colors">
-                                    <img
-                                        src={logoUrl}
-                                        alt={car.brand}
-                                        className="w-8 h-8 object-contain"
-                                    />
-                                </div>
-                            )}
-                            <div>
-                                <h3 className="text-xl font-bold text-white group-hover:text-primary-400 transition-colors leading-tight">
-                                    {car.brand}
-                                </h3>
-                                <div className="text-sm text-gray-400 font-medium">{car.model} <span className="text-gray-600">•</span> {car.year}</div>
-                            </div>
+            <div className="p-5 flex flex-col relative z-10">
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 className="text-xl font-black text-white group-hover:text-primary-400 transition-colors leading-tight mb-1 truncate" title={`${car.brand} ${car.model}`}>
+                            {car.brand} <span className="font-medium text-gray-300">{car.model}</span>
+                        </h3>
+                        <div className="text-sm text-gray-500 font-medium flex items-center gap-2">
+                            {car.year}
+                            <span className="w-1 h-1 rounded-full bg-gray-600" />
+                            <span className="capitalize">{car.color}</span>
                         </div>
                     </div>
+                    {logoUrl && (
+                        <div className="p-1.5 bg-white/5 rounded-lg border border-white/10">
+                            <img src={logoUrl} alt={car.brand} className="w-6 h-6 object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                    )}
                 </div>
 
-                {/* Specs Grid */}
-                <div className="grid grid-cols-2 gap-2 mb-6">
-                    <div className="bg-dark-bg/50 border border-white/5 rounded-xl p-2.5 flex items-center gap-3">
-                        <Cog className="w-4 h-4 text-primary-500/70" />
-                        <span className="text-xs font-medium text-gray-400">
-                            {car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'}
-                        </span>
+                {/* Specs Grid - Simplified */}
+                <div className="grid grid-cols-2 gap-2 mb-5">
+                    <div className="flex items-center gap-2 text-xs text-gray-400 bg-dark-bg/50 px-3 py-2 rounded-lg border border-white/5">
+                        <Cog className="w-3.5 h-3.5 text-primary-500" />
+                        {car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'}
                     </div>
-                    <div className="bg-dark-bg/50 border border-white/5 rounded-xl p-2.5 flex items-center gap-3">
-                        <Fuel className="w-4 h-4 text-primary-500/70" />
-                        <span className="text-xs font-medium text-gray-400 capitalize">
-                            {translateFuel(car.fuel)}
-                        </span>
-                    </div>
-                    <div className="bg-dark-bg/50 border border-white/5 rounded-xl p-2.5 flex items-center gap-3">
-                        <Users className="w-4 h-4 text-primary-500/70" />
-                        <span className="text-xs font-medium text-gray-400">{car.seats} Kişilik</span>
-                    </div>
-                    <div className="bg-dark-bg/50 border border-white/5 rounded-xl p-2.5 flex items-center gap-3">
-                        <Gauge className="w-4 h-4 text-primary-500/70" />
-                        <span className="text-xs font-medium text-gray-400">200+ km</span>
+                    <div className="flex items-center gap-2 text-xs text-gray-400 bg-dark-bg/50 px-3 py-2 rounded-lg border border-white/5">
+                        <Fuel className="w-3.5 h-3.5 text-primary-500" />
+                        <span className="capitalize">{translateFuel(car.fuel)}</span>
                     </div>
                 </div>
 
-                <div className="mt-auto pt-5 border-t border-white/5 flex items-end justify-between">
+                {/* Footer with Price */}
+                <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
                     <div>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">
-                            {car.type === 'SALE' ? 'Satış Fiyatı' : 'Günlük'}
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">
+                            {car.type === 'SALE' ? 'Satış Fiyatı' : 'Günlük Kiralama'}
                         </p>
-                        <p className="text-2xl font-bold text-white tracking-tight flex items-baseline gap-1">
-                            {Number(car.type === 'SALE' ? car.salePrice : car.dailyPrice).toLocaleString()} <span className="text-sm font-semibold text-primary-500">₺</span>
-                        </p>
+                        <div className="text-2xl font-black text-white flex items-baseline gap-1">
+                            {Number(car.type === 'SALE' ? car.salePrice : car.dailyPrice).toLocaleString()}
+                            <span className="text-sm font-bold text-primary-500">₺</span>
+                        </div>
                     </div>
-                    <Link to={car.type === 'SALE' ? `/car/${car.id}` : `/book/${car.id}`}>
-                        <Button className="rounded-xl px-4 h-10 bg-white text-dark-bg font-bold hover:bg-primary-500 hover:text-white hover:scale-105 transition-all shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]">
-                            <ArrowRight className="w-5 h-5" />
-                        </Button>
-                    </Link>
+
+                    <div className="w-10 h-10 rounded-full bg-white text-dark-bg flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-all transform group-hover:scale-110 shadow-lg">
+                        <ArrowRight className="w-5 h-5" />
+                    </div>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 };

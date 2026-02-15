@@ -68,7 +68,10 @@ const brands = [
 // Override Mercedes with a more robust one if needed
 const mercedesUrl = 'https://upload.wikimedia.org/wikipedia/commons/3/32/Mercedes-Benz_Star_2022.svg';
 // Be careful, I should update the list above instead of hardcoding here.
-brands.find(b => b.name === 'Mercedes').url = mercedesUrl;
+const mercedes = brands.find(b => b.name === 'Mercedes');
+if (mercedes) {
+    mercedes.url = mercedesUrl;
+}
 
 async function downloadImage(url: string, filepath: string): Promise<void> {
     const res = await fetch(url, {
@@ -120,7 +123,7 @@ async function main() {
             // 5s delay to be safe
             await new Promise(resolve => setTimeout(resolve, 5000));
         } catch (err) {
-            console.error(`❌ Error downloading ${brand.name}:`, err.message);
+            console.error(`❌ Error downloading ${brand.name}:`, (err as Error).message);
             failed.push(brand.name);
         }
     }

@@ -171,7 +171,7 @@ export const CarDetail = () => {
                             {/* Accident Description */}
                             <div className="bg-dark-surface/30 rounded-xl p-5 border border-white/5">
                                 <p className="text-sm font-bold text-gray-400 uppercase mb-2">Ekspertiz / Tramer Kaydı</p>
-                                <p className="text-gray-200 leading-relaxed">
+                                <p className="text-gray-200 leading-relaxed break-words whitespace-pre-wrap">
                                     {car.accidentDescription || "Hasar kaydı bilgisi girilmemiştir."}
                                 </p>
                             </div>
@@ -185,9 +185,9 @@ export const CarDetail = () => {
                                     {car.changedParts && car.changedParts.length > 0 ? (
                                         <ul className="space-y-2">
                                             {car.changedParts.map((part, i) => (
-                                                <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                                    {part}
+                                                <li key={i} className="flex items-start gap-2 text-gray-300 text-sm">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
+                                                    <span className="break-all w-full min-w-0">{part}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -202,9 +202,9 @@ export const CarDetail = () => {
                                     {car.paintedParts && car.paintedParts.length > 0 ? (
                                         <ul className="space-y-2">
                                             {car.paintedParts.map((part, i) => (
-                                                <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-                                                    {part}
+                                                <li key={i} className="flex items-start gap-2 text-gray-300 text-sm">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0" />
+                                                    <span className="break-all w-full min-w-0">{part}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -222,9 +222,9 @@ export const CarDetail = () => {
                                 {car.features && car.features.length > 0 ? (
                                     <div className="grid grid-cols-2 gap-3">
                                         {car.features.map((feature, i) => (
-                                            <div key={i} className="bg-dark-surface/50 px-3 py-2 rounded-lg border border-white/5 text-sm text-gray-300 flex items-center gap-2">
-                                                <CheckCircle className="w-3.5 h-3.5 text-blue-500" />
-                                                {feature}
+                                            <div key={i} className="bg-dark-surface/50 px-3 py-2 rounded-lg border border-white/5 text-sm text-gray-300 flex items-start gap-2 min-w-0">
+                                                <CheckCircle className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
+                                                <span className="break-all w-full min-w-0">{feature}</span>
                                             </div>
                                         ))}
                                     </div>

@@ -6,11 +6,14 @@ import { adminService, bookingService } from '../services/api';
 import type { DashboardStats, Booking } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, Settings, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign } from 'lucide-react';
-import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign } from 'lucide-react';
+import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { tr } from 'date-fns/locale';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+import html2canvas from 'html2canvas';
 
 registerLocale('tr', tr);
 
@@ -20,6 +23,8 @@ interface RevenueAnalytics {
     weekly: { week: string; revenue: number; bookings: number }[];
     monthly: { month: string; revenue: number; bookings: number }[];
     yearly: { year: number; revenue: number; bookings: number }[];
+    byCategory: { name: string; value: number }[];
+    byBrand: { name: string; value: number }[];
     availableYears: number[];
     summary: {
         currentMonth: number;
@@ -250,7 +255,7 @@ const BookingDetailModal = ({ booking, onClose, onUpdate }: { booking: Booking; 
                             </div>
                             <div>
                                 <label className="text-xs text-gray-500 block mb-1">E-posta</label>
-                                <p className="text-white">{booking.customerEmail}</p>
+                                <p className="text-white break-all">{booking.customerEmail}</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
@@ -295,6 +300,7 @@ const BookingDetailModal = ({ booking, onClose, onUpdate }: { booking: Booking; 
                         </div>
                     </div>
                 </div>
+
 
                 {/* Dates & Notes */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -664,10 +670,10 @@ const BookingRow = ({
             ? 'bg-primary-500/20 hover:bg-primary-500/30 shadow-[inset_0_0_20px_rgba(99,102,241,0.2)]'
             : 'hover:bg-white/5'
             }`}>
-            <td className="p-4">
+            <td className="p-4 text-center">
                 <button
                     onClick={() => handleCopyCode(booking.bookingCode, booking.id)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-bg border border-white/5 hover:border-primary-500/50 hover:bg-primary-500/10 transition-all group/btn"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-bg border border-white/5 hover:border-primary-500/50 hover:bg-primary-500/10 transition-all group/btn"
                     title="Kodu Kopyala"
                 >
                     <span className="font-mono font-bold text-primary-400">{booking.bookingCode}</span>
@@ -684,47 +690,48 @@ const BookingRow = ({
                         {initials}
                     </div>
                     <div>
-                        <div className="font-medium text-white">{name} {surname}</div>
-                        <div className="text-xs text-gray-500">{booking.customerPhone}</div>
+                        <div className="font-medium text-white truncate max-w-[150px]" title={`${name} ${surname}`}>{name} {surname}</div>
+                        <div className="text-xs text-gray-500 truncate max-w-[150px]" title={booking.customerPhone}>{booking.customerPhone}</div>
+                        <div className="text-[10px] text-gray-600 truncate max-w-[150px]" title={booking.customerEmail}>{booking.customerEmail}</div>
                     </div>
                 </div>
             </td>
             <td className="p-4">
                 <div className="flex items-center gap-2">
-                    <CarIcon className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-300">{booking.car?.brand} {booking.car?.model}</span>
+                    <CarIcon className="w-4 h-4 text-gray-500 shrink-0" />
+                    <span className="text-gray-300 truncate max-w-[150px]" title={`${booking.car?.brand} ${booking.car?.model}`}>{booking.car?.brand} {booking.car?.model}</span>
                 </div>
             </td>
-            <td className="p-4">
+            <td className="p-4 text-center">
                 <div className="flex flex-col items-center gap-2">
                     <div className="flex flex-col gap-1 text-sm">
-                        <div className="flex items-center gap-2 text-gray-400">
+                        <div className="flex items-center justify-center gap-2 text-gray-400">
                             <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
                             <span>{new Date(booking.pickupDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-400">
+                        <div className="flex items-center justify-center gap-2 text-gray-400">
                             <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
                             <span>{new Date(booking.dropoffDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
                         </div>
                     </div>
-                    <div className="text-xs font-medium text-gray-500 bg-white/5 px-2 py-1 rounded">
+                    <div className="text-xs font-medium text-gray-500 bg-white/5 px-2 py-1 rounded w-fit mx-auto">
                         {days} Gün
                     </div>
                 </div>
             </td>
-            <td className="p-4">
-                <div className="text-primary-400 font-bold whitespace-nowrap">{Number(booking.totalPrice).toLocaleString()} ₺</div>
+            <td className="p-4 text-center">
+                <div className="flex flex-col items-center gap-1.5">
+                    <div className="text-primary-400 font-bold whitespace-nowrap">{Number(booking.totalPrice).toLocaleString()} ₺</div>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border w-fit ${booking.paymentStatus === 'PAID'
+                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                        : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        } whitespace-nowrap`}>
+                        <span className={`w-1 h-1 rounded-full ${booking.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                        {booking.paymentStatus === 'PAID' ? 'Ödendi' : 'Ödenmedi'}
+                    </span>
+                </div>
             </td>
-            <td className="p-4">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${booking.paymentStatus === 'PAID'
-                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                    : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                    } whitespace-nowrap`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${booking.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                    {booking.paymentStatus === 'PAID' ? 'Ödendi' : 'Ödenmedi'}
-                </span>
-            </td>
-            <td className="p-4">
+            <td className="p-4 text-center">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
                     ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
                     : booking.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border-green-500/20'
@@ -747,18 +754,18 @@ const BookingRow = ({
                                     : 'Rezerve'}
                 </span>
             </td>
-            <td className="p-4">
+            <td className="p-4 text-center">
                 <Button
                     size="sm"
                     variant="outline"
-                    className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-white/10 text-white hover:bg-white/10 whitespace-nowrap"
+                    className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-white/10 text-white hover:bg-white/10 whitespace-nowrap mx-auto"
                     onClick={() => onView(booking)}
                 >
                     Detaylar
                 </Button>
             </td>
-            <td className="p-4">
-                <div className="flex items-center gap-2 whitespace-nowrap">
+            <td className="p-4 text-center">
+                <div className="flex items-center justify-center gap-2 whitespace-nowrap">
                     {booking.status === 'RESERVED' && booking.paymentStatus === 'PAID' && (
                         (() => {
                             const today = new Date();
@@ -1381,26 +1388,123 @@ export const AdminDashboard = () => {
                                             ))}
                                         </div>
                                         <button
-                                            onClick={() => {
-                                                const headers = ['Dönem', 'Gelir', 'Rezervasyon'];
-                                                const data = getChartData().map((d: any) => [
-                                                    d[getDataKey()],
-                                                    d.revenue,
-                                                    d.bookings
-                                                ]);
-                                                const csvContent = [
-                                                    headers.join(','),
-                                                    ...data.map(row => row.join(','))
-                                                ].join('\n');
+                                            onClick={async () => {
+                                                if (!revenueData) return;
 
-                                                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                                                const link = document.createElement('a');
-                                                link.href = URL.createObjectURL(blob);
-                                                link.download = `gelir_analizi_${chartView}_${selectedYear}.csv`;
-                                                link.click();
+                                                const workbook = new ExcelJS.Workbook();
+                                                const worksheet = workbook.addWorksheet('Gelir Raporu');
+
+                                                // 1. Add Title
+                                                worksheet.mergeCells('A1:E1');
+                                                const titleCell = worksheet.getCell('A1');
+                                                titleCell.value = `SlonCar Gelir Raporu (${selectedYear}) - ${chartView === 'weekly' ? 'Haftalık' : chartView === 'monthly' ? 'Aylık' : 'Yıllık'}`;
+                                                titleCell.font = { name: 'Arial', family: 4, size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+                                                titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } }; // Dark gray bg
+                                                titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+                                                worksheet.getRow(1).height = 30;
+
+                                                // 2. Add Summary Data
+                                                worksheet.addRow(['']);
+                                                const summaryRow = worksheet.addRow(['Toplam Ciro', 'Adet', 'Büyüme', 'Şu Anki Dönem', 'Geçen Dönem']);
+                                                summaryRow.font = { bold: true };
+
+                                                const summaryDataRow = worksheet.addRow([
+                                                    revenueData.summary.currentYear,
+                                                    revenueData.yearly.reduce((acc, curr) => acc + curr.bookings, 0),
+                                                    revenueData.summary.growth / 100, // For percentage format
+                                                    revenueData.summary.currentMonth,
+                                                    revenueData.summary.lastMonth
+                                                ]);
+
+                                                // Format Summary
+                                                summaryDataRow.getCell(1).numFmt = '#,##0 "₺"';
+                                                summaryDataRow.getCell(3).numFmt = '0.0%';
+                                                summaryDataRow.getCell(4).numFmt = '#,##0 "₺"';
+                                                summaryDataRow.getCell(5).numFmt = '#,##0 "₺"';
+
+                                                // 3. Add Main Table Data
+                                                worksheet.addRow(['']);
+                                                worksheet.addRow(['']); // Spacer
+
+                                                const headers = ['Dönem', 'Gelir', 'Rezervasyon Sayısı', 'Ortalama Gelir'];
+                                                const headerRow = worksheet.addRow(headers);
+                                                headerRow.eachCell((cell) => {
+                                                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                                                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4B5563' } }; // Gray-600
+                                                    cell.alignment = { horizontal: 'center' };
+                                                });
+
+                                                const chartData = getChartData();
+                                                chartData.forEach((d: any) => {
+                                                    const row = worksheet.addRow([
+                                                        d[getDataKey()],
+                                                        d.revenue,
+                                                        d.bookings,
+                                                        d.bookings > 0 ? d.revenue / d.bookings : 0
+                                                    ]);
+                                                    row.getCell(2).numFmt = '#,##0 "₺"';
+                                                    row.getCell(4).numFmt = '#,##0 "₺"';
+                                                    row.getCell(1).alignment = { horizontal: 'center' };
+                                                    row.getCell(3).alignment = { horizontal: 'center' };
+                                                });
+
+                                                // Auto-width columns
+                                                worksheet.columns.forEach(column => {
+                                                    column.width = 20;
+                                                });
+                                                worksheet.getColumn(1).width = 25; // Period column slightly wider
+
+                                                // 4. Capture and Add Charts
+                                                try {
+                                                    const mainChart = document.getElementById('main-revenue-chart');
+                                                    if (mainChart) {
+                                                        const canvas = await html2canvas(mainChart, { backgroundColor: '#111827' }); // Use dark bg
+                                                        const imageId = workbook.addImage({
+                                                            base64: canvas.toDataURL('image/png'),
+                                                            extension: 'png',
+                                                        });
+                                                        worksheet.addImage(imageId, {
+                                                            tl: { col: 6, row: 2 }, // Start at column G, row 3
+                                                            ext: { width: 600, height: 300 }
+                                                        });
+                                                    }
+
+                                                    const pieChart = document.getElementById('category-pie-chart');
+                                                    if (pieChart) {
+                                                        const canvas = await html2canvas(pieChart, { backgroundColor: '#1f2937' });
+                                                        const imageId = workbook.addImage({
+                                                            base64: canvas.toDataURL('image/png'),
+                                                            extension: 'png',
+                                                        });
+                                                        worksheet.addImage(imageId, {
+                                                            tl: { col: 6, row: 20 },
+                                                            ext: { width: 400, height: 250 }
+                                                        });
+                                                    }
+
+                                                    const barChart = document.getElementById('brand-bar-chart');
+                                                    if (barChart) {
+                                                        const canvas = await html2canvas(barChart, { backgroundColor: '#1f2937' });
+                                                        const imageId = workbook.addImage({
+                                                            base64: canvas.toDataURL('image/png'),
+                                                            extension: 'png',
+                                                        });
+                                                        worksheet.addImage(imageId, {
+                                                            tl: { col: 12, row: 20 }, // Offset for side-by-side
+                                                            ext: { width: 400, height: 250 }
+                                                        });
+                                                    }
+                                                } catch (error) {
+                                                    console.error("Error capturing charts:", error);
+                                                    toast("Grafikler, Excel'e eklenirken bir hata oluştu ama veriler indirildi.", "error");
+                                                }
+
+                                                // Generate Buffer
+                                                const buffer = await workbook.xlsx.writeBuffer();
+                                                saveAs(new Blob([buffer]), `SlonCar_Gelir_Raporu_${selectedYear}.xlsx`);
                                             }}
                                             className="p-2.5 rounded-xl bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all"
-                                            title="Excel/CSV İndir"
+                                            title="Excel İndir (Grafikli)"
                                         >
                                             <Download className="w-5 h-5" />
                                         </button>
@@ -1408,7 +1512,7 @@ export const AdminDashboard = () => {
                                 </div>
                             </div>
                             <div className="p-6">
-                                <div className="h-80">
+                                <div className="h-80" id="main-revenue-chart">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <ComposedChart data={getChartData()}>
                                             <defs>
@@ -1489,7 +1593,7 @@ export const AdminDashboard = () => {
                                 <p className="text-xs text-gray-500 mt-1">Hasılatın araç türüne göre dağılımı</p>
                             </div>
                             <div className="p-6">
-                                <div className="h-64 relative">
+                                <div className="h-[200px] relative" id="category-pie-chart">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
@@ -1641,15 +1745,14 @@ export const AdminDashboard = () => {
                         <table className="w-full text-left min-w-[1200px]">
                             <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                 <tr>
-                                    <th className="p-4">Kod</th>
+                                    <th className="p-4 text-center">Kod</th>
                                     <th className="p-4">Müşteri</th>
                                     <th className="p-4">Araç</th>
-                                    <th className="p-4">Tarihler</th>
-                                    <th className="p-4">Tutar</th>
-                                    <th className="p-4">Ödeme</th>
-                                    <th className="p-4">Durum</th>
-                                    <th className="p-4">Detaylar</th>
-                                    <th className="p-4">İşlem</th>
+                                    <th className="p-4 text-center">Tarihler</th>
+                                    <th className="p-4 text-center">Ödeme & Tutar</th>
+                                    <th className="p-4 text-center">Durum</th>
+                                    <th className="p-4 text-center">Detaylar</th>
+                                    <th className="p-4 text-center">İşlem</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5 relative">
@@ -1815,15 +1918,15 @@ export const AdminDashboard = () => {
                                                     : 'hover:bg-white/5'
                                                     }`}
                                             >
-                                                <td className="p-4">
-                                                    <div className="font-medium text-white">{app.contactName}</div>
-                                                    {app.companyName && <div className="text-xs text-gray-400">{app.companyName}</div>}
+                                                <td className="p-4 max-w-[200px]">
+                                                    <div className="font-medium text-white truncate" title={app.contactName}>{app.contactName}</div>
+                                                    {app.companyName && <div className="text-xs text-gray-400 truncate" title={app.companyName}>{app.companyName}</div>}
                                                 </td>
-                                                <td className="p-4">
-                                                    <div className="text-sm text-gray-300">{app.contactEmail}</div>
-                                                    <div className="text-xs text-gray-500">{app.contactPhone}</div>
+                                                <td className="p-4 max-w-[200px]">
+                                                    <div className="text-sm text-gray-300 truncate" title={app.contactEmail}>{app.contactEmail}</div>
+                                                    <div className="text-xs text-gray-500 truncate">{app.contactPhone}</div>
                                                 </td>
-                                                <td className="p-4 text-gray-300">{app.city || '-'}</td>
+                                                <td className="p-4 text-gray-300 truncate max-w-[150px]" title={app.city}>{app.city || '-'}</td>
                                                 <td className="p-4 text-sm text-gray-400">{app.details?.investmentBudget || '-'}</td>
                                                 <td className="p-4">
                                                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${statusInfo.color === 'green' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
@@ -1991,13 +2094,13 @@ export const AdminDashboard = () => {
                                         {selectedFranchise.details?.experience && (
                                             <div className="mb-4">
                                                 <span className="text-gray-500 text-sm block mb-1">Deneyim:</span>
-                                                <p className="text-gray-300 text-sm">{selectedFranchise.details.experience}</p>
+                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.experience}</p>
                                             </div>
                                         )}
                                         {selectedFranchise.details?.message && (
                                             <div>
                                                 <span className="text-gray-500 text-sm block mb-1">Mesaj:</span>
-                                                <p className="text-gray-300 text-sm">{selectedFranchise.details.message}</p>
+                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.message}</p>
                                             </div>
                                         )}
                                     </div>
