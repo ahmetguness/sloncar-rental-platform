@@ -85,7 +85,10 @@ export async function listCars(query: CarQueryInput): Promise<PaginatedResponse<
     const cars = await prisma.car.findMany({
         where,
         include: { branch: true },
-        orderBy: { [sortBy]: sortOrder },
+        orderBy: [
+            { isFeatured: 'desc' },
+            { [sortBy]: sortOrder }
+        ],
         skip: (page - 1) * limit,
         take: limit,
     });

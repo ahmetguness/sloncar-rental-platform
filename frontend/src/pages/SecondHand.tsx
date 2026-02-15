@@ -1,42 +1,27 @@
-import { useEffect, useState, useRef, useMemo } from 'react'; // Reusing Home.tsx logic but simplified
-import { translateCategory } from '../utils/translate';
+import { useEffect, useState } from 'react'; // Reusing Home.tsx logic but simplified
 import { carService, brandService } from '../services/api';
 import type { Car } from '../services/types';
 import { CarCard } from '../components/CarCard';
-import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Loader2, Search, RotateCcw, Plus, Minus, Tag } from 'lucide-react';
+import { Loader2, Plus, Minus, Tag } from 'lucide-react';
 
 export const SecondHand = () => {
     const [cars, setCars] = useState<Car[]>([]);
     const [brands, setBrands] = useState<{ id: string; name: string; logoUrl: string }[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState({
-        brand: '',
-        category: '',
-        minPrice: '',
-        maxPrice: '',
-        type: 'SALE', // Enforce SALE type
-    });
+    // Removed filters state
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
     const fetchCars = async (pageToFetch = 1, append = false) => {
         setLoading(true);
         try {
-            const cleanedFilters: any = {
-                ...filters,
-                q: filters.brand,
+            const queryParams = {
                 limit: 12,
                 page: pageToFetch,
                 type: 'SALE'
             };
-            delete cleanedFilters.brand;
 
-            const finalFilters = Object.fromEntries(
-                Object.entries(cleanedFilters).filter(([_, v]) => v !== '')
-            );
-
-            const response = await carService.getAll(finalFilters);
+            const response = await carService.getAll(queryParams);
 
             if (append) {
                 setCars(prev => [...prev, ...response.data]);
@@ -73,11 +58,6 @@ export const SecondHand = () => {
         return brand?.logoUrl;
     };
 
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFilters(prev => ({ ...prev, [name]: value }));
-    };
-
     return (
         <div className="space-y-12 pb-20 bg-dark-bg min-h-screen">
             {/* Hero Section */}
@@ -108,72 +88,7 @@ export const SecondHand = () => {
                 </div>
             </section>
 
-            {/* Search Bar (Desktop) */}
-            <div className="relative z-20 container mx-auto px-4 -mt-24 hidden md:block">
-                <div className="max-w-4xl mx-auto bg-dark-surface-lighter/80 backdrop-blur-xl rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 border border-white/10">
-                    <div className="flex gap-4 items-end">
-                        <div className="flex-grow">
-                            <Input
-                                label="Marka / Model Ara"
-                                name="brand"
-                                placeholder="Örn: BMW 5.20"
-                                value={filters.brand}
-                                onChange={handleFilterChange}
-                                className="bg-dark-bg border-white/10 text-white placeholder-gray-600 focus:border-blue-500 h-12"
-                            />
-                        </div>
-
-                        <div className="w-32">
-                            <Input
-                                label="Min (₺)"
-                                name="minPrice"
-                                type="number"
-                                placeholder="Min"
-                                value={filters.minPrice}
-                                onChange={handleFilterChange}
-                                className="bg-dark-bg border-white/10 text-white placeholder-gray-600 focus:border-blue-500 h-12"
-                                step="10000"
-                            />
-                        </div>
-
-                        <div className="w-32">
-                            <Input
-                                label="Max (₺)"
-                                name="maxPrice"
-                                type="number"
-                                placeholder="Max"
-                                value={filters.maxPrice}
-                                onChange={handleFilterChange}
-                                className="bg-dark-bg border-white/10 text-white placeholder-gray-600 focus:border-blue-500 h-12"
-                                step="10000"
-                            />
-                        </div>
-
-                        <Button onClick={() => fetchCars(1, false)} className="h-12 px-8 text-base font-bold bg-white text-dark-bg hover:bg-blue-500 hover:text-white hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all rounded-xl">
-                            <Search className="w-5 h-5" />
-                        </Button>
-
-                        {Object.values(filters).some(x => x !== '' && x !== 'SALE') && (
-                            <Button
-                                onClick={() => {
-                                    setFilters({ brand: '', category: '', minPrice: '', maxPrice: '', type: 'SALE' });
-                                    setTimeout(() => {
-                                        carService.getAll({ limit: 12, page: 1, type: 'SALE' }).then(res => {
-                                            setCars(res.data);
-                                            setPagination(res.pagination);
-                                            setPage(1);
-                                        });
-                                    }, 0);
-                                }}
-                                className="h-12 px-4 bg-dark-bg text-gray-400 border border-white/10 hover:border-red-500/50 hover:text-red-500 hover:bg-red-500/10 transition-all group rounded-xl"
-                                title="Filtreleri Temizle"
-                            >
-                                <RotateCcw className="w-5 h-5 group-hover:-rotate-180 transition-transform duration-500" />
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </div>
+            {/* Search Bar Removed as per request */}
 
             {/* Car Grid Section */}
             <section

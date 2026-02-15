@@ -49,10 +49,10 @@ const limiter = rateLimit({
 });
 
 
-// Rate limiter temporarily disabled
-// if (env.NODE_ENV === 'production') {
-//     app.use(limiter);
-// }
+// Rate limiter
+if (env.NODE_ENV !== 'test') {
+    app.use(limiter);
+}
 
 
 app.use(express.json({ limit: '10mb' }));

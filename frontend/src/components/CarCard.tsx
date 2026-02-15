@@ -111,7 +111,7 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
                             {Number(car.type === 'SALE' ? car.salePrice : car.dailyPrice).toLocaleString()} <span className="text-sm font-semibold text-primary-500">₺</span>
                         </p>
                     </div>
-                    <Link to={`/book/${car.id}`}>
+                    <Link to={car.type === 'SALE' ? `/car/${car.id}` : `/book/${car.id}`}>
                         <Button className="rounded-xl px-4 h-10 bg-white text-dark-bg font-bold hover:bg-primary-500 hover:text-white hover:scale-105 transition-all shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]">
                             <ArrowRight className="w-5 h-5" />
                         </Button>

@@ -6,7 +6,7 @@ import { adminService, bookingService } from '../services/api';
 import type { DashboardStats, Booking } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, Settings, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, Settings, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign } from 'lucide-react';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -1094,10 +1094,16 @@ export const AdminDashboard = () => {
                                     Kampanyalar
                                 </Button>
                             </Link>
-                            <Link to="/admin/cars">
+                            <Link to="/admin/cars/rental">
                                 <Button variant="secondary" className="flex items-center gap-2">
-                                    <CarIcon className="w-4 h-4" />
-                                    Araçlar
+                                    <Key className="w-4 h-4" />
+                                    Kiralık
+                                </Button>
+                            </Link>
+                            <Link to="/admin/cars/sale">
+                                <Button variant="secondary" className="flex items-center gap-2">
+                                    <DollarSign className="w-4 h-4" />
+                                    Satılık
                                 </Button>
                             </Link>
                         </div>

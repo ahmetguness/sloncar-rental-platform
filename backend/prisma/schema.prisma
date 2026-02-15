@@ -134,7 +134,12 @@ model Car {
   mileage      Int
   images       String[]     // Array of image URLs
   status       CarStatus    @default(ACTIVE)
-  description  String?
+  isFeatured          Boolean      @default(false)
+  accidentDescription String?      // Tramer/Hasar Kaydı Info
+  changedParts        String[]     // List of changed parts
+  paintedParts        String[]     // List of painted parts
+  features            String[]     // Extra features (Sunroof, Nav, etc.)
+  description         String?
   
   // Relations
   branch   Branch    @relation(fields: [branchId], references: [id])
@@ -151,6 +156,7 @@ model Car {
   @@index([dailyPrice])
   @@index([salePrice])
   @@index([type])
+  @@index([isFeatured])
 }
 
 /// User represents a system user (customer or admin)

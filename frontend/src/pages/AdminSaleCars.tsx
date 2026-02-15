@@ -4,7 +4,7 @@ import { adminService, uploadService, brandService } from '../services/api';
 import type { Car } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory, translateFuel } from '../utils/translate';
-import { Loader2, Plus, Edit2, Trash2, X, Upload, Car as CarIcon, ArrowLeft, Search, ChevronLeft, ChevronRight, AlertTriangle, Filter, DollarSign } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, X, Upload, Car as CarIcon, ArrowLeft, Search, ChevronLeft, ChevronRight, AlertTriangle, Filter } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { Skeleton } from '../components/ui/Skeleton';
@@ -38,6 +38,11 @@ const initialFormData = {
     images: [] as string[],
     description: '',
     status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE',
+    isFeatured: false,
+    accidentDescription: '',
+    changedParts: '', // comma separated for input
+    paintedParts: '', // comma separated for input
+    features: '',      // comma separated for input
     type: 'SALE' as 'SALE'
 };
 
@@ -188,6 +193,11 @@ export const AdminSaleCars = () => {
             images: car.images || [],
             description: car.description || '',
             status: car.status,
+            isFeatured: car.isFeatured || false,
+            accidentDescription: car.accidentDescription || '',
+            changedParts: car.changedParts?.join(', ') || '',
+            paintedParts: car.paintedParts?.join(', ') || '',
+            features: car.features?.join(', ') || '',
             type: 'SALE'
         });
         setShowForm(true);
@@ -230,6 +240,11 @@ export const AdminSaleCars = () => {
                 year: Number(formData.year),
                 seats: Number(formData.seats),
                 doors: Number(formData.doors),
+                isFeatured: formData.isFeatured,
+                accidentDescription: formData.accidentDescription,
+                changedParts: formData.changedParts.split(',').map(s => s.trim()).filter(Boolean),
+                paintedParts: formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean),
+                features: formData.features.split(',').map(s => s.trim()).filter(Boolean),
                 type: 'SALE' // Enforce SALE
             };
 
@@ -594,6 +609,17 @@ export const AdminSaleCars = () => {
                                     <option value="MAINTENANCE" className="bg-dark-bg">Bakımda</option>
                                 </select>
                             </div>
+                            <div className="flex items-end">
+                                <label className="flex items-center gap-3 p-3 bg-dark-bg border border-white/10 rounded-xl cursor-pointer hover:border-primary-500/50 transition-all w-full h-[50px]">
+                                    <input
+                                        type="checkbox"
+                                        className="w-5 h-5 rounded border-white/20 text-primary-500 focus:ring-primary-500 bg-dark-surface"
+                                        checked={formData.isFeatured}
+                                        onChange={e => setFormData({ ...formData, isFeatured: e.target.checked })}
+                                    />
+                                    <span className="font-bold text-white text-sm">Öne Çıkar</span>
+                                </label>
+                            </div>
                             <div className="lg:col-span-3">
                                 <label className={labelClass}>Araç Fotoğrafı</label>
                                 <div className="mt-2">
@@ -657,6 +683,30 @@ export const AdminSaleCars = () => {
                             <div className="lg:col-span-2">
                                 <label className={labelClass}>Açıklama</label>
                                 <textarea rows={2} className={inputClass} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Araç hakkında notlar..." />
+                            </div>
+                            <div className="lg:col-span-3 border-t border-white/10 pt-6 mt-2">
+                                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                    <AlertTriangle className="w-5 h-5 text-primary-500" />
+                                    Ekspertiz ve Özellikler
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="md:col-span-2">
+                                        <label className={labelClass}>Ekspertiz / Tramer Açıklaması</label>
+                                        <textarea rows={2} className={inputClass} value={formData.accidentDescription} onChange={e => setFormData({ ...formData, accidentDescription: e.target.value })} placeholder="Hasar kaydı ve ekspertiz detayları..." />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Değişen Parçalar (Virgülle ayırın)</label>
+                                        <input type="text" className={inputClass} value={formData.changedParts} onChange={e => setFormData({ ...formData, changedParts: e.target.value })} placeholder="Kaput, Sol Ön Çamurluk..." />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Boyalı Parçalar (Virgülle ayırın)</label>
+                                        <input type="text" className={inputClass} value={formData.paintedParts} onChange={e => setFormData({ ...formData, paintedParts: e.target.value })} placeholder="Sağ Arka Kapı, Tavan..." />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className={labelClass}>Ekstra Özellikler (Virgülle ayırın)</label>
+                                        <input type="text" className={inputClass} value={formData.features} onChange={e => setFormData({ ...formData, features: e.target.value })} placeholder="Sunroof, Navigasyon, Deri Koltuk..." />
+                                    </div>
+                                </div>
                             </div>
                             <div className="lg:col-span-3 flex justify-end gap-4 pt-6 border-t border-white/10">
                                 <Button type="button" onClick={handleCancelForm} className="px-6 py-3 bg-dark-bg border border-white/10 text-gray-400 hover:text-white rounded-xl transition-all">
@@ -748,8 +798,16 @@ export const AdminSaleCars = () => {
                                             <td className="p-4 text-sm text-gray-400">
                                                 {car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'} / {translateFuel(car.fuel)}
                                             </td>
-                                            <td className="p-4 font-bold text-green-400">
-                                                {Number(car.salePrice).toLocaleString()} ₺
+                                            <td className="p-4">
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-green-400">{Number(car.salePrice).toLocaleString()} ₺</span>
+                                                    {car.isFeatured && (
+                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary-400 bg-primary-500/10 px-2 py-0.5 rounded-full w-fit mt-1 border border-primary-500/20">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+                                                            ÖNE ÇIKAN
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="p-4">
                                                 <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${car.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :

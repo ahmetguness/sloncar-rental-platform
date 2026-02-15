@@ -14,6 +14,11 @@ export interface Car {
     mileage: number;
     images: string[];
     status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
+    isFeatured: boolean;
+    accidentDescription?: string;
+    changedParts?: string[];
+    paintedParts?: string[];
+    features?: string[];
     type?: 'RENTAL' | 'SALE';
     salePrice?: string | number;
     description?: string;

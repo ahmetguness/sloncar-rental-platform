@@ -27,8 +27,14 @@ const baseCarSchema = z.object({
     mileage: z.number().int().nonnegative(),
     images: z.array(z.string().url()).default([]),
     status: carStatusEnum.default('ACTIVE'),
+    isFeatured: z.boolean().default(false),
     description: z.string().optional(),
     branchId: z.string().uuid('Invalid branch ID'),
+    // New Detailed Fields
+    accidentDescription: z.string().optional(),
+    changedParts: z.array(z.string()).default([]),
+    paintedParts: z.array(z.string()).default([]),
+    features: z.array(z.string()).default([]),
 });
 
 export const createCarSchema = baseCarSchema.refine(data => {
@@ -62,6 +68,7 @@ export const carQuerySchema = z.object({
     status: carStatusEnum.optional(),
     pickupDate: z.coerce.date().optional(),
     dropoffDate: z.coerce.date().optional(),
+    isFeatured: z.coerce.boolean().optional(),
 
     // Search
     q: z.string().optional(),
@@ -71,7 +78,7 @@ export const carQuerySchema = z.object({
     limit: z.coerce.number().int().positive().max(100).default(10),
 
     // Sorting
-    sortBy: z.enum(['dailyPrice', 'salePrice', 'year', 'brand', 'model', 'createdAt']).default('createdAt'),
+    sortBy: z.enum(['dailyPrice', 'salePrice', 'year', 'brand', 'model', 'createdAt', 'isFeatured']).default('createdAt'),
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
 
