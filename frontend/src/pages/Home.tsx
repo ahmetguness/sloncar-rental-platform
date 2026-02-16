@@ -50,11 +50,11 @@ export const Home = () => {
     // Ensure we have enough items for scrolling to cover viewport + buffer
     const displayBrands = useMemo(() => {
         let base = effectiveBrands;
-        // Duplicate until we have a substantial number of items (e.g., > 20) to ensure one set > viewport width
-        while (base.length < 20) {
+        // Duplicate until we have enough items to fill the viewport
+        while (base.length < 12) {
             base = [...base, ...effectiveBrands];
         }
-        return [...base, ...base, ...base]; // Triple buffer
+        return [...base, ...base]; // Double buffer (reduced from triple)
     }, [effectiveBrands]);
 
     const scrollLeft = () => {
@@ -80,18 +80,17 @@ export const Home = () => {
             if (!scrollContainerRef.current) return;
 
             if (!isPaused) {
-                const oneSetWidth = scrollContainerRef.current.scrollWidth / 3;
+                const oneSetWidth = scrollContainerRef.current.scrollWidth / 2; // Double buffer
 
                 // Increment accumulator
                 scrollAccumulator.current += 0.5; // Speed: 0.5px/frame (approx 30px/sec) - Slow and elegant
 
-                // Seamless Loop Logic: Triple buffer [0][1][2]
-                // We want to loop within the middle set.
-                // If we reach start of set 2 (2*width), jump back to start of set 1 (1*width)
-                if (scrollAccumulator.current >= oneSetWidth * 2) {
+                // Seamless Loop Logic: Double buffer [0][1]
+                // If we reach end of set 1, jump back to set 0
+                if (scrollAccumulator.current >= oneSetWidth) {
                     scrollAccumulator.current -= oneSetWidth;
                 }
-                // If we go backwards to start of set 0 (0), jump forward to start of set 1 (1*width)
+                // If we go backwards past 0, jump to end of set 0
                 else if (scrollAccumulator.current <= 0) {
                     scrollAccumulator.current += oneSetWidth;
                 }
@@ -181,23 +180,9 @@ export const Home = () => {
             const saleCampaign = campaigns.find(c => c.tag === 'YENİ HİZMET' || c.requiredCondition === 'HAS_SALE_CARS');
 
             if (saleCampaign) {
-                // Check condition if exists
-                if (saleCampaign.requiredCondition === 'HAS_SALE_CARS') {
-                    // We can reuse the same check logic from Layout or just do a quick check here
-                    // Ideally we should have a cached value or context, but for now specific check:
-                    try {
-                        const result = await carService.getAll({ type: 'SALE', limit: 1 });
-                        const total = result.pagination?.total ?? result.data?.length ?? 0;
-                        if (total > 0) {
-                            setSecondaryCampaign(saleCampaign);
-                        }
-                    } catch (e) {
-                        // If check fails, maybe hide it?
-                        console.error('Failed to check condition for campaign');
-                    }
-                } else {
-                    setSecondaryCampaign(saleCampaign);
-                }
+                // HAS_SALE_CARS condition is already checked by Layout on mount.
+                // Show the campaign — the nav link visibility already gates the UX.
+                setSecondaryCampaign(saleCampaign);
             }
         } catch (error) {
             console.error('Failed to fetch campaigns', error);

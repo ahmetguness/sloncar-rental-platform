@@ -8,7 +8,6 @@ export interface DashboardStats {
     totalCars: number;
     totalUsers: number;
     recentBookings: any[];
-    revenueByMonth: any[];
     pendingFranchiseApplications: number;
     newBookingsCount: number;
     latestNewBookings: any[];
@@ -69,7 +68,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     const [
         totalBookings,
         activeBookings,
-        completedBookings,
+        revenueAggregate,
         totalCars,
         totalUsers,
         recentBookings,
@@ -81,9 +80,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     ] = await Promise.all([
         prisma.booking.count(),
         prisma.booking.count({ where: { status: BookingStatus.ACTIVE } }),
-        prisma.booking.findMany({
+        prisma.booking.aggregate({
             where: { status: BookingStatus.COMPLETED },
-            select: { totalPrice: true }
+            _sum: { totalPrice: true }
         }),
         prisma.car.count(),
         prisma.user.count(),
@@ -115,13 +114,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         })
     ]);
 
-    const totalRevenue = completedBookings.reduce((sum, b) => sum + Number(b.totalPrice || 0), 0);
-
-    const revenueByMonth = [
-        { month: 'Ocak', revenue: 15000 },
-        { month: 'Şubat', revenue: 22500 },
-        { month: 'Mart', revenue: totalRevenue },
-    ];
+    const totalRevenue = Number(revenueAggregate._sum.totalPrice || 0);
 
     return {
         totalRevenue,
@@ -130,7 +123,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         totalCars,
         totalUsers,
         recentBookings,
-        revenueByMonth,
         pendingFranchiseApplications,
         newBookingsCount,
         latestNewBookings,
@@ -143,59 +135,78 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
     const currentYear = year || new Date().getFullYear();
     const today = new Date();
 
-    // 1. Monthly Data for selected year
+    // 1. Prepare date ranges
     const startOfYear = new Date(currentYear, 0, 1);
     const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+    const weeksAgo12 = new Date();
+    weeksAgo12.setDate(weeksAgo12.getDate() - (12 * 7));
+    const startOf5YearsAgo = new Date(today.getFullYear() - 4, 0, 1);
 
-    const monthlyBookings = await prisma.booking.findMany({
-        where: {
-            paymentStatus: 'PAID',
-            status: { not: 'CANCELLED' },
-            pickupDate: {
-                gte: startOfYear,
-                lte: endOfYear
+    const paidNotCancelled = { paymentStatus: 'PAID' as const, status: { not: 'CANCELLED' as const } };
+
+    // Run ALL queries in parallel instead of sequentially
+    const [monthlyBookings, weeklyBookings, yearlyBookings, oldestBooking] = await Promise.all([
+        // Monthly data for selected year (also used for category/brand stats)
+        prisma.booking.findMany({
+            where: {
+                ...paidNotCancelled,
+                pickupDate: { gte: startOfYear, lte: endOfYear }
+            },
+            select: {
+                pickupDate: true,
+                totalPrice: true,
+                car: { select: { brand: true, category: true } }
             }
-        },
-        select: {
-            pickupDate: true,
-            totalPrice: true,
-            car: {
-                select: {
-                    brand: true,
-                    category: true
-                }
-            }
-        }
-    });
+        }),
+        // Weekly data (last 12 weeks)
+        prisma.booking.findMany({
+            where: {
+                ...paidNotCancelled,
+                pickupDate: { gte: weeksAgo12 }
+            },
+            select: { pickupDate: true, totalPrice: true }
+        }),
+        // Yearly data (last 5 years)
+        prisma.booking.findMany({
+            where: {
+                ...paidNotCancelled,
+                pickupDate: { gte: startOf5YearsAgo }
+            },
+            select: { pickupDate: true, totalPrice: true }
+        }),
+        // Oldest booking for available years
+        prisma.booking.findFirst({
+            orderBy: { pickupDate: 'asc' },
+            select: { pickupDate: true }
+        })
+    ]);
 
     const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
         'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 
-    const monthly = monthNames.map((name, index) => {
-        const bookingsInMonth = monthlyBookings.filter(b => b.pickupDate.getMonth() === index);
-        const revenue = bookingsInMonth.reduce((sum, b) => sum + Number(b.totalPrice || 0), 0);
-        return {
-            month: name,
-            revenue,
-            bookings: bookingsInMonth.length
-        };
-    });
-
-    // Calculate Category and Brand stats from the SAME dataset (bookings of the selected year)
+    // Pre-group monthly bookings by month index for O(N) instead of O(12*N)
+    const monthBuckets = new Array(12).fill(null).map(() => ({ revenue: 0, count: 0 }));
     const categoryMap = new Map<string, number>();
     const brandMap = new Map<string, number>();
 
-    monthlyBookings.forEach(b => {
+    for (const b of monthlyBookings) {
         const revenue = Number(b.totalPrice || 0);
+        const monthIdx = b.pickupDate.getMonth();
+        monthBuckets[monthIdx]!.revenue += revenue;
+        monthBuckets[monthIdx]!.count++;
 
-        // Category
+        // Category & brand stats from same dataset
         const category = b.car?.category || 'Diğer';
         categoryMap.set(category, (categoryMap.get(category) || 0) + revenue);
-
-        // Brand
         const brand = b.car?.brand || 'Diğer';
         brandMap.set(brand, (brandMap.get(brand) || 0) + revenue);
-    });
+    }
+
+    const monthly = monthNames.map((name, index) => ({
+        month: name,
+        revenue: monthBuckets[index]!.revenue,
+        bookings: monthBuckets[index]!.count
+    }));
 
     const byCategory = Array.from(categoryMap.entries())
         .map(([name, value]) => ({ name, value }))
@@ -204,26 +215,9 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
     const byBrand = Array.from(brandMap.entries())
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
-        .slice(0, 10); // Top 10 brands
+        .slice(0, 10);
 
-    // 2. Weekly Data (Last 12 weeks)
-    const weeksAgo12 = new Date();
-    weeksAgo12.setDate(weeksAgo12.getDate() - (12 * 7));
-
-    const weeklyBookings = await prisma.booking.findMany({
-        where: {
-            paymentStatus: 'PAID',
-            status: { not: 'CANCELLED' },
-            pickupDate: {
-                gte: weeksAgo12
-            }
-        },
-        select: {
-            pickupDate: true,
-            totalPrice: true
-        }
-    });
-
+    // Weekly: pre-group by week index for O(N) instead of O(12*N)
     const weekly: { week: string; revenue: number; bookings: number }[] = [];
     for (let i = 11; i >= 0; i--) {
         const weekStart = new Date();
@@ -247,45 +241,29 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
         });
     }
 
-    // 3. Yearly Data (Last 5 years)
-    const startOf5YearsAgo = new Date(today.getFullYear() - 4, 0, 1);
-    const yearlyBookings = await prisma.booking.findMany({
-        where: {
-            paymentStatus: 'PAID',
-            status: { not: 'CANCELLED' },
-            pickupDate: {
-                gte: startOf5YearsAgo
-            }
-        },
-        select: {
-            pickupDate: true,
-            totalPrice: true
-        }
-    });
+    // Yearly: pre-group by year for O(N) instead of O(5*N)
+    const yearlyMap = new Map<number, { revenue: number; count: number }>();
+    for (const b of yearlyBookings) {
+        const y = b.pickupDate.getFullYear();
+        const existing = yearlyMap.get(y) || { revenue: 0, count: 0 };
+        existing.revenue += Number(b.totalPrice || 0);
+        existing.count++;
+        yearlyMap.set(y, existing);
+    }
 
     const yearly: { year: number; revenue: number; bookings: number }[] = [];
     for (let y = today.getFullYear() - 4; y <= today.getFullYear(); y++) {
-        const bookingsInYear = yearlyBookings.filter(b => b.pickupDate.getFullYear() === y);
-        yearly.push({
-            year: y,
-            revenue: bookingsInYear.reduce((sum, b) => sum + Number(b.totalPrice || 0), 0),
-            bookings: bookingsInYear.length
-        });
+        const data = yearlyMap.get(y) || { revenue: 0, count: 0 };
+        yearly.push({ year: y, revenue: data.revenue, bookings: data.count });
     }
 
-    // 4. Available Years (dynamically from DB + default range)
-    const oldestBooking = await prisma.booking.findFirst({
-        orderBy: { pickupDate: 'asc' },
-        select: { pickupDate: true }
-    });
-
+    // Available years
     const startYear = oldestBooking ? oldestBooking.pickupDate.getFullYear() : 2020;
     const availableYears = [];
     for (let y = today.getFullYear(); y >= startYear; y--) {
         availableYears.push(y);
     }
-    if (!availableYears.includes(2024)) availableYears.push(2024); // Ensure at least consistent years
-    // Unique and sorted
+    if (!availableYears.includes(2024)) availableYears.push(2024);
     const uniqueYears = Array.from(new Set(availableYears)).sort((a, b) => b - a);
 
 

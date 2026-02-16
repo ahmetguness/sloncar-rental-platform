@@ -17,7 +17,7 @@ export const Layout = () => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
 
-        // Check for sale cars
+        // Check for sale cars — only once on mount
         const checkSaleCars = async () => {
             try {
                 const result = await carService.getAll({ type: 'SALE', limit: 1 });
@@ -33,7 +33,7 @@ export const Layout = () => {
         checkSaleCars();
 
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [location.pathname]);
+    }, []);  // Run only once on mount — sale car availability rarely changes mid-session
 
     const handleLogout = () => {
         adminService.logout();

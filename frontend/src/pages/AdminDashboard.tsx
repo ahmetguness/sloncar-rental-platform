@@ -7,13 +7,11 @@ import type { DashboardStats, Booking, UserInsurance } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
 import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield } from 'lucide-react';
-import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
+import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { tr } from 'date-fns/locale';
-import { saveAs } from 'file-saver';
-import html2canvas from 'html2canvas';
-import ExcelJS from 'exceljs';
+// html2canvas, ExcelJS, and file-saver are dynamically imported where used (export button)
 
 registerLocale('tr', tr);
 
@@ -1213,7 +1211,7 @@ export const AdminDashboard = () => {
     useEffect(() => {
         const interval = setInterval(() => {
             refreshStats();
-        }, 30000);
+        }, 60000); // 60s instead of 30s — reduces database load
         return () => clearInterval(interval);
     }, []);
 
@@ -1228,17 +1226,16 @@ export const AdminDashboard = () => {
 
     const loadData = async () => {
         try {
+            // All 5 data fetches run in parallel — no waterfall
             const [statsData, revenueAnalytics] = await Promise.all([
                 adminService.getDashboard(),
-                adminService.getRevenueAnalytics(selectedYear)
-            ]);
-            setStats(statsData);
-            setRevenueData(revenueAnalytics);
-            await Promise.all([
+                adminService.getRevenueAnalytics(selectedYear),
                 loadBookings(1),
                 loadFranchiseApplications(1),
                 loadInsurances(1)
             ]);
+            setStats(statsData);
+            setRevenueData(revenueAnalytics);
         } catch (err) {
             console.error(err);
             navigate('/admin/login');
@@ -1317,6 +1314,7 @@ export const AdminDashboard = () => {
         try {
             const response = await adminService.exportInsurances();
             const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const { saveAs } = await import('file-saver');
             saveAs(blob, `Sigortalar_${new Date().toLocaleDateString('tr-TR')}.xlsx`);
 
             toast('Excel başarıyla indirildi', 'success');
@@ -1761,6 +1759,13 @@ export const AdminDashboard = () => {
                                         <button
                                             onClick={async () => {
                                                 if (!revenueData) return;
+
+                                                // Dynamic imports — loaded only when export is triggered
+                                                const [{ default: ExcelJS }, { default: html2canvas }, { saveAs }] = await Promise.all([
+                                                    import('exceljs'),
+                                                    import('html2canvas'),
+                                                    import('file-saver'),
+                                                ]);
 
                                                 const workbook = new ExcelJS.Workbook();
                                                 const worksheet = workbook.addWorksheet('Gelir Raporu');

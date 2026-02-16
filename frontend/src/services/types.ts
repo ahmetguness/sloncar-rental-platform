@@ -96,7 +96,6 @@ export interface DashboardStats {
     activeBookings: number;
     totalCars: number;
     recentBookings: Booking[];
-    revenueByMonth: { month: string; revenue: number }[];
     pendingFranchiseApplications: number;
     newBookingsCount: number;
     latestNewBookings: any[];

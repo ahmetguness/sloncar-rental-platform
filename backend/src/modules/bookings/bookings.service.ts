@@ -117,7 +117,6 @@ export async function createBooking(
     notificationService.sendBookingConfirmation(booking).catch(err => console.error('Notification failed', err));
 
     return booking as BookingWithRelations;
-    return booking as BookingWithRelations;
 }
 
 // ADMIN - Create Manual Booking (Walk-in)
@@ -405,23 +404,32 @@ export async function getAvailability(
         orderBy: { pickupDate: 'asc' },
     });
 
+    // Pre-compute a Map of date -> booking for O(1) lookups instead of O(N) .find() per day
+    const bookedDateMap = new Map<string, typeof bookings[0]>();
+    for (const b of bookings) {
+        // Skip expired unpaid reservations
+        if (b.status === BookingStatus.RESERVED &&
+            b.paymentStatus === PaymentStatus.UNPAID &&
+            b.expiresAt &&
+            new Date() > b.expiresAt) {
+            continue;
+        }
+        const pickupStr = formatDate(b.pickupDate);
+        const dropoffStr = formatDate(b.dropoffDate);
+        // Mark all dates in this booking's range
+        const bookingDates = getDateRange(b.pickupDate, b.dropoffDate);
+        for (const d of bookingDates) {
+            const dStr = formatDate(d);
+            if (dStr >= pickupStr && dStr < dropoffStr) {
+                bookedDateMap.set(dStr, b);
+            }
+        }
+    }
+
     const allDates = getDateRange(query.from, query.to);
     const calendar: DayAvailability[] = allDates.map((date) => {
         const dateStr = formatDate(date);
-        // Find blocking booking
-        const booking = bookings.find((b) => {
-            // Check if ignored (Expired)
-            if (b.status === BookingStatus.RESERVED &&
-                b.paymentStatus === PaymentStatus.UNPAID &&
-                b.expiresAt &&
-                new Date() > b.expiresAt) {
-                return false; // Treat as available
-            }
-
-            const pickupStr = formatDate(b.pickupDate);
-            const dropoffStr = formatDate(b.dropoffDate);
-            return dateStr >= pickupStr && dateStr < dropoffStr;
-        });
+        const booking = bookedDateMap.get(dateStr);
 
         return {
             date: dateStr,
@@ -688,22 +696,33 @@ export async function getAdminBookings(
         }
     }
 
-    const total = await prisma.booking.count({ where });
-
-    // Support both page-based and offset-based pagination
+    // Run count and findMany in parallel since they use the same where clause
     const skip = offset !== undefined ? offset : (page - 1) * limit;
 
-    const bookings = await prisma.booking.findMany({
-        where,
-        include: {
-            car: true,
-            pickupBranch: true,
-            dropoffBranch: true,
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-    });
+    const [total, bookings] = await Promise.all([
+        prisma.booking.count({ where }),
+        prisma.booking.findMany({
+            where,
+            include: {
+                car: {
+                    select: {
+                        id: true,
+                        brand: true,
+                        model: true,
+                        plateNumber: true,
+                        dailyPrice: true,
+                        category: true,
+                        images: true,
+                    }
+                },
+                pickupBranch: true,
+                dropoffBranch: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: limit,
+        })
+    ]);
 
     return {
         data: bookings as BookingWithRelations[],
