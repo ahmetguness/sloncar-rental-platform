@@ -3,17 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { adminService, bookingService } from '../services/api';
-import type { DashboardStats, Booking } from '../services/types';
+import type { DashboardStats, Booking, UserInsurance } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield } from 'lucide-react';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { tr } from 'date-fns/locale';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import html2canvas from 'html2canvas';
+import ExcelJS from 'exceljs';
 
 registerLocale('tr', tr);
 
@@ -637,6 +637,325 @@ const ManualBookingModal = ({ isOpen, onClose, onSuccess }: { isOpen: boolean; o
     );
 };
 
+const InsuranceDetailModal = ({ insurance, onClose }: { insurance: UserInsurance; onClose: () => void }) => {
+    return (
+        <Modal isOpen={!!insurance} onClose={onClose} title="Sigorta Detayı" size="lg">
+            <div className="space-y-8">
+                {/* Header Info */}
+                <div className="-mt-2 mb-6 flex items-center justify-between pb-4 border-b border-white/10 text-sm">
+                    <span className="text-gray-400">Poliçe No: <span className="text-blue-400 font-mono font-bold">{insurance.policyNumber}</span></span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${insurance.isActive
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-red-500/20 text-red-400'
+                        }`}>
+                        {insurance.isActive ? 'Aktif' : 'Pasif'}
+                    </span>
+                </div>
+
+                <div className="-mt-4 mb-6 text-xs text-gray-500 text-right">
+                    {insurance.createdAt && (
+                        <>
+                            Oluşturulma: <span className="text-gray-300 font-medium">{new Date(insurance.createdAt).toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        </>
+                    )}
+                </div>
+
+                {/* Main Info Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* User Info */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Users className="w-5 h-5 text-blue-500" />
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Sigortalı Bilgileri</h3>
+                        </div>
+                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Ad Soyad</label>
+                                <p className="text-white font-medium">{insurance.user?.name}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">E-posta</label>
+                                <p className="text-white break-all">{insurance.user?.email}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Policy Info */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Shield className="w-5 h-5 text-blue-500" />
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Poliçe Bilgileri</h3>
+                        </div>
+                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Sigorta Şirketi</label>
+                                <p className="text-white font-bold text-lg">{insurance.companyName}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Poliçe Türü</label>
+                                    <span className="text-xs bg-white/10 px-2 py-1 rounded text-white">{insurance.policyType || '-'}</span>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Kapsam Türü</label>
+                                    <span className="text-xs text-gray-400">{insurance.coverageType || '-'}</span>
+                                </div>
+                            </div>
+                            {(insurance.premiumAmount || insurance.coverageLimit) && (
+                                <div className="pt-2 border-t border-white/5 mt-2 grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs text-gray-500">Prim Tutarı</label>
+                                        <p className="text-lg font-bold text-blue-400">{insurance.premiumAmount ? `${Number(insurance.premiumAmount).toLocaleString()} ₺` : '-'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-gray-500">Teminat Limiti</label>
+                                        <p className="text-sm font-medium text-white">{insurance.coverageLimit ? `${Number(insurance.coverageLimit).toLocaleString()} ₺` : '-'}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {insurance.deductibleAmount && (
+                                <div>
+                                    <label className="text-xs text-gray-500">Muafiyet Bedeli</label>
+                                    <p className="text-sm text-gray-300">{Number(insurance.deductibleAmount).toLocaleString()} ₺</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Dates & Agent */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-5 h-5 text-blue-500" />
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Geçerlilik süresi</h3>
+                            </div>
+                        </div>
+
+                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 flex justify-between items-center text-center">
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Başlangıç</label>
+                                <p className="text-white font-medium">{new Date(insurance.startDate).toLocaleDateString('tr-TR')}</p>
+                            </div>
+                            <div className="text-gray-600">➝</div>
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Bitiş</label>
+                                <p className="text-white font-medium">{new Date(insurance.endDate).toLocaleDateString('tr-TR')}</p>
+                            </div>
+                        </div>
+                        {insurance.renewalDate && (
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex items-center gap-3">
+                                <Calendar className="w-4 h-4 text-blue-400" />
+                                <span className="text-sm text-blue-200">Yenileme Tarihi: <span className="font-bold">{new Date(insurance.renewalDate).toLocaleDateString('tr-TR')}</span></span>
+                            </div>
+                        )}
+                    </div>
+
+                    {(insurance.agentName || insurance.agentPhone || insurance.agentEmail) && (
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Users className="w-5 h-5 text-blue-500" />
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Acente İletişim</h3>
+                            </div>
+                            <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-2">
+                                {insurance.agentName && <div><span className="text-xs text-gray-500">Yetkili:</span> <span className="text-white text-sm ml-2">{insurance.agentName}</span></div>}
+                                {insurance.agentPhone && <div><span className="text-xs text-gray-500">Tel:</span> <span className="text-white text-sm ml-2">{insurance.agentPhone}</span></div>}
+                                {insurance.agentEmail && <div><span className="text-xs text-gray-500">Email:</span> <span className="text-white text-sm ml-2">{insurance.agentEmail}</span></div>}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Description/Notes */}
+                {insurance.description && (
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Açıklama / Kapsam Detayı</h3>
+                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 text-sm text-gray-300">
+                            {insurance.description}
+                        </div>
+                    </div>
+                )}
+
+                {/* Document Link */}
+                {insurance.documentUrl && (
+                    <div className="flex justify-end">
+                        <a href={insurance.documentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm font-bold">
+                            <Download className="w-4 h-4" />
+                            Poliçe Dokümanını İndir
+                        </a>
+                    </div>
+                )}
+
+                <div className="flex justify-end pt-4">
+                    <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
+                        Kapat
+                    </Button>
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
+const CreateInsuranceModal = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) => {
+    const [loading, setLoading] = useState(false);
+    const [users, setUsers] = useState<{ id: string; name: string; email: string; phone: string }[]>([]);
+    const [formData, setFormData] = useState<Partial<UserInsurance>>({
+        isActive: true,
+        paymentStatus: 'PAID',
+
+        policyType: 'Trafik',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]
+    });
+
+    useEffect(() => {
+        loadUsers();
+    }, []);
+
+    const loadUsers = async () => {
+        try {
+            const data = await adminService.getUsers();
+            setUsers(data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            // Convert strings to numbers for financial fields
+            const dataToSubmit = {
+                ...formData,
+                startDate: new Date(formData.startDate as string).toISOString(),
+                endDate: new Date(formData.endDate as string).toISOString(),
+                premiumAmount: Number(formData.premiumAmount),
+                coverageLimit: Number(formData.coverageLimit),
+                deductibleAmount: Number(formData.deductibleAmount),
+            };
+            await adminService.createInsurance(dataToSubmit);
+            onSuccess();
+            onClose();
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+        }));
+    };
+
+    return (
+        <Modal isOpen={true} onClose={onClose} title="Yeni Sigorta Ekle" size="lg">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* User Selection */}
+                    <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Kullanıcı</label>
+                        <select
+                            name="userId"
+                            required
+                            className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500"
+                            onChange={handleChange}
+                            value={formData.userId || ''}
+                        >
+                            <option value="">Seçiniz...</option>
+                            {users.map(u => (
+                                <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Basic Info */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Sigorta Şirketi</label>
+                        <input type="text" name="companyName" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Poliçe No</label>
+                        <input type="text" name="policyNumber" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
+                    </div>
+
+                    {/* Dates */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Başlangıç Tarihi</label>
+                        <input type="date" name="startDate" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} value={formData.startDate?.toString().split('T')[0]} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Bitiş Tarihi</label>
+                        <input type="date" name="endDate" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} value={formData.endDate?.toString().split('T')[0]} />
+                    </div>
+
+                    {/* Details */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Poliçe Türü</label>
+                        <select name="policyType" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} value={formData.policyType}>
+                            <option value="Trafik">Trafik</option>
+                            <option value="Kasko">Kasko</option>
+                            <option value="Ferdi Kaza">Ferdi Kaza</option>
+                            <option value="Konut">Konut</option>
+                            <option value="DASK">DASK</option>
+                            <option value="Sağlık">Sağlık</option>
+                            <option value="Seyahat">Seyahat</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Ödeme Durumu</label>
+                        <select name="paymentStatus" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} value={formData.paymentStatus}>
+                            <option value="PAID">Ödendi</option>
+                            <option value="UNPAID">Ödenmedi</option>
+                            <option value="CANCELLED">İptal</option>
+                        </select>
+                    </div>
+
+                    {/* Financials */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Prim Tutarı (₺)</label>
+                        <input type="number" name="premiumAmount" step="0.01" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Teminat Limiti (₺)</label>
+                        <input type="number" name="coverageLimit" step="0.01" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
+                    </div>
+
+                    {/* Agent */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Acente Adı</label>
+                        <input type="text" name="agentName" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Acente Tel</label>
+                        <input type="text" name="agentPhone" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
+                    </div>
+
+                    {/* Description */}
+                    <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Açıklama / Notlar</label>
+                        <textarea name="description" rows={3} className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
+                    </div>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-white/10 gap-3">
+                    <Button type="button" onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
+                        İptal
+                    </Button>
+                    <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Kaydet'}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
 // Helper component for table rows to allow hooks usage
 const BookingRow = ({
     booking,
@@ -837,6 +1156,8 @@ export const AdminDashboard = () => {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [revenueData, setRevenueData] = useState<RevenueAnalytics | null>(null);
+    const [selectedInsurance, setSelectedInsurance] = useState<UserInsurance | null>(null);
+    const [isCreateInsuranceModalOpen, setIsCreateInsuranceModalOpen] = useState(false);
     const [chartView, setChartView] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
 
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -860,6 +1181,13 @@ export const AdminDashboard = () => {
     const [franchiseLoading, setFranchiseLoading] = useState(false);
     const [franchiseSearchTerm, setFranchiseSearchTerm] = useState('');
     const [highlightedFranchiseId, setHighlightedFranchiseId] = useState<string | null>(null);
+
+    // Insurance States
+    const [insurances, setInsurances] = useState<any[]>([]);
+    const [insuranceLoading, setInsuranceLoading] = useState(false);
+    const [insurancePage, setInsurancePage] = useState(1);
+    const [totalInsurances, setTotalInsurances] = useState(0);
+    const [insuranceSearchTerm, setInsuranceSearchTerm] = useState('');
 
     const ITEMS_PER_PAGE = 10;
 
@@ -908,7 +1236,8 @@ export const AdminDashboard = () => {
             setRevenueData(revenueAnalytics);
             await Promise.all([
                 loadBookings(1),
-                loadFranchiseApplications(1)
+                loadFranchiseApplications(1),
+                loadInsurances(1)
             ]);
         } catch (err) {
             console.error(err);
@@ -963,6 +1292,40 @@ export const AdminDashboard = () => {
         }
     };
 
+    const loadInsurances = async (page: number, search?: string) => {
+        setInsuranceLoading(true);
+        try {
+            const res = await adminService.getInsurances({
+                page,
+                limit: ITEMS_PER_PAGE,
+                searchTerm: search
+            });
+            if (res.success) {
+                setInsurances(res.data);
+                setTotalInsurances(res.pagination.total);
+                setInsurancePage(page);
+            }
+        } catch (err) {
+            console.error('Failed to load insurances', err);
+            toast('Sigortalar yüklenirken hata oluştu', 'error');
+        } finally {
+            setInsuranceLoading(false);
+        }
+    };
+
+    const handleExportInsurances = async () => {
+        try {
+            const response = await adminService.exportInsurances();
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            saveAs(blob, `Sigortalar_${new Date().toLocaleDateString('tr-TR')}.xlsx`);
+
+            toast('Excel başarıyla indirildi', 'success');
+        } catch (error) {
+            console.error('Export error:', error);
+            toast('Excel indirilirken bir hata oluştu', 'error');
+        }
+    };
+
     useEffect(() => {
         loadData();
     }, [selectedYear]);
@@ -982,6 +1345,14 @@ export const AdminDashboard = () => {
         }, 300); // 300ms debounce
         return () => clearTimeout(timer);
     }, [franchiseSearchTerm]);
+
+    // Auto-search with debounce for Insurance
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            loadInsurances(1, insuranceSearchTerm || undefined);
+        }, 300); // 300ms debounce
+        return () => clearTimeout(timer);
+    }, [insuranceSearchTerm]);
 
     const handleAction = (action: 'cancel' | 'start' | 'complete', id: string) => {
         setCancelingId(id);
@@ -1839,7 +2210,6 @@ export const AdminDashboard = () => {
                         </div>
                     )}
                 </div>
-
                 {/* Franchise Applications Section */}
                 <div id="franchise-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
                     <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -2019,7 +2389,227 @@ export const AdminDashboard = () => {
                         </div>
                     )}
                 </div>
+
+
+                {/* Insurance Section */}
+                <div id="insurance-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                    <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                                    <Building2 className="w-5 h-5 text-blue-400" />
+                                </div>
+                                Sigortalar
+                            </h2>
+                            <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                {totalInsurances} kayıt
+                            </span>
+                        </div>
+                        <div className="flex-1 max-w-2xl flex justify-end items-center gap-4">
+                            <Button
+                                onClick={handleExportInsurances}
+                                variant="outline"
+                                className="border-white/10 text-gray-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                            >
+                                <Download className="w-4 h-4" />
+                                Excel İndir
+                            </Button>
+                            <Button
+                                onClick={() => setIsCreateInsuranceModalOpen(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 whitespace-nowrap"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Yeni Sigorta
+                            </Button>
+                            <div className="relative w-full max-w-md">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="Poliçe, Şirket veya Kullanıcı Ara..."
+                                    value={insuranceSearchTerm}
+                                    onChange={(e) => {
+                                        setInsuranceSearchTerm(e.target.value);
+                                        if (e.target.value.length >= 2 || e.target.value.length === 0) {
+                                            loadInsurances(1, e.target.value);
+                                        }
+                                    }}
+                                    className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th className="p-4">Kullanıcı</th>
+                                    <th className="p-4">Sigorta Şirketi</th>
+                                    <th className="p-4">Poliçe No / Tip</th>
+                                    <th className="p-4">Tutar</th>
+                                    <th className="p-4">Tarihler</th>
+                                    <th className="p-4 text-center">Durum</th>
+                                    <th className="p-4 text-center">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5 relative">
+                                {insuranceLoading ? (
+                                    <tr>
+                                        <td colSpan={6} className="p-12 text-center">
+                                            <div className="flex justify-center items-center">
+                                                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : insurances.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="p-12 text-center">
+                                            <Shield className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                                            <p className="text-gray-400">Henüz sigorta kaydı yok</p>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    insurances.map((ins) => {
+                                        const daysLeft = Math.ceil((new Date(ins.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                                        const isExpiring = daysLeft <= 10 && daysLeft >= 0;
+                                        const isExpired = daysLeft < 0;
+
+                                        return (
+                                            <tr
+                                                key={ins.id}
+                                                className={`transition-all border-b border-white/5 last:border-0 group ${isExpired
+                                                    ? 'bg-red-500/10 hover:bg-red-500/20 shadow-[inset_0_0_10px_rgba(239,68,68,0.1)]'
+                                                    : isExpiring
+                                                        ? 'bg-yellow-500/10 hover:bg-yellow-500/20 shadow-[inset_0_0_10px_rgba(234,179,8,0.1)]'
+                                                        : 'hover:bg-white/5'
+                                                    }`}
+                                            >
+                                                <td className="p-4">
+                                                    <div className="font-medium text-white">{ins.user?.name}</div>
+                                                    <div className="text-xs text-gray-500">{ins.user?.email}</div>
+                                                </td>
+                                                <td className="p-4 text-gray-300">{ins.companyName}</td>
+                                                <td className="p-4">
+                                                    <div className="font-mono text-sm text-blue-400">{ins.policyNumber}</div>
+                                                    {ins.policyType && <div className="text-xs text-gray-500">{ins.policyType}</div>}
+                                                </td>
+                                                <td className="p-4 text-sm text-gray-300">
+                                                    {ins.premiumAmount ? `${Number(ins.premiumAmount).toLocaleString()} ₺` : '-'}
+                                                </td>
+                                                <td className="p-4 text-sm text-gray-400">
+                                                    <div className="flex flex-col text-xs">
+                                                        <span>{new Date(ins.startDate).toLocaleDateString('tr-TR')}</span>
+                                                        <span className="text-gray-600">↓</span>
+                                                        <span className={isExpired ? 'text-red-400 font-bold flex items-center gap-1' : isExpiring ? 'text-yellow-400 font-bold flex items-center gap-1' : ''}>
+                                                            {new Date(ins.endDate).toLocaleDateString('tr-TR')}
+                                                            {isExpiring && <span className="bg-yellow-500/20 text-yellow-400 px-1.5 rounded text-[10px]">{daysLeft} gün</span>}
+                                                            {isExpired && <span className="bg-red-500/20 text-red-400 px-1.5 rounded text-[10px]">Süresi Doldu</span>}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-center">
+                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${ins.isActive
+                                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                                        : 'bg-red-500/10 text-red-400 border-red-500/20'
+                                                        }`}>
+                                                        <span className={`w-1.5 h-1.5 rounded-full ${ins.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                                                        {ins.isActive ? 'Aktif' : 'Pasif'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 text-center">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
+                                                        onClick={() => setSelectedInsurance(ins)}
+                                                    >
+                                                        Detaylar
+                                                    </Button>
+                                                </td>
+                                            </tr>
+
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {totalInsurances > ITEMS_PER_PAGE && (
+                        <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                            <div className="text-sm text-gray-400">
+                                Sayfa {insurancePage} / {Math.ceil(totalInsurances / ITEMS_PER_PAGE)} ({totalInsurances} kayıt)
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => loadInsurances(insurancePage - 1)}
+                                    disabled={insurancePage === 1 || insuranceLoading}
+                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronLeft className="w-5 h-5" />
+                                </button>
+                                {/* Page Numbers */}
+                                <div className="flex gap-1">
+                                    {Array.from({ length: Math.min(5, Math.ceil(totalInsurances / ITEMS_PER_PAGE)) }, (_, i) => {
+                                        const totalPages = Math.ceil(totalInsurances / ITEMS_PER_PAGE);
+                                        let pageNum: number;
+                                        if (totalPages <= 5) {
+                                            pageNum = i + 1;
+                                        } else if (insurancePage <= 3) {
+                                            pageNum = i + 1;
+                                        } else if (insurancePage >= totalPages - 2) {
+                                            pageNum = totalPages - 4 + i;
+                                        } else {
+                                            pageNum = insurancePage - 2 + i;
+                                        }
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => loadInsurances(pageNum)}
+                                                disabled={insuranceLoading}
+                                                className={`w-10 h-10 rounded-lg font-bold transition-all ${insurancePage === pageNum
+                                                    ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]'
+                                                    : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50'
+                                                    }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <button
+                                    onClick={() => loadInsurances(insurancePage + 1)}
+                                    disabled={insurancePage >= Math.ceil(totalInsurances / ITEMS_PER_PAGE) || insuranceLoading}
+                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
+
+            {/* Insurance Detail Modal */}
+            {
+                selectedInsurance && (
+                    <InsuranceDetailModal
+                        insurance={selectedInsurance}
+                        onClose={() => setSelectedInsurance(null)}
+                    />
+                )
+            }
+
+            {/* Create Insurance Modal */}
+            {
+                isCreateInsuranceModalOpen && (
+                    <CreateInsuranceModal
+                        onClose={() => setIsCreateInsuranceModalOpen(false)}
+                        onSuccess={() => loadInsurances(1)}
+                    />
+                )
+            }
 
             {/* Booking Detail Modal */}
             {

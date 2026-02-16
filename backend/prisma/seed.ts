@@ -453,6 +453,54 @@ async function main() {
     }
 
     console.log('✅ Car brands seeded.');
+
+    // Create sample insurance (expiring in 10 days)
+    console.log('Seeding sample insurance...');
+    const tenDaysFromNow = new Date();
+    tenDaysFromNow.setDate(tenDaysFromNow.getDate() + 10);
+
+    await prisma.userInsurance.create({
+        data: {
+            userId: adminUser.id,
+            companyName: 'Test Sigorta - 10 Gün Kaldı',
+            policyNumber: 'TEST-EXP-10',
+            policyType: 'Kasko',
+            premiumAmount: 7500,
+            coverageLimit: 500000,
+            startDate: new Date(),
+            endDate: tenDaysFromNow,
+            isActive: true,
+            agentName: 'Test Acentesi',
+            agentPhone: '0555 123 4567',
+            paymentStatus: 'PAID',
+            description: 'Bu kayıt 10 gün içinde sona erecek şekilde test amaçlı oluşturuldu.'
+        }
+    });
+
+    // Create sample expired insurance
+    console.log('Seeding sample expired insurance...');
+    const tenDaysAgo = new Date();
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+
+    await prisma.userInsurance.create({
+        data: {
+            userId: adminUser.id,
+            companyName: 'Test Sigorta - Süresi Doldu',
+            policyNumber: 'TEST-EXPIRED-99',
+            policyType: 'Trafik',
+            premiumAmount: 3500,
+            coverageLimit: 100000,
+            startDate: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
+            endDate: tenDaysAgo,
+            isActive: true,
+            agentName: 'Test Acentesi',
+            agentPhone: '0555 123 4567',
+            paymentStatus: 'PAID',
+            description: 'Bu kayıt süresi dolmuş şekilde test amaçlı oluşturuldu.'
+        }
+    });
+    console.log('✅ Sample expired insurance seeded.');
+    console.log('✅ Sample insurance seeded.');
 }
 
 main()

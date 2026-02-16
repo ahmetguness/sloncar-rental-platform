@@ -23,6 +23,7 @@ import brandsRoutes from './modules/brands/brands.routes.js';
 import branchesRoutes from './modules/branches/branches.routes.js';
 import uploadRoutes from './modules/upload/upload.routes.js';
 import campaignRoutes, { adminCampaignRouter } from './modules/campaigns/campaigns.routes.js';
+import { adminInsuranceRouter } from './modules/insurance/insurance.routes.js';
 
 const app = express();
 
@@ -99,6 +100,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/admin/bookings', adminBookingsRouter);
 app.use('/api/admin/franchise-applications', adminFranchiseRouter);
 app.use('/api/admin/campaigns', adminCampaignRouter);
+app.use('/api/admin/insurances', adminInsuranceRouter);
 app.use('/api/admin', adminRoutes);
 
 

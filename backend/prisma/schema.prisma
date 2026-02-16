@@ -171,6 +171,7 @@ model User {
   // Relations
   bookings              Booking[]
   franchiseApplications FranchiseApplication[]
+  insurances            UserInsurance[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -320,4 +321,44 @@ model Campaign {
 
   @@index([isActive])
   @@index([order])
+}
+
+/// UserInsurance represents insurance coverage details for a user
+model UserInsurance {
+  id            String   @id @default(uuid())
+  
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  
+  companyName   String
+  policyNumber  String   @unique
+  policyType    String?  // e.g. "Trafik", "Kasko", "Ferdi Kaza"
+  startDate     DateTime
+  endDate       DateTime
+  
+  // Financial Details
+  premiumAmount  Decimal? @db.Decimal(10, 2)
+  coverageLimit  Decimal? @db.Decimal(12, 2)
+  deductibleAmount Decimal? @db.Decimal(10, 2)
+
+  coverageType  String?  // Keep for backward compatibility or general type
+  description   String?  // Detailed description of coverage
+
+  // Agent/Contact Info
+  agentName     String?
+  agentPhone    String?
+  agentEmail    String?
+
+  documentUrl   String?
+  isActive      Boolean  @default(true)
+  
+  // Status and Dates
+  renewalDate   DateTime?
+  paymentStatus String   @default("PAID") // PAID, UNPAID, CANCELLED
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([policyNumber])
 }

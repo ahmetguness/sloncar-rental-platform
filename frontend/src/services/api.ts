@@ -138,6 +138,25 @@ export const adminService = {
         const response = await api.get<{ success: boolean; data: { id: string; name: string; city: string }[] }>('/branches');
         return response.data.data;
     },
+    // Insurance
+    getInsurances: async (params?: any) => {
+        const response = await api.get<{ success: boolean; data: any[]; pagination: any }>('/admin/insurances', { params });
+        return response.data;
+    },
+    createInsurance: async (data: any) => {
+        const response = await api.post<{ success: boolean; data: any }>('/admin/insurances', data);
+        return response.data.data;
+    },
+    exportInsurances: async () => {
+        return api.get('/admin/insurances/export', {
+            responseType: 'blob',
+        });
+    },
+    // Users
+    getUsers: async () => {
+        const response = await api.get<{ success: boolean; data: { id: string; name: string; email: string; phone: string }[] }>('/admin/users');
+        return response.data.data;
+    },
     // Revenue Analytics
     getRevenueAnalytics: async (year?: number) => {
         const params = year ? { year } : {};

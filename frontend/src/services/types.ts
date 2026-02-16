@@ -113,3 +113,40 @@ export interface PaginatedResponse<T> {
         totalPages: number;
     };
 }
+
+export interface UserInsurance {
+    id: string;
+    userId: string;
+    user?: {
+        name: string;
+        email: string;
+    };
+    companyName: string;
+    policyNumber: string;
+    policyType?: string;
+    startDate: string; // ISO Date
+    endDate: string; // ISO Date
+
+    // Financial Details
+    premiumAmount?: number;
+    coverageLimit?: number;
+    deductibleAmount?: number;
+
+    coverageType?: string;
+    description?: string;
+
+    // Contact
+    agentName?: string;
+    agentPhone?: string;
+    agentEmail?: string;
+
+    documentUrl?: string;
+    isActive: boolean;
+
+    // Status
+    renewalDate?: string;
+    paymentStatus: 'PAID' | 'UNPAID' | 'CANCELLED';
+
+    createdAt: string;
+    updatedAt: string;
+}

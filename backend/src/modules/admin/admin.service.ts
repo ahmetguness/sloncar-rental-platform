@@ -367,3 +367,17 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
     };
 }
 
+export async function getUsers() {
+    return prisma.user.findMany({
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+        },
+        orderBy: {
+            name: 'asc'
+        }
+    });
+}
+

@@ -50,6 +50,24 @@ router.get(
 
 /**
  * @openapi
+ * /api/admin/users:
+ *   get:
+ *     tags: [Admin - Users]
+ *     summary: Kullanıcı listesi (Select için)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Kullanıcı listesi
+ */
+router.get(
+    '/users',
+    authMiddleware,
+    adminController.getUsers
+);
+
+/**
+ * @openapi
  * /api/admin/notifications/mark-read:
  *   post:
  *     tags: [Admin - Notifications]

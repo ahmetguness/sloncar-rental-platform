@@ -66,3 +66,19 @@ export async function markAllNotificationsRead(
         next(error);
     }
 }
+
+export async function getUsers(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const users = await adminService.getUsers();
+        res.json({
+            success: true,
+            data: users,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
