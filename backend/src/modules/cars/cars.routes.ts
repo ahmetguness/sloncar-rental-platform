@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as carsController from './cars.controller.js';
-import { validate, authMiddleware, adminGuard } from '../../middlewares/index.js';
+import { validate, authMiddleware, adminGuard, superAdminGuard } from '../../middlewares/index.js';
 import {
     createCarSchema,
     updateCarSchema,
@@ -264,7 +264,7 @@ router.patch(
 router.delete(
     '/:id',
     authMiddleware,
-    adminGuard,
+    superAdminGuard,
     validate(carIdParamSchema, 'params'),
     carsController.deleteCar
 );

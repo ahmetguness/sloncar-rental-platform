@@ -82,3 +82,64 @@ export async function getUsers(
         next(error);
     }
 }
+
+export async function createUser(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const user = await adminService.createUser(req.body);
+        res.status(201).json({
+            success: true,
+            data: user,
+            message: 'Kullanıcı başarıyla oluşturuldu'
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function deleteUser(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            throw new Error('Kullanıcı ID gereklidir');
+        }
+        await adminService.deleteUser(id);
+        res.json({
+            success: true,
+            message: 'Kullanıcı başarıyla silindi'
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function updateUser(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const { id } = req.params;
+        const { role } = req.body;
+
+        if (!id) {
+            throw new Error('Kullanıcı ID gereklidir');
+        }
+
+        const user = await adminService.updateUser(id, { role });
+        res.json({
+            success: true,
+            data: user,
+            message: 'Kullanıcı rolü güncellendi'
+        });
+    } catch (error) {
+        next(error);
+    }
+}

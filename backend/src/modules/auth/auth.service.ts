@@ -54,6 +54,7 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
         where: { email: input.email },
     });
 
+
     if (!user) {
         throw ApiError.unauthorized('Invalid email or password');
     }

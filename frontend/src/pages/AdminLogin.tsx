@@ -20,8 +20,13 @@ export const AdminLogin = () => {
         setError(null);
 
         try {
-            await adminService.login({ ...credentials, rememberMe });
-            navigate('/admin/dashboard');
+            const data = await adminService.login({ ...credentials, rememberMe });
+
+            if (data.user.role === 'ADMIN' || data.user.role === 'STAFF') {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/');
+            }
         } catch (err: any) {
             setError('Giriş başarısız. Bilgilerinizi kontrol edin.');
         } finally {

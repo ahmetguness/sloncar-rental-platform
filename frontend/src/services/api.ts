@@ -147,6 +147,10 @@ export const adminService = {
         const response = await api.post<{ success: boolean; data: any }>('/admin/insurances', data);
         return response.data.data;
     },
+    deleteInsurance: async (id: string) => {
+        const response = await api.delete(`/admin/insurances/${id}`);
+        return response.data;
+    },
     exportInsurances: async () => {
         return api.get('/admin/insurances/export', {
             responseType: 'blob',
@@ -154,8 +158,20 @@ export const adminService = {
     },
     // Users
     getUsers: async () => {
-        const response = await api.get<{ success: boolean; data: { id: string; name: string; email: string; phone: string }[] }>('/admin/users');
+        const response = await api.get<{ success: boolean; data: { id: string; name: string; email: string; phone: string; role: 'ADMIN' | 'STAFF'; createdAt: string }[] }>('/admin/users');
         return response.data.data;
+    },
+    createUser: async (data: any) => {
+        const response = await api.post<{ success: boolean; data: any }>('/admin/users', data);
+        return response.data.data;
+    },
+    deleteUser: async (id: string) => {
+        const response = await api.delete<{ success: boolean; message: string }>(`/admin/users/${id}`);
+        return response.data;
+    },
+    updateUser: async (id: string, data: { role: 'ADMIN' | 'STAFF' }) => {
+        const response = await api.patch<{ success: boolean; data: any; message: string }>(`/admin/users/${id}`, data);
+        return response.data;
     },
     // Revenue Analytics
     getRevenueAnalytics: async (year?: number) => {

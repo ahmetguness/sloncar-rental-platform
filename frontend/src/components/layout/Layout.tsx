@@ -12,6 +12,7 @@ export const Layout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const isAdmin = location.pathname.startsWith('/admin');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -73,6 +74,9 @@ export const Layout = () => {
                             </>
                         ) : (
                             <div className="flex items-center gap-4">
+                                <span className={`text-sm font-medium ${scrolled ? 'text-gray-700' : 'text-white'}`}>
+                                    {user.name || 'Admin'}
+                                </span>
                                 <span className="text-xs font-bold text-primary-800 bg-primary-100 px-3 py-1.5 rounded-full tracking-wide">Yönetici Paneli</span>
                                 <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 transition-colors">
                                     <LogOut className="w-5 h-5" />

@@ -21,6 +21,14 @@ router.post(
     insuranceController.createInsurance
 );
 
+// Delete insurance
+router.delete(
+    '/:id',
+    authMiddleware,
+    adminGuard,
+    insuranceController.deleteInsurance
+);
+
 // Export insurances
 router.get(
     '/export',

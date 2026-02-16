@@ -71,6 +71,12 @@ export const insuranceService = {
         });
     },
 
+    deleteInsurance: async (id: string) => {
+        return prisma.userInsurance.delete({
+            where: { id },
+        });
+    },
+
     exportInsurances: async () => {
         const insurances = await prisma.userInsurance.findMany({
             include: {

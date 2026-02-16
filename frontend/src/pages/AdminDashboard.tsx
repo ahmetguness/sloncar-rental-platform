@@ -6,7 +6,7 @@ import { adminService, bookingService } from '../services/api';
 import type { DashboardStats, Booking, UserInsurance } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Pencil } from 'lucide-react';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -635,7 +635,24 @@ const ManualBookingModal = ({ isOpen, onClose, onSuccess }: { isOpen: boolean; o
     );
 };
 
-const InsuranceDetailModal = ({ insurance, onClose }: { insurance: UserInsurance; onClose: () => void }) => {
+const InsuranceDetailModal = ({ insurance, onClose, onUpdate, currentUser }: { insurance: UserInsurance; onClose: () => void; onUpdate?: () => void; currentUser: any }) => {
+    const { addToast } = useToast();
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isDeletingConfirmed, setIsDeletingConfirmed] = useState(false);
+
+    const handleDelete = async () => {
+        setIsDeletingConfirmed(true);
+        try {
+            await adminService.deleteInsurance(insurance.id);
+            addToast('Sigorta kaydı başarıyla silindi', 'success');
+            if (onUpdate) onUpdate();
+            onClose();
+        } catch (error: any) {
+            addToast(error.response?.data?.message || 'Sigorta silinirken bir hata oluştu', 'error');
+            setIsDeletingConfirmed(false);
+        }
+    };
+
     return (
         <Modal isOpen={!!insurance} onClose={onClose} title="Sigorta Detayı" size="lg">
             <div className="space-y-8">
@@ -785,10 +802,63 @@ const InsuranceDetailModal = ({ insurance, onClose }: { insurance: UserInsurance
                     </div>
                 )}
 
-                <div className="flex justify-end pt-4">
-                    <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
-                        Kapat
-                    </Button>
+                <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                    {currentUser?.role === 'ADMIN' ? (
+                        isDeleting ? (
+                            <div className="flex items-center gap-4 w-full justify-between bg-red-500/10 p-3 rounded-lg border border-red-500/20">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-red-500/20 rounded-full">
+                                        <AlertCircle className="w-5 h-5 text-red-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-white">Bu sigorta kaydını silmek istediğinize emin misiniz?</p>
+                                        <p className="text-xs text-red-300">Bu işlem geri alınamaz.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setIsDeleting(false)}
+                                        className="h-8 text-xs border-white/10 text-white hover:bg-white/10"
+                                    >
+                                        İptal
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        onClick={handleDelete}
+                                        className="h-8 text-xs bg-red-500 hover:bg-red-600 text-white border-none"
+                                    >
+                                        {isDeletingConfirmed ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Evet, Sil'}
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                {currentUser?.role === 'ADMIN' && (
+                                    <Button
+                                        onClick={() => setIsDeleting(true)}
+                                        variant="outline"
+                                        className="bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Sil
+                                    </Button>
+                                )}
+                                <div className="flex gap-2">
+                                    <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
+                                        Kapat
+                                    </Button>
+                                </div>
+                            </>
+                        )
+                    ) : (
+                        <div className="flex justify-end w-full">
+                            <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
+                                Kapat
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
         </Modal>
@@ -1147,6 +1217,147 @@ const BookingRow = ({
     );
 };
 
+const EditUserModal = ({ user, onClose, onSuccess }: { user: any; onClose: () => void; onSuccess: () => void }) => {
+    const { addToast } = useToast();
+    const [loading, setLoading] = useState(false);
+    const [role, setRole] = useState(user.role);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await adminService.updateUser(user.id, { role });
+            addToast('Kullanıcı rolü güncellendi', 'success');
+            onSuccess();
+            onClose();
+        } catch (error: any) {
+            addToast(error.response?.data?.message || 'Güncelleme hatası', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Modal isOpen={true} onClose={onClose} title="Kullanıcı Rolünü Düzenle">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="bg-white/5 p-4 rounded-lg mb-4">
+                    <p className="text-sm text-gray-400">Kullanıcı:</p>
+                    <p className="text-white font-medium">{user.name}</p>
+                    <p className="text-gray-400 text-sm">{user.email}</p>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Rol</label>
+                    <select
+                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        value={role}
+                        onChange={e => setRole(e.target.value)}
+                    >
+                        <option value="STAFF">Personel (Kısıtlı)</option>
+                        <option value="ADMIN">Süper Admin</option>
+                    </select>
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                    <Button type="button" variant="outline" onClick={onClose} className="border-white/10 text-white hover:bg-white/10">İptal</Button>
+                    <Button type="submit" disabled={loading} className="bg-primary-500 hover:bg-primary-600 text-white">
+                        {loading ? <Loader2 className="animate-spin" /> : 'Güncelle'}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
+const CreateUserModal = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) => {
+    const { addToast } = useToast();
+    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        role: 'STAFF'
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await adminService.createUser(formData);
+            addToast('Kullanıcı başarıyla oluşturuldu', 'success');
+            onSuccess();
+            onClose();
+        } catch (error: any) {
+            addToast(error.response?.data?.error?.message || error.message || 'Kullanıcı oluşturulurken bir hata oluştu', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Modal isOpen={true} onClose={onClose} title="Yeni Kullanıcı Ekle">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Ad Soyad</label>
+                    <input
+                        type="text"
+                        required
+                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        value={formData.name}
+                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">E-posta</label>
+                    <input
+                        type="email"
+                        required
+                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        value={formData.email}
+                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Telefon</label>
+                    <input
+                        type="tel"
+                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        value={formData.phone}
+                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Şifre</label>
+                    <input
+                        type="password"
+                        required
+                        minLength={6}
+                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        value={formData.password}
+                        onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Rol</label>
+                    <select
+                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        value={formData.role}
+                        onChange={e => setFormData({ ...formData, role: e.target.value })}
+                    >
+                        <option value="STAFF">Personel (Kısıtlı)</option>
+                        <option value="ADMIN">Süper Admin</option>
+                    </select>
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                    <Button type="button" variant="outline" onClick={onClose} className="border-white/10 text-white hover:bg-white/10">İptal</Button>
+                    <Button type="submit" disabled={loading} className="bg-primary-500 hover:bg-primary-600 text-white">
+                        {loading ? <Loader2 className="animate-spin" /> : 'Oluştur'}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
 export const AdminDashboard = () => {
     const navigate = useNavigate();
     const { addToast: toast } = useToast();
@@ -1187,6 +1398,13 @@ export const AdminDashboard = () => {
     const [totalInsurances, setTotalInsurances] = useState(0);
     const [insuranceSearchTerm, setInsuranceSearchTerm] = useState('');
 
+    // User Management States
+    const [users, setUsers] = useState<{ id: string; name: string; email: string; phone: string; role: 'ADMIN' | 'STAFF'; createdAt: string }[]>([]);
+    const [usersLoading, setUsersLoading] = useState(false);
+    const [currentUser, setCurrentUser] = useState<any | null>(null);
+    const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+    const [selectedUserToEdit, setSelectedUserToEdit] = useState<any | null>(null);
+
     const ITEMS_PER_PAGE = 10;
 
     const STATUS_OPTIONS = [
@@ -1221,6 +1439,43 @@ export const AdminDashboard = () => {
             setStats(statsData);
         } catch (err) {
             console.error('Silent refresh failed', err);
+        }
+    };
+
+    useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            setCurrentUser(user);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'STAFF')) {
+            loadUsers();
+        }
+    }, [currentUser]);
+
+    const loadUsers = async () => {
+        setUsersLoading(true);
+        try {
+            const data = await adminService.getUsers();
+            setUsers(data as any);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setUsersLoading(false);
+        }
+    };
+
+    const handleDeleteUser = async (id: string) => {
+        if (!window.confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?')) return;
+        try {
+            await adminService.deleteUser(id);
+            toast('Kullanıcı başarıyla silindi', 'success');
+            loadUsers();
+        } catch (error: any) {
+            toast(error.response?.data?.error?.message || 'Silme işlemi başarısız', 'error');
         }
     };
 
@@ -2413,11 +2668,10 @@ export const AdminDashboard = () => {
                         <div className="flex-1 max-w-2xl flex justify-end items-center gap-4">
                             <Button
                                 onClick={handleExportInsurances}
-                                variant="outline"
-                                className="border-white/10 text-gray-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                                className="bg-[#107c41] hover:bg-[#0c5c30] text-white border-none shadow-lg shadow-green-900/20 flex items-center gap-2 transition-all hover:scale-105 whitespace-nowrap px-6"
                             >
                                 <Download className="w-4 h-4" />
-                                Excel İndir
+                                <span className="font-semibold">Excel İndir</span>
                             </Button>
                             <Button
                                 onClick={() => setIsCreateInsuranceModalOpen(true)}
@@ -2594,17 +2848,159 @@ export const AdminDashboard = () => {
                         </div>
                     )}
                 </div>
+
+
+                {/* Users Section */}
+                {currentUser?.role === 'ADMIN' && (
+                    <div id="users-section" className="mt-8 bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                        <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                                        <Users className="w-5 h-5 text-orange-400" />
+                                    </div>
+                                    Kullanıcı Yönetimi
+                                </h2>
+                                <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                    {users.length} kullanıcı
+                                </span>
+                            </div>
+                            <div className="flex-1 max-w-2xl flex justify-end items-center gap-4">
+                                <div className="relative group flex items-center">
+                                    <Info className="w-5 h-5 text-gray-400 cursor-help hover:text-white transition-colors" />
+                                    <div className="absolute right-0 bottom-full mb-2 w-64 p-4 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 text-xs text-gray-300 backdrop-blur-xl">
+                                        <div className="mb-3 pb-3 border-b border-white/10">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                                <span className="text-white font-bold">Süper Admin</span>
+                                            </div>
+                                            <p>Tam yetki (Kullanıcı oluşturma/silme, tüm verileri düzenleme)</p>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                                <span className="text-white font-bold">Personel</span>
+                                            </div>
+                                            <p>Kısıtlı yetki (Görüntüleme, düzenleme, ancak silme ve kullanıcı oluşturma yok)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {currentUser?.role === 'ADMIN' && (
+                                    <Button
+                                        onClick={() => setShowCreateUserModal(true)}
+                                        className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-2 whitespace-nowrap"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Yeni Kullanıcı
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th className="p-4">Ad Soyad</th>
+                                        <th className="p-4">E-posta</th>
+                                        <th className="p-4">Telefon</th>
+                                        <th className="p-4">Rol</th>
+                                        <th className="p-4">Kayıt Tarihi</th>
+                                        {currentUser?.role === 'ADMIN' && <th className="p-4 text-center">İşlem</th>}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5 relative">
+                                    {usersLoading ? (
+                                        <tr>
+                                            <td colSpan={currentUser?.role === 'ADMIN' ? 6 : 5} className="p-12 text-center">
+                                                <div className="flex justify-center items-center">
+                                                    <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : users.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={currentUser?.role === 'ADMIN' ? 6 : 5} className="p-12 text-center">
+                                                <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                                                <p className="text-gray-400">Henüz kullanıcı bulunmuyor</p>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        users.map((user) => (
+                                            <tr key={user.id} className="hover:bg-white/5 transition-colors">
+                                                <td className="p-4 font-medium text-white">{user.name}</td>
+                                                <td className="p-4 text-gray-300">{user.email}</td>
+                                                <td className="p-4 text-gray-300 font-mono text-sm">{user.phone || '-'}</td>
+                                                <td className="p-4">
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${user.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' :
+                                                        user.role === 'STAFF' ? 'bg-blue-500/20 text-blue-400' :
+                                                            'bg-green-500/20 text-green-400'
+                                                        }`}>
+                                                        {user.role === 'ADMIN' ? 'Süper Admin' : user.role === 'STAFF' ? 'Personel' : 'Kullanıcı'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 text-gray-400 text-sm">
+                                                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString('tr-TR') : '-'}
+                                                </td>
+                                                {currentUser?.role === 'ADMIN' && (
+                                                    <td className="p-4 text-center">
+                                                        <div className="flex justify-center gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="text-blue-400 hover:bg-blue-500/10 border-blue-500/30"
+                                                                onClick={() => setSelectedUserToEdit(user)}
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="text-red-400 hover:bg-red-500/10 border-red-500/30"
+                                                                onClick={() => handleDeleteUser(user.id)}
+                                                                disabled={user.id === currentUser.id} // Cannot delete self
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
 
+            {/* Create User Modal */}
+            {showCreateUserModal && (
+                <CreateUserModal
+                    onClose={() => setShowCreateUserModal(false)}
+                    onSuccess={() => loadUsers()}
+                />
+            )}
+
+            {/* Edit User Modal */}
+            {selectedUserToEdit && (
+                <EditUserModal
+                    user={selectedUserToEdit}
+                    onClose={() => setSelectedUserToEdit(null)}
+                    onSuccess={() => loadUsers()}
+                />
+            )}
+
             {/* Insurance Detail Modal */}
-            {
-                selectedInsurance && (
-                    <InsuranceDetailModal
-                        insurance={selectedInsurance}
-                        onClose={() => setSelectedInsurance(null)}
-                    />
-                )
-            }
+            {selectedInsurance && (
+                <InsuranceDetailModal
+                    insurance={selectedInsurance}
+                    onClose={() => setSelectedInsurance(null)}
+                    onUpdate={() => loadInsurances(insurancePage)}
+                    currentUser={currentUser}
+                />
+            )}
 
             {/* Create Insurance Modal */}
             {

@@ -1,5 +1,6 @@
 import prisma from '../../lib/prisma.js';
 import { BookingStatus } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 export interface DashboardStats {
     totalRevenue: number;
@@ -351,11 +352,53 @@ export async function getUsers() {
             id: true,
             name: true,
             email: true,
-            phone: true
+            phone: true,
+            role: true,
+            createdAt: true
         },
         orderBy: {
             name: 'asc'
         }
+    });
+}
+
+export async function createUser(data: any) {
+    const { name, email, password, phone, role } = data;
+
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+        where: { email }
+    });
+
+    if (existingUser) {
+        throw new Error('Bu e-posta adresi ile kayıtlı kullanıcı var.');
+    }
+
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    return prisma.user.create({
+        data: {
+            name,
+            email,
+            passwordHash,
+            phone,
+            role: role || 'USER'
+        }
+    });
+}
+
+export async function deleteUser(id: string) {
+    return prisma.user.delete({
+        where: { id }
+    });
+}
+
+export async function updateUser(id: string, data: { role: 'ADMIN' | 'STAFF' }) {
+    return prisma.user.update({
+        where: { id },
+        data: { role: data.role }
     });
 }
 

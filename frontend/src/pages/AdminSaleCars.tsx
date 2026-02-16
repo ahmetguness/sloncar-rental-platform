@@ -94,6 +94,14 @@ export const AdminSaleCars = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+    useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            setCurrentUser(JSON.parse(userStr));
+        }
+    }, []);
 
     // Filters & Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -826,14 +834,16 @@ export const AdminSaleCars = () => {
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
-                                                    <button
-                                                        onClick={() => setDeleteId(car.id)}
-                                                        disabled={submitting}
-                                                        className="p-2 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
-                                                        title="Sil"
-                                                    >
-                                                        <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                                    </button>
+                                                    {currentUser?.role === 'ADMIN' && (
+                                                        <button
+                                                            onClick={() => setDeleteId(car.id)}
+                                                            disabled={submitting}
+                                                            className="p-2 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                                                            title="Sil"
+                                                        >
+                                                            <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>

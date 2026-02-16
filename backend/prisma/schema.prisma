@@ -58,8 +58,8 @@ enum CarStatus {
 }
 
 enum UserRole {
-  USER
   ADMIN
+  STAFF
 }
 
 enum BookingStatus {
@@ -166,7 +166,7 @@ model User {
   passwordHash String
   name         String
   phone        String?
-  role         UserRole @default(USER)
+  role         UserRole @default(STAFF)
   
   // Relations
   bookings              Booking[]

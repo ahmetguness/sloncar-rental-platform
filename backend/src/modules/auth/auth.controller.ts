@@ -27,10 +27,7 @@ export async function login(
     try {
         const result = await authService.login(req.body as LoginInput);
 
-        // Only allow admin login
-        if (result.user.role !== 'ADMIN') {
-            throw ApiError.unauthorized('Only admin users can login');
-        }
+
 
         res.json({
             success: true,

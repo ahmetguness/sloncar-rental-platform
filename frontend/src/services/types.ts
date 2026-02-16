@@ -78,11 +78,15 @@ export interface CreateBookingRequest {
     notes?: string;
 }
 
+export type UserRole = 'ADMIN' | 'STAFF';
+
 export interface User {
     id: string;
     email: string;
     name: string;
-    role: 'USER' | 'ADMIN';
+    role: UserRole;
+    phone?: string;
+    createdAt?: string;
 }
 
 export interface AuthResponse {

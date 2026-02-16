@@ -27,6 +27,21 @@ export const insuranceController = {
         }
     },
 
+    deleteInsurance: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.params.id) {
+                throw new Error('ID is required');
+            }
+            await insuranceService.deleteInsurance(req.params.id);
+            res.json({
+                success: true,
+                message: 'Sigorta kaydı silindi',
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+
     exportInsurances: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const workbook = await insuranceService.exportInsurances();

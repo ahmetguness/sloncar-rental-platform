@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { UserRole } from '@prisma/client';
 import { ApiError } from './errorHandler.js';
 
-export function adminGuard(
+export function superAdminGuard(
     req: Request,
     _res: Response,
     next: NextFunction
@@ -12,8 +12,8 @@ export function adminGuard(
         return;
     }
 
-    if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.STAFF) {
-        next(ApiError.forbidden('Admin or Staff access required'));
+    if (req.user.role !== UserRole.ADMIN) {
+        next(ApiError.forbidden('Super Admin access required'));
         return;
     }
 
