@@ -270,4 +270,5 @@ export async function deleteCar(id: string): Promise<void> {
     }
 
     await prisma.car.delete({ where: { id } });
+    return car as any;
 }

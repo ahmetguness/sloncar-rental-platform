@@ -64,7 +64,13 @@ export async function updateCar(
     try {
         const car = await carsService.updateCar(req.params.id!, req.body as UpdateCarInput);
 
-        await auditService.logAction(req.user?.userId, 'UPDATE_CAR', { carId: car.id, updates: req.body }, req);
+        await auditService.logAction(req.user?.userId, 'UPDATE_CAR', {
+            carId: car.id,
+            brand: car.brand,
+            model: car.model,
+            plate: car.plateNumber,
+            updates: req.body
+        }, req);
 
         res.json({
             success: true,
@@ -81,9 +87,9 @@ export async function deleteCar(
     next: NextFunction
 ): Promise<void> {
     try {
-        await carsService.deleteCar(req.params.id!);
+        const car = await carsService.deleteCar(req.params.id!) as any;
 
-        await auditService.logAction(req.user?.userId, 'DELETE_CAR', { carId: req.params.id }, req);
+        await auditService.logAction(req.user?.userId, 'DELETE_CAR', { carId: req.params.id, brand: car.brand, model: car.model, plate: car.plateNumber }, req);
 
         res.status(204).send();
     } catch (error) {

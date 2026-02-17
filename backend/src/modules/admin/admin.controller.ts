@@ -61,6 +61,9 @@ export async function markAllNotificationsRead(
 ): Promise<void> {
     try {
         await adminService.markAllNotificationsRead();
+
+        await auditService.logAction(req.user?.userId, 'MARK_ALL_NOTIFICATIONS_READ', {}, req);
+
         res.json({ success: true });
     } catch (error) {
         console.error('Error marking all notifications read:', error);
@@ -114,9 +117,9 @@ export async function deleteUser(
         if (!id) {
             throw new Error('Kullanıcı ID gereklidir');
         }
-        await adminService.deleteUser(id);
+        const user = await adminService.deleteUser(id);
 
-        await auditService.logAction(req.user?.userId, 'DELETE_USER', { targetUserId: id }, req);
+        await auditService.logAction(req.user?.userId, 'DELETE_USER', { targetUserId: id, targetName: user.name, targetEmail: user.email }, req);
 
         res.json({
             success: true,
@@ -142,7 +145,7 @@ export async function updateUser(
 
         const user = await adminService.updateUser(id, { role });
 
-        await auditService.logAction(req.user?.userId, 'UPDATE_USER_ROLE', { targetUserId: id, newRole: role }, req);
+        await auditService.logAction(req.user?.userId, 'UPDATE_USER_ROLE', { targetUserId: id, targetName: user.name, targetEmail: user.email, newRole: role }, req);
 
         res.json({
             success: true,

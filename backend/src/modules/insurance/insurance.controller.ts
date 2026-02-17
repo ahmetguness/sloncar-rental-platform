@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { insuranceService } from './insurance.service.js';
+import { auditService } from '../audit/audit.service.js';
 
 export const insuranceController = {
     getInsurances: async (req: Request, res: Response, next: NextFunction) => {
@@ -18,6 +19,9 @@ export const insuranceController = {
     createInsurance: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const insurance = await insuranceService.createInsurance(req.body);
+
+            await auditService.logAction(req.user?.userId, 'CREATE_INSURANCE', { insuranceId: insurance.id, policyNumber: insurance.policyNumber, companyName: insurance.companyName }, req);
+
             res.status(201).json({
                 success: true,
                 data: insurance,
@@ -32,7 +36,10 @@ export const insuranceController = {
             if (!req.params.id) {
                 throw new Error('ID is required');
             }
-            await insuranceService.deleteInsurance(req.params.id);
+            const insurance = await insuranceService.deleteInsurance(req.params.id);
+
+            await auditService.logAction(req.user?.userId, 'DELETE_INSURANCE', { insuranceId: req.params.id, policyNumber: insurance.policyNumber, companyName: insurance.companyName }, req);
+
             res.json({
                 success: true,
                 message: 'Sigorta kaydı silindi',

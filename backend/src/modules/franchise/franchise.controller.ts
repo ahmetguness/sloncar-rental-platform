@@ -6,6 +6,7 @@ import {
     UpdateStatusInput,
     FranchiseQueryInput,
 } from './franchise.validators.js';
+import { auditService } from '../audit/audit.service.js';
 
 // User endpoints
 export async function createApplication(
@@ -125,6 +126,14 @@ export async function updateApplicationStatus(
             adminUserId,
             req.body as UpdateStatusInput
         );
+
+        await auditService.logAction(adminUserId, 'UPDATE_FRANCHISE_STATUS', {
+            applicationId: req.params.id,
+            newStatus: req.body.status,
+            applicantName: application.contactName,
+            companyName: application.companyName
+        }, req);
+
         res.json({
             success: true,
             data: application,

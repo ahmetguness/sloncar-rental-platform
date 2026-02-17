@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminService } from '../services/api';
 import type { ActionLog } from '../services/types';
+import { translateAction, formatDetails } from '../utils/auditLogger';
 import { Loader2, Search, Filter, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -140,12 +141,12 @@ export const AuditLogs = () => {
                                                 </div>
                                             </td>
                                             <td className="p-4">
-                                                <span className="bg-white/10 px-2 py-1 rounded text-xs font-bold text-white font-mono border border-white/10">
-                                                    {log.action}
+                                                <span className="bg-white/10 px-2 py-1 rounded text-xs font-bold text-white whitespace-nowrap border border-white/10">
+                                                    {translateAction(log.action)}
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-sm text-gray-400 max-w-md truncate" title={log.details}>
-                                                {log.details || '-'}
+                                            <td className="p-4 text-sm text-gray-400 max-w-md" title={log.details || ''}>
+                                                {formatDetails(log.action, log.details)}
                                             </td>
                                             <td className="p-4 text-sm text-gray-500 font-mono">
                                                 {log.ipAddress || '-'}

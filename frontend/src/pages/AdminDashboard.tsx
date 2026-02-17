@@ -4,6 +4,7 @@ import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { adminService, bookingService } from '../services/api';
 import type { DashboardStats, Booking, UserInsurance, ActionLog } from '../services/types';
+import { translateAction, formatDetails } from '../utils/auditLogger';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
 import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Pencil, Clock } from 'lucide-react';
@@ -2589,12 +2590,12 @@ export const AdminDashboard = () => {
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
-                                                    <span className="px-2 py-1 rounded text-[10px] font-bold bg-white/5 text-gray-300 border border-white/10 font-mono">
-                                                        {log.action}
+                                                    <span className="px-2 py-1 rounded text-[10px] font-bold bg-white/5 text-gray-300 border border-white/10 whitespace-nowrap">
+                                                        {translateAction(log.action)}
                                                     </span>
                                                 </td>
-                                                <td className="p-4 text-sm text-gray-400 max-w-[300px] truncate" title={log.details}>
-                                                    {log.details || '-'}
+                                                <td className="p-4 text-sm text-gray-400 max-w-[400px]" title={log.details || ''}>
+                                                    {formatDetails(log.action, log.details)}
                                                 </td>
                                             </tr>
                                         ))
