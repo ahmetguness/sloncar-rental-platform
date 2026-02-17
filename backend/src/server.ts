@@ -1,6 +1,7 @@
 import app from './app.js';
 import { env } from './config/env.js';
 import prisma from './lib/prisma.js';
+import { initBackupScheduler } from './modules/backup/backup.scheduler.js';
 
 const PORT = env.APP_PORT;
 
@@ -9,6 +10,9 @@ async function main() {
         // Test database connection
         await prisma.$connect();
         console.log('✅ Database connected successfully');
+
+        // Initialize Backup Scheduler
+        initBackupScheduler();
 
         // Start server
         app.listen(PORT, () => {
