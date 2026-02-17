@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as campaignController from './campaigns.controller.js';
 import { authMiddleware } from '../../middlewares/auth.js';
 import { adminGuard } from '../../middlewares/adminGuard.js';
+import { deleteGuard } from '../../middlewares/deleteGuard.js';
 
 // Public router (for homepage)
 const router = Router();
@@ -17,6 +18,6 @@ adminCampaignRouter.use(adminGuard);
 adminCampaignRouter.get('/', campaignController.listAllCampaigns);
 adminCampaignRouter.post('/', campaignController.createCampaign);
 adminCampaignRouter.patch('/:id', campaignController.updateCampaign);
-adminCampaignRouter.delete('/:id', campaignController.deleteCampaign);
+adminCampaignRouter.delete('/:id', deleteGuard, campaignController.deleteCampaign);
 
 export default router;

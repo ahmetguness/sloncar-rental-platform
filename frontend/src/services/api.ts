@@ -5,8 +5,10 @@ import type {
     CreateBookingRequest,
     AuthResponse,
     PaginatedResponse,
-    DashboardStats
+    DashboardStats,
+    ActionLog
 } from './types';
+import { storage } from '../utils/storage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -19,7 +21,7 @@ const api = axios.create({
 
 // Add token to requests
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
+    const token = storage.getToken();
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -79,14 +81,31 @@ export const adminService = {
     login: async (credentials: any) => {
         const response = await api.post<{ success: boolean; data: AuthResponse }>('/auth/login', credentials);
         if (response.data.data.token) {
-            localStorage.setItem('token', response.data.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.data.user));
+            console.log('Login API success. Credentials RememberMe:', credentials.rememberMe);
+
+            // Explicit user feedback for debugging
+            if (credentials.rememberMe) {
+                // alert('DEBUG: "Beni Hatırla" seçili. Oturum localStorage\'a kaydediliyor (Kalıcı).');
+                console.log('DEBUG: Saving to localStorage');
+            } else {
+                // alert('DEBUG: "Beni Hatırla" seçili değil. Oturum sessionStorage\'a kaydediliyor (Geçici).');
+                console.log('DEBUG: Saving to sessionStorage');
+            }
+
+            // credentials.rememberMe is passed from the form
+            storage.setAuth(
+                response.data.data.token,
+                response.data.data.user,
+                credentials.rememberMe || false
+            );
         }
         return response.data.data;
     },
     logout: () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        storage.clearAuth();
+    },
+    isAuthenticated: () => {
+        return storage.isAuthenticated();
     },
     getDashboard: async () => {
         const response = await api.get<{ data: DashboardStats }>('/admin/dashboard');
@@ -198,6 +217,10 @@ export const adminService = {
     },
     markAllNotificationsRead: async () => {
         const response = await api.post('/admin/notifications/mark-all-read');
+        return response.data;
+    },
+    getAuditLogs: async (params?: any) => {
+        const response = await api.get<PaginatedResponse<ActionLog>>('/admin/audit-logs', { params });
         return response.data;
     }
 };

@@ -8,6 +8,7 @@ import { Loader2, Plus, Edit2, Trash2, X, Upload, Car as CarIcon, ArrowLeft, Sea
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { Skeleton } from '../components/ui/Skeleton';
+import { storage } from '../utils/storage';
 
 interface Brand {
     id: string;
@@ -92,9 +93,9 @@ export const AdminCars = () => {
     const [currentUser, setCurrentUser] = useState<any>(null);
 
     useEffect(() => {
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            setCurrentUser(JSON.parse(userStr));
+        const user = storage.getUser();
+        if (user) {
+            setCurrentUser(user);
         }
     }, []);
 

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import ScrollToTop from './components/ScrollToTop';
 import { Layout } from './components/layout/Layout';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Lazy-loaded pages for code splitting
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -14,6 +15,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ 
 const AdminRentalCars = lazy(() => import('./pages/AdminRentalCars').then(m => ({ default: m.AdminRentalCars })));
 const AdminSaleCars = lazy(() => import('./pages/AdminSaleCars').then(m => ({ default: m.AdminSaleCars })));
 const AdminCampaigns = lazy(() => import('./pages/AdminCampaigns').then(m => ({ default: m.AdminCampaigns })));
+const AuditLogs = lazy(() => import('./pages/AuditLogs').then(m => ({ default: m.AuditLogs })));
 const CarDetail = lazy(() => import('./pages/CarDetail').then(m => ({ default: m.CarDetail })));
 
 const PageLoader = () => (
@@ -39,11 +41,16 @@ function App() {
             {/* Admin Routes */}
             <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="admin/login" element={<AdminLogin />} />
-            <Route path="admin/dashboard" element={<AdminDashboard />} />
-            <Route path="admin/cars/rental" element={<AdminRentalCars />} />
-            <Route path="admin/cars/sale" element={<AdminSaleCars />} />
-            <Route path="admin/cars" element={<Navigate to="/admin/cars/rental" replace />} />
-            <Route path="admin/campaigns" element={<AdminCampaigns />} />
+
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'STAFF']} />}>
+              <Route path="admin/dashboard" element={<AdminDashboard />} />
+              <Route path="admin/cars/rental" element={<AdminRentalCars />} />
+              <Route path="admin/cars/sale" element={<AdminSaleCars />} />
+              <Route path="admin/cars" element={<Navigate to="/admin/cars/rental" replace />} />
+              <Route path="admin/cars" element={<Navigate to="/admin/cars/rental" replace />} />
+              <Route path="admin/campaigns" element={<AdminCampaigns />} />
+              <Route path="admin/audit-logs" element={<AuditLogs />} />
+            </Route>
 
             {/* Fallback */}
             <Route path="*" element={<div>Page Not Found: {window.location.pathname}</div>} />

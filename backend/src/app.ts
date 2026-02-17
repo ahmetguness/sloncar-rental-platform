@@ -24,6 +24,7 @@ import branchesRoutes from './modules/branches/branches.routes.js';
 import uploadRoutes from './modules/upload/upload.routes.js';
 import campaignRoutes, { adminCampaignRouter } from './modules/campaigns/campaigns.routes.js';
 import { adminInsuranceRouter } from './modules/insurance/insurance.routes.js';
+import auditRouter from './modules/audit/audit.routes.js';
 
 const app = express();
 
@@ -51,7 +52,7 @@ const limiter = rateLimit({
 
 
 // Rate limiter
-if (env.NODE_ENV !== 'test') {
+if (env.NODE_ENV === 'production') {
     app.use(limiter);
 }
 
@@ -101,6 +102,7 @@ app.use('/api/admin/bookings', adminBookingsRouter);
 app.use('/api/admin/franchise-applications', adminFranchiseRouter);
 app.use('/api/admin/campaigns', adminCampaignRouter);
 app.use('/api/admin/insurances', adminInsuranceRouter);
+app.use('/api/admin/audit-logs', auditRouter);
 app.use('/api/admin', adminRoutes);
 
 

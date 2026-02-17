@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { insuranceController } from './insurance.controller.js';
 import { authMiddleware } from '../../middlewares/auth.js';
 import { adminGuard } from '../../middlewares/adminGuard.js';
+import { deleteGuard } from '../../middlewares/deleteGuard.js';
 
 const router = Router();
 
@@ -26,6 +27,7 @@ router.delete(
     '/:id',
     authMiddleware,
     adminGuard,
+    deleteGuard,
     insuranceController.deleteInsurance
 );
 

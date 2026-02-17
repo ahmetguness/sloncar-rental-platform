@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as bookingsService from './bookings.service.js';
+import { auditService } from '../audit/audit.service.js';
 import {
     CreateBookingInput,
     BookingQueryInput,
@@ -162,6 +163,9 @@ export async function cancelBooking(
 ): Promise<void> {
     try {
         const booking = await bookingsService.cancelBooking(req.params.id!);
+
+        await auditService.logAction(req.user?.userId, 'CANCEL_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
+
         res.json({
             success: true,
             message: 'Rezervasyon iptal edildi',
@@ -180,6 +184,9 @@ export async function startBooking(
 ): Promise<void> {
     try {
         const booking = await bookingsService.startBooking(req.params.id!);
+
+        await auditService.logAction(req.user?.userId, 'START_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
+
         res.json({
             success: true,
             message: 'Rezervasyon başlatıldı. Araç teslim edildi.',
@@ -198,6 +205,9 @@ export async function createManualBooking(
 ): Promise<void> {
     try {
         const booking = await bookingsService.createManualBooking(req.body);
+
+        await auditService.logAction(req.user?.userId, 'CREATE_MANUAL_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
+
         res.status(201).json({
             success: true,
             message: 'Manual rezervasyon oluşturuldu.',
@@ -220,6 +230,9 @@ export async function updateBookingDates(
             req.params.id!,
             req.body as UpdateBookingDatesInput
         );
+
+        await auditService.logAction(req.user?.userId, 'UPDATE_BOOKING_DATES', { bookingId: booking.id, updates: req.body }, req);
+
         res.json({
             success: true,
             message: 'Rezervasyon tarihleri güncellendi.',
@@ -238,6 +251,9 @@ export async function completeBooking(
 ): Promise<void> {
     try {
         const booking = await bookingsService.completeBooking(req.params.id!);
+
+        await auditService.logAction(req.user?.userId, 'COMPLETE_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
+
         res.json({
             success: true,
             message: 'Rezervasyon tamamlandı. Araç teslim alındı ve lokasyonu güncellendi.',

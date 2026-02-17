@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as carsService from './cars.service.js';
+import { auditService } from '../audit/audit.service.js';
 import { CreateCarInput, UpdateCarInput, CarQueryInput, carQuerySchema } from './cars.validators.js';
 
 export async function listCars(
@@ -43,6 +44,9 @@ export async function createCar(
 ): Promise<void> {
     try {
         const car = await carsService.createCar(req.body as CreateCarInput);
+
+        await auditService.logAction(req.user?.userId, 'CREATE_CAR', { carId: car.id, brand: car.brand, model: car.model }, req);
+
         res.status(201).json({
             success: true,
             data: car,
@@ -59,6 +63,9 @@ export async function updateCar(
 ): Promise<void> {
     try {
         const car = await carsService.updateCar(req.params.id!, req.body as UpdateCarInput);
+
+        await auditService.logAction(req.user?.userId, 'UPDATE_CAR', { carId: car.id, updates: req.body }, req);
+
         res.json({
             success: true,
             data: car,
@@ -75,6 +82,9 @@ export async function deleteCar(
 ): Promise<void> {
     try {
         await carsService.deleteCar(req.params.id!);
+
+        await auditService.logAction(req.user?.userId, 'DELETE_CAR', { carId: req.params.id }, req);
+
         res.status(204).send();
     } catch (error) {
         next(error);

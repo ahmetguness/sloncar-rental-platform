@@ -3,11 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { adminService, bookingService } from '../services/api';
-import type { DashboardStats, Booking, UserInsurance } from '../services/types';
+import type { DashboardStats, Booking, UserInsurance, ActionLog } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Pencil } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Pencil, Clock } from 'lucide-react';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { storage } from '../utils/storage';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { tr } from 'date-fns/locale';
@@ -119,7 +120,6 @@ const BookingDetailModal = ({ booking, onClose, onUpdate }: { booking: Booking; 
     });
     const [loading, setLoading] = useState(false);
     const [unavailableIntervals, setUnavailableIntervals] = useState<{ start: Date; end: Date }[]>([]);
-
     useEffect(() => {
         if (booking) {
             setEditDates({
@@ -1253,7 +1253,7 @@ const EditUserModal = ({ user, onClose, onSuccess }: { user: any; onClose: () =>
                         onChange={e => setRole(e.target.value)}
                     >
                         <option value="STAFF">Personel (Kısıtlı)</option>
-                        <option value="ADMIN">Süper Admin</option>
+                        <option value="ADMIN">Yönetici</option>
                     </select>
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
@@ -1344,7 +1344,7 @@ const CreateUserModal = ({ onClose, onSuccess }: { onClose: () => void; onSucces
                         onChange={e => setFormData({ ...formData, role: e.target.value })}
                     >
                         <option value="STAFF">Personel (Kısıtlı)</option>
-                        <option value="ADMIN">Süper Admin</option>
+                        <option value="ADMIN">Yönetici</option>
                     </select>
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
@@ -1364,6 +1364,7 @@ export const AdminDashboard = () => {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [revenueData, setRevenueData] = useState<RevenueAnalytics | null>(null);
     const [selectedInsurance, setSelectedInsurance] = useState<UserInsurance | null>(null);
     const [isCreateInsuranceModalOpen, setIsCreateInsuranceModalOpen] = useState(false);
@@ -1405,6 +1406,10 @@ export const AdminDashboard = () => {
     const [showCreateUserModal, setShowCreateUserModal] = useState(false);
     const [selectedUserToEdit, setSelectedUserToEdit] = useState<any | null>(null);
 
+    // Audit Logs Preview State
+    const [auditLogs, setAuditLogs] = useState<ActionLog[]>([]);
+    const [auditLogsLoading, setAuditLogsLoading] = useState(false);
+
     const ITEMS_PER_PAGE = 10;
 
     const STATUS_OPTIONS = [
@@ -1433,6 +1438,8 @@ export const AdminDashboard = () => {
         return () => clearInterval(interval);
     }, []);
 
+    const isFirstRender = React.useRef(true);
+
     const refreshStats = async () => {
         try {
             const statsData = await adminService.getDashboard();
@@ -1443,10 +1450,12 @@ export const AdminDashboard = () => {
     };
 
     useEffect(() => {
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            const user = JSON.parse(userStr);
+        const user = storage.getUser();
+        if (user) {
             setCurrentUser(user);
+            if (user.role === 'ADMIN' || user.role === 'STAFF') {
+                loadLogs();
+            }
         }
     }, []);
 
@@ -1491,9 +1500,16 @@ export const AdminDashboard = () => {
             ]);
             setStats(statsData);
             setRevenueData(revenueAnalytics);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            navigate('/admin/login');
+            const errorMessage = err.response?.data?.message || err.message || 'Bilinmeyen bir hata oluştu';
+            setError(`Hata: ${errorMessage} (Kod: ${err.response?.status})`);
+
+            if (err.response?.status === 401) {
+                // Only redirect if absolutely necessary, but we want to show the error first maybe?
+                // navigate('/admin/login');
+                setError('Oturum süresi doldu. Lütfen tekrar giriş yapın.');
+            }
         } finally {
             setLoading(false);
         }
@@ -1585,6 +1601,7 @@ export const AdminDashboard = () => {
 
     // Auto-search with debounce
     useEffect(() => {
+        if (isFirstRender.current) return;
         const timer = setTimeout(() => {
             loadBookings(1, searchTerm || undefined, statusFilter || undefined);
         }, 300); // 300ms debounce
@@ -1593,6 +1610,7 @@ export const AdminDashboard = () => {
 
     // Auto-search with debounce for Franchise
     useEffect(() => {
+        if (isFirstRender.current) return;
         const timer = setTimeout(() => {
             loadFranchiseApplications(1, franchiseSearchTerm || undefined);
         }, 300); // 300ms debounce
@@ -1601,6 +1619,10 @@ export const AdminDashboard = () => {
 
     // Auto-search with debounce for Insurance
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
         const timer = setTimeout(() => {
             loadInsurances(1, insuranceSearchTerm || undefined);
         }, 300); // 300ms debounce
@@ -1638,6 +1660,18 @@ export const AdminDashboard = () => {
         }
     };
 
+    const loadLogs = async () => {
+        setAuditLogsLoading(true);
+        try {
+            const res = await adminService.getAuditLogs({ page: 1, limit: 10 });
+            setAuditLogs(res.data);
+        } catch (error) {
+            console.error('Audit logs load failed:', error);
+        } finally {
+            setAuditLogsLoading(false);
+        }
+    };
+
     if (loading) return (
         <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center">
             <Loader2 className="animate-spin w-10 h-10 text-primary-500" />
@@ -1645,8 +1679,17 @@ export const AdminDashboard = () => {
     );
 
     if (!stats) return (
-        <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center">
-            <div className="text-gray-400">Veri yükleme hatası</div>
+        <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center flex-col gap-4">
+            <AlertCircle className="w-12 h-12 text-red-500" />
+            <div className="text-white text-lg font-bold">Veri yükleme hatası</div>
+            {error && (
+                <div className="text-red-400 bg-red-500/10 p-4 rounded-xl border border-red-500/20 max-w-md text-center">
+                    {error}
+                </div>
+            )}
+            <Button onClick={() => window.location.reload()} variant="outline">
+                Sayfayı Yenile
+            </Button>
         </div>
     );
 
@@ -1732,11 +1775,19 @@ export const AdminDashboard = () => {
                                 </Button>
                             </Link>
                             <Link to="/admin/cars/sale">
-                                <Button variant="secondary" className="flex items-center gap-2">
+                                <Button variant="secondary" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white">
                                     <DollarSign className="w-4 h-4" />
                                     Satılık
                                 </Button>
                             </Link>
+                            {(currentUser?.role === 'ADMIN' || currentUser?.role === 'STAFF') && (
+                                <Link to="/admin/audit-logs">
+                                    <Button variant="secondary" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white">
+                                        <Shield className="w-4 h-4" />
+                                        İşlem Geçmişi
+                                    </Button>
+                                </Link>
+                            )}
                         </div>
 
                         {/* Primary Action */}
@@ -2470,6 +2521,89 @@ export const AdminDashboard = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Audit Logs Preview Section */}
+                {currentUser?.role === 'ADMIN' && (
+                    <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                                        <Clock className="w-5 h-5 text-orange-400" />
+                                    </div>
+                                    Son İşlemler
+                                </h2>
+                                <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                    Son 10 işlem
+                                </span>
+                            </div>
+                            <Link
+                                to="/admin/audit-logs"
+                                className="text-sm text-primary-400 hover:text-primary-300 flex items-center gap-1 font-medium transition-colors"
+                            >
+                                Tümünü Gör
+                                <ArrowUpRight className="w-4 h-4" />
+                            </Link>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th className="p-4">Tarih</th>
+                                        <th className="p-4">Kullanıcı</th>
+                                        <th className="p-4">İşlem</th>
+                                        <th className="p-4">Detaylar</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5 relative">
+                                    {auditLogsLoading ? (
+                                        <tr>
+                                            <td colSpan={4} className="p-12 text-center">
+                                                <div className="flex justify-center items-center">
+                                                    <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : auditLogs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="p-12 text-center text-gray-500">
+                                                Henüz işlem kaydı yok
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        auditLogs.map((log) => (
+                                            <tr key={log.id} className="hover:bg-white/5 transition-colors group">
+                                                <td className="p-4 text-sm text-gray-400 font-mono">
+                                                    {new Date(log.createdAt).toLocaleString('tr-TR', {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                        day: '2-digit',
+                                                        month: '2-digit'
+                                                    })}
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium text-white">{log.user?.name || 'Sistem'}</span>
+                                                        <span className="text-xs text-gray-500">{log.user?.role || '-'}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className="px-2 py-1 rounded text-[10px] font-bold bg-white/5 text-gray-300 border border-white/10 font-mono">
+                                                        {log.action}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 text-sm text-gray-400 max-w-[300px] truncate" title={log.details}>
+                                                    {log.details || '-'}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
                 {/* Franchise Applications Section */}
                 <div id="franchise-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
                     <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -2872,7 +3006,7 @@ export const AdminDashboard = () => {
                                         <div className="mb-3 pb-3 border-b border-white/10">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                                <span className="text-white font-bold">Süper Admin</span>
+                                                <span className="text-white font-bold">Yönetici</span>
                                             </div>
                                             <p>Tam yetki (Kullanıcı oluşturma/silme, tüm verileri düzenleme)</p>
                                         </div>
@@ -2936,13 +3070,13 @@ export const AdminDashboard = () => {
                                                         user.role === 'STAFF' ? 'bg-blue-500/20 text-blue-400' :
                                                             'bg-green-500/20 text-green-400'
                                                         }`}>
-                                                        {user.role === 'ADMIN' ? 'Süper Admin' : user.role === 'STAFF' ? 'Personel' : 'Kullanıcı'}
+                                                        {user.role === 'ADMIN' ? 'Yönetici' : user.role === 'STAFF' ? 'Personel' : 'Kullanıcı'}
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-gray-400 text-sm">
                                                     {user.createdAt ? new Date(user.createdAt).toLocaleDateString('tr-TR') : '-'}
                                                 </td>
-                                                {currentUser?.role === 'ADMIN' && (
+                                                {(currentUser?.role === 'ADMIN' || currentUser?.role === 'STAFF') && (
                                                     <td className="p-4 text-center">
                                                         <div className="flex justify-center gap-2">
                                                             <Button
@@ -2953,15 +3087,17 @@ export const AdminDashboard = () => {
                                                             >
                                                                 <Pencil className="w-4 h-4" />
                                                             </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="text-red-400 hover:bg-red-500/10 border-red-500/30"
-                                                                onClick={() => handleDeleteUser(user.id)}
-                                                                disabled={user.id === currentUser.id} // Cannot delete self
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </Button>
+                                                            {currentUser?.role === 'ADMIN' && (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    className="text-red-400 hover:bg-red-500/10 border-red-500/30"
+                                                                    onClick={() => handleDeleteUser(user.id)}
+                                                                    disabled={user.id === currentUser.id} // Cannot delete self
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 )}
@@ -2976,31 +3112,37 @@ export const AdminDashboard = () => {
             </div>
 
             {/* Create User Modal */}
-            {showCreateUserModal && (
-                <CreateUserModal
-                    onClose={() => setShowCreateUserModal(false)}
-                    onSuccess={() => loadUsers()}
-                />
-            )}
+            {
+                showCreateUserModal && (
+                    <CreateUserModal
+                        onClose={() => setShowCreateUserModal(false)}
+                        onSuccess={() => loadUsers()}
+                    />
+                )
+            }
 
             {/* Edit User Modal */}
-            {selectedUserToEdit && (
-                <EditUserModal
-                    user={selectedUserToEdit}
-                    onClose={() => setSelectedUserToEdit(null)}
-                    onSuccess={() => loadUsers()}
-                />
-            )}
+            {
+                selectedUserToEdit && (
+                    <EditUserModal
+                        user={selectedUserToEdit}
+                        onClose={() => setSelectedUserToEdit(null)}
+                        onSuccess={() => loadUsers()}
+                    />
+                )
+            }
 
             {/* Insurance Detail Modal */}
-            {selectedInsurance && (
-                <InsuranceDetailModal
-                    insurance={selectedInsurance}
-                    onClose={() => setSelectedInsurance(null)}
-                    onUpdate={() => loadInsurances(insurancePage)}
-                    currentUser={currentUser}
-                />
-            )}
+            {
+                selectedInsurance && (
+                    <InsuranceDetailModal
+                        insurance={selectedInsurance}
+                        onClose={() => setSelectedInsurance(null)}
+                        onUpdate={() => loadInsurances(insurancePage)}
+                        currentUser={currentUser}
+                    />
+                )
+            }
 
             {/* Create Insurance Modal */}
             {

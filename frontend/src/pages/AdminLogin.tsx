@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminService } from '../services/api';
 
@@ -13,6 +13,12 @@ export const AdminLogin = () => {
     const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+
+    useEffect(() => {
+        if (adminService.isAuthenticated()) {
+            navigate('/admin/dashboard');
+        }
+    }, [navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -119,9 +125,12 @@ export const AdminLogin = () => {
                                 </div>
                                 <input
                                     type="checkbox"
-                                    className="hidden"
+                                    className="sr-only"
                                     checked={rememberMe}
-                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    onChange={(e) => {
+                                        console.log('Checkbox toggled:', e.target.checked);
+                                        setRememberMe(e.target.checked);
+                                    }}
                                 />
                                 <span className={rememberMe ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'}>Oturumu açık tut</span>
                             </label>
@@ -134,6 +143,7 @@ export const AdminLogin = () => {
                             type="submit"
                             className="w-full h-14 text-base font-bold mt-6 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all"
                             disabled={loading}
+                            onClick={() => console.log('Submitting login with rememberMe:', rememberMe)}
                         >
                             {loading ? (
                                 <span className="flex items-center gap-2">

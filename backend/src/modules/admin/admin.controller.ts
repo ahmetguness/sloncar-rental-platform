@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as adminService from './admin.service.js';
+import { auditService } from '../audit/audit.service.js';
 
 export async function getDashboardStats(
     req: Request,
@@ -90,6 +91,9 @@ export async function createUser(
 ): Promise<void> {
     try {
         const user = await adminService.createUser(req.body);
+
+        await auditService.logAction(req.user?.userId, 'CREATE_USER', { targetUserId: user.id, email: user.email, role: user.role }, req);
+
         res.status(201).json({
             success: true,
             data: user,
@@ -111,6 +115,9 @@ export async function deleteUser(
             throw new Error('Kullanıcı ID gereklidir');
         }
         await adminService.deleteUser(id);
+
+        await auditService.logAction(req.user?.userId, 'DELETE_USER', { targetUserId: id }, req);
+
         res.json({
             success: true,
             message: 'Kullanıcı başarıyla silindi'
@@ -134,6 +141,9 @@ export async function updateUser(
         }
 
         const user = await adminService.updateUser(id, { role });
+
+        await auditService.logAction(req.user?.userId, 'UPDATE_USER_ROLE', { targetUserId: id, newRole: role }, req);
+
         res.json({
             success: true,
             data: user,

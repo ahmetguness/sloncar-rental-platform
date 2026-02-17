@@ -153,3 +153,19 @@ export interface UserInsurance {
     createdAt: string;
     updatedAt: string;
 }
+
+export interface ActionLog {
+    id: string;
+    userId: string;
+    user?: {
+        id: string;
+        name: string;
+        email: string;
+        role: UserRole;
+    };
+    action: string;
+    details?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    createdAt: string;
+}

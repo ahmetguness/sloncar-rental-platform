@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as authService from './auth.service.js';
+import { auditService } from '../audit/audit.service.js';
 import { RegisterInput, LoginInput } from './auth.validators.js';
 import { ApiError } from '../../middlewares/errorHandler.js';
 
@@ -27,7 +28,13 @@ export async function login(
     try {
         const result = await authService.login(req.body as LoginInput);
 
-
+        // Log login action
+        await auditService.logAction(
+            result.user.id,
+            'LOGIN',
+            { email: result.user.email, role: result.user.role },
+            req
+        );
 
         res.json({
             success: true,

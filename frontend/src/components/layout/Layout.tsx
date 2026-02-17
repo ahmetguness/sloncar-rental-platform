@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { adminService, carService } from '../../services/api';
 import logo from '../../assets/logo/logo.jpg';
 import { Footer } from './Footer';
+import { storage } from '../../utils/storage';
 
 export const Layout = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,7 +13,7 @@ export const Layout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const isAdmin = location.pathname.startsWith('/admin');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = storage.getUser() || {};
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
