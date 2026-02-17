@@ -144,131 +144,145 @@ export async function createCar(input: CreateCarInput): Promise<CarWithBranch> {
     return car;
 }
 
-export async function updateCar(id: string, input: UpdateCarInput): Promise<CarWithBranch> {
-    // Verify car exists
-    const existingCar = await prisma.car.findUnique({
-        where: { id },
-    });
-
-    if (!existingCar) {
-        throw ApiError.notFound('Car not found');
-    }
-
-    // If updating branch, verify it exists
-    if (input.branchId) {
-        const branch = await prisma.branch.findUnique({
-            where: { id: input.branchId },
+export async function updateCar(id: string, input: UpdateCarInput & { version?: number }): Promise<CarWithBranch> {
+    const car = await prisma.$transaction(async (tx) => {
+        // Verify car exists
+        const existingCar = await tx.car.findUnique({
+            where: { id },
         });
 
-        if (!branch) {
-            throw ApiError.badRequest('Branch not found');
+        if (!existingCar) {
+            throw ApiError.notFound('Car not found');
         }
-    }
 
-    // If updating plate number, check for duplicates
-    if (input.plateNumber && input.plateNumber !== existingCar.plateNumber) {
-        const duplicateCar = await prisma.car.findUnique({
-            where: { plateNumber: input.plateNumber },
-        });
+        // If updating branch, verify it exists
+        if (input.branchId) {
+            const branch = await tx.branch.findUnique({
+                where: { id: input.branchId },
+            });
 
-        if (duplicateCar) {
-            throw ApiError.conflict('Car with this plate number already exists');
-        }
-    }
-
-    // Maintenance Safety Check
-    if (input.status === 'MAINTENANCE' || input.status === 'INACTIVE') {
-        const activeOrFutureBookings = await prisma.booking.findFirst({
-            where: {
-                carId: id,
-                status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
-                dropoffDate: { gt: new Date() } // Booking ends in future
+            if (!branch) {
+                throw ApiError.badRequest('Branch not found');
             }
-        });
-
-        if (activeOrFutureBookings) {
-            throw ApiError.conflict('Araçta aktif veya gelecek rezervasyonlar var. Önce bunları iptal etmelisiniz.');
         }
-    }
 
-    const car = await prisma.car.update({
-        where: { id },
-        data: input,
-        include: { branch: true },
+        // If updating plate number, check for duplicates
+        if (input.plateNumber && input.plateNumber !== existingCar.plateNumber) {
+            const duplicateCar = await tx.car.findUnique({
+                where: { plateNumber: input.plateNumber },
+            });
+
+            if (duplicateCar) {
+                throw ApiError.conflict('Car with this plate number already exists');
+            }
+        }
+
+        // Maintenance Safety Check
+        if (input.status === 'MAINTENANCE' || input.status === 'INACTIVE') {
+            const activeOrFutureBookings = await tx.booking.findFirst({
+                where: {
+                    carId: id,
+                    status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
+                    dropoffDate: { gt: new Date() }
+                }
+            });
+
+            if (activeOrFutureBookings) {
+                throw ApiError.conflict('Araçta aktif veya gelecek rezervasyonlar var. Önce bunları iptal etmelisiniz.');
+            }
+        }
+
+        // Optimistic Locking: version check
+        const { version: expectedVersion, ...updateData } = input;
+        if (expectedVersion !== undefined) {
+            const result = await tx.car.updateMany({
+                where: { id, version: expectedVersion },
+                data: { ...updateData, version: { increment: 1 } },
+            });
+
+            if (result.count === 0) {
+                throw ApiError.conflict(
+                    'Bu araç başka bir kullanıcı tarafından değiştirilmiş. Lütfen sayfayı yenileyip tekrar deneyin.'
+                );
+            }
+
+            // Fetch updated car with relations
+            const updated = await tx.car.findUnique({
+                where: { id },
+                include: { branch: true },
+            });
+            return updated!;
+        }
+
+        // Fallback: no version provided (backward compatible)
+        const updated = await tx.car.update({
+            where: { id },
+            data: updateData,
+            include: { branch: true },
+        });
+        return updated;
     });
 
     return car;
 }
 
 export async function deleteCar(id: string): Promise<void> {
-    const car = await prisma.car.findUnique({
-        where: { id },
-    });
-
-    if (!car) {
-        throw ApiError.notFound('Car not found');
-    }
-
-    // Check for ANY history to prevent FK constraint errors
-    const hasHistory = await prisma.booking.count({
-        where: { carId: id }
-    });
-
-    if (hasHistory > 0) {
-        // If it has history, we cannot hard delete.
-        // Check if there are ACTIVE bookings
-        const activeBookings = await prisma.booking.count({
-            where: {
-                carId: id,
-                status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
-            },
+    await prisma.$transaction(async (tx) => {
+        const car = await tx.car.findUnique({
+            where: { id },
         });
 
-        if (activeBookings > 0) {
-            throw ApiError.conflict('Aktif rezervasyonu olan araç silinemez/pasife alınamaz.');
+        if (!car) {
+            throw ApiError.notFound('Car not found');
         }
 
-        // Soft Delete
-        await prisma.car.update({
-            where: { id },
-            data: { status: 'INACTIVE' }
+        // Check for ANY history to prevent FK constraint errors
+        const hasHistory = await tx.booking.count({
+            where: { carId: id }
         });
 
-        // We implicitly return/succeed, equating "Delete" request to "Archive" action
-        return;
-    }
+        if (hasHistory > 0) {
+            // If it has history, we cannot hard delete.
+            // Check if there are ACTIVE bookings
+            const activeBookings = await tx.booking.count({
+                where: {
+                    carId: id,
+                    status: { in: [BookingStatus.RESERVED, BookingStatus.ACTIVE] },
+                },
+            });
 
-    // Only hard delete if NO history exists
+            if (activeBookings > 0) {
+                throw ApiError.conflict('Aktif rezervasyonu olan araç silinemez/pasife alınamaz.');
+            }
 
-    // Delete images from Cloudinary
-    if (car.images && car.images.length > 0) {
-        for (const imageUrl of car.images) {
-            try {
-                // Extract public_id from URL
-                // Example: https://res.cloudinary.com/cloud_name/image/upload/v1234/folder/image.jpg
-                // We need 'folder/image' (without extension)
-                const parts = imageUrl.split('/');
-                const filenameWithExt = parts[parts.length - 1];
-                const folder = parts[parts.length - 2];
+            // Soft Delete
+            await tx.car.update({
+                where: { id },
+                data: { status: 'INACTIVE' }
+            });
 
-                // If the folder is 'upload' or a version number (v1234), it might be in root. 
-                // But typically our uploads might be in a specific folder. 
-                // A safer regex approach:
-                const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/;
-                const match = imageUrl.match(regex);
+            return;
+        }
 
-                if (match && match[1]) {
-                    const publicId = match[1];
-                    await cloudinary.uploader.destroy(publicId);
-                    console.log(`[Cloudinary] Deleted image: ${publicId}`);
+        // Only hard delete if NO history exists
+        // Delete images from Cloudinary
+        if (car.images && car.images.length > 0) {
+            for (const imageUrl of car.images) {
+                try {
+                    const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/;
+                    const match = imageUrl.match(regex);
+
+                    if (match && match[1]) {
+                        const publicId = match[1];
+                        await cloudinary.uploader.destroy(publicId);
+                        console.log(`[Cloudinary] Deleted image: ${publicId}`);
+                    }
+                } catch (error) {
+                    console.error(`[Cloudinary] Failed to delete image ${imageUrl}:`, error);
                 }
-            } catch (error) {
-                console.error(`[Cloudinary] Failed to delete image ${imageUrl}:`, error);
-                // Continue deleting other images and the record even if one image fails
             }
         }
-    }
 
-    await prisma.car.delete({ where: { id } });
-    return car as any;
+        await tx.car.delete({ where: { id } });
+    });
 }

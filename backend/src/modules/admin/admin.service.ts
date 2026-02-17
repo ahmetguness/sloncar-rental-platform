@@ -1,6 +1,7 @@
 import prisma from '../../lib/prisma.js';
 import { BookingStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { ApiError } from '../../middlewares/errorHandler.js';
 
 export interface DashboardStats {
     totalRevenue: number;
@@ -316,6 +317,7 @@ export async function getUsers(params: { page?: number; limit?: number; search?:
                 email: true,
                 phone: true,
                 role: true,
+                version: true,
                 createdAt: true
             },
             orderBy: { name: 'asc' },
@@ -369,10 +371,27 @@ export async function deleteUser(id: string) {
     });
 }
 
-export async function updateUser(id: string, data: { role: 'ADMIN' | 'STAFF' }) {
+export async function updateUser(id: string, data: { role: 'ADMIN' | 'STAFF'; version?: number }) {
+    const { version: expectedVersion, ...updateData } = data;
+
+    if (expectedVersion !== undefined) {
+        const result = await prisma.user.updateMany({
+            where: { id, version: expectedVersion },
+            data: { ...updateData, version: { increment: 1 } },
+        });
+
+        if (result.count === 0) {
+            throw ApiError.conflict(
+                'Bu kullanıcı başka bir admin tarafından değiştirilmiş. Lütfen sayfayı yenileyip tekrar deneyin.'
+            );
+        }
+
+        return prisma.user.findUnique({ where: { id } });
+    }
+
     return prisma.user.update({
         where: { id },
-        data: { role: data.role }
+        data: updateData
     });
 }
 

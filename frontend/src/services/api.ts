@@ -28,6 +28,19 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+// Handle 409 Conflict (Optimistic Locking) errors globally
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 409) {
+            const message = error.response?.data?.message ||
+                'Bu kayıt başka bir kullanıcı tarafından değiştirilmiş. Lütfen sayfayı yenileyip tekrar deneyin.';
+            alert(message);
+        }
+        return Promise.reject(error);
+    }
+);
+
 export const carService = {
     getAll: async (params?: any) => {
         const response = await api.get<PaginatedResponse<Car>>('/cars', { params });

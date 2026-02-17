@@ -162,7 +162,7 @@ export async function cancelBooking(
     next: NextFunction
 ): Promise<void> {
     try {
-        const booking = await bookingsService.cancelBooking(req.params.id!);
+        const booking = await bookingsService.cancelBooking(req.params.id!, req.body?.version);
 
         await auditService.logAction(req.user?.userId, 'CANCEL_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
 
@@ -183,7 +183,7 @@ export async function startBooking(
     next: NextFunction
 ): Promise<void> {
     try {
-        const booking = await bookingsService.startBooking(req.params.id!);
+        const booking = await bookingsService.startBooking(req.params.id!, req.body?.version);
 
         await auditService.logAction(req.user?.userId, 'START_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
 
@@ -226,9 +226,11 @@ export async function updateBookingDates(
     next: NextFunction
 ): Promise<void> {
     try {
+        const { version, ...dates } = req.body;
         const booking = await bookingsService.updateBookingDates(
             req.params.id!,
-            req.body as UpdateBookingDatesInput
+            dates as UpdateBookingDatesInput,
+            version
         );
 
         await auditService.logAction(req.user?.userId, 'UPDATE_BOOKING_DATES', { bookingId: booking.id, updates: req.body }, req);
@@ -250,7 +252,7 @@ export async function completeBooking(
     next: NextFunction
 ): Promise<void> {
     try {
-        const booking = await bookingsService.completeBooking(req.params.id!);
+        const booking = await bookingsService.completeBooking(req.params.id!, req.body?.version);
 
         await auditService.logAction(req.user?.userId, 'COMPLETE_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
 

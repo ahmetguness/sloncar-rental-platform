@@ -146,6 +146,7 @@ model Car {
   branchId String
   bookings Booking[]
   
+  version  Int      @default(0) // Optimistic locking
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -174,6 +175,7 @@ model User {
   insurances            UserInsurance[]
   actionLogs            ActionLog[]
   
+  version  Int      @default(0) // Optimistic locking
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -230,6 +232,7 @@ model Booking {
   paidAt          DateTime?
   expiresAt       DateTime? // For 10-minute payment window
   
+  version  Int      @default(0) // Optimistic locking
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

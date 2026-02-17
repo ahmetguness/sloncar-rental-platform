@@ -142,15 +142,17 @@ export async function updateUser(
 ): Promise<void> {
     try {
         const { id } = req.params;
-        const { role } = req.body;
+        const { role, version } = req.body;
 
         if (!id) {
             throw new Error('Kullanıcı ID gereklidir');
         }
 
-        const user = await adminService.updateUser(id, { role });
+        const user = await adminService.updateUser(id, { role, version });
 
-        await auditService.logAction(req.user?.userId, 'UPDATE_USER_ROLE', { targetUserId: id, targetName: user.name, targetEmail: user.email, newRole: role }, req);
+        if (user) {
+            await auditService.logAction(req.user?.userId, 'UPDATE_USER_ROLE', { targetUserId: id, targetName: user.name, targetEmail: user.email, newRole: role }, req);
+        }
 
         res.json({
             success: true,

@@ -498,37 +498,65 @@ export async function lookupBookingsByPhone(
 
 // ADMIN - Cancel booking
 export async function cancelBooking(
-    bookingId: string
+    bookingId: string,
+    expectedVersion?: number
 ): Promise<BookingWithRelations> {
-    const booking = await prisma.booking.findUnique({
-        where: { id: bookingId },
-        include: {
-            car: true,
-            pickupBranch: true,
-            dropoffBranch: true,
-        },
-    });
+    const updatedBooking = await prisma.$transaction(async (tx) => {
+        const booking = await tx.booking.findUnique({
+            where: { id: bookingId },
+            include: {
+                car: true,
+                pickupBranch: true,
+                dropoffBranch: true,
+            },
+        });
 
-    if (!booking) {
-        throw ApiError.notFound('Rezervasyon bulunamadı');
-    }
+        if (!booking) {
+            throw ApiError.notFound('Rezervasyon bulunamadı');
+        }
 
-    if (booking.status === BookingStatus.CANCELLED) {
-        throw ApiError.badRequest('Rezervasyon zaten iptal edilmiş');
-    }
+        if (booking.status === BookingStatus.CANCELLED) {
+            throw ApiError.badRequest('Rezervasyon zaten iptal edilmiş');
+        }
 
-    if (booking.status === BookingStatus.COMPLETED) {
-        throw ApiError.badRequest('Tamamlanmış rezervasyon iptal edilemez');
-    }
+        if (booking.status === BookingStatus.COMPLETED) {
+            throw ApiError.badRequest('Tamamlanmış rezervasyon iptal edilemez');
+        }
 
-    const updatedBooking = await prisma.booking.update({
-        where: { id: bookingId },
-        data: { status: BookingStatus.CANCELLED },
-        include: {
-            car: true,
-            pickupBranch: true,
-            dropoffBranch: true,
-        },
+        // Optimistic Locking
+        if (expectedVersion !== undefined) {
+            const result = await tx.booking.updateMany({
+                where: { id: bookingId, version: expectedVersion },
+                data: { status: BookingStatus.CANCELLED, version: { increment: 1 } },
+            });
+
+            if (result.count === 0) {
+                throw ApiError.conflict(
+                    'Bu rezervasyon başka bir kullanıcı tarafından değiştirilmiş. Lütfen sayfayı yenileyip tekrar deneyin.'
+                );
+            }
+
+            const updated = await tx.booking.findUnique({
+                where: { id: bookingId },
+                include: {
+                    car: true,
+                    pickupBranch: true,
+                    dropoffBranch: true,
+                },
+            });
+            return updated!;
+        }
+
+        // Fallback: no version (backward compatible)
+        return await tx.booking.update({
+            where: { id: bookingId },
+            data: { status: BookingStatus.CANCELLED },
+            include: {
+                car: true,
+                pickupBranch: true,
+                dropoffBranch: true,
+            },
+        });
     });
 
     return updatedBooking as BookingWithRelations;
@@ -536,33 +564,61 @@ export async function cancelBooking(
 
 // ADMIN - Start booking (Car picked up)
 export async function startBooking(
-    bookingId: string
+    bookingId: string,
+    expectedVersion?: number
 ): Promise<BookingWithRelations> {
-    const booking = await prisma.booking.findUnique({
-        where: { id: bookingId },
-        include: { car: true }
-    });
+    const updatedBooking = await prisma.$transaction(async (tx) => {
+        const booking = await tx.booking.findUnique({
+            where: { id: bookingId },
+            include: { car: true }
+        });
 
-    if (!booking) {
-        throw ApiError.notFound('Rezervasyon bulunamadı');
-    }
+        if (!booking) {
+            throw ApiError.notFound('Rezervasyon bulunamadı');
+        }
 
-    if (booking.status !== BookingStatus.RESERVED) {
-        throw ApiError.badRequest('Sadece rezervasyon durumundaki işlemler başlatılabilir');
-    }
+        if (booking.status !== BookingStatus.RESERVED) {
+            throw ApiError.badRequest('Sadece rezervasyon durumundaki işlemler başlatılabilir');
+        }
 
-    if (booking.paymentStatus !== PaymentStatus.PAID) {
-        throw ApiError.badRequest('Ödemesi alınmamış rezervasyon başlatılamaz');
-    }
+        if (booking.paymentStatus !== PaymentStatus.PAID) {
+            throw ApiError.badRequest('Ödemesi alınmamış rezervasyon başlatılamaz');
+        }
 
-    const updatedBooking = await prisma.booking.update({
-        where: { id: booking.id },
-        data: { status: BookingStatus.ACTIVE },
-        include: {
-            car: { include: { branch: true } },
-            pickupBranch: true,
-            dropoffBranch: true,
-        },
+        // Optimistic Locking
+        if (expectedVersion !== undefined) {
+            const result = await tx.booking.updateMany({
+                where: { id: bookingId, version: expectedVersion },
+                data: { status: BookingStatus.ACTIVE, version: { increment: 1 } },
+            });
+
+            if (result.count === 0) {
+                throw ApiError.conflict(
+                    'Bu rezervasyon başka bir kullanıcı tarafından değiştirilmiş. Lütfen sayfayı yenileyip tekrar deneyin.'
+                );
+            }
+
+            const updated = await tx.booking.findUnique({
+                where: { id: bookingId },
+                include: {
+                    car: { include: { branch: true } },
+                    pickupBranch: true,
+                    dropoffBranch: true,
+                },
+            });
+            return updated!;
+        }
+
+        // Fallback: no version
+        return await tx.booking.update({
+            where: { id: booking.id },
+            data: { status: BookingStatus.ACTIVE },
+            include: {
+                car: { include: { branch: true } },
+                pickupBranch: true,
+                dropoffBranch: true,
+            },
+        });
     });
 
     return updatedBooking as BookingWithRelations;
@@ -570,7 +626,8 @@ export async function startBooking(
 
 // ADMIN - Complete booking (Car returned)
 export async function completeBooking(
-    bookingId: string
+    bookingId: string,
+    expectedVersion?: number
 ): Promise<BookingWithRelations> {
     const result = await prisma.$transaction(async (tx) => {
         const booking = await tx.booking.findUnique({
@@ -590,6 +647,41 @@ export async function completeBooking(
             throw ApiError.badRequest('Sadece aktif rezervasyonlar tamamlanabilir');
         }
 
+        // Optimistic Locking
+        if (expectedVersion !== undefined) {
+            const result = await tx.booking.updateMany({
+                where: { id: bookingId, version: expectedVersion },
+                data: { status: BookingStatus.COMPLETED, version: { increment: 1 } },
+            });
+
+            if (result.count === 0) {
+                throw ApiError.conflict(
+                    'Bu rezervasyon başka bir kullanıcı tarafından değiştirilmiş. Lütfen sayfayı yenileyip tekrar deneyin.'
+                );
+            }
+
+            // Update Car Location and Status
+            await tx.car.update({
+                where: { id: booking.carId },
+                data: {
+                    status: 'ACTIVE',
+                    branchId: booking.dropoffBranchId,
+                    version: { increment: 1 },
+                },
+            });
+
+            const updated = await tx.booking.findUnique({
+                where: { id: bookingId },
+                include: {
+                    car: { include: { branch: true } },
+                    pickupBranch: true,
+                    dropoffBranch: true,
+                },
+            });
+            return updated!;
+        }
+
+        // Fallback: no version
         // 1. Mark booking as COMPLETED
         const updatedBooking = await tx.booking.update({
             where: { id: bookingId },
@@ -602,12 +694,11 @@ export async function completeBooking(
         });
 
         // 2. Update Car Location and Status
-        // Even if branches are the same, setting status to ACTIVE is important
         await tx.car.update({
             where: { id: booking.carId },
             data: {
                 status: 'ACTIVE',
-                branchId: booking.dropoffBranchId, // Move car to dropoff branch
+                branchId: booking.dropoffBranchId,
             },
         });
 
@@ -620,7 +711,8 @@ export async function completeBooking(
 // ADMIN - Update booking dates
 export async function updateBookingDates(
     bookingId: string,
-    input: UpdateBookingDatesInput
+    input: UpdateBookingDatesInput,
+    expectedVersion?: number
 ): Promise<BookingWithRelations> {
     const booking = await prisma.$transaction(async (tx) => {
         const existingBooking = await tx.booking.findUnique({
@@ -639,10 +731,42 @@ export async function updateBookingDates(
         await checkBookingOverlap(tx, existingBooking.carId, pickupDate, dropoffDate, bookingId);
 
         // Calculate new price
-        // Note: Using current car daily price. This is a design choice.
         const dailyPrice = Number(existingBooking.car.dailyPrice);
         const totalPrice = calculateTotalPrice(dailyPrice, pickupDate, dropoffDate);
 
+        // Optimistic Locking
+        if (expectedVersion !== undefined) {
+            const result = await tx.booking.updateMany({
+                where: { id: bookingId, version: expectedVersion },
+                data: {
+                    pickupDate,
+                    dropoffDate,
+                    totalPrice,
+                    notes: existingBooking.notes
+                        ? `${existingBooking.notes}\\n[ADMIN UPDATE: Tarihler güncellendi]`
+                        : `[ADMIN UPDATE: Tarihler güncellendi]`,
+                    version: { increment: 1 },
+                },
+            });
+
+            if (result.count === 0) {
+                throw ApiError.conflict(
+                    'Bu rezervasyon başka bir kullanıcı tarafından değiştirilmiş. Lütfen sayfayı yenileyip tekrar deneyin.'
+                );
+            }
+
+            const updated = await tx.booking.findUnique({
+                where: { id: bookingId },
+                include: {
+                    car: { include: { branch: true } },
+                    pickupBranch: true,
+                    dropoffBranch: true,
+                },
+            });
+            return updated!;
+        }
+
+        // Fallback: no version
         const updatedBooking = await tx.booking.update({
             where: { id: bookingId },
             data: {
@@ -650,7 +774,7 @@ export async function updateBookingDates(
                 dropoffDate,
                 totalPrice,
                 notes: existingBooking.notes
-                    ? `${existingBooking.notes}\n[ADMIN UPDATE: Tarihler güncellendi]`
+                    ? `${existingBooking.notes}\\n[ADMIN UPDATE: Tarihler güncellendi]`
                     : `[ADMIN UPDATE: Tarihler güncellendi]`,
             },
             include: {
