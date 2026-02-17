@@ -236,6 +236,25 @@ export const Booking = () => {
     );
     if (!car) return <div className="text-center p-20 text-white">Araç bulunamadı.</div>;
 
+    if (car.status !== 'ACTIVE') {
+        return (
+            <div className="max-w-md mx-auto mt-10 bg-dark-surface p-8 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-yellow-500/20 text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-amber-400" />
+                <div className="bg-yellow-500/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-yellow-500/20 shadow-[0_0_20px_rgba(234,179,8,0.2)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Araç Şu Anda Müsait Değil</h2>
+                <p className="text-gray-400 mb-8 px-4">
+                    <span className="text-white font-medium">{car.brand} {car.model}</span> şu anda
+                    {car.status === 'MAINTENANCE' ? ' bakımda' : ' pasif durumda'} olduğu için kiralamaya uygun değildir.
+                </p>
+                <Link to="/">
+                    <Button variant="outline" className="w-full h-12 text-base border-white/10 text-gray-400 hover:text-white hover:border-white/30">Diğer Araçlara Göz At</Button>
+                </Link>
+            </div>
+        );
+    }
+
     if (successCode) {
         return (
             <div className="max-w-md mx-auto mt-10 bg-dark-surface p-8 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-green-500/20 text-center relative overflow-hidden">
