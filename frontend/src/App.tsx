@@ -48,7 +48,6 @@ function App() {
               <Route path="admin/cars/rental" element={<AdminRentalCars />} />
               <Route path="admin/cars/sale" element={<AdminSaleCars />} />
               <Route path="admin/cars" element={<Navigate to="/admin/cars/rental" replace />} />
-              <Route path="admin/cars" element={<Navigate to="/admin/cars/rental" replace />} />
               <Route path="admin/campaigns" element={<AdminCampaigns />} />
               <Route path="admin/audit-logs" element={<AuditLogs />} />
               <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>

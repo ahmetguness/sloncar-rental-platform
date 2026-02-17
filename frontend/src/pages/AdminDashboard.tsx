@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/ui/Toast';
@@ -1235,6 +1235,19 @@ export const AdminDashboard = () => {
     const [cancelingId, setCancelingId] = useState<string | null>(null);
     const [bookingAction, setBookingAction] = useState<'cancel' | 'start' | 'complete' | null>(null);
     const [showNotifications, setShowNotifications] = useState(false);
+    const notificationRef = useRef<HTMLDivElement>(null);
+
+    // Close notification dropdown on click outside
+    useEffect(() => {
+        if (!showNotifications) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
+                setShowNotifications(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showNotifications]);
     const [highlightedBookingId, setHighlightedBookingId] = useState<string | null>(null);
 
     // Franchise States
@@ -1441,57 +1454,51 @@ export const AdminDashboard = () => {
                         <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                         {/* Navigation Modules */}
-                        <div className="flex items-center gap-3 mr-4 border-r border-white/10 pr-4">
-                            <Link to="/admin/campaigns">
-                                <Button variant="secondary" className="flex items-center gap-2">
-                                    <Megaphone className="w-4 h-4" />
-                                    Kampanyalar
-                                </Button>
-                            </Link>
-                            <Link to="/admin/cars/rental">
-                                <Button variant="secondary" className="flex items-center gap-2">
-                                    <Key className="w-4 h-4" />
-                                    Kiralık
-                                </Button>
-                            </Link>
-                            <Link to="/admin/cars/sale">
-                                <Button variant="secondary" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white">
-                                    <DollarSign className="w-4 h-4" />
-                                    Satılık
-                                </Button>
-                            </Link>
-                            {currentUser?.role === 'ADMIN' && (
-                                <Link to="/admin/audit-logs">
-                                    <Button variant="secondary" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white">
-                                        <Shield className="w-4 h-4" />
-                                        İşlem Geçmişi
-                                    </Button>
+                        <div className="flex items-center gap-1.5 bg-white/[0.04] backdrop-blur-xl rounded-2xl p-1.5 border border-white/[0.06]">
+                            {[
+                                { to: '/admin/campaigns', icon: <Megaphone className="w-4 h-4" />, label: 'Kampanyalar' },
+                                { to: '/admin/cars/rental', icon: <Key className="w-4 h-4" />, label: 'Kiralık' },
+                                { to: '/admin/cars/sale', icon: <DollarSign className="w-4 h-4" />, label: 'Satılık' },
+                            ].map((item) => (
+                                <Link key={item.to} to={item.to}>
+                                    <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/[0.08] transition-all duration-200">
+                                        {item.icon}
+                                        {item.label}
+                                    </button>
                                 </Link>
-                            )}
+                            ))}
                             {currentUser?.role === 'ADMIN' && (
-                                <Link to="/admin/users">
-                                    <Button variant="secondary" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white">
-                                        <Users className="w-4 h-4" />
-                                        Kullanıcı Yönetimi
-                                    </Button>
-                                </Link>
+                                <>
+                                    <div className="w-px h-6 bg-white/[0.08]" />
+                                    <Link to="/admin/audit-logs">
+                                        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-amber-300/80 hover:text-amber-200 hover:bg-amber-500/[0.08] transition-all duration-200">
+                                            <Clock className="w-4 h-4" />
+                                            İşlem Geçmişi
+                                        </button>
+                                    </Link>
+                                    <Link to="/admin/users">
+                                        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-emerald-300/80 hover:text-emerald-200 hover:bg-emerald-500/[0.08] transition-all duration-200">
+                                            <Users className="w-4 h-4" />
+                                            Kullanıcılar
+                                        </button>
+                                    </Link>
+                                </>
                             )}
                         </div>
 
                         {/* Primary Action */}
-                        <Button
-                            variant="primary"
+                        <button
                             onClick={() => setShowManualModal(true)}
-                            className="mr-2"
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-400 hover:to-indigo-400 shadow-[0_4px_20px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_25px_rgba(99,102,241,0.5)] transition-all duration-300"
                         >
-                            <Plus className="w-4 h-4 mr-2" />
+                            <Plus className="w-4 h-4" />
                             Yeni Rezervasyon
-                        </Button>
+                        </button>
 
                         {/* Notification Bell */}
-                        <div className="relative">
+                        <div className="relative" ref={notificationRef}>
                             <Button
                                 variant="secondary"
                                 onClick={() => setShowNotifications(!showNotifications)}
@@ -1706,25 +1713,41 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="flex items-center gap-2 bg-dark-surface-lighter/60 backdrop-blur-xl rounded-2xl p-2 border border-white/10">
+                <div className="relative flex items-center justify-center bg-dark-surface-lighter/40 backdrop-blur-2xl rounded-2xl p-1.5 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
                     {([
-                        { key: 'overview', label: 'Genel Bakış', icon: <TrendingUp className="w-4 h-4" /> },
-                        { key: 'bookings', label: 'Rezervasyonlar', icon: <Calendar className="w-4 h-4" /> },
-                        { key: 'franchise', label: 'Franchise', icon: <Building2 className="w-4 h-4" /> },
-                        { key: 'insurance', label: 'Sigorta', icon: <Shield className="w-4 h-4" /> },
-                    ] as const).map((tab) => (
-                        <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.key
-                                ? 'bg-primary-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)]'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                }`}
-                        >
-                            {tab.icon}
-                            {tab.label}
-                        </button>
-                    ))}
+                        { key: 'overview', label: 'Genel Bakış', icon: <TrendingUp className="w-4 h-4" />, count: null },
+                        { key: 'bookings', label: 'Rezervasyonlar', icon: <Calendar className="w-4 h-4" />, count: stats?.totalBookings || null },
+                        { key: 'franchise', label: 'Franchise', icon: <Building2 className="w-4 h-4" />, count: stats?.pendingFranchiseApplications || null },
+                        { key: 'insurance', label: 'Sigorta', icon: <Shield className="w-4 h-4" />, count: insuranceData?.pagination?.total || null },
+                    ] as const).map((tab) => {
+                        const isActive = activeTab === tab.key;
+                        return (
+                            <button
+                                key={tab.key}
+                                onClick={() => setActiveTab(tab.key as typeof activeTab)}
+                                className={`relative flex items-center gap-2.5 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${isActive
+                                    ? 'bg-gradient-to-r from-primary-500 to-indigo-500 text-white shadow-[0_4px_20px_rgba(99,102,241,0.4),inset_0_1px_0_rgba(255,255,255,0.15)]'
+                                    : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
+                                    }`}
+                            >
+                                <span className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'scale-100'}`}>
+                                    {tab.icon}
+                                </span>
+                                <span>{tab.label}</span>
+                                {tab.count !== null && tab.count > 0 && (
+                                    <span className={`ml-0.5 min-w-[20px] h-5 flex items-center justify-center text-[11px] font-bold rounded-full px-1.5 transition-all duration-300 ${isActive
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-white/[0.08] text-gray-400'
+                                        }`}>
+                                        {tab.count}
+                                    </span>
+                                )}
+                                {isActive && (
+                                    <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary-400 rounded-full blur-[2px]" />
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* Revenue Analytics Section */}

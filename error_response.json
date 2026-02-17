@@ -1,1 +1,0 @@
-{"success":false,"error":{"code":"P2022","message":"\nInvalid `tx.booking.findMany()` invocation in\nD:\\repo\\Github\\cr\\backend\\src\\modules\\bookings\\bookings.service.ts:104:54\n\n  101 }\n  102 \n  103 // Check for overlapping bookings\n→ 104 const conflictingBookings = await tx.booking.findMany(\nThe column `Booking.adminRead` does not exist in the current database."}}
