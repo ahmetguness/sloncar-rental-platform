@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
-import { adminService, bookingService } from '../services/api';
-import type { DashboardStats, Booking, UserInsurance, ActionLog } from '../services/types';
-import { translateAction, formatDetails } from '../utils/auditLogger';
+import { adminService } from '../services/api';
+import type { Booking, UserInsurance } from '../services/types';
+
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
 import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Pencil, Clock } from 'lucide-react';
@@ -884,8 +885,8 @@ const CreateInsuranceModal = ({ onClose, onSuccess }: { onClose: () => void; onS
 
     const loadUsers = async () => {
         try {
-            const data = await adminService.getUsers();
-            setUsers(data);
+            const res = await adminService.getUsers();
+            setUsers(res.data);
         } catch (error) {
             console.error(error);
         }
@@ -1026,7 +1027,7 @@ const CreateInsuranceModal = ({ onClose, onSuccess }: { onClose: () => void; onS
 };
 
 // Helper component for table rows to allow hooks usage
-const BookingRow = ({
+const BookingRow = React.memo(({
     booking,
     onView,
     onAction,
@@ -1216,170 +1217,20 @@ const BookingRow = ({
             </td>
         </tr>
     );
-};
+}); // End of React.memo
 
-const EditUserModal = ({ user, onClose, onSuccess }: { user: any; onClose: () => void; onSuccess: () => void }) => {
-    const { addToast } = useToast();
-    const [loading, setLoading] = useState(false);
-    const [role, setRole] = useState(user.role);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            await adminService.updateUser(user.id, { role });
-            addToast('Kullanıcı rolü güncellendi', 'success');
-            onSuccess();
-            onClose();
-        } catch (error: any) {
-            addToast(error.response?.data?.message || 'Güncelleme hatası', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <Modal isOpen={true} onClose={onClose} title="Kullanıcı Rolünü Düzenle">
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="bg-white/5 p-4 rounded-lg mb-4">
-                    <p className="text-sm text-gray-400">Kullanıcı:</p>
-                    <p className="text-white font-medium">{user.name}</p>
-                    <p className="text-gray-400 text-sm">{user.email}</p>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Rol</label>
-                    <select
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        value={role}
-                        onChange={e => setRole(e.target.value)}
-                    >
-                        <option value="STAFF">Personel (Kısıtlı)</option>
-                        <option value="ADMIN">Yönetici</option>
-                    </select>
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={onClose} className="border-white/10 text-white hover:bg-white/10">İptal</Button>
-                    <Button type="submit" disabled={loading} className="bg-primary-500 hover:bg-primary-600 text-white">
-                        {loading ? <Loader2 className="animate-spin" /> : 'Güncelle'}
-                    </Button>
-                </div>
-            </form>
-        </Modal>
-    );
-};
-
-const CreateUserModal = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) => {
-    const { addToast } = useToast();
-    const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        password: '',
-        role: 'STAFF'
-    });
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            await adminService.createUser(formData);
-            addToast('Kullanıcı başarıyla oluşturuldu', 'success');
-            onSuccess();
-            onClose();
-        } catch (error: any) {
-            addToast(error.response?.data?.error?.message || error.message || 'Kullanıcı oluşturulurken bir hata oluştu', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <Modal isOpen={true} onClose={onClose} title="Yeni Kullanıcı Ekle">
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Ad Soyad</label>
-                    <input
-                        type="text"
-                        required
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        value={formData.name}
-                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">E-posta</label>
-                    <input
-                        type="email"
-                        required
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        value={formData.email}
-                        onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Telefon</label>
-                    <input
-                        type="tel"
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        value={formData.phone}
-                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Şifre</label>
-                    <input
-                        type="password"
-                        required
-                        minLength={6}
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        value={formData.password}
-                        onChange={e => setFormData({ ...formData, password: e.target.value })}
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Rol</label>
-                    <select
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        value={formData.role}
-                        onChange={e => setFormData({ ...formData, role: e.target.value })}
-                    >
-                        <option value="STAFF">Personel (Kısıtlı)</option>
-                        <option value="ADMIN">Yönetici</option>
-                    </select>
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={onClose} className="border-white/10 text-white hover:bg-white/10">İptal</Button>
-                    <Button type="submit" disabled={loading} className="bg-primary-500 hover:bg-primary-600 text-white">
-                        {loading ? <Loader2 className="animate-spin" /> : 'Oluştur'}
-                    </Button>
-                </div>
-            </form>
-        </Modal>
-    );
-};
 
 export const AdminDashboard = () => {
+    const ITEMS_PER_PAGE = 10;
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { addToast: toast } = useToast();
-    const [stats, setStats] = useState<DashboardStats | null>(null);
-    const [bookings, setBookings] = useState<Booking[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [revenueData, setRevenueData] = useState<RevenueAnalytics | null>(null);
-    const [selectedInsurance, setSelectedInsurance] = useState<UserInsurance | null>(null);
-    const [isCreateInsuranceModalOpen, setIsCreateInsuranceModalOpen] = useState(false);
-    const [chartView, setChartView] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
-
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalBookings, setTotalBookings] = useState(0);
-    const [bookingsLoading, setBookingsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-    const [franchiseApplications, setFranchiseApplications] = useState<any[]>([]);
     const [selectedFranchise, setSelectedFranchise] = useState<any | null>(null);
     const [cancelingId, setCancelingId] = useState<string | null>(null);
     const [bookingAction, setBookingAction] = useState<'cancel' | 'start' | 'complete' | null>(null);
@@ -1388,30 +1239,93 @@ export const AdminDashboard = () => {
 
     // Franchise States
     const [franchisePage, setFranchisePage] = useState(1);
-    const [totalFranchises, setTotalFranchises] = useState(0);
-    const [franchiseLoading, setFranchiseLoading] = useState(false);
     const [franchiseSearchTerm, setFranchiseSearchTerm] = useState('');
     const [highlightedFranchiseId, setHighlightedFranchiseId] = useState<string | null>(null);
 
     // Insurance States
-    const [insurances, setInsurances] = useState<any[]>([]);
-    const [insuranceLoading, setInsuranceLoading] = useState(false);
+    const [selectedInsurance, setSelectedInsurance] = useState<UserInsurance | null>(null);
+    const [isCreateInsuranceModalOpen, setIsCreateInsuranceModalOpen] = useState(false);
     const [insurancePage, setInsurancePage] = useState(1);
-    const [totalInsurances, setTotalInsurances] = useState(0);
     const [insuranceSearchTerm, setInsuranceSearchTerm] = useState('');
 
     // User Management States
-    const [users, setUsers] = useState<{ id: string; name: string; email: string; phone: string; role: 'ADMIN' | 'STAFF'; createdAt: string }[]>([]);
-    const [usersLoading, setUsersLoading] = useState(false);
     const [currentUser, setCurrentUser] = useState<any | null>(null);
-    const [showCreateUserModal, setShowCreateUserModal] = useState(false);
-    const [selectedUserToEdit, setSelectedUserToEdit] = useState<any | null>(null);
 
-    // Audit Logs Preview State
-    const [auditLogs, setAuditLogs] = useState<ActionLog[]>([]);
-    const [auditLogsLoading, setAuditLogsLoading] = useState(false);
 
-    const ITEMS_PER_PAGE = 10;
+
+    const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'franchise' | 'insurance'>('overview');
+    const [chartView, setChartView] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+
+    // Load current user from storage
+    useEffect(() => {
+        const user = storage.getUser();
+        if (user) setCurrentUser(user);
+    }, []);
+
+    // Queries
+    const { data: stats, isLoading: statsLoading } = useQuery({
+        queryKey: ['admin-stats'],
+        queryFn: () => adminService.getDashboard(),
+        staleTime: 60000,
+    });
+
+    const { data: revenueData, isLoading: revenueLoading } = useQuery({
+        queryKey: ['admin-revenue', selectedYear],
+        queryFn: () => adminService.getRevenueAnalytics(selectedYear),
+        staleTime: 300000, // 5 minutes
+    });
+
+    const { data: bookingsData, isLoading: bookingsQueryLoading } = useQuery({
+        queryKey: ['admin-bookings', currentPage, searchTerm, statusFilter],
+        queryFn: () => adminService.getBookings({
+            limit: ITEMS_PER_PAGE,
+            offset: (currentPage - 1) * ITEMS_PER_PAGE,
+            search: searchTerm || undefined,
+            status: statusFilter || undefined
+        }),
+        enabled: activeTab === 'bookings' || activeTab === 'overview', // Pre-load bookings if on overview to show some? Or just bookings? Let's say bookings only.
+        staleTime: 30000,
+    });
+
+    const { data: franchiseData, isLoading: franchisesQueryLoading } = useQuery({
+        queryKey: ['admin-franchises', franchisePage, franchiseSearchTerm],
+        queryFn: () => adminService.getFranchiseApplications({
+            limit: ITEMS_PER_PAGE,
+            offset: (franchisePage - 1) * ITEMS_PER_PAGE,
+            search: franchiseSearchTerm || undefined
+        }),
+        enabled: activeTab === 'franchise',
+        staleTime: 60000,
+    });
+
+    const { data: insuranceData, isLoading: insurancesQueryLoading } = useQuery({
+        queryKey: ['admin-insurances', insurancePage, insuranceSearchTerm],
+        queryFn: () => adminService.getInsurances({
+            page: insurancePage,
+            limit: ITEMS_PER_PAGE,
+            searchTerm: insuranceSearchTerm || undefined
+        }),
+        enabled: activeTab === 'insurance',
+        staleTime: 60000,
+    });
+
+    // Mutations
+    const actionMutation = useMutation({
+        mutationFn: ({ action, id }: { action: 'cancel' | 'start' | 'complete'; id: string }) => {
+            if (action === 'cancel') return adminService.cancelBooking(id);
+            if (action === 'start') return adminService.startBooking(id);
+            return adminService.completeBooking(id);
+        },
+        onSuccess: (_, variables) => {
+            const actionText = variables.action === 'cancel' ? 'iptal edildi' : variables.action === 'start' ? 'başlatıldı' : 'tamamlandı';
+            toast(`Rezervasyon başarıyla ${actionText}`, 'success');
+            queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+        },
+        onError: (err: any) => {
+            toast(err.response?.data?.message || 'İşlem başarısız', 'error');
+        }
+    });
 
     const STATUS_OPTIONS = [
         { value: '', label: 'Tümü', color: 'gray' },
@@ -1431,249 +1345,24 @@ export const AdminDashboard = () => {
 
     const [showManualModal, setShowManualModal] = useState(false);
 
-    // Auto-refresh for notifications
-    useEffect(() => {
-        const interval = setInterval(() => {
-            refreshStats();
-        }, 60000); // 60s instead of 30s — reduces database load
-        return () => clearInterval(interval);
-    }, []);
-
-    const isFirstRender = React.useRef(true);
-
-    const refreshStats = async () => {
-        try {
-            const statsData = await adminService.getDashboard();
-            setStats(statsData);
-        } catch (err) {
-            console.error('Silent refresh failed', err);
-        }
-    };
-
-    useEffect(() => {
-        const user = storage.getUser();
-        if (user) {
-            setCurrentUser(user);
-            if (user.role === 'ADMIN' || user.role === 'STAFF') {
-                loadLogs();
-            }
-        }
-    }, []);
-
-    useEffect(() => {
-        if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'STAFF')) {
-            loadUsers();
-        }
-    }, [currentUser]);
-
-    const loadUsers = async () => {
-        setUsersLoading(true);
-        try {
-            const data = await adminService.getUsers();
-            setUsers(data as any);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setUsersLoading(false);
-        }
-    };
-
-    const handleDeleteUser = async (id: string) => {
-        if (!window.confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?')) return;
-        try {
-            await adminService.deleteUser(id);
-            toast('Kullanıcı başarıyla silindi', 'success');
-            loadUsers();
-        } catch (error: any) {
-            toast(error.response?.data?.error?.message || 'Silme işlemi başarısız', 'error');
-        }
-    };
-
-    const loadData = async () => {
-        try {
-            // All 5 data fetches run in parallel — no waterfall
-            const [statsData, revenueAnalytics] = await Promise.all([
-                adminService.getDashboard(),
-                adminService.getRevenueAnalytics(selectedYear),
-                loadBookings(1),
-                loadFranchiseApplications(1),
-                loadInsurances(1)
-            ]);
-            setStats(statsData);
-            setRevenueData(revenueAnalytics);
-        } catch (err: any) {
-            console.error(err);
-            const errorMessage = err.response?.data?.message || err.message || 'Bilinmeyen bir hata oluştu';
-            setError(`Hata: ${errorMessage} (Kod: ${err.response?.status})`);
-
-            if (err.response?.status === 401) {
-                // Only redirect if absolutely necessary, but we want to show the error first maybe?
-                // navigate('/admin/login');
-                setError('Oturum süresi doldu. Lütfen tekrar giriş yapın.');
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
-
-    const loadBookings = async (page: number, search?: string, status?: string) => {
-        setBookingsLoading(true);
-        try {
-            const params: any = {
-                limit: ITEMS_PER_PAGE,
-                offset: (page - 1) * ITEMS_PER_PAGE
-            };
-            if (search) params.search = search;
-            if (status) params.status = status;
-
-            const bookingsData = await adminService.getBookings(params);
-            setBookings(bookingsData.data);
-            setTotalBookings(bookingsData.pagination?.total || bookingsData.data.length);
-            setCurrentPage(page);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setBookingsLoading(false);
-        }
-    };
-
-    const loadFranchiseApplications = async (page: number, search?: string) => {
-        setFranchiseLoading(true);
-        try {
-            const params: any = {
-                limit: ITEMS_PER_PAGE,
-                offset: (page - 1) * ITEMS_PER_PAGE
-            };
-            if (search) params.search = search;
-
-
-            const franchiseData = await adminService.getFranchiseApplications(params);
-            setFranchiseApplications(franchiseData.data || []);
-            setTotalFranchises(franchiseData.pagination?.total || franchiseData.data?.length || 0);
-            setFranchisePage(page);
-        } catch (err) {
-            console.error(err);
-            toast('Franchise başvuruları yüklenirken hata oluştu', 'error');
-        } finally {
-            setFranchiseLoading(false);
-        }
-    };
-
-    const loadInsurances = async (page: number, search?: string) => {
-        setInsuranceLoading(true);
-        try {
-            const res = await adminService.getInsurances({
-                page,
-                limit: ITEMS_PER_PAGE,
-                searchTerm: search
-            });
-            if (res.success) {
-                setInsurances(res.data);
-                setTotalInsurances(res.pagination.total);
-                setInsurancePage(page);
-            }
-        } catch (err) {
-            console.error('Failed to load insurances', err);
-            toast('Sigortalar yüklenirken hata oluştu', 'error');
-        } finally {
-            setInsuranceLoading(false);
-        }
-    };
-
-    const handleExportInsurances = async () => {
-        try {
-            const response = await adminService.exportInsurances();
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const { saveAs } = await import('file-saver');
-            saveAs(blob, `Sigortalar_${new Date().toLocaleDateString('tr-TR')}.xlsx`);
-
-            toast('Excel başarıyla indirildi', 'success');
-        } catch (error) {
-            console.error('Export error:', error);
-            toast('Excel indirilirken bir hata oluştu', 'error');
-        }
-    };
-
-    useEffect(() => {
-        loadData();
-    }, [selectedYear]);
-
-    // Auto-search with debounce
-    useEffect(() => {
-        if (isFirstRender.current) return;
-        const timer = setTimeout(() => {
-            loadBookings(1, searchTerm || undefined, statusFilter || undefined);
-        }, 300); // 300ms debounce
-        return () => clearTimeout(timer);
-    }, [searchTerm, statusFilter]);
-
-    // Auto-search with debounce for Franchise
-    useEffect(() => {
-        if (isFirstRender.current) return;
-        const timer = setTimeout(() => {
-            loadFranchiseApplications(1, franchiseSearchTerm || undefined);
-        }, 300); // 300ms debounce
-        return () => clearTimeout(timer);
-    }, [franchiseSearchTerm]);
-
-    // Auto-search with debounce for Insurance
-    useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return;
-        }
-        const timer = setTimeout(() => {
-            loadInsurances(1, insuranceSearchTerm || undefined);
-        }, 300); // 300ms debounce
-        return () => clearTimeout(timer);
-    }, [insuranceSearchTerm]);
-
     const handleAction = (action: 'cancel' | 'start' | 'complete', id: string) => {
-        setCancelingId(id);
         setBookingAction(action);
+        setCancelingId(id);
     };
 
     const confirmAction = async () => {
         if (!cancelingId || !bookingAction) return;
         try {
-            if (bookingAction === 'cancel') {
-                await adminService.cancelBooking(cancelingId);
-                toast('Rezervasyon başarıyla iptal edildi', 'success');
-            } else if (bookingAction === 'start') {
-                await adminService.startBooking(cancelingId);
-                toast('Kiralama başlatıldı (Teslim Edildi)', 'success');
-            } else if (bookingAction === 'complete') {
-                await adminService.completeBooking(cancelingId);
-                toast('Araç teslim alındı (Tamamlandı)', 'success');
-            }
-
-            // Refresh bookings and stats without full page reload
-            await loadBookings(currentPage, searchTerm, statusFilter);
-            const statsData = await adminService.getDashboard();
-            setStats(statsData);
+            await actionMutation.mutateAsync({ action: bookingAction, id: cancelingId });
         } catch (err: any) {
-            toast(err.response?.data?.message || 'İşlem başarısız', 'error');
+            // Error handled in mutation
         } finally {
             setCancelingId(null);
             setBookingAction(null);
         }
     };
 
-    const loadLogs = async () => {
-        setAuditLogsLoading(true);
-        try {
-            const res = await adminService.getAuditLogs({ page: 1, limit: 10 });
-            setAuditLogs(res.data);
-        } catch (error) {
-            console.error('Audit logs load failed:', error);
-        } finally {
-            setAuditLogsLoading(false);
-        }
-    };
-
-    if (loading) return (
+    if (statsLoading) return (
         <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center">
             <Loader2 className="animate-spin w-10 h-10 text-primary-500" />
         </div>
@@ -1683,13 +1372,8 @@ export const AdminDashboard = () => {
         <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center flex-col gap-4">
             <AlertCircle className="w-12 h-12 text-red-500" />
             <div className="text-white text-lg font-bold">Veri yükleme hatası</div>
-            {error && (
-                <div className="text-red-400 bg-red-500/10 p-4 rounded-xl border border-red-500/20 max-w-md text-center">
-                    {error}
-                </div>
-            )}
-            <Button onClick={() => window.location.reload()} variant="outline">
-                Sayfayı Yenile
+            <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-stats'] })} variant="outline">
+                Tekrar Dene
             </Button>
         </div>
     );
@@ -1699,7 +1383,7 @@ export const AdminDashboard = () => {
         switch (chartView) {
             case 'weekly': return revenueData.weekly;
             case 'monthly': return revenueData.monthly;
-            case 'yearly': return revenueData.yearly.map(y => ({ ...y, month: y.year.toString() }));
+            case 'yearly': return revenueData.yearly.map((y: { year: number; revenue: number; bookings: number }) => ({ ...y, month: y.year.toString() }));
         }
     };
 
@@ -1707,9 +1391,6 @@ export const AdminDashboard = () => {
 
     return (
         <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-6">
-            {selectedBooking && (
-                <BookingDetailModal booking={selectedBooking} onClose={() => setSelectedBooking(null)} />
-            )}
 
             <Modal
                 isOpen={!!cancelingId}
@@ -1745,8 +1426,8 @@ export const AdminDashboard = () => {
                 isOpen={showManualModal}
                 onClose={() => setShowManualModal(false)}
                 onSuccess={() => {
-                    loadBookings(1);
-                    refreshStats();
+                    queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+                    queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
                 }}
             />
 
@@ -1781,11 +1462,19 @@ export const AdminDashboard = () => {
                                     Satılık
                                 </Button>
                             </Link>
-                            {(currentUser?.role === 'ADMIN' || currentUser?.role === 'STAFF') && (
+                            {currentUser?.role === 'ADMIN' && (
                                 <Link to="/admin/audit-logs">
                                     <Button variant="secondary" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white">
                                         <Shield className="w-4 h-4" />
                                         İşlem Geçmişi
+                                    </Button>
+                                </Link>
+                            )}
+                            {currentUser?.role === 'ADMIN' && (
+                                <Link to="/admin/users">
+                                    <Button variant="secondary" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white">
+                                        <Users className="w-4 h-4" />
+                                        Kullanıcı Yönetimi
                                     </Button>
                                 </Link>
                             )}
@@ -1839,7 +1528,7 @@ export const AdminDashboard = () => {
                                                     try {
                                                         setShowNotifications(false); // Close immediately for better UX
                                                         await adminService.markAllNotificationsRead();
-                                                        refreshStats();
+                                                        queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
                                                     } catch (err) {
                                                         console.error("Failed to mark all read", err);
                                                     }
@@ -1917,16 +1606,18 @@ export const AdminDashboard = () => {
 
                                                         if (item.type === 'booking') {
                                                             const bookingId = (item as any).originalId || item.id;
+                                                            setActiveTab('bookings');
                                                             setSearchTerm('');
                                                             setHighlightedBookingId(bookingId);
-                                                            loadBookings(1, '', statusFilter);
+                                                            setCurrentPage(1);
                                                             setTimeout(() => setHighlightedBookingId(null), 5000);
                                                             const element = document.getElementById('bookings-section');
                                                             if (element) element.scrollIntoView({ behavior: 'smooth' });
                                                         } else if (item.type === 'franchise') {
+                                                            setActiveTab('franchise');
                                                             setFranchiseSearchTerm('');
                                                             setHighlightedFranchiseId(item.id);
-                                                            loadFranchiseApplications(1, '');
+                                                            setFranchisePage(1);
                                                             setTimeout(() => setHighlightedFranchiseId(null), 5000);
                                                             const element = document.getElementById('franchise-section');
                                                             if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -1937,7 +1628,7 @@ export const AdminDashboard = () => {
                                                             const idToMark = (item as any).originalId || item.id;
                                                             // Fire and forget, don't await
                                                             adminService.markNotificationRead(idToMark, item.type as any)
-                                                                .then(() => refreshStats())
+                                                                .then(() => queryClient.invalidateQueries({ queryKey: ['admin-stats'] }))
                                                                 .catch(err => console.error("Failed to mark read", err));
                                                         }
                                                     }}
@@ -1989,7 +1680,7 @@ export const AdminDashboard = () => {
                         trend="%5.2"
                         trendUp={true}
                         data={[20, 30, 25, 40, 35, 50, 45]}
-                        onClick={() => { setStatusFilter(''); loadBookings(1); }}
+                        onClick={() => { setStatusFilter(''); setActiveTab('bookings'); setCurrentPage(1); }}
                         isActive={statusFilter === ''}
                     />
                     <StatCard
@@ -2000,7 +1691,7 @@ export const AdminDashboard = () => {
                         trend="%2.1"
                         trendUp={false}
                         data={[60, 50, 45, 40, 30, 25, 30]}
-                        onClick={() => { setStatusFilter('ACTIVE'); loadBookings(1, searchTerm, 'ACTIVE'); }}
+                        onClick={() => { setStatusFilter('ACTIVE'); setActiveTab('bookings'); setCurrentPage(1); }}
                         isActive={statusFilter === 'ACTIVE'}
                     />
                     <StatCard
@@ -2014,1254 +1705,1025 @@ export const AdminDashboard = () => {
                     />
                 </div>
 
+                {/* Tab Navigation */}
+                <div className="flex items-center gap-2 bg-dark-surface-lighter/60 backdrop-blur-xl rounded-2xl p-2 border border-white/10">
+                    {([
+                        { key: 'overview', label: 'Genel Bakış', icon: <TrendingUp className="w-4 h-4" /> },
+                        { key: 'bookings', label: 'Rezervasyonlar', icon: <Calendar className="w-4 h-4" /> },
+                        { key: 'franchise', label: 'Franchise', icon: <Building2 className="w-4 h-4" /> },
+                        { key: 'insurance', label: 'Sigorta', icon: <Shield className="w-4 h-4" /> },
+                    ] as const).map((tab) => (
+                        <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key as typeof activeTab)}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.key
+                                ? 'bg-primary-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)]'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                }`}
+                        >
+                            {tab.icon}
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
                 {/* Revenue Analytics Section */}
-                {revenueData && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Main Revenue Chart (Dual Axis) */}
-                        <div className="lg:col-span-2 bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                            <div className="p-6 border-b border-white/10">
-                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-white">Gelir Analizi</h2>
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <span className="text-3xl font-black text-green-400">
-                                                {revenueData.summary.currentYear.toLocaleString()} ₺
-                                            </span>
-                                            <span className={`flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${revenueData.summary.growth >= 0
-                                                ? 'bg-green-500/20 text-green-400'
-                                                : 'bg-red-500/20 text-red-400'
-                                                }`}>
-                                                {revenueData.summary.growth >= 0
-                                                    ? <ArrowUpRight className="w-4 h-4" />
-                                                    : <ArrowDownRight className="w-4 h-4" />
-                                                }
-                                                {Math.abs(Number(revenueData.summary.growth.toFixed(1)))}%
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <select
-                                            value={selectedYear}
-                                            onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                            className="px-4 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        >
-                                            {revenueData.availableYears.map(year => (
-                                                <option key={year} value={year} className="bg-dark-bg">{year}</option>
-                                            ))}
-                                        </select>
-                                        <div className="flex bg-dark-bg rounded-xl p-1 border border-white/10">
-                                            {(['weekly', 'monthly', 'yearly'] as const).map((view) => (
-                                                <button
-                                                    key={view}
-                                                    onClick={() => setChartView(view)}
-                                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${chartView === view
-                                                        ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
-                                                        : 'text-gray-400 hover:text-white'
-                                                        }`}
+                {activeTab === 'overview' && (
+                    <>
+                        {revenueData && (
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Main Revenue Chart (Dual Axis) */}
+                                <div className="lg:col-span-2 bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                                    <div className="p-6 border-b border-white/10">
+                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                            <div>
+                                                <h2 className="text-xl font-bold text-white">Gelir Analizi</h2>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <span className="text-3xl font-black text-green-400">
+                                                        {revenueData.summary.currentYear.toLocaleString()} ₺
+                                                    </span>
+                                                    <span className={`flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${revenueData.summary.growth >= 0
+                                                        ? 'bg-green-500/20 text-green-400'
+                                                        : 'bg-red-500/20 text-red-400'
+                                                        }`}>
+                                                        {revenueData.summary.growth >= 0
+                                                            ? <ArrowUpRight className="w-4 h-4" />
+                                                            : <ArrowDownRight className="w-4 h-4" />
+                                                        }
+                                                        {Math.abs(Number(revenueData.summary.growth.toFixed(1)))}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <select
+                                                    value={selectedYear}
+                                                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                                                    className="px-4 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                                                 >
-                                                    {view === 'weekly' ? 'Haftalık' : view === 'monthly' ? 'Aylık' : 'Yıllık'}
+                                                    {revenueData.availableYears.map((year: number) => (
+                                                        <option key={year} value={year} className="bg-dark-bg">{year}</option>
+                                                    ))}
+                                                </select>
+                                                <div className="flex bg-dark-bg rounded-xl p-1 border border-white/10">
+                                                    {(['weekly', 'monthly', 'yearly'] as const).map((view) => (
+                                                        <button
+                                                            key={view}
+                                                            onClick={() => setChartView(view)}
+                                                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${chartView === view
+                                                                ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
+                                                                : 'text-gray-400 hover:text-white'
+                                                                }`}
+                                                        >
+                                                            {view === 'weekly' ? 'Haftalık' : view === 'monthly' ? 'Aylık' : 'Yıllık'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!revenueData) return;
+
+                                                        // Dynamic imports — loaded only when export is triggered
+                                                        const [{ default: ExcelJS }, { default: html2canvas }, { saveAs }] = await Promise.all([
+                                                            import('exceljs'),
+                                                            import('html2canvas'),
+                                                            import('file-saver'),
+                                                        ]);
+
+                                                        const workbook = new ExcelJS.Workbook();
+                                                        const worksheet = workbook.addWorksheet('Gelir Raporu');
+
+                                                        // 1. Add Title
+                                                        worksheet.mergeCells('A1:E1');
+                                                        const titleCell = worksheet.getCell('A1');
+                                                        titleCell.value = `SlonCar Gelir Raporu (${selectedYear}) - ${chartView === 'weekly' ? 'Haftalık' : chartView === 'monthly' ? 'Aylık' : 'Yıllık'}`;
+                                                        titleCell.font = { name: 'Arial', family: 4, size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+                                                        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } }; // Dark gray bg
+                                                        titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+                                                        worksheet.getRow(1).height = 30;
+
+                                                        // 2. Add Summary Data
+                                                        worksheet.addRow(['']);
+                                                        const summaryRow = worksheet.addRow(['Toplam Ciro', 'Adet', 'Büyüme', 'Şu Anki Dönem', 'Geçen Dönem']);
+                                                        summaryRow.font = { bold: true };
+
+                                                        const summaryDataRow = worksheet.addRow([
+                                                            revenueData.summary.currentYear,
+                                                            revenueData.yearly.reduce((acc: number, curr: { bookings: number }) => acc + curr.bookings, 0),
+                                                            revenueData.summary.growth / 100, // For percentage format
+                                                            revenueData.summary.currentMonth,
+                                                            revenueData.summary.lastMonth
+                                                        ]);
+
+                                                        // Format Summary
+                                                        summaryDataRow.getCell(1).numFmt = '#,##0 "₺"';
+                                                        summaryDataRow.getCell(3).numFmt = '0.0%';
+                                                        summaryDataRow.getCell(4).numFmt = '#,##0 "₺"';
+                                                        summaryDataRow.getCell(5).numFmt = '#,##0 "₺"';
+
+                                                        // 3. Add Main Table Data
+                                                        worksheet.addRow(['']);
+                                                        worksheet.addRow(['']); // Spacer
+
+                                                        const headers = ['Dönem', 'Gelir', 'Rezervasyon Sayısı', 'Ortalama Gelir'];
+                                                        const headerRow = worksheet.addRow(headers);
+                                                        headerRow.eachCell((cell) => {
+                                                            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                                                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4B5563' } }; // Gray-600
+                                                            cell.alignment = { horizontal: 'center' };
+                                                        });
+
+                                                        const chartData = getChartData();
+                                                        chartData.forEach((d: any) => {
+                                                            const row = worksheet.addRow([
+                                                                d[getDataKey()],
+                                                                d.revenue,
+                                                                d.bookings,
+                                                                d.bookings > 0 ? d.revenue / d.bookings : 0
+                                                            ]);
+                                                            row.getCell(2).numFmt = '#,##0 "₺"';
+                                                            row.getCell(4).numFmt = '#,##0 "₺"';
+                                                            row.getCell(1).alignment = { horizontal: 'center' };
+                                                            row.getCell(3).alignment = { horizontal: 'center' };
+                                                        });
+
+                                                        // Auto-width columns
+                                                        worksheet.columns.forEach(column => {
+                                                            column.width = 20;
+                                                        });
+                                                        worksheet.getColumn(1).width = 25; // Period column slightly wider
+
+                                                        // 4. Capture and Add Charts
+                                                        try {
+                                                            const mainChart = document.getElementById('main-revenue-chart');
+                                                            if (mainChart) {
+                                                                const canvas = await html2canvas(mainChart, { backgroundColor: '#111827' }); // Use dark bg
+                                                                const imageId = workbook.addImage({
+                                                                    base64: canvas.toDataURL('image/png'),
+                                                                    extension: 'png',
+                                                                });
+                                                                worksheet.addImage(imageId, {
+                                                                    tl: { col: 6, row: 2 }, // Start at column G, row 3
+                                                                    ext: { width: 600, height: 300 }
+                                                                });
+                                                            }
+
+                                                            const pieChart = document.getElementById('category-pie-chart');
+                                                            if (pieChart) {
+                                                                const canvas = await html2canvas(pieChart, { backgroundColor: '#1f2937' });
+                                                                const imageId = workbook.addImage({
+                                                                    base64: canvas.toDataURL('image/png'),
+                                                                    extension: 'png',
+                                                                });
+                                                                worksheet.addImage(imageId, {
+                                                                    tl: { col: 6, row: 20 },
+                                                                    ext: { width: 400, height: 250 }
+                                                                });
+                                                            }
+
+                                                            const barChart = document.getElementById('brand-bar-chart');
+                                                            if (barChart) {
+                                                                const canvas = await html2canvas(barChart, { backgroundColor: '#1f2937' });
+                                                                const imageId = workbook.addImage({
+                                                                    base64: canvas.toDataURL('image/png'),
+                                                                    extension: 'png',
+                                                                });
+                                                                worksheet.addImage(imageId, {
+                                                                    tl: { col: 12, row: 20 }, // Offset for side-by-side
+                                                                    ext: { width: 400, height: 250 }
+                                                                });
+                                                            }
+                                                        } catch (error) {
+                                                            console.error("Error capturing charts:", error);
+                                                            toast("Grafikler, Excel'e eklenirken bir hata oluştu ama veriler indirildi.", "error");
+                                                        }
+
+                                                        // Generate Buffer
+                                                        const buffer = await workbook.xlsx.writeBuffer();
+                                                        saveAs(new Blob([buffer]), `SlonCar_Gelir_Raporu_${selectedYear}.xlsx`);
+                                                    }}
+                                                    className="p-2.5 rounded-xl bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all"
+                                                    title="Excel İndir (Grafikli)"
+                                                >
+                                                    <Download className="w-5 h-5" />
                                                 </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-6">
+                                        <div className="h-80" id="main-revenue-chart">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <ComposedChart data={getChartData()}>
+                                                    <defs>
+                                                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
+                                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                                        </linearGradient>
+                                                    </defs>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                                                    <XAxis
+                                                        dataKey={getDataKey()}
+                                                        stroke="#9ca3af"
+                                                        fontSize={12}
+                                                        tickLine={false}
+                                                        axisLine={false}
+                                                    />
+                                                    <YAxis
+                                                        yAxisId="left"
+                                                        stroke="#9ca3af"
+                                                        fontSize={12}
+                                                        tickLine={false}
+                                                        axisLine={false}
+                                                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                                    />
+                                                    <YAxis
+                                                        yAxisId="right"
+                                                        orientation="right"
+                                                        stroke="#9ca3af"
+                                                        fontSize={12}
+                                                        tickLine={false}
+                                                        axisLine={false}
+                                                    />
+                                                    <Tooltip
+                                                        contentStyle={{
+                                                            backgroundColor: '#1e293b',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            borderRadius: '12px',
+                                                            color: 'white',
+                                                            boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)'
+                                                        }}
+                                                        itemStyle={{ padding: 0 }}
+                                                        labelStyle={{ marginBottom: '8px', fontWeight: 'bold', color: '#e2e8f0' }}
+                                                        formatter={(value: any, name: any) => [
+                                                            name === 'revenue'
+                                                                ? <span key="revenue" className="text-primary-400 font-bold">{Number(value).toLocaleString()} ₺</span>
+                                                                : <span key="bookings" className="text-orange-400 font-bold">{value} Adet</span>,
+                                                            name === 'revenue' ? 'Gelir' : 'Rezervasyon'
+                                                        ]}
+                                                    />
+                                                    <Area
+                                                        yAxisId="left"
+                                                        type="monotone"
+                                                        dataKey="revenue"
+                                                        stroke="#6366f1"
+                                                        strokeWidth={3}
+                                                        fillOpacity={1}
+                                                        fill="url(#colorRevenue)"
+                                                    />
+                                                    <Line
+                                                        yAxisId="right"
+                                                        type="monotone"
+                                                        dataKey="bookings"
+                                                        stroke="#f97316"
+                                                        strokeWidth={3}
+                                                        dot={{ r: 4, fill: '#1e293b', stroke: '#f97316', strokeWidth: 2 }}
+                                                        activeDot={{ r: 6, fill: '#f97316' }}
+                                                    />
+                                                </ComposedChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Category Breakdown (Mock Pie Chart) */}
+                                <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                                    <div className="p-6 border-b border-white/10">
+                                        <h2 className="text-xl font-bold text-white">Kategori Dağılımı</h2>
+                                        <p className="text-xs text-gray-500 mt-1">Hasılatın araç türüne göre dağılımı</p>
+                                    </div>
+                                    <div className="p-6">
+                                        <div className="h-[200px] relative" id="category-pie-chart">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={[
+                                                            { name: 'SUV', value: 35, color: '#6366f1' },       // Indigo
+                                                            { name: 'Sedan', value: 25, color: '#8b5cf6' },     // Violet
+                                                            { name: 'Lüks', value: 20, color: '#ec4899' },      // Pink
+                                                            { name: 'Hatchback', value: 15, color: '#06b6d4' }, // Cyan
+                                                            { name: 'Van', value: 5, color: '#10b981' }         // Emerald
+                                                        ]}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={60}
+                                                        outerRadius={80}
+                                                        paddingAngle={5}
+                                                        dataKey="value"
+                                                        stroke="none"
+                                                    >
+                                                        {[
+                                                            { name: 'SUV', value: 35, color: '#6366f1' },
+                                                            { name: 'Sedan', value: 25, color: '#8b5cf6' },
+                                                            { name: 'Lüks', value: 20, color: '#ec4899' },
+                                                            { name: 'Hatchback', value: 15, color: '#06b6d4' },
+                                                            { name: 'Van', value: 5, color: '#10b981' }
+                                                        ].map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip
+                                                        contentStyle={{
+                                                            backgroundColor: '#1e293b',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            borderRadius: '12px',
+                                                            color: 'white'
+                                                        }}
+                                                        formatter={(value: any) => [`%${value}`, 'Pay']}
+                                                    />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                            {/* Center Text */}
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                                <span className="text-3xl font-black text-white">5</span>
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Kategori</span>
+                                            </div>
+                                        </div>
+                                        {/* Legend */}
+                                        <div className="grid grid-cols-2 gap-3 mt-4">
+                                            {[
+                                                { name: 'SUV', value: 35, color: 'bg-primary-500' },
+                                                { name: 'Sedan', value: 25, color: 'bg-violet-500' },
+                                                { name: 'Lüks', value: 20, color: 'bg-pink-500' },
+                                                { name: 'Hatchback', value: 15, color: 'bg-cyan-500' },
+                                                { name: 'Van', value: 5, color: 'bg-emerald-500' }
+                                            ].map((item, i) => (
+                                                <div key={i} className="flex items-center gap-2">
+                                                    <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                                                    <span className="text-sm text-gray-400">{item.name}</span>
+                                                    <span className="text-sm font-bold text-white ml-auto">%{item.value}</span>
+                                                </div>
                                             ))}
                                         </div>
-                                        <button
-                                            onClick={async () => {
-                                                if (!revenueData) return;
-
-                                                // Dynamic imports — loaded only when export is triggered
-                                                const [{ default: ExcelJS }, { default: html2canvas }, { saveAs }] = await Promise.all([
-                                                    import('exceljs'),
-                                                    import('html2canvas'),
-                                                    import('file-saver'),
-                                                ]);
-
-                                                const workbook = new ExcelJS.Workbook();
-                                                const worksheet = workbook.addWorksheet('Gelir Raporu');
-
-                                                // 1. Add Title
-                                                worksheet.mergeCells('A1:E1');
-                                                const titleCell = worksheet.getCell('A1');
-                                                titleCell.value = `SlonCar Gelir Raporu (${selectedYear}) - ${chartView === 'weekly' ? 'Haftalık' : chartView === 'monthly' ? 'Aylık' : 'Yıllık'}`;
-                                                titleCell.font = { name: 'Arial', family: 4, size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
-                                                titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } }; // Dark gray bg
-                                                titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                                                worksheet.getRow(1).height = 30;
-
-                                                // 2. Add Summary Data
-                                                worksheet.addRow(['']);
-                                                const summaryRow = worksheet.addRow(['Toplam Ciro', 'Adet', 'Büyüme', 'Şu Anki Dönem', 'Geçen Dönem']);
-                                                summaryRow.font = { bold: true };
-
-                                                const summaryDataRow = worksheet.addRow([
-                                                    revenueData.summary.currentYear,
-                                                    revenueData.yearly.reduce((acc, curr) => acc + curr.bookings, 0),
-                                                    revenueData.summary.growth / 100, // For percentage format
-                                                    revenueData.summary.currentMonth,
-                                                    revenueData.summary.lastMonth
-                                                ]);
-
-                                                // Format Summary
-                                                summaryDataRow.getCell(1).numFmt = '#,##0 "₺"';
-                                                summaryDataRow.getCell(3).numFmt = '0.0%';
-                                                summaryDataRow.getCell(4).numFmt = '#,##0 "₺"';
-                                                summaryDataRow.getCell(5).numFmt = '#,##0 "₺"';
-
-                                                // 3. Add Main Table Data
-                                                worksheet.addRow(['']);
-                                                worksheet.addRow(['']); // Spacer
-
-                                                const headers = ['Dönem', 'Gelir', 'Rezervasyon Sayısı', 'Ortalama Gelir'];
-                                                const headerRow = worksheet.addRow(headers);
-                                                headerRow.eachCell((cell) => {
-                                                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                                                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4B5563' } }; // Gray-600
-                                                    cell.alignment = { horizontal: 'center' };
-                                                });
-
-                                                const chartData = getChartData();
-                                                chartData.forEach((d: any) => {
-                                                    const row = worksheet.addRow([
-                                                        d[getDataKey()],
-                                                        d.revenue,
-                                                        d.bookings,
-                                                        d.bookings > 0 ? d.revenue / d.bookings : 0
-                                                    ]);
-                                                    row.getCell(2).numFmt = '#,##0 "₺"';
-                                                    row.getCell(4).numFmt = '#,##0 "₺"';
-                                                    row.getCell(1).alignment = { horizontal: 'center' };
-                                                    row.getCell(3).alignment = { horizontal: 'center' };
-                                                });
-
-                                                // Auto-width columns
-                                                worksheet.columns.forEach(column => {
-                                                    column.width = 20;
-                                                });
-                                                worksheet.getColumn(1).width = 25; // Period column slightly wider
-
-                                                // 4. Capture and Add Charts
-                                                try {
-                                                    const mainChart = document.getElementById('main-revenue-chart');
-                                                    if (mainChart) {
-                                                        const canvas = await html2canvas(mainChart, { backgroundColor: '#111827' }); // Use dark bg
-                                                        const imageId = workbook.addImage({
-                                                            base64: canvas.toDataURL('image/png'),
-                                                            extension: 'png',
-                                                        });
-                                                        worksheet.addImage(imageId, {
-                                                            tl: { col: 6, row: 2 }, // Start at column G, row 3
-                                                            ext: { width: 600, height: 300 }
-                                                        });
-                                                    }
-
-                                                    const pieChart = document.getElementById('category-pie-chart');
-                                                    if (pieChart) {
-                                                        const canvas = await html2canvas(pieChart, { backgroundColor: '#1f2937' });
-                                                        const imageId = workbook.addImage({
-                                                            base64: canvas.toDataURL('image/png'),
-                                                            extension: 'png',
-                                                        });
-                                                        worksheet.addImage(imageId, {
-                                                            tl: { col: 6, row: 20 },
-                                                            ext: { width: 400, height: 250 }
-                                                        });
-                                                    }
-
-                                                    const barChart = document.getElementById('brand-bar-chart');
-                                                    if (barChart) {
-                                                        const canvas = await html2canvas(barChart, { backgroundColor: '#1f2937' });
-                                                        const imageId = workbook.addImage({
-                                                            base64: canvas.toDataURL('image/png'),
-                                                            extension: 'png',
-                                                        });
-                                                        worksheet.addImage(imageId, {
-                                                            tl: { col: 12, row: 20 }, // Offset for side-by-side
-                                                            ext: { width: 400, height: 250 }
-                                                        });
-                                                    }
-                                                } catch (error) {
-                                                    console.error("Error capturing charts:", error);
-                                                    toast("Grafikler, Excel'e eklenirken bir hata oluştu ama veriler indirildi.", "error");
-                                                }
-
-                                                // Generate Buffer
-                                                const buffer = await workbook.xlsx.writeBuffer();
-                                                saveAs(new Blob([buffer]), `SlonCar_Gelir_Raporu_${selectedYear}.xlsx`);
-                                            }}
-                                            className="p-2.5 rounded-xl bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all"
-                                            title="Excel İndir (Grafikli)"
-                                        >
-                                            <Download className="w-5 h-5" />
-                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <div className="p-6">
-                                <div className="h-80" id="main-revenue-chart">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <ComposedChart data={getChartData()}>
-                                            <defs>
-                                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                                            <XAxis
-                                                dataKey={getDataKey()}
-                                                stroke="#9ca3af"
-                                                fontSize={12}
-                                                tickLine={false}
-                                                axisLine={false}
-                                            />
-                                            <YAxis
-                                                yAxisId="left"
-                                                stroke="#9ca3af"
-                                                fontSize={12}
-                                                tickLine={false}
-                                                axisLine={false}
-                                                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                                            />
-                                            <YAxis
-                                                yAxisId="right"
-                                                orientation="right"
-                                                stroke="#9ca3af"
-                                                fontSize={12}
-                                                tickLine={false}
-                                                axisLine={false}
-                                            />
-                                            <Tooltip
-                                                contentStyle={{
-                                                    backgroundColor: '#1e293b',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                    borderRadius: '12px',
-                                                    color: 'white',
-                                                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)'
-                                                }}
-                                                itemStyle={{ padding: 0 }}
-                                                labelStyle={{ marginBottom: '8px', fontWeight: 'bold', color: '#e2e8f0' }}
-                                                formatter={(value: any, name: any) => [
-                                                    name === 'revenue'
-                                                        ? <span key="revenue" className="text-primary-400 font-bold">{Number(value).toLocaleString()} ₺</span>
-                                                        : <span key="bookings" className="text-orange-400 font-bold">{value} Adet</span>,
-                                                    name === 'revenue' ? 'Gelir' : 'Rezervasyon'
-                                                ]}
-                                            />
-                                            <Area
-                                                yAxisId="left"
-                                                type="monotone"
-                                                dataKey="revenue"
-                                                stroke="#6366f1"
-                                                strokeWidth={3}
-                                                fillOpacity={1}
-                                                fill="url(#colorRevenue)"
-                                            />
-                                            <Line
-                                                yAxisId="right"
-                                                type="monotone"
-                                                dataKey="bookings"
-                                                stroke="#f97316"
-                                                strokeWidth={3}
-                                                dot={{ r: 4, fill: '#1e293b', stroke: '#f97316', strokeWidth: 2 }}
-                                                activeDot={{ r: 6, fill: '#f97316' }}
-                                            />
-                                        </ComposedChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Category Breakdown (Mock Pie Chart) */}
-                        <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                            <div className="p-6 border-b border-white/10">
-                                <h2 className="text-xl font-bold text-white">Kategori Dağılımı</h2>
-                                <p className="text-xs text-gray-500 mt-1">Hasılatın araç türüne göre dağılımı</p>
-                            </div>
-                            <div className="p-6">
-                                <div className="h-[200px] relative" id="category-pie-chart">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={[
-                                                    { name: 'SUV', value: 35, color: '#6366f1' },       // Indigo
-                                                    { name: 'Sedan', value: 25, color: '#8b5cf6' },     // Violet
-                                                    { name: 'Lüks', value: 20, color: '#ec4899' },      // Pink
-                                                    { name: 'Hatchback', value: 15, color: '#06b6d4' }, // Cyan
-                                                    { name: 'Van', value: 5, color: '#10b981' }         // Emerald
-                                                ]}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={80}
-                                                paddingAngle={5}
-                                                dataKey="value"
-                                                stroke="none"
-                                            >
-                                                {[
-                                                    { name: 'SUV', value: 35, color: '#6366f1' },
-                                                    { name: 'Sedan', value: 25, color: '#8b5cf6' },
-                                                    { name: 'Lüks', value: 20, color: '#ec4899' },
-                                                    { name: 'Hatchback', value: 15, color: '#06b6d4' },
-                                                    { name: 'Van', value: 5, color: '#10b981' }
-                                                ].map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip
-                                                contentStyle={{
-                                                    backgroundColor: '#1e293b',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                    borderRadius: '12px',
-                                                    color: 'white'
-                                                }}
-                                                formatter={(value: any) => [`%${value}`, 'Pay']}
-                                            />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                    {/* Center Text */}
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                        <span className="text-3xl font-black text-white">5</span>
-                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Kategori</span>
-                                    </div>
-                                </div>
-                                {/* Legend */}
-                                <div className="grid grid-cols-2 gap-3 mt-4">
-                                    {[
-                                        { name: 'SUV', value: 35, color: 'bg-primary-500' },
-                                        { name: 'Sedan', value: 25, color: 'bg-violet-500' },
-                                        { name: 'Lüks', value: 20, color: 'bg-pink-500' },
-                                        { name: 'Hatchback', value: 15, color: 'bg-cyan-500' },
-                                        { name: 'Van', value: 5, color: 'bg-emerald-500' }
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-center gap-2">
-                                            <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                                            <span className="text-sm text-gray-400">{item.name}</span>
-                                            <span className="text-sm font-bold text-white ml-auto">%{item.value}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        )}
+                    </>
                 )}
 
                 {/* All Bookings Table with Pagination */}
-                <div id="bookings-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                    <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <h2 className="text-xl font-bold text-white">Tüm Rezervasyonlar</h2>
-                            <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                {totalBookings} kayıt
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            {/* Filter Toggle */}
-                            <button
-                                onClick={() => setShowFilters(!showFilters)}
-                                className={`p-2 rounded-lg border transition-all flex items-center gap-2 ${showFilters || statusFilter
-                                    ? 'bg-primary-500/20 border-primary-500/50 text-primary-400'
-                                    : 'bg-dark-bg border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                    }`}
-                            >
-                                <Filter className="w-4 h-4" />
-                                {statusFilter && (
-                                    <span className="text-xs font-bold">1</span>
-                                )}
-                            </button>
-                            {/* Search Input */}
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                <input
-                                    type="text"
-                                    placeholder="İsim ile ara..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10 pr-8 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 w-52"
-                                />
-                                {searchTerm && (
-                                    <button
-                                        onClick={() => setSearchTerm('')}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                                    >
-                                        ×
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                    {/* Filter Chips Row */}
-                    {showFilters && (
-                        <div className="px-6 py-4 border-b border-white/10 bg-dark-bg/30">
-                            <div className="flex flex-wrap items-center gap-3">
-                                <span className="text-xs font-bold text-gray-500 uppercase">Durum:</span>
-                                <div className="flex flex-wrap gap-2">
-                                    {STATUS_OPTIONS.map((status) => (
-                                        <button
-                                            key={status.value}
-                                            onClick={() => setStatusFilter(status.value)}
-                                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${statusFilter === status.value
-                                                ? status.color === 'green' ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]' :
-                                                    status.color === 'red' ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
-                                                        status.color === 'primary' ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' :
-                                                            'bg-gray-500 text-white shadow-[0_0_15px_rgba(107,114,128,0.4)]'
-                                                : 'bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                                }`}
-                                        >
-                                            {status.label}
-                                        </button>
-                                    ))}
-                                </div>
-                                {/* Clear Filters */}
-                                {statusFilter && (
-                                    <button
-                                        onClick={() => setStatusFilter('')}
-                                        className="ml-auto flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors"
-                                    >
-                                        <X className="w-3 h-3" />
-                                        Filtreleri Temizle
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-
-                    <div className="overflow-x-auto custom-scrollbar pb-4">
-                        <table className="w-full text-left min-w-[1200px]">
-                            <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
-                                <tr>
-                                    <th className="p-4 text-center">Kod</th>
-                                    <th className="p-4">Müşteri</th>
-                                    <th className="p-4">Araç</th>
-                                    <th className="p-4 text-center">Tarihler</th>
-                                    <th className="p-4 text-center">Ödeme & Tutar</th>
-                                    <th className="p-4 text-center">Durum</th>
-                                    <th className="p-4 text-center">Detaylar</th>
-                                    <th className="p-4 text-center">İşlem</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5 relative">
-                                {bookingsLoading ? (
-                                    <tr>
-                                        <td colSpan={9} className="p-12 text-center">
-                                            <div className="flex justify-center items-center">
-                                                <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : bookings.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7} className="p-12 text-center">
-                                            <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                                            <p className="text-gray-400">Henüz rezervasyon yok</p>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    bookings.map((booking) => (
-                                        <BookingRow
-                                            key={booking.id}
-                                            booking={booking}
-                                            onView={setSelectedBooking}
-                                            onAction={handleAction}
-                                            isHighlighted={highlightedBookingId === booking.id}
-                                        />
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                    {/* Pagination Controls */}
-                    {totalBookings > ITEMS_PER_PAGE && (
-                        <div className="p-4 border-t border-white/10 flex items-center justify-between">
-                            <div className="text-sm text-gray-400">
-                                Sayfa {currentPage} / {Math.ceil(totalBookings / ITEMS_PER_PAGE)} ({totalBookings} kayıt)
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => loadBookings(currentPage - 1)}
-                                    disabled={currentPage === 1 || bookingsLoading}
-                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
-                                    <ChevronLeft className="w-5 h-5" />
-                                </button>
-                                {/* Page Numbers */}
-                                <div className="flex gap-1">
-                                    {Array.from({ length: Math.min(5, Math.ceil(totalBookings / ITEMS_PER_PAGE)) }, (_, i) => {
-                                        const totalPages = Math.ceil(totalBookings / ITEMS_PER_PAGE);
-                                        let pageNum: number;
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage <= 3) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i;
-                                        } else {
-                                            pageNum = currentPage - 2 + i;
-                                        }
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => loadBookings(pageNum)}
-                                                disabled={bookingsLoading}
-                                                className={`w-10 h-10 rounded-lg font-bold transition-all ${currentPage === pageNum
-                                                    ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
-                                                    : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50'
-                                                    }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <button
-                                    onClick={() => loadBookings(currentPage + 1)}
-                                    disabled={currentPage >= Math.ceil(totalBookings / ITEMS_PER_PAGE) || bookingsLoading}
-                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
-                                    <ChevronRight className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Audit Logs Preview Section */}
-                {currentUser?.role === 'ADMIN' && (
-                    <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                {activeTab === 'bookings' && (
+                    <div id="bookings-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                        <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
-                                <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                                        <Clock className="w-5 h-5 text-orange-400" />
-                                    </div>
-                                    Son İşlemler
-                                </h2>
+                                <h2 className="text-xl font-bold text-white">Tüm Rezervasyonlar</h2>
                                 <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                    Son 10 işlem
+                                    {bookingsData?.pagination?.total || 0} kayıt
                                 </span>
                             </div>
-                            <Link
-                                to="/admin/audit-logs"
-                                className="text-sm text-primary-400 hover:text-primary-300 flex items-center gap-1 font-medium transition-colors"
-                            >
-                                Tümünü Gör
-                                <ArrowUpRight className="w-4 h-4" />
-                            </Link>
+                            <div className="flex items-center gap-3">
+                                {currentUser?.role === 'ADMIN' && (
+                                    <div className="flex items-center gap-2">
+                                        <Link to="/admin/audit-logs">
+                                            <Button variant="secondary" size="sm" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white whitespace-nowrap">
+                                                <Clock className="w-4 h-4" />
+                                                İşlem Geçmişi
+                                            </Button>
+                                        </Link>
+                                        <Link to="/admin/users">
+                                            <Button variant="secondary" size="sm" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white whitespace-nowrap">
+                                                <Users className="w-4 h-4" />
+                                                Kullanıcı Yönetimi
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                )}
+                                {/* Filter Toggle */}
+                                <button
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    className={`p-2 rounded-lg border transition-all flex items-center gap-2 ${showFilters || statusFilter
+                                        ? 'bg-primary-500/20 border-primary-500/50 text-primary-400'
+                                        : 'bg-dark-bg border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                        }`}
+                                >
+                                    <Filter className="w-4 h-4" />
+                                    {statusFilter && (
+                                        <span className="text-xs font-bold">1</span>
+                                    )}
+                                </button>
+                                {/* Search Input */}
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                    <input
+                                        type="text"
+                                        placeholder="İsim ile ara..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-10 pr-8 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 w-52"
+                                    />
+                                    {searchTerm && (
+                                        <button
+                                            onClick={() => setSearchTerm('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                                        >
+                                            ×
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
                         </div>
+                        {/* Filter Chips Row */}
+                        {showFilters && (
+                            <div className="px-6 py-4 border-b border-white/10 bg-dark-bg/30">
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <span className="text-xs font-bold text-gray-500 uppercase">Durum:</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {STATUS_OPTIONS.map((status) => (
+                                            <button
+                                                key={status.value}
+                                                onClick={() => setStatusFilter(status.value)}
+                                                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${statusFilter === status.value
+                                                    ? status.color === 'green' ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]' :
+                                                        status.color === 'red' ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
+                                                            status.color === 'primary' ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' :
+                                                                'bg-gray-500 text-white shadow-[0_0_15px_rgba(107,114,128,0.4)]'
+                                                    : 'bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                    }`}
+                                            >
+                                                {status.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {/* Clear Filters */}
+                                    {statusFilter && (
+                                        <button
+                                            onClick={() => setStatusFilter('')}
+                                            className="ml-auto flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors"
+                                        >
+                                            <X className="w-3 h-3" />
+                                            Filtreleri Temizle
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
+
+                        <div className="overflow-x-auto custom-scrollbar pb-4">
+                            <table className="w-full text-left min-w-[1200px]">
                                 <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                     <tr>
-                                        <th className="p-4">Tarih</th>
-                                        <th className="p-4">Kullanıcı</th>
-                                        <th className="p-4">İşlem</th>
-                                        <th className="p-4">Detaylar</th>
+                                        <th className="p-4 text-center">Kod</th>
+                                        <th className="p-4">Müşteri</th>
+                                        <th className="p-4">Araç</th>
+                                        <th className="p-4 text-center">Tarihler</th>
+                                        <th className="p-4 text-center">Ödeme & Tutar</th>
+                                        <th className="p-4 text-center">Durum</th>
+                                        <th className="p-4 text-center">Detaylar</th>
+                                        <th className="p-4 text-center">İşlem</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5 relative">
-                                    {auditLogsLoading ? (
+                                    {bookingsQueryLoading ? (
                                         <tr>
-                                            <td colSpan={4} className="p-12 text-center">
+                                            <td colSpan={9} className="p-12 text-center">
                                                 <div className="flex justify-center items-center">
-                                                    <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+                                                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
                                                 </div>
                                             </td>
                                         </tr>
-                                    ) : auditLogs.length === 0 ? (
+                                    ) : !bookingsData?.data?.length ? (
                                         <tr>
-                                            <td colSpan={4} className="p-12 text-center text-gray-500">
-                                                Henüz işlem kaydı yok
+                                            <td colSpan={7} className="p-12 text-center">
+                                                <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                                                <p className="text-gray-400">Henüz rezervasyon yok</p>
                                             </td>
                                         </tr>
                                     ) : (
-                                        auditLogs.map((log) => (
-                                            <tr key={log.id} className="hover:bg-white/5 transition-colors group">
-                                                <td className="p-4 text-sm text-gray-400 font-mono">
-                                                    {new Date(log.createdAt).toLocaleString('tr-TR', {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                        day: '2-digit',
-                                                        month: '2-digit'
-                                                    })}
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-sm font-medium text-white">{log.user?.name || 'Sistem'}</span>
-                                                        <span className="text-xs text-gray-500">{log.user?.role || '-'}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4">
-                                                    <span className="px-2 py-1 rounded text-[10px] font-bold bg-white/5 text-gray-300 border border-white/10 whitespace-nowrap">
-                                                        {translateAction(log.action)}
-                                                    </span>
-                                                </td>
-                                                <td className="p-4 text-sm text-gray-400 max-w-[400px]" title={log.details || ''}>
-                                                    {formatDetails(log.action, log.details)}
-                                                </td>
-                                            </tr>
+                                        bookingsData.data.map((booking: Booking) => (
+                                            <BookingRow
+                                                key={booking.id}
+                                                booking={booking}
+                                                onView={setSelectedBooking}
+                                                onAction={handleAction}
+                                                isHighlighted={highlightedBookingId === booking.id}
+                                            />
                                         ))
                                     )}
                                 </tbody>
                             </table>
                         </div>
+                        {/* Pagination Controls */}
+                        {bookingsData?.pagination && bookingsData.pagination.total > ITEMS_PER_PAGE && (
+                            <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                                <div className="text-sm text-gray-400">
+                                    Sayfa {currentPage} / {bookingsData.pagination.totalPages} ({bookingsData.pagination.total} kayıt)
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setCurrentPage(prev => prev - 1)}
+                                        disabled={currentPage === 1 || bookingsQueryLoading}
+                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                    {/* Page Numbers */}
+                                    <div className="flex gap-1">
+                                        {Array.from({ length: Math.min(5, bookingsData.pagination.totalPages) }, (_, i) => {
+                                            const totalPages = bookingsData.pagination.totalPages;
+                                            let pageNum: number;
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i;
+                                            } else {
+                                                pageNum = currentPage - 2 + i;
+                                            }
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => setCurrentPage(pageNum)}
+                                                    disabled={bookingsQueryLoading}
+                                                    className={`w-10 h-10 rounded-lg font-bold transition-all ${currentPage === pageNum
+                                                        ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
+                                                        : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50'
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button
+                                        onClick={() => setCurrentPage(prev => prev + 1)}
+                                        disabled={currentPage >= bookingsData.pagination.totalPages || bookingsQueryLoading}
+                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
+
+
                 {/* Franchise Applications Section */}
-                <div id="franchise-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                    <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                                    <Building2 className="w-5 h-5 text-purple-400" />
-                                </div>
-                                Franchise Başvuruları
-                            </h2>
-                            <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                {totalFranchises} başvuru
-                            </span>
-                        </div>
-                        <div className="flex-1 max-w-md flex justify-end">
-                            <div className="relative w-full">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <input
-                                    type="text"
-                                    placeholder="İsim, Şirket veya Şehir ile ara..."
-                                    value={franchiseSearchTerm}
-                                    onChange={(e) => setFranchiseSearchTerm(e.target.value)}
-                                    className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
-                                />
-                                {franchiseSearchTerm && (
-                                    <button
-                                        onClick={() => setFranchiseSearchTerm('')}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                                    >
-                                        ×
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
-                                <tr>
-                                    <th className="p-4">Başvuran</th>
-                                    <th className="p-4">İletişim</th>
-                                    <th className="p-4">Lokasyon</th>
-                                    <th className="p-4">Bütçe</th>
-                                    <th className="p-4">Durum</th>
-                                    <th className="p-4">Tarih</th>
-                                    <th className="p-4">İşlem</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5 relative">
-                                {franchiseLoading ? (
-                                    <tr>
-                                        <td colSpan={7} className="p-12 text-center">
-                                            <div className="flex justify-center items-center">
-                                                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : franchiseApplications.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7} className="p-12 text-center">
-                                            <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                                            <p className="text-gray-400">Henüz franchise başvurusu yok</p>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    franchiseApplications.map((app) => {
-                                        const statusInfo = FRANCHISE_STATUS_LABELS[app.status] || { label: app.status, color: 'gray' };
-                                        const isHighlighted = highlightedFranchiseId === app.id;
-                                        return (
-                                            <tr
-                                                key={app.id}
-                                                className={`transition-all group border-b border-white/5 last:border-0 ${isHighlighted
-                                                    ? 'bg-purple-500/20 hover:bg-purple-500/30 shadow-[inset_0_0_20px_rgba(168,85,247,0.2)]'
-                                                    : 'hover:bg-white/5'
-                                                    }`}
-                                            >
-                                                <td className="p-4 max-w-[200px]">
-                                                    <div className="font-medium text-white truncate" title={app.contactName}>{app.contactName}</div>
-                                                    {app.companyName && <div className="text-xs text-gray-400 truncate" title={app.companyName}>{app.companyName}</div>}
-                                                </td>
-                                                <td className="p-4 max-w-[200px]">
-                                                    <div className="text-sm text-gray-300 truncate" title={app.contactEmail}>{app.contactEmail}</div>
-                                                    <div className="text-xs text-gray-500 truncate">{app.contactPhone}</div>
-                                                </td>
-                                                <td className="p-4 text-gray-300 truncate max-w-[150px]" title={app.city}>{app.city || '-'}</td>
-                                                <td className="p-4 text-sm text-gray-400">{app.details?.investmentBudget || '-'}</td>
-                                                <td className="p-4">
-                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${statusInfo.color === 'green' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                                                        statusInfo.color === 'red' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                                            statusInfo.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                                                                statusInfo.color === 'blue' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                                    'bg-gray-500/10 text-gray-400 border-gray-500/20'
-                                                        }`}>
-                                                        <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.color === 'green' ? 'bg-green-500' :
-                                                            statusInfo.color === 'red' ? 'bg-red-500' :
-                                                                statusInfo.color === 'yellow' ? 'bg-yellow-500' :
-                                                                    statusInfo.color === 'blue' ? 'bg-blue-500' :
-                                                                        'bg-gray-500'
-                                                            }`} />
-                                                        {statusInfo.label}
-                                                    </span>
-                                                </td>
-                                                <td className="p-4 text-sm text-gray-400">
-                                                    {new Date(app.submittedAt || app.createdAt).toLocaleDateString('tr-TR')}
-                                                </td>
-                                                <td className="p-4">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-purple-500/30 text-purple-400 hover:bg-purple-500/20"
-                                                        onClick={() => setSelectedFranchise(app)}
-                                                    >
-                                                        Detaylar
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Pagination Controls */}
-                    {totalFranchises > ITEMS_PER_PAGE && (
-                        <div className="p-4 border-t border-white/10 flex items-center justify-between">
-                            <div className="text-sm text-gray-400">
-                                Sayfa {franchisePage} / {Math.ceil(totalFranchises / ITEMS_PER_PAGE)} ({totalFranchises} kayıt)
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => loadFranchiseApplications(franchisePage - 1)}
-                                    disabled={franchisePage === 1 || franchiseLoading}
-                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
-                                    <ChevronLeft className="w-5 h-5" />
-                                </button>
-                                {/* Page Numbers */}
-                                <div className="flex gap-1">
-                                    {Array.from({ length: Math.min(5, Math.ceil(totalFranchises / ITEMS_PER_PAGE)) }, (_, i) => {
-                                        const totalPages = Math.ceil(totalFranchises / ITEMS_PER_PAGE);
-                                        let pageNum: number;
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1;
-                                        } else if (franchisePage <= 3) {
-                                            pageNum = i + 1;
-                                        } else if (franchisePage >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i;
-                                        } else {
-                                            pageNum = franchisePage - 2 + i;
-                                        }
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => loadFranchiseApplications(pageNum)}
-                                                disabled={franchiseLoading}
-                                                className={`w-10 h-10 rounded-lg font-bold transition-all ${franchisePage === pageNum
-                                                    ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
-                                                    : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50'
-                                                    }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <button
-                                    onClick={() => loadFranchiseApplications(franchisePage + 1)}
-                                    disabled={franchisePage >= Math.ceil(totalFranchises / ITEMS_PER_PAGE) || franchiseLoading}
-                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
-                                    <ChevronRight className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-
-                {/* Insurance Section */}
-                <div id="insurance-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                    <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                                    <Building2 className="w-5 h-5 text-blue-400" />
-                                </div>
-                                Sigortalar
-                            </h2>
-                            <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                {totalInsurances} kayıt
-                            </span>
-                        </div>
-                        <div className="flex-1 max-w-2xl flex justify-end items-center gap-4">
-                            <Button
-                                onClick={handleExportInsurances}
-                                className="bg-[#107c41] hover:bg-[#0c5c30] text-white border-none shadow-lg shadow-green-900/20 flex items-center gap-2 transition-all hover:scale-105 whitespace-nowrap px-6"
-                            >
-                                <Download className="w-4 h-4" />
-                                <span className="font-semibold">Excel İndir</span>
-                            </Button>
-                            <Button
-                                onClick={() => setIsCreateInsuranceModalOpen(true)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 whitespace-nowrap"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Yeni Sigorta
-                            </Button>
-                            <div className="relative w-full max-w-md">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <input
-                                    type="text"
-                                    placeholder="Poliçe, Şirket veya Kullanıcı Ara..."
-                                    value={insuranceSearchTerm}
-                                    onChange={(e) => {
-                                        setInsuranceSearchTerm(e.target.value);
-                                        if (e.target.value.length >= 2 || e.target.value.length === 0) {
-                                            loadInsurances(1, e.target.value);
-                                        }
-                                    }}
-                                    className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
-                                <tr>
-                                    <th className="p-4">Kullanıcı</th>
-                                    <th className="p-4">Sigorta Şirketi</th>
-                                    <th className="p-4">Poliçe No / Tip</th>
-                                    <th className="p-4">Tutar</th>
-                                    <th className="p-4">Tarihler</th>
-                                    <th className="p-4 text-center">Durum</th>
-                                    <th className="p-4 text-center">İşlem</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5 relative">
-                                {insuranceLoading ? (
-                                    <tr>
-                                        <td colSpan={6} className="p-12 text-center">
-                                            <div className="flex justify-center items-center">
-                                                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : insurances.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6} className="p-12 text-center">
-                                            <Shield className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                                            <p className="text-gray-400">Henüz sigorta kaydı yok</p>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    insurances.map((ins) => {
-                                        const daysLeft = Math.ceil((new Date(ins.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                                        const isExpiring = daysLeft <= 10 && daysLeft >= 0;
-                                        const isExpired = daysLeft < 0;
-
-                                        return (
-                                            <tr
-                                                key={ins.id}
-                                                className={`transition-all border-b border-white/5 last:border-0 group ${isExpired
-                                                    ? 'bg-red-500/10 hover:bg-red-500/20 shadow-[inset_0_0_10px_rgba(239,68,68,0.1)]'
-                                                    : isExpiring
-                                                        ? 'bg-yellow-500/10 hover:bg-yellow-500/20 shadow-[inset_0_0_10px_rgba(234,179,8,0.1)]'
-                                                        : 'hover:bg-white/5'
-                                                    }`}
-                                            >
-                                                <td className="p-4">
-                                                    <div className="font-medium text-white">{ins.user?.name}</div>
-                                                    <div className="text-xs text-gray-500">{ins.user?.email}</div>
-                                                </td>
-                                                <td className="p-4 text-gray-300">{ins.companyName}</td>
-                                                <td className="p-4">
-                                                    <div className="font-mono text-sm text-blue-400">{ins.policyNumber}</div>
-                                                    {ins.policyType && <div className="text-xs text-gray-500">{ins.policyType}</div>}
-                                                </td>
-                                                <td className="p-4 text-sm text-gray-300">
-                                                    {ins.premiumAmount ? `${Number(ins.premiumAmount).toLocaleString()} ₺` : '-'}
-                                                </td>
-                                                <td className="p-4 text-sm text-gray-400">
-                                                    <div className="flex flex-col text-xs">
-                                                        <span>{new Date(ins.startDate).toLocaleDateString('tr-TR')}</span>
-                                                        <span className="text-gray-600">↓</span>
-                                                        <span className={isExpired ? 'text-red-400 font-bold flex items-center gap-1' : isExpiring ? 'text-yellow-400 font-bold flex items-center gap-1' : ''}>
-                                                            {new Date(ins.endDate).toLocaleDateString('tr-TR')}
-                                                            {isExpiring && <span className="bg-yellow-500/20 text-yellow-400 px-1.5 rounded text-[10px]">{daysLeft} gün</span>}
-                                                            {isExpired && <span className="bg-red-500/20 text-red-400 px-1.5 rounded text-[10px]">Süresi Doldu</span>}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-center">
-                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${ins.isActive
-                                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                                        : 'bg-red-500/10 text-red-400 border-red-500/20'
-                                                        }`}>
-                                                        <span className={`w-1.5 h-1.5 rounded-full ${ins.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                                                        {ins.isActive ? 'Aktif' : 'Pasif'}
-                                                    </span>
-                                                </td>
-                                                <td className="p-4 text-center">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
-                                                        onClick={() => setSelectedInsurance(ins)}
-                                                    >
-                                                        Detaylar
-                                                    </Button>
-                                                </td>
-                                            </tr>
-
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Pagination Controls */}
-                    {totalInsurances > ITEMS_PER_PAGE && (
-                        <div className="p-4 border-t border-white/10 flex items-center justify-between">
-                            <div className="text-sm text-gray-400">
-                                Sayfa {insurancePage} / {Math.ceil(totalInsurances / ITEMS_PER_PAGE)} ({totalInsurances} kayıt)
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => loadInsurances(insurancePage - 1)}
-                                    disabled={insurancePage === 1 || insuranceLoading}
-                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
-                                    <ChevronLeft className="w-5 h-5" />
-                                </button>
-                                {/* Page Numbers */}
-                                <div className="flex gap-1">
-                                    {Array.from({ length: Math.min(5, Math.ceil(totalInsurances / ITEMS_PER_PAGE)) }, (_, i) => {
-                                        const totalPages = Math.ceil(totalInsurances / ITEMS_PER_PAGE);
-                                        let pageNum: number;
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1;
-                                        } else if (insurancePage <= 3) {
-                                            pageNum = i + 1;
-                                        } else if (insurancePage >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i;
-                                        } else {
-                                            pageNum = insurancePage - 2 + i;
-                                        }
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => loadInsurances(pageNum)}
-                                                disabled={insuranceLoading}
-                                                className={`w-10 h-10 rounded-lg font-bold transition-all ${insurancePage === pageNum
-                                                    ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]'
-                                                    : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50'
-                                                    }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <button
-                                    onClick={() => loadInsurances(insurancePage + 1)}
-                                    disabled={insurancePage >= Math.ceil(totalInsurances / ITEMS_PER_PAGE) || insuranceLoading}
-                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
-                                    <ChevronRight className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-
-                {/* Users Section */}
-                {currentUser?.role === 'ADMIN' && (
-                    <div id="users-section" className="mt-8 bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                {activeTab === 'franchise' && (
+                    <div id="franchise-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
                         <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
                                 <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                                        <Users className="w-5 h-5 text-orange-400" />
+                                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                                        <Building2 className="w-5 h-5 text-purple-400" />
                                     </div>
-                                    Kullanıcı Yönetimi
+                                    Franchise Başvuruları
                                 </h2>
                                 <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                    {users.length} kullanıcı
+                                    {franchiseData?.pagination?.total || 0} başvuru
                                 </span>
                             </div>
-                            <div className="flex-1 max-w-2xl flex justify-end items-center gap-4">
-                                <div className="relative group flex items-center">
-                                    <Info className="w-5 h-5 text-gray-400 cursor-help hover:text-white transition-colors" />
-                                    <div className="absolute right-0 bottom-full mb-2 w-64 p-4 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 text-xs text-gray-300 backdrop-blur-xl">
-                                        <div className="mb-3 pb-3 border-b border-white/10">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                                <span className="text-white font-bold">Yönetici</span>
-                                            </div>
-                                            <p>Tam yetki (Kullanıcı oluşturma/silme, tüm verileri düzenleme)</p>
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                                <span className="text-white font-bold">Personel</span>
-                                            </div>
-                                            <p>Kısıtlı yetki (Görüntüleme, düzenleme, ancak silme ve kullanıcı oluşturma yok)</p>
-                                        </div>
-                                    </div>
+                            <div className="flex-1 max-w-md flex justify-end">
+                                <div className="relative w-full">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                    <input
+                                        type="text"
+                                        placeholder="İsim, Şirket veya Şehir ile ara..."
+                                        value={franchiseSearchTerm}
+                                        onChange={(e) => setFranchiseSearchTerm(e.target.value)}
+                                        className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
+                                    />
+                                    {franchiseSearchTerm && (
+                                        <button
+                                            onClick={() => setFranchiseSearchTerm('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                                        >
+                                            ×
+                                        </button>
+                                    )}
                                 </div>
-                                {currentUser?.role === 'ADMIN' && (
-                                    <Button
-                                        onClick={() => setShowCreateUserModal(true)}
-                                        className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-2 whitespace-nowrap"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        Yeni Kullanıcı
-                                    </Button>
-                                )}
                             </div>
                         </div>
+
 
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                     <tr>
-                                        <th className="p-4">Ad Soyad</th>
-                                        <th className="p-4">E-posta</th>
-                                        <th className="p-4">Telefon</th>
-                                        <th className="p-4">Rol</th>
-                                        <th className="p-4">Kayıt Tarihi</th>
-                                        {currentUser?.role === 'ADMIN' && <th className="p-4 text-center">İşlem</th>}
+                                        <th className="p-4">Başvuran</th>
+                                        <th className="p-4">İletişim</th>
+                                        <th className="p-4">Lokasyon</th>
+                                        <th className="p-4">Bütçe</th>
+                                        <th className="p-4">Durum</th>
+                                        <th className="p-4">Tarih</th>
+                                        <th className="p-4">İşlem</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5 relative">
-                                    {usersLoading ? (
+                                    {franchisesQueryLoading ? (
                                         <tr>
-                                            <td colSpan={currentUser?.role === 'ADMIN' ? 6 : 5} className="p-12 text-center">
+                                            <td colSpan={7} className="p-12 text-center">
                                                 <div className="flex justify-center items-center">
-                                                    <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+                                                    <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
                                                 </div>
                                             </td>
                                         </tr>
-                                    ) : users.length === 0 ? (
+                                    ) : !franchiseData?.data || franchiseData.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={currentUser?.role === 'ADMIN' ? 6 : 5} className="p-12 text-center">
+                                            <td colSpan={7} className="p-12 text-center">
                                                 <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                                                <p className="text-gray-400">Henüz kullanıcı bulunmuyor</p>
+                                                <p className="text-gray-400">Henüz franchise başvurusu yok</p>
                                             </td>
                                         </tr>
                                     ) : (
-                                        users.map((user) => (
-                                            <tr key={user.id} className="hover:bg-white/5 transition-colors">
-                                                <td className="p-4 font-medium text-white">{user.name}</td>
-                                                <td className="p-4 text-gray-300">{user.email}</td>
-                                                <td className="p-4 text-gray-300 font-mono text-sm">{user.phone || '-'}</td>
+                                        franchiseData.data.map((app: any) => {
+                                            const statusInfo = FRANCHISE_STATUS_LABELS[app.status] || { label: app.status, color: 'gray' };
+                                            const isHighlighted = highlightedFranchiseId === app.id;
+                                            return (
+                                                <tr
+                                                    key={app.id}
+                                                    className={`transition-all group border-b border-white/5 last:border-0 ${isHighlighted
+                                                        ? 'bg-purple-500/20 hover:bg-purple-500/30 shadow-[inset_0_0_20px_rgba(168,85,247,0.2)]'
+                                                        : 'hover:bg-white/5'
+                                                        }`}
+                                                >
+                                                    <td className="p-4 max-w-[200px]">
+                                                        <div className="font-medium text-white truncate" title={app.contactName}>{app.contactName}</div>
+                                                        {app.companyName && <div className="text-xs text-gray-400 truncate" title={app.companyName}>{app.companyName}</div>}
+                                                    </td>
+                                                    <td className="p-4 max-w-[200px]">
+                                                        <div className="text-sm text-gray-300 truncate" title={app.contactEmail}>{app.contactEmail}</div>
+                                                        <div className="text-xs text-gray-500 truncate">{app.contactPhone}</div>
+                                                    </td>
+                                                    <td className="p-4 text-gray-300 truncate max-w-[150px]" title={app.city}>{app.city || '-'}</td>
+                                                    <td className="p-4 text-sm text-gray-400">{app.details?.investmentBudget || '-'}</td>
+                                                    <td className="p-4">
+                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${statusInfo.color === 'green' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                                            statusInfo.color === 'red' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                                statusInfo.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                                                                    statusInfo.color === 'blue' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                                        'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                                            }`}>
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.color === 'green' ? 'bg-green-500' :
+                                                                statusInfo.color === 'red' ? 'bg-red-500' :
+                                                                    statusInfo.color === 'yellow' ? 'bg-yellow-500' :
+                                                                        statusInfo.color === 'blue' ? 'bg-blue-500' :
+                                                                            'bg-gray-500'
+                                                                }`} />
+                                                            {statusInfo.label}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-4 text-sm text-gray-400">
+                                                        {new Date(app.submittedAt || app.createdAt).toLocaleDateString('tr-TR')}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-purple-500/30 text-purple-400 hover:bg-purple-500/20"
+                                                            onClick={() => setSelectedFranchise(app)}
+                                                        >
+                                                            Detaylar
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination Controls */}
+                        {franchiseData?.pagination && franchiseData.pagination.total > ITEMS_PER_PAGE && (
+                            <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                                <div className="text-sm text-gray-400">
+                                    Sayfa {franchisePage} / {franchiseData.pagination.totalPages} ({franchiseData.pagination.total} kayıt)
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setFranchisePage(prev => prev - 1)}
+                                        disabled={franchisePage === 1 || franchisesQueryLoading}
+                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                    {/* Page Numbers */}
+                                    <div className="flex gap-1">
+                                        {Array.from({ length: Math.min(5, franchiseData.pagination.totalPages) }, (_, i) => {
+                                            const totalPages = franchiseData.pagination.totalPages;
+                                            let pageNum: number;
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (franchisePage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (franchisePage >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i;
+                                            } else {
+                                                pageNum = franchisePage - 2 + i;
+                                            }
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => setFranchisePage(pageNum)}
+                                                    disabled={franchisesQueryLoading}
+                                                    className={`w-10 h-10 rounded-lg font-bold transition-all ${franchisePage === pageNum
+                                                        ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+                                                        : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50'
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button
+                                        onClick={() => setFranchisePage(prev => prev + 1)}
+                                        disabled={franchisePage >= franchiseData.pagination.totalPages || franchisesQueryLoading}
+                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+
+                {/* Insurance Section */}
+                {activeTab === 'insurance' && (
+                    <div id="insurance-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                        <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                                        <Building2 className="w-5 h-5 text-blue-400" />
+                                    </div>
+                                    Sigortalar
+                                </h2>
+                                <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                    {insuranceData?.pagination?.total || 0} kayıt
+                                </span>
+                            </div>
+                            <div className="flex-1 max-w-2xl flex justify-end items-center gap-4">
+                                <Button
+                                    onClick={async () => {
+                                        try {
+                                            const response = await adminService.exportInsurances();
+                                            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                                            const { saveAs } = await import('file-saver');
+                                            saveAs(blob, `Sigortalar_${new Date().toLocaleDateString('tr-TR')}.xlsx`);
+                                            toast('Excel başarıyla indirildi', 'success');
+                                        } catch (error) {
+                                            console.error('Export error:', error);
+                                            toast('Excel indirilirken bir hata oluştu', 'error');
+                                        }
+                                    }}
+                                    className="bg-[#107c41] hover:bg-[#0c5c30] text-white border-none shadow-lg shadow-green-900/20 flex items-center gap-2 transition-all hover:scale-105 whitespace-nowrap px-6"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    <span className="font-semibold">Excel İndir</span>
+                                </Button>
+                                <div className="relative w-full max-w-md">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                    <input
+                                        type="text"
+                                        placeholder="Poliçe, Şirket veya Kullanıcı Ara..."
+                                        value={insuranceSearchTerm}
+                                        onChange={(e) => setInsuranceSearchTerm(e.target.value)}
+                                        className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                                    />
+                                    {insuranceSearchTerm && (
+                                        <button
+                                            onClick={() => setInsuranceSearchTerm('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                                        >
+                                            ×
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left">
+                                <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th className="p-4">Kullanıcı</th>
+                                        <th className="p-4">Sigorta Şirketi</th>
+                                        <th className="p-4">Poliçe No</th>
+                                        <th className="p-4">Detaylar</th>
+                                        <th className="p-4">Erişim</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    {insurancesQueryLoading ? (
+                                        <tr>
+                                            <td colSpan={5} className="p-12 text-center text-gray-500">
+                                                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
+                                                Yükleniyor...
+                                            </td>
+                                        </tr>
+                                    ) : !insuranceData?.data || insuranceData.data.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={5} className="p-12 text-center text-gray-500">
+                                                Kayıt bulunamadı.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        insuranceData.data.map((insurance: any) => (
+                                            <tr key={insurance.id} className="hover:bg-white/5 transition-colors border-b border-white/5">
                                                 <td className="p-4">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${user.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' :
-                                                        user.role === 'STAFF' ? 'bg-blue-500/20 text-blue-400' :
-                                                            'bg-green-500/20 text-green-400'
-                                                        }`}>
-                                                        {user.role === 'ADMIN' ? 'Yönetici' : user.role === 'STAFF' ? 'Personel' : 'Kullanıcı'}
+                                                    <div className="font-medium text-white">{insurance.user?.name || insurance.fullName}</div>
+                                                    <div className="text-xs text-gray-500">{insurance.user?.email || insurance.email}</div>
+                                                </td>
+                                                <td className="p-4 text-gray-300 font-bold">{insurance.insuranceCompany}</td>
+                                                <td className="p-4">
+                                                    <span className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg border border-blue-500/20 font-mono text-sm">
+                                                        {insurance.policyNumber}
                                                     </span>
                                                 </td>
-                                                <td className="p-4 text-gray-400 text-sm">
-                                                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString('tr-TR') : '-'}
+                                                <td className="p-4 text-sm text-gray-400 max-w-xs truncate" title={insurance.description}>
+                                                    {insurance.description || '-'}
                                                 </td>
-                                                {(currentUser?.role === 'ADMIN' || currentUser?.role === 'STAFF') && (
-                                                    <td className="p-4 text-center">
-                                                        <div className="flex justify-center gap-2">
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="text-blue-400 hover:bg-blue-500/10 border-blue-500/30"
-                                                                onClick={() => setSelectedUserToEdit(user)}
-                                                            >
-                                                                <Pencil className="w-4 h-4" />
-                                                            </Button>
-                                                            {currentUser?.role === 'ADMIN' && (
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    className="text-red-400 hover:bg-red-500/10 border-red-500/30"
-                                                                    onClick={() => handleDeleteUser(user.id)}
-                                                                    disabled={user.id === currentUser.id} // Cannot delete self
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                )}
+                                                <td className="p-4">
+                                                    {insurance.fileUrl ? (
+                                                        <a
+                                                            href={insurance.fileUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-bold"
+                                                        >
+                                                            <Info className="w-4 h-4" />
+                                                            Belge Görüntüle
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-gray-600 italic text-xs">Dosya Yok</span>
+                                                    )}
+                                                </td>
                                             </tr>
                                         ))
                                     )}
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Pagination Controls */}
+                        {insuranceData?.pagination && insuranceData.pagination.total > ITEMS_PER_PAGE && (
+                            <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                                <div className="text-sm text-gray-400">
+                                    Sayfa {insurancePage} / {insuranceData.pagination.totalPages} ({insuranceData.pagination.total} kayıt)
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setInsurancePage(prev => prev - 1)}
+                                        disabled={insurancePage === 1 || insurancesQueryLoading}
+                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                    <div className="flex gap-1">
+                                        {Array.from({ length: Math.min(5, insuranceData.pagination.totalPages) }, (_, i) => {
+                                            const totalPages = insuranceData.pagination.totalPages;
+                                            let pageNum: number;
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (insurancePage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (insurancePage >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i;
+                                            } else {
+                                                pageNum = insurancePage - 2 + i;
+                                            }
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => setInsurancePage(pageNum)}
+                                                    disabled={insurancesQueryLoading}
+                                                    className={`w-10 h-10 rounded-lg font-bold transition-all ${insurancePage === pageNum
+                                                        ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                                                        : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50'
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button
+                                        onClick={() => setInsurancePage(prev => prev + 1)}
+                                        disabled={insurancePage >= insuranceData.pagination.totalPages || insurancesQueryLoading}
+                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
 
-            {/* Create User Modal */}
-            {
-                showCreateUserModal && (
-                    <CreateUserModal
-                        onClose={() => setShowCreateUserModal(false)}
-                        onSuccess={() => loadUsers()}
-                    />
-                )
-            }
-
-            {/* Edit User Modal */}
-            {
-                selectedUserToEdit && (
-                    <EditUserModal
-                        user={selectedUserToEdit}
-                        onClose={() => setSelectedUserToEdit(null)}
-                        onSuccess={() => loadUsers()}
-                    />
-                )
-            }
-
             {/* Insurance Detail Modal */}
-            {
-                selectedInsurance && (
-                    <InsuranceDetailModal
-                        insurance={selectedInsurance}
-                        onClose={() => setSelectedInsurance(null)}
-                        onUpdate={() => loadInsurances(insurancePage)}
-                        currentUser={currentUser}
-                    />
-                )
-            }
+            {selectedInsurance && (
+                <InsuranceDetailModal
+                    insurance={selectedInsurance}
+                    onClose={() => setSelectedInsurance(null)}
+                    onUpdate={() => {
+                        queryClient.invalidateQueries({ queryKey: ['admin-insurances'] });
+                    }}
+                    currentUser={currentUser}
+                />
+            )}
 
             {/* Create Insurance Modal */}
-            {
-                isCreateInsuranceModalOpen && (
-                    <CreateInsuranceModal
-                        onClose={() => setIsCreateInsuranceModalOpen(false)}
-                        onSuccess={() => loadInsurances(1)}
-                    />
-                )
-            }
+            {isCreateInsuranceModalOpen && (
+                <CreateInsuranceModal
+                    onClose={() => setIsCreateInsuranceModalOpen(false)}
+                    onSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ['admin-insurances'] });
+                    }}
+                />
+            )}
 
             {/* Booking Detail Modal */}
-            {
-                selectedBooking && (
-                    <BookingDetailModal
-                        booking={selectedBooking}
-                        onClose={() => setSelectedBooking(null)}
-                        onUpdate={() => {
-                            loadBookings(currentPage, searchTerm, statusFilter);
-                            // Also refresh selected booking to show new dates immediately if staying open?
-                            // But finding the updated booking in the list might be complex.
-                            // For now just reloading the list is good. The modal might still show old data if 'booking' prop isn't updated.
-                            // To fix that, we can close the modal or fetch the single booking.
-                            // Let's close the modal for simplicity on successful update? 
-                            // No, handleSaveDates sets isEditing(false). Modal stays open.
-                            // We should re-fetch the specific booking or update the local 'booking' object if possible.
-                            // Since 'bookings' array will be refreshed, if we find the booking in 'bookings' it might be updated?
-                            // Not automatically.
-                            // Let's just close the modal for now to avoid sync issues, OR fetch single booking.
-                            // Actually, loadBookings updates 'bookings' state.
-                            // If 'selectedBooking' is just a reference to an object in 'bookings' array, it won't update automatically because loadBookings creates NEW objects.
-                            // We need to sync selectedBooking.
-                            bookingService.getByCode(selectedBooking.bookingCode).then(res => {
-                                if (res && res.booking) {
-                                    setSelectedBooking(res.booking);
-                                }
-                            });
-                        }}
-                    />
-                )
-            }
+            {selectedBooking && (
+                <BookingDetailModal
+                    booking={selectedBooking}
+                    onClose={() => setSelectedBooking(null)}
+                    onUpdate={() => {
+                        queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+                        queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+                    }}
+                />
+            )}
 
             {/* Franchise Detail Modal */}
-            {
-                selectedFranchise && (
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedFranchise(null)}>
-                        <div className="bg-dark-surface rounded-2xl border border-white/10 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-                            <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-dark-surface z-10">
-                                <div>
-                                    <h3 className="text-xl font-bold text-white">Franchise Başvuru Detayları</h3>
-                                    <p className="text-sm text-gray-400 mt-1">{selectedFranchise.details?.applicationNumber || selectedFranchise.id}</p>
-                                </div>
-                                <button onClick={() => setSelectedFranchise(null)} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10">
-                                    <X className="w-5 h-5" />
-                                </button>
+            {selectedFranchise && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedFranchise(null)}>
+                    <div className="bg-dark-surface rounded-2xl border border-white/10 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-dark-surface z-10">
+                            <div>
+                                <h3 className="text-xl font-bold text-white">Franchise Başvuru Detayları</h3>
+                                <p className="text-sm text-gray-400 mt-1">{selectedFranchise.details?.applicationNumber || selectedFranchise.id}</p>
                             </div>
-                            <div className="p-6 space-y-6">
-                                {/* Contact Info */}
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">İletişim Bilgileri</h4>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div><span className="text-gray-500">Ad Soyad:</span> <span className="text-white ml-2">{selectedFranchise.contactName}</span></div>
-                                        <div><span className="text-gray-500">E-posta:</span> <span className="text-white ml-2">{selectedFranchise.contactEmail}</span></div>
-                                        <div><span className="text-gray-500">Telefon:</span> <span className="text-white ml-2">{selectedFranchise.contactPhone}</span></div>
-                                        {selectedFranchise.companyName && <div><span className="text-gray-500">Şirket:</span> <span className="text-white ml-2">{selectedFranchise.companyName}</span></div>}
-                                    </div>
+                            <button onClick={() => setSelectedFranchise(null)} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {/* Contact Info */}
+                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">İletişim Bilgileri</h4>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div><span className="text-gray-500">Ad Soyad:</span> <span className="text-white ml-2">{selectedFranchise.contactName}</span></div>
+                                    <div><span className="text-gray-500">E-posta:</span> <span className="text-white ml-2">{selectedFranchise.contactEmail}</span></div>
+                                    <div><span className="text-gray-500">Telefon:</span> <span className="text-white ml-2">{selectedFranchise.contactPhone}</span></div>
+                                    {selectedFranchise.companyName && <div><span className="text-gray-500">Şirket:</span> <span className="text-white ml-2">{selectedFranchise.companyName}</span></div>}
                                 </div>
+                            </div>
 
-                                {/* Location & Investment */}
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Lokasyon & Yatırım</h4>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div><span className="text-gray-500">Şehir:</span> <span className="text-white ml-2">{selectedFranchise.city || '-'}</span></div>
-                                        <div><span className="text-gray-500">Bütçe:</span> <span className="text-white ml-2">{selectedFranchise.details?.investmentBudget || '-'}</span></div>
-                                    </div>
+                            {/* Location & Investment */}
+                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Lokasyon & Yatırım</h4>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div><span className="text-gray-500">Şehir:</span> <span className="text-white ml-2">{selectedFranchise.city || '-'}</span></div>
+                                    <div><span className="text-gray-500">Bütçe:</span> <span className="text-white ml-2">{selectedFranchise.details?.investmentBudget || '-'}</span></div>
                                 </div>
+                            </div>
 
-                                {/* Experience & Message */}
-                                {(selectedFranchise.details?.experience || selectedFranchise.details?.message) && (
-                                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                        <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Deneyim & Mesaj</h4>
-                                        {selectedFranchise.details?.experience && (
-                                            <div className="mb-4">
-                                                <span className="text-gray-500 text-sm block mb-1">Deneyim:</span>
-                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.experience}</p>
-                                            </div>
-                                        )}
-                                        {selectedFranchise.details?.message && (
-                                            <div>
-                                                <span className="text-gray-500 text-sm block mb-1">Mesaj:</span>
-                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.message}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Status */}
+                            {/* Experience & Message */}
+                            {(selectedFranchise.details?.experience || selectedFranchise.details?.message) && (
                                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Durum</h4>
-                                    <div className="flex items-center justify-between">
-                                        <span className={`px-4 py-2 rounded-full text-sm font-bold ${selectedFranchise.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
-                                            selectedFranchise.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
-                                                selectedFranchise.status === 'IN_REVIEW' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                    selectedFranchise.status === 'SUBMITTED' ? 'bg-blue-500/20 text-blue-400' :
-                                                        'bg-gray-500/20 text-gray-400'
-                                            }`}>
-                                            {FRANCHISE_STATUS_LABELS[selectedFranchise.status]?.label || selectedFranchise.status}
-                                        </span>
-                                        <span className="text-sm text-gray-400">
-                                            {new Date(selectedFranchise.submittedAt || selectedFranchise.createdAt).toLocaleString('tr-TR')}
-                                        </span>
-                                    </div>
+                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Deneyim & Mesaj</h4>
+                                    {selectedFranchise.details?.experience && (
+                                        <div className="mb-4">
+                                            <span className="text-gray-500 text-sm block mb-1">Deneyim:</span>
+                                            <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.experience}</p>
+                                        </div>
+                                    )}
+                                    {selectedFranchise.details?.message && (
+                                        <div>
+                                            <span className="text-gray-500 text-sm block mb-1">Mesaj:</span>
+                                            <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.message}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Status */}
+                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Durum</h4>
+                                <div className="flex items-center justify-between">
+                                    <span className={`px-4 py-2 rounded-full text-sm font-bold ${selectedFranchise.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
+                                        selectedFranchise.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
+                                            selectedFranchise.status === 'IN_REVIEW' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                selectedFranchise.status === 'SUBMITTED' ? 'bg-blue-500/20 text-blue-400' :
+                                                    'bg-gray-500/20 text-gray-400'
+                                        }`}>
+                                        {FRANCHISE_STATUS_LABELS[selectedFranchise.status]?.label || selectedFranchise.status}
+                                    </span>
+                                    <span className="text-sm text-gray-400">
+                                        {new Date(selectedFranchise.submittedAt || selectedFranchise.createdAt).toLocaleString('tr-TR')}
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                )
-            }
-        </div >
+                </div>
+            )}
+        </div>
     );
 };

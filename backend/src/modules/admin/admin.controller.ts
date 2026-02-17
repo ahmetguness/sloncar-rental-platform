@@ -77,10 +77,15 @@ export async function getUsers(
     next: NextFunction
 ): Promise<void> {
     try {
-        const users = await adminService.getUsers();
+        const page = req.query.page ? parseInt(req.query.page as string) : 1;
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+        const search = req.query.search as string | undefined;
+
+        const result = await adminService.getUsers({ page, limit, search });
         res.json({
             success: true,
-            data: users,
+            data: result.data,
+            pagination: result.pagination
         });
     } catch (error) {
         next(error);

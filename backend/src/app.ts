@@ -1,6 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 
@@ -34,6 +35,7 @@ app.use(cors({
     origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(','),
     credentials: true,
 }));
+app.use(compression());
 
 
 const limiter = rateLimit({

@@ -16,6 +16,7 @@ const AdminRentalCars = lazy(() => import('./pages/AdminRentalCars').then(m => (
 const AdminSaleCars = lazy(() => import('./pages/AdminSaleCars').then(m => ({ default: m.AdminSaleCars })));
 const AdminCampaigns = lazy(() => import('./pages/AdminCampaigns').then(m => ({ default: m.AdminCampaigns })));
 const AuditLogs = lazy(() => import('./pages/AuditLogs').then(m => ({ default: m.AuditLogs })));
+const AdminUsers = lazy(() => import('./pages/AdminUsers').then(m => ({ default: m.AdminUsers })));
 const CarDetail = lazy(() => import('./pages/CarDetail').then(m => ({ default: m.CarDetail })));
 
 const PageLoader = () => (
@@ -50,6 +51,9 @@ function App() {
               <Route path="admin/cars" element={<Navigate to="/admin/cars/rental" replace />} />
               <Route path="admin/campaigns" element={<AdminCampaigns />} />
               <Route path="admin/audit-logs" element={<AuditLogs />} />
+              <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                <Route path="admin/users" element={<AdminUsers />} />
+              </Route>
             </Route>
 
             {/* Fallback */}

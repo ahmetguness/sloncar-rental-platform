@@ -146,111 +146,111 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
     const paidNotCancelled = { paymentStatus: 'PAID' as const, status: { not: 'CANCELLED' as const } };
 
     // Run ALL queries in parallel instead of sequentially
-    const [monthlyBookings, weeklyBookings, yearlyBookings, oldestBooking] = await Promise.all([
-        // Monthly data for selected year (also used for category/brand stats)
-        prisma.booking.findMany({
+    const [monthlyStats, weeklyStats, yearlyStats, oldestBooking] = await Promise.all([
+        // Monthly stats using groupBy
+        prisma.booking.groupBy({
+            by: ['pickupDate'],
             where: {
                 ...paidNotCancelled,
                 pickupDate: { gte: startOfYear, lte: endOfYear }
             },
-            select: {
-                pickupDate: true,
-                totalPrice: true,
-                car: { select: { brand: true, category: true } }
-            }
+            _sum: { totalPrice: true },
+            _count: { _all: true }
         }),
-        // Weekly data (last 12 weeks)
-        prisma.booking.findMany({
+        // Weekly stats (last 12 weeks)
+        prisma.booking.groupBy({
+            by: ['pickupDate'],
             where: {
                 ...paidNotCancelled,
                 pickupDate: { gte: weeksAgo12 }
             },
-            select: { pickupDate: true, totalPrice: true }
+            _sum: { totalPrice: true },
+            _count: { _all: true }
         }),
-        // Yearly data (last 5 years)
-        prisma.booking.findMany({
+        // Yearly stats (last 5 years)
+        prisma.booking.groupBy({
+            by: ['pickupDate'],
             where: {
                 ...paidNotCancelled,
                 pickupDate: { gte: startOf5YearsAgo }
             },
-            select: { pickupDate: true, totalPrice: true }
+            _sum: { totalPrice: true },
+            _count: { _all: true }
         }),
-        // Oldest booking for available years
         prisma.booking.findFirst({
             orderBy: { pickupDate: 'asc' },
             select: { pickupDate: true }
         })
     ]);
 
+    // For Category and Brand distribution, we still need a grouped query or discrete queries
+    const [categoryStats, brandStats] = await Promise.all([
+        prisma.booking.findMany({
+            where: { ...paidNotCancelled, pickupDate: { gte: startOfYear, lte: endOfYear } },
+            select: { totalPrice: true, car: { select: { category: true } } }
+        }),
+        prisma.booking.findMany({
+            where: { ...paidNotCancelled, pickupDate: { gte: startOfYear, lte: endOfYear } },
+            select: { totalPrice: true, car: { select: { brand: true } } }
+        })
+    ]);
+
     const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
         'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 
-    // Pre-group monthly bookings by month index for O(N) instead of O(12*N)
-    const monthBuckets = new Array(12).fill(null).map(() => ({ revenue: 0, count: 0 }));
+    // Process Monthly
+    const monthly = monthNames.map((name, index) => {
+        const monthFiltered = monthlyStats.filter(s => s.pickupDate.getMonth() === index);
+        return {
+            month: name,
+            revenue: monthFiltered.reduce((sum, s) => sum + Number(s._sum.totalPrice || 0), 0),
+            bookings: monthFiltered.reduce((sum, s) => sum + s._count._all, 0)
+        };
+    });
+
+    // Process Category & Brand
     const categoryMap = new Map<string, number>();
+    categoryStats.forEach(s => {
+        const cat = s.car?.category || 'Diğer';
+        categoryMap.set(cat, (categoryMap.get(cat) || 0) + Number(s.totalPrice || 0));
+    });
+    const byCategory = Array.from(categoryMap.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+
     const brandMap = new Map<string, number>();
+    brandStats.forEach(s => {
+        const brand = s.car?.brand || 'Diğer';
+        brandMap.set(brand, (brandMap.get(brand) || 0) + Number(s.totalPrice || 0));
+    });
+    const byBrand = Array.from(brandMap.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
 
-    for (const b of monthlyBookings) {
-        const revenue = Number(b.totalPrice || 0);
-        const monthIdx = b.pickupDate.getMonth();
-        monthBuckets[monthIdx]!.revenue += revenue;
-        monthBuckets[monthIdx]!.count++;
-
-        // Category & brand stats from same dataset
-        const category = b.car?.category || 'Diğer';
-        categoryMap.set(category, (categoryMap.get(category) || 0) + revenue);
-        const brand = b.car?.brand || 'Diğer';
-        brandMap.set(brand, (brandMap.get(brand) || 0) + revenue);
-    }
-
-    const monthly = monthNames.map((name, index) => ({
-        month: name,
-        revenue: monthBuckets[index]!.revenue,
-        bookings: monthBuckets[index]!.count
-    }));
-
-    const byCategory = Array.from(categoryMap.entries())
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value);
-
-    const byBrand = Array.from(brandMap.entries())
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 10);
-
-    // Weekly: pre-group by week index for O(N) instead of O(12*N)
+    // Process Weekly
     const weekly: { week: string; revenue: number; bookings: number }[] = [];
     for (let i = 11; i >= 0; i--) {
         const weekStart = new Date();
         weekStart.setDate(weekStart.getDate() - (i * 7));
         weekStart.setHours(0, 0, 0, 0);
-
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekEnd.getDate() + 7);
 
-        const bookingsInWeek = weeklyBookings.filter(b =>
-            b.pickupDate >= weekStart && b.pickupDate < weekEnd
-        );
-
-        const weekNum = Math.ceil(weekStart.getDate() / 7);
+        const weekData = weeklyStats.filter(s => s.pickupDate >= weekStart && s.pickupDate < weekEnd);
         const monthName = monthNames[weekStart.getMonth()] || 'Oca';
 
         weekly.push({
-            week: `${weekNum}. Hafta ${monthName.slice(0, 3)}`,
-            revenue: bookingsInWeek.reduce((sum, b) => sum + Number(b.totalPrice || 0), 0),
-            bookings: bookingsInWeek.length
+            week: `${Math.ceil(weekStart.getDate() / 7)}. Hafta ${monthName.slice(0, 3)}`,
+            revenue: weekData.reduce((sum, s) => sum + Number(s._sum.totalPrice || 0), 0),
+            bookings: weekData.reduce((sum, s) => sum + s._count._all, 0)
         });
     }
 
-    // Yearly: pre-group by year for O(N) instead of O(5*N)
+    // Process Yearly
     const yearlyMap = new Map<number, { revenue: number; count: number }>();
-    for (const b of yearlyBookings) {
-        const y = b.pickupDate.getFullYear();
+    yearlyStats.forEach(s => {
+        const y = s.pickupDate.getFullYear();
         const existing = yearlyMap.get(y) || { revenue: 0, count: 0 };
-        existing.revenue += Number(b.totalPrice || 0);
-        existing.count++;
+        existing.revenue += Number(s._sum.totalPrice || 0);
+        existing.count += s._count._all;
         yearlyMap.set(y, existing);
-    }
+    });
 
     const yearly: { year: number; revenue: number; bookings: number }[] = [];
     for (let y = today.getFullYear() - 4; y <= today.getFullYear(); y++) {
@@ -258,77 +258,25 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
         yearly.push({ year: y, revenue: data.revenue, bookings: data.count });
     }
 
-    // Available years
-    const startYear = oldestBooking ? oldestBooking.pickupDate.getFullYear() : 2020;
     const availableYears = [];
-    for (let y = today.getFullYear(); y >= startYear; y--) {
-        availableYears.push(y);
-    }
-    if (!availableYears.includes(2024)) availableYears.push(2024);
+    const startYear = oldestBooking ? oldestBooking.pickupDate.getFullYear() : 2020;
+    for (let y = today.getFullYear(); y >= startYear; y--) availableYears.push(y);
     const uniqueYears = Array.from(new Set(availableYears)).sort((a, b) => b - a);
 
-
-    // 5. Summary Stats
     const currentMonthIdx = today.getMonth();
-    // Assuming summary is based on the *current* real time, not selectedYear
-    // But if we want consistent UI, we might check if selectedYear == currentYear. 
-    // Usually summary 'growth' implies current real month vs last month.
-
-    // Let's re-fetch current month data specifically to be safe/accurate if selectedYear is different
-    // Or we can just use the data if selectedYear IS currentYear.
-
     let currentMonthRevenue = 0;
     let lastMonthRevenue = 0;
     let currentYearRevenue = 0;
-
-    // Use monthly array if selectedYear is current year, otherwise fetch?
-    // The UI 'Dashboard' might expect current stats regardless of filter.
-    // However, the interface puts summary INSIDE RevenueAnalytics which is year-filtered.
-    // Typically "Growth" is real-time status. 
-    // Let's use the 'monthly' array we just calculated IF it's for current year.
 
     if (currentYear === today.getFullYear()) {
         currentMonthRevenue = monthly[currentMonthIdx]?.revenue || 0;
         lastMonthRevenue = monthly[currentMonthIdx - 1]?.revenue || 0;
         currentYearRevenue = monthly.reduce((sum, m) => sum + m.revenue, 0);
     } else {
-        // If viewing history, maybe show stats for THAT year?
-        // Let's stick to showing stats for the *selected* year's data to be consistent with the graph.
-        // But "Current Month" might be confusing if viewing 2020.
-        // Let's assume 'Summary' blocks in UI are for the selected period context.
-        // Actually, looking at UI code: 
-        // `revenueData.summary.currentYear` is shown as big number.
-        // `revenueData.summary.growth` is shown.
-        // If I select 2023, I expect to see 2023 total revenue.
-
         currentYearRevenue = monthly.reduce((sum, m) => sum + m.revenue, 0);
-        // For growth, it's tricky in past years. Let's just zero it or calc relative to prev year?
-        // Let's leave growth as 0 for past years to avoid confusion, or calc monthly growth?
-        // Standard dashboard usually shows *current* company status.
-        // BUT the endpoint is `/revenue?year=...`.
-        // Let's calculate standard stats for the *selected* year.
-        currentMonthRevenue = 0; // Not really meaningful for past year unless we pick December?
-        lastMonthRevenue = 0;
     }
 
-    // IF we really want "Current Month" validation as per user request (Checking March), 
-    // we need to make sure the graph (monthly array) is correct.
-    // The summary box in UI (checked earlier):
-    // <h2 ...>Gelir Analizi</h2>
-    // <span ...>{revenueData.summary.currentYear...}</span>
-
-    // So `summary.currentYear` MUST be the total for the selected year.
-    // `summary.growth` is used for the percentage badge.
-
-    // Let's ensure growth is calculated meaningfully. 
-    // If selectedYear == currentYear, use real current month vs last month.
-    if (currentYear === today.getFullYear()) {
-        // recalculated above
-    }
-
-    const growth = lastMonthRevenue > 0
-        ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
-        : 0;
+    const growth = lastMonthRevenue > 0 ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0;
 
     return {
         weekly,
@@ -346,20 +294,46 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
     };
 }
 
-export async function getUsers() {
-    return prisma.user.findMany({
-        select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            role: true,
-            createdAt: true
-        },
-        orderBy: {
-            name: 'asc'
+export async function getUsers(params: { page?: number; limit?: number; search?: string } = {}) {
+    const { page = 1, limit = 10, search } = params;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (search) {
+        where.OR = [
+            { name: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+            { phone: { contains: search, mode: 'insensitive' } }
+        ];
+    }
+
+    const [users, total] = await Promise.all([
+        prisma.user.findMany({
+            where,
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                role: true,
+                createdAt: true
+            },
+            orderBy: { name: 'asc' },
+            skip,
+            take: limit
+        }),
+        prisma.user.count({ where })
+    ]);
+
+    return {
+        data: users,
+        pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
         }
-    });
+    };
 }
 
 export async function createUser(data: any) {

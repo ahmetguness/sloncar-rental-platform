@@ -176,9 +176,9 @@ export const adminService = {
         });
     },
     // Users
-    getUsers: async () => {
-        const response = await api.get<{ success: boolean; data: { id: string; name: string; email: string; phone: string; role: 'ADMIN' | 'STAFF'; createdAt: string }[] }>('/admin/users');
-        return response.data.data;
+    getUsers: async (params?: any) => {
+        const response = await api.get<{ success: boolean; data: any[]; pagination: any }>('/admin/users', { params });
+        return response.data;
     },
     createUser: async (data: any) => {
         const response = await api.post<{ success: boolean; data: any }>('/admin/users', data);
