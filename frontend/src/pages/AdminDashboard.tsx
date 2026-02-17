@@ -1228,6 +1228,7 @@ export const AdminDashboard = () => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -1253,6 +1254,7 @@ export const AdminDashboard = () => {
     // Franchise States
     const [franchisePage, setFranchisePage] = useState(1);
     const [franchiseSearchTerm, setFranchiseSearchTerm] = useState('');
+    const [debouncedFranchiseSearchTerm, setDebouncedFranchiseSearchTerm] = useState('');
     const [highlightedFranchiseId, setHighlightedFranchiseId] = useState<string | null>(null);
 
     // Insurance States
@@ -1260,6 +1262,7 @@ export const AdminDashboard = () => {
     const [isCreateInsuranceModalOpen, setIsCreateInsuranceModalOpen] = useState(false);
     const [insurancePage, setInsurancePage] = useState(1);
     const [insuranceSearchTerm, setInsuranceSearchTerm] = useState('');
+    const [debouncedInsuranceSearchTerm, setDebouncedInsuranceSearchTerm] = useState('');
 
     // User Management States
     const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -1268,6 +1271,31 @@ export const AdminDashboard = () => {
 
     const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'franchise' | 'insurance'>('overview');
     const [chartView, setChartView] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+
+    // Debounce all search terms (500ms)
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+            setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(t);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setDebouncedFranchiseSearchTerm(franchiseSearchTerm);
+            setFranchisePage(1);
+        }, 500);
+        return () => clearTimeout(t);
+    }, [franchiseSearchTerm]);
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setDebouncedInsuranceSearchTerm(insuranceSearchTerm);
+            setInsurancePage(1);
+        }, 500);
+        return () => clearTimeout(t);
+    }, [insuranceSearchTerm]);
 
     // Load current user from storage
     useEffect(() => {
@@ -1289,11 +1317,11 @@ export const AdminDashboard = () => {
     });
 
     const { data: bookingsData, isLoading: bookingsQueryLoading } = useQuery({
-        queryKey: ['admin-bookings', currentPage, searchTerm, statusFilter],
+        queryKey: ['admin-bookings', currentPage, debouncedSearchTerm, statusFilter],
         queryFn: () => adminService.getBookings({
             limit: ITEMS_PER_PAGE,
             offset: (currentPage - 1) * ITEMS_PER_PAGE,
-            search: searchTerm || undefined,
+            search: debouncedSearchTerm || undefined,
             status: statusFilter || undefined
         }),
         enabled: activeTab === 'bookings' || activeTab === 'overview', // Pre-load bookings if on overview to show some? Or just bookings? Let's say bookings only.
@@ -1301,22 +1329,22 @@ export const AdminDashboard = () => {
     });
 
     const { data: franchiseData, isLoading: franchisesQueryLoading } = useQuery({
-        queryKey: ['admin-franchises', franchisePage, franchiseSearchTerm],
+        queryKey: ['admin-franchises', franchisePage, debouncedFranchiseSearchTerm],
         queryFn: () => adminService.getFranchiseApplications({
             limit: ITEMS_PER_PAGE,
             offset: (franchisePage - 1) * ITEMS_PER_PAGE,
-            search: franchiseSearchTerm || undefined
+            search: debouncedFranchiseSearchTerm || undefined
         }),
         enabled: activeTab === 'franchise',
         staleTime: 60000,
     });
 
     const { data: insuranceData, isLoading: insurancesQueryLoading } = useQuery({
-        queryKey: ['admin-insurances', insurancePage, insuranceSearchTerm],
+        queryKey: ['admin-insurances', insurancePage, debouncedInsuranceSearchTerm],
         queryFn: () => adminService.getInsurances({
             page: insurancePage,
             limit: ITEMS_PER_PAGE,
-            searchTerm: insuranceSearchTerm || undefined
+            searchTerm: debouncedInsuranceSearchTerm || undefined
         }),
         enabled: activeTab === 'insurance',
         staleTime: 60000,
@@ -1806,9 +1834,8 @@ export const AdminDashboard = () => {
                                                         if (!revenueData) return;
 
                                                         // Dynamic imports — loaded only when export is triggered
-                                                        const [{ default: ExcelJS }, { default: html2canvas }, { saveAs }] = await Promise.all([
+                                                        const [{ default: ExcelJS }, { saveAs }] = await Promise.all([
                                                             import('exceljs'),
-                                                            import('html2canvas'),
                                                             import('file-saver'),
                                                         ]);
 
@@ -1820,7 +1847,7 @@ export const AdminDashboard = () => {
                                                         const titleCell = worksheet.getCell('A1');
                                                         titleCell.value = `SlonCar Gelir Raporu (${selectedYear}) - ${chartView === 'weekly' ? 'Haftalık' : chartView === 'monthly' ? 'Aylık' : 'Yıllık'}`;
                                                         titleCell.font = { name: 'Arial', family: 4, size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
-                                                        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } }; // Dark gray bg
+                                                        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } };
                                                         titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
                                                         worksheet.getRow(1).height = 30;
 
@@ -1832,12 +1859,11 @@ export const AdminDashboard = () => {
                                                         const summaryDataRow = worksheet.addRow([
                                                             revenueData.summary.currentYear,
                                                             revenueData.yearly.reduce((acc: number, curr: { bookings: number }) => acc + curr.bookings, 0),
-                                                            revenueData.summary.growth / 100, // For percentage format
+                                                            revenueData.summary.growth / 100,
                                                             revenueData.summary.currentMonth,
                                                             revenueData.summary.lastMonth
                                                         ]);
 
-                                                        // Format Summary
                                                         summaryDataRow.getCell(1).numFmt = '#,##0 "₺"';
                                                         summaryDataRow.getCell(3).numFmt = '0.0%';
                                                         summaryDataRow.getCell(4).numFmt = '#,##0 "₺"';
@@ -1845,13 +1871,13 @@ export const AdminDashboard = () => {
 
                                                         // 3. Add Main Table Data
                                                         worksheet.addRow(['']);
-                                                        worksheet.addRow(['']); // Spacer
+                                                        worksheet.addRow(['']);
 
                                                         const headers = ['Dönem', 'Gelir', 'Rezervasyon Sayısı', 'Ortalama Gelir'];
                                                         const headerRow = worksheet.addRow(headers);
                                                         headerRow.eachCell((cell) => {
                                                             cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                                                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4B5563' } }; // Gray-600
+                                                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4B5563' } };
                                                             cell.alignment = { horizontal: 'center' };
                                                         });
 
@@ -1869,56 +1895,42 @@ export const AdminDashboard = () => {
                                                             row.getCell(3).alignment = { horizontal: 'center' };
                                                         });
 
+                                                        // 4. Add Category Breakdown
+                                                        if (revenueData.byCategory?.length) {
+                                                            worksheet.addRow(['']);
+                                                            worksheet.addRow(['']);
+                                                            const catHeader = worksheet.addRow(['Kategori', 'Gelir']);
+                                                            catHeader.eachCell((cell) => {
+                                                                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                                                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6366F1' } };
+                                                                cell.alignment = { horizontal: 'center' };
+                                                            });
+                                                            revenueData.byCategory.forEach((c: { name: string; value: number }) => {
+                                                                const row = worksheet.addRow([c.name, c.value]);
+                                                                row.getCell(2).numFmt = '#,##0 "₺"';
+                                                            });
+                                                        }
+
+                                                        // 5. Add Brand Breakdown
+                                                        if (revenueData.byBrand?.length) {
+                                                            worksheet.addRow(['']);
+                                                            const brandHeader = worksheet.addRow(['Marka', 'Gelir']);
+                                                            brandHeader.eachCell((cell) => {
+                                                                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                                                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } };
+                                                                cell.alignment = { horizontal: 'center' };
+                                                            });
+                                                            revenueData.byBrand.forEach((b: { name: string; value: number }) => {
+                                                                const row = worksheet.addRow([b.name, b.value]);
+                                                                row.getCell(2).numFmt = '#,##0 "₺"';
+                                                            });
+                                                        }
+
                                                         // Auto-width columns
                                                         worksheet.columns.forEach(column => {
                                                             column.width = 20;
                                                         });
-                                                        worksheet.getColumn(1).width = 25; // Period column slightly wider
-
-                                                        // 4. Capture and Add Charts
-                                                        try {
-                                                            const mainChart = document.getElementById('main-revenue-chart');
-                                                            if (mainChart) {
-                                                                const canvas = await html2canvas(mainChart, { backgroundColor: '#111827' }); // Use dark bg
-                                                                const imageId = workbook.addImage({
-                                                                    base64: canvas.toDataURL('image/png'),
-                                                                    extension: 'png',
-                                                                });
-                                                                worksheet.addImage(imageId, {
-                                                                    tl: { col: 6, row: 2 }, // Start at column G, row 3
-                                                                    ext: { width: 600, height: 300 }
-                                                                });
-                                                            }
-
-                                                            const pieChart = document.getElementById('category-pie-chart');
-                                                            if (pieChart) {
-                                                                const canvas = await html2canvas(pieChart, { backgroundColor: '#1f2937' });
-                                                                const imageId = workbook.addImage({
-                                                                    base64: canvas.toDataURL('image/png'),
-                                                                    extension: 'png',
-                                                                });
-                                                                worksheet.addImage(imageId, {
-                                                                    tl: { col: 6, row: 20 },
-                                                                    ext: { width: 400, height: 250 }
-                                                                });
-                                                            }
-
-                                                            const barChart = document.getElementById('brand-bar-chart');
-                                                            if (barChart) {
-                                                                const canvas = await html2canvas(barChart, { backgroundColor: '#1f2937' });
-                                                                const imageId = workbook.addImage({
-                                                                    base64: canvas.toDataURL('image/png'),
-                                                                    extension: 'png',
-                                                                });
-                                                                worksheet.addImage(imageId, {
-                                                                    tl: { col: 12, row: 20 }, // Offset for side-by-side
-                                                                    ext: { width: 400, height: 250 }
-                                                                });
-                                                            }
-                                                        } catch (error) {
-                                                            console.error("Error capturing charts:", error);
-                                                            toast("Grafikler, Excel'e eklenirken bir hata oluştu ama veriler indirildi.", "error");
-                                                        }
+                                                        worksheet.getColumn(1).width = 25;
 
                                                         // Generate Buffer
                                                         const buffer = await workbook.xlsx.writeBuffer();
