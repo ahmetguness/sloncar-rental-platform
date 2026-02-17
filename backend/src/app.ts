@@ -26,6 +26,7 @@ import uploadRoutes from './modules/upload/upload.routes.js';
 import campaignRoutes, { adminCampaignRouter } from './modules/campaigns/campaigns.routes.js';
 import { adminInsuranceRouter } from './modules/insurance/insurance.routes.js';
 import auditRouter from './modules/audit/audit.routes.js';
+import backupRoutes from './modules/backup/backup.routes.js';
 
 const app = express();
 
@@ -105,6 +106,7 @@ app.use('/api/admin/franchise-applications', adminFranchiseRouter);
 app.use('/api/admin/campaigns', adminCampaignRouter);
 app.use('/api/admin/insurances', adminInsuranceRouter);
 app.use('/api/admin/audit-logs', auditRouter);
+app.use('/api/admin/backup', backupRoutes);
 app.use('/api/admin', adminRoutes);
 
 

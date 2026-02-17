@@ -1,0 +1,21 @@
+{"level":"info","message":"════════════════════════════════════════════════════════════"}
+{"level":"info","message":"[Backup] Starting MANUAL backup: 2026-02-17"}
+{"level":"info","message":"[Backup] Bookings CSV: 3 records → D:\\repo\\Github\\cr\\backups\\2026-02-17_1771362882030\\reservations_2026-02-17.csv"}
+{"level":"info","message":"[Backup] Insurances CSV: 2 records → D:\\repo\\Github\\cr\\backups\\2026-02-17_1771362882030\\insurances_2026-02-17.csv"}
+{"level":"info","message":"[Backup] Attempting pg_dump with absolute path: C:\\Program Files\\PostgreSQL\\18\\bin\\pg_dump.exe"}
+{"level":"info","message":"[Backup] PostgreSQL dump successful."}
+{"level":"info","message":"[Backup] Verifying Drive access for folder: 17y-sJOjBzCbK1oTZQS3A0TbR3KcSpS1F"}
+{"level":"info","message":"[Backup] Folder found. Starting upload process..."}
+{"level":"info","message":"[Backup] Successfully created Drive folder: 2026-02-17_manual_1771362883154 (1f_py_dEEV8qrB-rpBEOBLQIhP0BJS9Aq)"}
+{"level":"info","message":"[Backup] Uploading reservations_2026-02-17.csv..."}
+{"level":"info","message":"[Backup] Uploaded to Drive: reservations_2026-02-17.csv"}
+{"level":"info","message":"[Backup] Uploading insurances_2026-02-17.csv..."}
+{"level":"info","message":"[Backup] Uploaded to Drive: insurances_2026-02-17.csv"}
+{"level":"info","message":"[Backup] Uploading backup_2026-02-17.sql..."}
+{"level":"info","message":"[Backup] Uploaded to Drive: backup_2026-02-17.sql"}
+{"level":"info","message":"[Backup] ✅ All 3 files uploaded successfully to Drive."}
+{"level":"info","message":"[Backup] Moved old MANUAL backup folder to Trash: 2026-02-17_manual_1771362332347"}
+{"level":"info","message":"[Backup] MANUAL Retention policy: Moved 1 old backup(s) to Trash."}
+{"level":"info","message":"[Backup] Cleaned up temp dir: D:\\repo\\Github\\cr\\backups\\2026-02-17_1771362882030"}
+{"level":"info","message":"════════════════════════════════════════════════════════════"}
+{"level":"info","message":"[Backup] No changes detected since last backup. Skipping."}

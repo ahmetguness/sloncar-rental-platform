@@ -8,7 +8,7 @@ import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Pencil, Clock } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Pencil, Clock, Database } from 'lucide-react';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { storage } from '../utils/storage';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -1510,6 +1510,12 @@ export const AdminDashboard = () => {
                                         <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-emerald-300/80 hover:text-emerald-200 hover:bg-emerald-500/[0.08] transition-all duration-200">
                                             <Users className="w-4 h-4" />
                                             Kullanıcılar
+                                        </button>
+                                    </Link>
+                                    <Link to="/admin/backup">
+                                        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-blue-300/80 hover:text-blue-200 hover:bg-blue-500/[0.08] transition-all duration-200">
+                                            <Database className="w-4 h-4" />
+                                            Yedekleme
                                         </button>
                                     </Link>
                                 </>

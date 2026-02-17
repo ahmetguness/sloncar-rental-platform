@@ -44,8 +44,21 @@ async function createDriveFolder(drive: ReturnType<typeof google.drive>, name: s
             parents: [parentId],
         },
         fields: 'id',
+        supportsAllDrives: true, // Support for Shared Drives
     });
     return res.data.id!;
+}
+
+async function verifyDriveAccess(drive: ReturnType<typeof google.drive>, fileId: string) {
+    try {
+        await drive.files.get({
+            fileId,
+            fields: 'id, name, capabilities',
+            supportsAllDrives: true,
+        });
+    } catch (err: any) {
+        throw new Error(`Cannot access Drive ID ${fileId}: ${err.message}`);
+    }
 }
 
 async function uploadFileToDrive(drive: ReturnType<typeof google.drive>, filePath: string, folderId: string) {
@@ -61,6 +74,7 @@ async function uploadFileToDrive(drive: ReturnType<typeof google.drive>, filePat
                 body: fs.createReadStream(filePath),
             },
             fields: 'id,name',
+            supportsAllDrives: true, // Support for Shared Drives
         });
         Logger.info(`[Backup] Uploaded to Drive: ${fileName}`);
     } catch (err: any) {
@@ -206,33 +220,49 @@ async function createPgDump(dir: string): Promise<string> {
 // Retention Policy
 // ────────────────────────────────────────────
 
-async function cleanOldBackups(drive: ReturnType<typeof google.drive>, parentFolderId: string, keepCount: number) {
-    // List all subfolders in the backup parent folder
+async function cleanOldBackups(drive: ReturnType<typeof google.drive>, parentFolderId: string, keepCount: number, type: 'AUTO' | 'MANUAL') {
+    // List subfolders and filter by type (Auto folders use YYYY-MM-DD, Manual use ..._manual_...)
     const res = await drive.files.list({
         q: `'${parentFolderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
         fields: 'files(id,name,createdTime)',
-        // Sort by name (which is the date YYYY-MM-DD) descending to get newest first
         orderBy: 'name desc',
+        includeItemsFromAllDrives: true,
+        supportsAllDrives: true,
     });
 
-    const folders = res.data.files || [];
+    const allFolders = res.data.files || [];
+
+    // Filter folders based on type
+    const folders = allFolders.filter(f => {
+        const isManual = f.name?.includes('_manual_');
+        return type === 'MANUAL' ? isManual : !isManual;
+    });
 
     if (folders.length <= keepCount) {
         return;
     }
 
-    // Keep the first 'keepCount' and delete the rest
+    // Keep the first 'keepCount' and trash the rest
     const toDelete = folders.slice(keepCount);
 
     let deleted = 0;
     for (const folder of toDelete) {
-        await drive.files.delete({ fileId: folder.id! });
-        Logger.info(`[Backup] Deleted old backup folder: ${folder.name}`);
-        deleted++;
+        try {
+            // Move to Trash instead of permanent delete (trashed: true)
+            await drive.files.update({
+                fileId: folder.id!,
+                requestBody: { trashed: true },
+                supportsAllDrives: true,
+            });
+            Logger.info(`[Backup] Moved old ${type} backup folder to Trash: ${folder.name}`);
+            deleted++;
+        } catch (err: any) {
+            Logger.warn(`[Backup] Failed to trash folder ${folder.name}: ${err.message}`);
+        }
     }
 
     if (deleted > 0) {
-        Logger.info(`[Backup] Retention policy: Cleaned up ${deleted} old backup(s).`);
+        Logger.info(`[Backup] ${type} Retention policy: Moved ${deleted} old backup(s) to Trash.`);
     }
 }
 
@@ -241,64 +271,122 @@ async function cleanOldBackups(drive: ReturnType<typeof google.drive>, parentFol
 // ────────────────────────────────────────────
 
 const STATE_FILE = path.join(process.cwd(), 'backups', 'last_backup_state.json');
+const HISTORY_FILE = path.join(process.cwd(), 'backups', 'backup_history.json');
+
+export interface BackupHistoryEntry {
+    timestamp: number;
+    date: string;
+    status: 'SUCCESS' | 'SKIPPED' | 'FAILED';
+    type: 'AUTO' | 'MANUAL';
+    message?: string;
+    files?: string[];
+}
 
 async function getLastChangeTimestamp(): Promise<number> {
     const tables = [
         'carBrand', 'branch', 'car', 'user', 'booking',
         'franchiseApplication', 'franchiseAuditLog', 'userInsurance', 'actionLog'
     ];
-
     let maxTs = 0;
-
     for (const table of tables) {
         try {
-            // @ts-ignore - dynamic access to prisma models
-            const latest = await prisma[table].findFirst({
+            // Try updatedAt first
+            const foundUpdate = await (prisma as any)[table].findFirst({
                 orderBy: { updatedAt: 'desc' },
-                select: { updatedAt: true }
+                select: { updatedAt: true },
             });
-            if (latest?.updatedAt) {
-                maxTs = Math.max(maxTs, latest.updatedAt.getTime());
+            if (foundUpdate && foundUpdate.updatedAt) {
+                maxTs = Math.max(maxTs, foundUpdate.updatedAt.getTime());
             }
         } catch (e) {
-            // Fallback for tables without updatedAt (like ActionLog which only has createdAt)
+            // Fallback to createdAt if updatedAt doesn't exist (common in log tables)
             try {
-                // @ts-ignore
-                const latest = await prisma[table].findFirst({
+                const foundCreate = await (prisma as any)[table].findFirst({
                     orderBy: { createdAt: 'desc' },
-                    select: { createdAt: true }
+                    select: { createdAt: true },
                 });
-                if (latest?.createdAt) {
-                    maxTs = Math.max(maxTs, latest.createdAt.getTime());
+                if (foundCreate && foundCreate.createdAt) {
+                    maxTs = Math.max(maxTs, foundCreate.createdAt.getTime());
                 }
             } catch (innerE) {
-                // Ignore tables that might not have either (though our schema has at least one for all models)
+                // Ignore if neither field exists
             }
         }
     }
     return maxTs;
 }
 
-function getLastBackupTimestamp(): number {
+async function getDatabaseRecordCount(): Promise<number> {
+    const tables = ['car', 'user', 'booking', 'userInsurance'];
+    let totalCount = 0;
+    for (const table of tables) {
+        const count = await (prisma as any)[table].count();
+        totalCount += count;
+    }
+    return totalCount;
+}
+
+function getLastBackupState(): { timestamp: number; recordCount: number } {
     try {
         if (fs.existsSync(STATE_FILE)) {
-            const state = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
-            return state.timestamp || 0;
+            return JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
         }
     } catch (e) {
         Logger.error(`[Backup] Failed to read state file: ${e}`);
     }
-    return 0;
+    return { timestamp: 0, recordCount: 0 };
 }
 
-function updateLastBackupState(timestamp: number) {
+function updateLastBackupState(timestamp: number, recordCount: number) {
     try {
         const dir = path.dirname(STATE_FILE);
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(STATE_FILE, JSON.stringify({ timestamp, date: new Date(timestamp).toISOString() }));
+        fs.writeFileSync(STATE_FILE, JSON.stringify({
+            timestamp,
+            recordCount,
+            date: new Date(timestamp).toISOString()
+        }));
     } catch (e) {
         Logger.error(`[Backup] Failed to write state file: ${e}`);
     }
+}
+
+
+
+function getLastBackupTimestamp(): number {
+    return getLastBackupState().timestamp;
+}
+
+
+function addToHistory(entry: BackupHistoryEntry) {
+    try {
+        const dir = path.dirname(HISTORY_FILE);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+        let history: BackupHistoryEntry[] = [];
+        if (fs.existsSync(HISTORY_FILE)) {
+            history = JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf-8'));
+        }
+
+        history.unshift(entry); // Newest first
+        // Keep last 50 entries
+        if (history.length > 50) history = history.slice(0, 50);
+
+        fs.writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));
+    } catch (e) {
+        Logger.error(`[Backup] Failed to write history file: ${e}`);
+    }
+}
+
+export function getBackupHistory(): BackupHistoryEntry[] {
+    try {
+        if (fs.existsSync(HISTORY_FILE)) {
+            return JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf-8'));
+        }
+    } catch (e) {
+        Logger.error(`[Backup] Failed to read history file: ${e}`);
+    }
+    return [];
 }
 
 // ────────────────────────────────────────────
@@ -309,32 +397,42 @@ function getDateString(): string {
     return new Date().toISOString().split('T')[0] || new Date().toISOString().slice(0, 10);
 }
 
-export async function runBackup(): Promise<void> {
+export async function runBackup(isManual: boolean = false): Promise<{ success: boolean; status: 'SUCCESS' | 'SKIPPED' | 'FAILED'; message: string }> {
     const dateStr = getDateString();
     const lastBackupTs = getLastBackupTimestamp();
     const currentMaxTs = await getLastChangeTimestamp();
+    const type = isManual ? 'MANUAL' : 'AUTO';
 
-    if (currentMaxTs <= lastBackupTs && lastBackupTs !== 0) {
+    if (!isManual && currentMaxTs <= lastBackupTs && lastBackupTs !== 0) {
         Logger.info(`[Backup] No changes detected since last backup. Skipping.`);
-        return;
+        addToHistory({
+            timestamp: Date.now(),
+            date: new Date().toISOString(),
+            status: 'SKIPPED',
+            type,
+            message: 'No changes detected in database.'
+        });
+        return { success: true, status: 'SKIPPED', message: 'No changes detected.' };
     }
 
     const folderId = process.env.GDRIVE_BACKUP_FOLDER_ID;
     if (!folderId) {
-        Logger.warn('[Backup] GDRIVE_BACKUP_FOLDER_ID not set, skipping backup.');
-        return;
+        const msg = 'GDRIVE_BACKUP_FOLDER_ID not set, skipping backup.';
+        Logger.warn(`[Backup] ${msg}`);
+        return { success: false, status: 'FAILED', message: msg };
     }
 
-    const tmpDir = path.resolve('backups', dateStr);
+    const tmpDir = path.resolve('backups', `${dateStr}_${Date.now()}`); // Added timestamp to avoid collision
 
     Logger.info('════════════════════════════════════════════════════════════');
-    Logger.info(`[Backup] Starting daily backup: ${dateStr}`);
+    Logger.info(`[Backup] Starting ${type} backup: ${dateStr}`);
 
     // Create local temp directory
     fs.mkdirSync(tmpDir, { recursive: true });
 
     const files: string[] = [];
     let allSuccess = true;
+    let errorMessage = '';
 
     // 1. CSV exports
     try {
@@ -343,6 +441,7 @@ export async function runBackup(): Promise<void> {
     } catch (err) {
         Logger.error(`[Backup] Bookings CSV failed: ${err}`);
         allSuccess = false;
+        errorMessage += `Bookings CSV failed; `;
     }
 
     try {
@@ -351,6 +450,7 @@ export async function runBackup(): Promise<void> {
     } catch (err) {
         Logger.error(`[Backup] Insurances CSV failed: ${err}`);
         allSuccess = false;
+        errorMessage += `Insurances CSV failed; `;
     }
 
     // 2. PostgreSQL dump
@@ -360,22 +460,37 @@ export async function runBackup(): Promise<void> {
     } catch (err) {
         Logger.error(`[Backup] pg_dump failed: ${err}`);
         allSuccess = false;
+        errorMessage += `pg_dump failed; `;
     }
 
     // 3. Upload to Google Drive (only if all steps succeeded)
     if (!allSuccess) {
-        Logger.error(`[Backup] ❌ One or more backup steps failed. Skipping upload & retention cleanup.`);
+        const msg = `Backup steps failed: ${errorMessage}`;
+        Logger.error(`[Backup] ❌ ${msg}. Skipping upload & retention cleanup.`);
+        addToHistory({
+            timestamp: Date.now(),
+            date: new Date().toISOString(),
+            status: 'FAILED',
+            type,
+            message: msg
+        });
         cleanup(tmpDir);
-        return;
+        return { success: false, status: 'FAILED', message: msg };
     }
 
     try {
         const drive = getDriveClient();
-        Logger.info(`[Backup] Folder ID: ${folderId}. Checking Drive access...`);
 
-        // Create daily folder
-        const dailyFolderId = await createDriveFolder(drive, dateStr, folderId);
-        Logger.info(`[Backup] Successfully created Drive folder: ${dateStr} (${dailyFolderId})`);
+        // 0. Verify parent folder access first to catch permission issues early
+        Logger.info(`[Backup] Verifying Drive access for folder: ${folderId}`);
+        await verifyDriveAccess(drive, folderId);
+
+        Logger.info(`[Backup] Folder found. Starting upload process...`);
+
+        // Create daily folder (append timestamp if manual to avoid duplicate folder name errors or overwrites)
+        const finalFolderName = isManual ? `${dateStr}_manual_${Date.now()}` : dateStr;
+        const dailyFolderId = await createDriveFolder(drive, finalFolderName, folderId);
+        Logger.info(`[Backup] Successfully created Drive folder: ${finalFolderName} (${dailyFolderId})`);
 
         // Upload all files
         for (const file of files) {
@@ -383,27 +498,74 @@ export async function runBackup(): Promise<void> {
             await uploadFileToDrive(drive, file, dailyFolderId);
         }
 
-        Logger.info(`[Backup] ✅ All ${files.length} files uploaded successfully to Drive.`);
+        const successMsg = `All ${files.length} files uploaded successfully to Drive.`;
+        Logger.info(`[Backup] ✅ ${successMsg}`);
 
-        // 4. Clean old backups (Keep last 3)
-        await cleanOldBackups(drive, folderId, 3);
+        // 4. Record current state and perform sanity check before cleanup
+        const currentCount = await getDatabaseRecordCount();
+        const prevState = getLastBackupState();
 
-        // 5. Update last backup state on success
-        updateLastBackupState(Date.now());
+        // Sanity Check: If record count drops by more than 50% since last successful backup, don't rotate
+        let skipCleanup = false;
+        if (prevState.recordCount > 0 && currentCount < (prevState.recordCount * 0.5)) {
+            Logger.warn(`[Backup] ⚠️ SANITY CHECK FAILED: Current record count (${currentCount}) is < 50% of previous (${prevState.recordCount}). Skipping retention cleanup to protect old backups.`);
+            skipCleanup = true;
+        }
+
+        // 5. Clean old backups (Keep last 3 of this pool)
+        if (!skipCleanup) {
+            try {
+                await cleanOldBackups(drive, folderId, 3, type);
+            } catch (cleanupErr: any) {
+                Logger.warn(`[Backup] ${type} Retention cleanup failed, but backup upload was successful. Error: ${cleanupErr.message}`);
+            }
+        }
+
+        // 6. Update state
+        updateLastBackupState(Date.now(), currentCount);
+
+        addToHistory({
+            timestamp: Date.now(),
+            date: new Date().toISOString(),
+            status: 'SUCCESS',
+            type,
+            message: successMsg,
+            files: files.map(f => path.basename(f))
+        });
+
+        cleanup(tmpDir);
+        Logger.info('════════════════════════════════════════════════════════════');
+        return { success: true, status: 'SUCCESS', message: successMsg };
+
     } catch (err: any) {
-        Logger.error(`[Backup] ❌ Drive upload/cleanup failed. Reason: ${err.message || err}`);
-        if (err.stack) Logger.debug(err.stack);
-    }
+        const errorDetail = err.message || String(err);
+        let errorMsg = `Drive error: ${errorDetail}`;
 
-    // Cleanup local temp files
-    cleanup(tmpDir);
-    Logger.info('════════════════════════════════════════════════════════════');
+        // Provide more context if it's a permission error
+        if (errorDetail.includes('insufficient permissions')) {
+            errorMsg = `Drive Permission Error: Please check if the account has Editor/Manager access to folder ${folderId}`;
+        }
+
+        Logger.error(`[Backup] ❌ Drive operation failed. Reason: ${errorDetail}`);
+        const type = isManual ? 'MANUAL' : 'AUTO';
+        addToHistory({
+            timestamp: Date.now(),
+            date: new Date().toISOString(),
+            status: 'FAILED',
+            type,
+            message: errorMsg
+        });
+        cleanup(tmpDir);
+        return { success: false, status: 'FAILED', message: errorMsg };
+    }
 }
 
 function cleanup(dir: string) {
     try {
-        fs.rmSync(dir, { recursive: true, force: true });
-        Logger.info(`[Backup] Cleaned up temp dir: ${dir}`);
+        if (fs.existsSync(dir)) {
+            fs.rmSync(dir, { recursive: true, force: true });
+            Logger.info(`[Backup] Cleaned up temp dir: ${dir}`);
+        }
     } catch {
         // ignore cleanup errors
     }

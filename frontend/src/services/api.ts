@@ -222,6 +222,15 @@ export const adminService = {
     getAuditLogs: async (params?: any) => {
         const response = await api.get<PaginatedResponse<ActionLog>>('/admin/audit-logs', { params });
         return response.data;
+    },
+    // Backup Management
+    triggerBackup: async () => {
+        const response = await api.post<{ success: boolean; status: string; message: string }>('/admin/backup/run');
+        return response.data;
+    },
+    getBackupHistory: async () => {
+        const response = await api.get<{ success: boolean; data: any[] }>('/admin/backup/history');
+        return response.data;
     }
 };
 
