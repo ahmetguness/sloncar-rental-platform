@@ -5,6 +5,7 @@ import type { Car } from '../services/types';
 import { Button } from '../components/ui/Button';
 import { Loader2, ArrowLeft, Fuel, Cog, Users, Gauge, CheckCircle, AlertTriangle, MessageCircle, Phone, Info } from 'lucide-react';
 import { translateCategory, translateFuel } from '../utils/translate';
+import { CarDamageMap } from '../components/ui/CarDamageMap';
 
 export const CarDetail = () => {
     const { id } = useParams();
@@ -167,6 +168,16 @@ export const CarDetail = () => {
                                 <Info className="w-5 h-5 text-primary-500" />
                                 Araç Durumu & Özellikler
                             </h3>
+
+                            {/* Visual Damage Map */}
+                            <div className="bg-dark-surface/30 rounded-2xl p-4 border border-white/5">
+                                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Görsel Hasar Kaydı</p>
+                                <CarDamageMap
+                                    changedParts={car.changedParts || []}
+                                    paintedParts={car.paintedParts || []}
+                                    readonly
+                                />
+                            </div>
 
                             {/* Accident Description */}
                             <div className="bg-dark-surface/30 rounded-xl p-5 border border-white/5">

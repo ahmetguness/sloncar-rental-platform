@@ -9,6 +9,7 @@ import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { Skeleton } from '../components/ui/Skeleton';
 import { storage } from '../utils/storage';
+import { CarDamageMap } from '../components/ui/CarDamageMap';
 
 interface Brand {
     id: string;
@@ -703,13 +704,29 @@ export const AdminSaleCars = () => {
                                         <label className={labelClass}>Ekspertiz / Tramer Açıklaması</label>
                                         <textarea rows={2} className={inputClass} value={formData.accidentDescription} onChange={e => setFormData({ ...formData, accidentDescription: e.target.value })} placeholder="Hasar kaydı ve ekspertiz detayları..." />
                                     </div>
-                                    <div>
-                                        <label className={labelClass}>Değişen Parçalar (Virgülle ayırın)</label>
-                                        <input type="text" className={inputClass} value={formData.changedParts} onChange={e => setFormData({ ...formData, changedParts: e.target.value })} placeholder="Kaput, Sol Ön Çamurluk..." />
-                                    </div>
-                                    <div>
-                                        <label className={labelClass}>Boyalı Parçalar (Virgülle ayırın)</label>
-                                        <input type="text" className={inputClass} value={formData.paintedParts} onChange={e => setFormData({ ...formData, paintedParts: e.target.value })} placeholder="Sağ Arka Kapı, Tavan..." />
+                                    <div className="md:col-span-2">
+                                        <label className={labelClass}>Görsel Hasar Kaydı (Parçalara Tıklayın)</label>
+                                        <CarDamageMap
+                                            changedParts={formData.changedParts.split(',').map(s => s.trim()).filter(Boolean)}
+                                            paintedParts={formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean)}
+                                            onChange={(partName, newState) => {
+                                                const changedArray = formData.changedParts.split(',').map(s => s.trim()).filter(Boolean);
+                                                const paintedArray = formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean);
+
+                                                // Remove from both first
+                                                const newChanged = changedArray.filter(p => p !== partName);
+                                                const newPainted = paintedArray.filter(p => p !== partName);
+
+                                                if (newState === 'CHANGED') newChanged.push(partName);
+                                                if (newState === 'PAINTED') newPainted.push(partName);
+
+                                                setFormData({
+                                                    ...formData,
+                                                    changedParts: newChanged.join(', '),
+                                                    paintedParts: newPainted.join(', ')
+                                                });
+                                            }}
+                                        />
                                     </div>
                                     <div className="md:col-span-2">
                                         <label className={labelClass}>Ekstra Özellikler (Virgülle ayırın)</label>
