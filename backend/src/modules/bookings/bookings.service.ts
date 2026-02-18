@@ -414,19 +414,29 @@ export async function getAvailability(
             new Date() > b.expiresAt) {
             continue;
         }
-        const pickupStr = formatDate(b.pickupDate);
-        const dropoffStr = formatDate(b.dropoffDate);
-        // Mark all dates in this booking's range
-        const bookingDates = getDateRange(b.pickupDate, b.dropoffDate);
-        for (const d of bookingDates) {
-            const dStr = formatDate(d);
-            if (dStr >= pickupStr && dStr < dropoffStr) {
-                bookedDateMap.set(dStr, b);
+        // Optimize: Iterate dates without allocating array
+        let current = new Date(b.pickupDate);
+        const end = new Date(b.dropoffDate);
+
+        while (current <= end) {
+            const dateStr = formatDate(current);
+            if (dateStr >= formatDate(query.from) && dateStr < formatDate(query.to)) {
+                bookedDateMap.set(dateStr, b);
             }
+            // Optimization: If current date exceeds query.to, we can stop for this booking
+            if (dateStr >= formatDate(query.to)) break;
+
+            current.setDate(current.getDate() + 1);
         }
     }
 
-    const allDates = getDateRange(query.from, query.to);
+    const allDates: Date[] = [];
+    let d = new Date(query.from);
+    while (d <= query.to) {
+        allDates.push(new Date(d));
+        d.setDate(d.getDate() + 1);
+    }
+
     const calendar: DayAvailability[] = allDates.map((date) => {
         const dateStr = formatDate(date);
         const booking = bookedDateMap.get(dateStr);

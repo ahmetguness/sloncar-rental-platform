@@ -62,7 +62,7 @@ export async function markAllNotificationsRead(
     try {
         await adminService.markAllNotificationsRead();
 
-        await auditService.logAction(req.user?.userId, 'MARK_ALL_NOTIFICATIONS_READ', {}, req);
+        auditService.logAction(req.user?.userId, 'MARK_ALL_NOTIFICATIONS_READ', {}, req);
 
         res.json({ success: true });
     } catch (error) {
@@ -100,7 +100,7 @@ export async function createUser(
     try {
         const user = await adminService.createUser(req.body);
 
-        await auditService.logAction(req.user?.userId, 'CREATE_USER', { targetUserId: user.id, email: user.email, role: user.role }, req);
+        auditService.logAction(req.user?.userId, 'CREATE_USER', { targetUserId: user.id, email: user.email, role: user.role }, req);
 
         res.status(201).json({
             success: true,
@@ -124,7 +124,7 @@ export async function deleteUser(
         }
         const user = await adminService.deleteUser(id);
 
-        await auditService.logAction(req.user?.userId, 'DELETE_USER', { targetUserId: id, targetName: user.name, targetEmail: user.email }, req);
+        auditService.logAction(req.user?.userId, 'DELETE_USER', { targetUserId: id, targetName: user.name, targetEmail: user.email }, req);
 
         res.json({
             success: true,
@@ -151,7 +151,7 @@ export async function updateUser(
         const user = await adminService.updateUser(id, { role, version });
 
         if (user) {
-            await auditService.logAction(req.user?.userId, 'UPDATE_USER_ROLE', { targetUserId: id, targetName: user.name, targetEmail: user.email, newRole: role }, req);
+            auditService.logAction(req.user?.userId, 'UPDATE_USER_ROLE', { targetUserId: id, targetName: user.name, targetEmail: user.email, newRole: role }, req);
         }
 
         res.json({

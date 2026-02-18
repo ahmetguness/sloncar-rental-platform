@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react';
 import ScrollToTop from './components/ScrollToTop';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy-loaded pages for code splitting
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -45,7 +46,11 @@ function App() {
             <Route path="admin/login" element={<AdminLogin />} />
 
             <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'STAFF']} />}>
-              <Route path="admin/dashboard" element={<AdminDashboard />} />
+              <Route path="admin/dashboard" element={
+                <ErrorBoundary>
+                  <AdminDashboard />
+                </ErrorBoundary>
+              } />
               <Route path="admin/cars/rental" element={<AdminRentalCars />} />
               <Route path="admin/cars/sale" element={<AdminSaleCars />} />
               <Route path="admin/cars" element={<Navigate to="/admin/cars/rental" replace />} />

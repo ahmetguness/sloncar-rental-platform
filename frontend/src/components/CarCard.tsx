@@ -32,6 +32,8 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
                         <img
                             src={car.images[0]}
                             alt={`${car.brand} ${car.model}`}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 brightness-90 group-hover:brightness-100"
                         />
                     </>

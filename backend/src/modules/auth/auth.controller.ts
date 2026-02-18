@@ -29,7 +29,7 @@ export async function login(
         const result = await authService.login(req.body as LoginInput);
 
         // Log login action
-        await auditService.logAction(
+        auditService.logAction(
             result.user.id,
             'LOGIN',
             { email: result.user.email, role: result.user.role },

@@ -164,7 +164,7 @@ export async function cancelBooking(
     try {
         const booking = await bookingsService.cancelBooking(req.params.id!, req.body?.version);
 
-        await auditService.logAction(req.user?.userId, 'CANCEL_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
+        auditService.logAction(req.user?.userId, 'CANCEL_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
 
         res.json({
             success: true,
@@ -185,7 +185,7 @@ export async function startBooking(
     try {
         const booking = await bookingsService.startBooking(req.params.id!, req.body?.version);
 
-        await auditService.logAction(req.user?.userId, 'START_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
+        auditService.logAction(req.user?.userId, 'START_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
 
         res.json({
             success: true,
@@ -206,7 +206,7 @@ export async function createManualBooking(
     try {
         const booking = await bookingsService.createManualBooking(req.body);
 
-        await auditService.logAction(req.user?.userId, 'CREATE_MANUAL_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
+        auditService.logAction(req.user?.userId, 'CREATE_MANUAL_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
 
         res.status(201).json({
             success: true,
@@ -233,7 +233,7 @@ export async function updateBookingDates(
             version
         );
 
-        await auditService.logAction(req.user?.userId, 'UPDATE_BOOKING_DATES', { bookingId: booking.id, updates: req.body }, req);
+        auditService.logAction(req.user?.userId, 'UPDATE_BOOKING_DATES', { bookingId: booking.id, updates: req.body }, req);
 
         res.json({
             success: true,
@@ -254,7 +254,7 @@ export async function completeBooking(
     try {
         const booking = await bookingsService.completeBooking(req.params.id!, req.body?.version);
 
-        await auditService.logAction(req.user?.userId, 'COMPLETE_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
+        auditService.logAction(req.user?.userId, 'COMPLETE_BOOKING', { bookingId: booking.id, code: booking.bookingCode }, req);
 
         res.json({
             success: true,

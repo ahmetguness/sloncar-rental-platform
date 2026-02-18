@@ -15,29 +15,43 @@ async function main() {
         initBackupScheduler();
 
         // Start server
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📚 API Docs available at http://localhost:${PORT}/api-docs`);
             console.log(`🔧 Environment: ${env.NODE_ENV}`);
         });
+
+        // Graceful shutdown function
+        const shutdown = async (signal: string) => {
+            console.log(`${signal} received, shutting down gracefully...`);
+
+            server.close(async () => {
+                console.log('HTTP server closed.');
+                try {
+                    await prisma.$disconnect();
+                    console.log('Database connection closed.');
+                    process.exit(0);
+                } catch (err) {
+                    console.error('Error during database disconnect:', err);
+                    process.exit(1);
+                }
+            });
+
+            // Force close after 10s if hanging
+            setTimeout(() => {
+                console.error('Could not close connections in time, forcefully shutting down');
+                process.exit(1);
+            }, 10000);
+        };
+
+        process.on('SIGTERM', () => shutdown('SIGTERM'));
+        process.on('SIGINT', () => shutdown('SIGINT'));
+
     } catch (error) {
         console.error('❌ Failed to start server:', error);
         await prisma.$disconnect();
         process.exit(1);
     }
 }
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-    console.log('SIGTERM received, shutting down gracefully...');
-    await prisma.$disconnect();
-    process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-    console.log('SIGINT received, shutting down gracefully...');
-    await prisma.$disconnect();
-    process.exit(0);
-});
 
 main();

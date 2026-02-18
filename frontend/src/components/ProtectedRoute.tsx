@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { storage } from '../utils/storage';
+import { useAppSelector } from '../store/hooks';
 
 interface ProtectedRouteProps {
     allowedRoles?: string[];
@@ -7,8 +7,7 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
     const location = useLocation();
-    const isAuthenticated = storage.isAuthenticated();
-    const user = storage.getUser();
+    const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
     console.log(`[ProtectedRoute] Auth Check: ${isAuthenticated ? 'Authenticated' : 'Not Authenticated'}, Path: ${location.pathname}`);
 

@@ -365,13 +365,32 @@ export async function createUser(data: any) {
             passwordHash,
             phone,
             role: role || 'USER'
+        },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            role: true,
+            whatsappEnabled: true,
+            createdAt: true,
+            updatedAt: true,
+            version: true
         }
     });
 }
 
 export async function deleteUser(id: string) {
     return prisma.user.delete({
-        where: { id }
+        where: { id },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            role: true,
+            createdAt: true
+        }
     });
 }
 
@@ -390,12 +409,36 @@ export async function updateUser(id: string, data: { role: 'ADMIN' | 'STAFF'; ve
             );
         }
 
-        return prisma.user.findUnique({ where: { id } });
+        return prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                role: true,
+                whatsappEnabled: true,
+                createdAt: true,
+                updatedAt: true,
+                version: true
+            }
+        });
     }
 
     return prisma.user.update({
         where: { id },
-        data: updateData
+        data: updateData,
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            role: true,
+            whatsappEnabled: true,
+            createdAt: true,
+            updatedAt: true,
+            version: true
+        }
     });
 }
 

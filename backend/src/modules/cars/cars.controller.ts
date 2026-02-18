@@ -45,7 +45,7 @@ export async function createCar(
     try {
         const car = await carsService.createCar(req.body as CreateCarInput);
 
-        await auditService.logAction(req.user?.userId, 'CREATE_CAR', { carId: car.id, brand: car.brand, model: car.model }, req);
+        auditService.logAction(req.user?.userId, 'CREATE_CAR', { carId: car.id, brand: car.brand, model: car.model }, req);
 
         res.status(201).json({
             success: true,
@@ -64,7 +64,7 @@ export async function updateCar(
     try {
         const car = await carsService.updateCar(req.params.id!, req.body as UpdateCarInput);
 
-        await auditService.logAction(req.user?.userId, 'UPDATE_CAR', {
+        auditService.logAction(req.user?.userId, 'UPDATE_CAR', {
             carId: car.id,
             brand: car.brand,
             model: car.model,
@@ -89,7 +89,7 @@ export async function deleteCar(
     try {
         const car = await carsService.deleteCar(req.params.id!) as any;
 
-        await auditService.logAction(req.user?.userId, 'DELETE_CAR', { carId: req.params.id, brand: car.brand, model: car.model, plate: car.plateNumber }, req);
+        auditService.logAction(req.user?.userId, 'DELETE_CAR', { carId: req.params.id, brand: car.brand, model: car.model, plate: car.plateNumber }, req);
 
         res.status(204).send();
     } catch (error) {

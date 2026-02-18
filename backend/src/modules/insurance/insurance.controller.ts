@@ -20,7 +20,7 @@ export const insuranceController = {
         try {
             const insurance = await insuranceService.createInsurance(req.body);
 
-            await auditService.logAction(req.user?.userId, 'CREATE_INSURANCE', { insuranceId: insurance.id, policyNumber: insurance.policyNumber, companyName: insurance.companyName }, req);
+            auditService.logAction(req.user?.userId, 'CREATE_INSURANCE', { insuranceId: insurance.id, policyNumber: insurance.policyNumber, companyName: insurance.companyName }, req);
 
             res.status(201).json({
                 success: true,
@@ -38,7 +38,7 @@ export const insuranceController = {
             }
             const insurance = await insuranceService.deleteInsurance(req.params.id);
 
-            await auditService.logAction(req.user?.userId, 'DELETE_INSURANCE', { insuranceId: req.params.id, policyNumber: insurance.policyNumber, companyName: insurance.companyName }, req);
+            auditService.logAction(req.user?.userId, 'DELETE_INSURANCE', { insuranceId: req.params.id, policyNumber: insurance.policyNumber, companyName: insurance.companyName }, req);
 
             res.json({
                 success: true,

@@ -30,7 +30,7 @@ export async function triggerManualBackup(
 
         const result = await backupService.runBackup(true); // true = manual
 
-        await auditService.logAction(
+        auditService.logAction(
             req.user?.userId,
             'TRIGGER_BACKUP',
             { status: result.status, message: result.message },

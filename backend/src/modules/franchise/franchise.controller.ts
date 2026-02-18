@@ -127,7 +127,7 @@ export async function updateApplicationStatus(
             req.body as UpdateStatusInput
         );
 
-        await auditService.logAction(adminUserId, 'UPDATE_FRANCHISE_STATUS', {
+        auditService.logAction(adminUserId, 'UPDATE_FRANCHISE_STATUS', {
             applicationId: req.params.id,
             newStatus: req.body.status,
             applicantName: application.contactName,

@@ -109,10 +109,49 @@ export const Home = () => {
             animationRef.current = requestAnimationFrame(scrollLoop);
         };
 
+
+
+        // Intersection Observer to pause animation when off-screen
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const [entry] = entries;
+                // If intersecting (visible), unpause. If not, pause.
+                // We also check !isPaused to ensure we don't override user interaction (hover/touch)
+                // However, isPaused state is used for both visibility AND hover. 
+                // Let's use a separate ref for visibility or just manage isPaused.
+                // Better: Use a separate flag or ref for visibility, but to keep it simple with existing logic:
+                // We will only run the loop if logic allows.
+
+                // Construct: We only run the *loop content* if visible AND not hovered.
+                // But we are using `isPaused` state for hover. 
+                // Let's add a visibility check inside the loop? No, better to stop the RAF entirely if offscreen.
+
+                if (entry.isIntersecting) {
+                    // If it becomes visible, ensure loop is running (it might be running already)
+                    if (animationRef.current === null) {
+                        animationRef.current = requestAnimationFrame(scrollLoop);
+                    }
+                } else {
+                    // If off-screen, cancel the RAF
+                    if (animationRef.current !== null) {
+                        cancelAnimationFrame(animationRef.current);
+                        animationRef.current = null;
+                    }
+                }
+            },
+            { threshold: 0 }
+        );
+
+        if (scrollContainerRef.current) {
+            observer.observe(scrollContainerRef.current);
+        }
+
+        // Start loop initially
         animationRef.current = requestAnimationFrame(scrollLoop);
 
         return () => {
             if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
+            observer.disconnect();
         };
     }, [isPaused, displayBrands]); // Re-run if paused changes or brands update
 

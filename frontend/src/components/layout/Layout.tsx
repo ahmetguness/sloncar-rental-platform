@@ -1,19 +1,22 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { adminService, carService } from '../../services/api';
+import { carService } from '../../services/api';
 import logo from '../../assets/logo/logo.jpg';
 import { Footer } from './Footer';
-import { storage } from '../../utils/storage';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { logoutUser } from '../../features/auth/authSlice';
 
 export const Layout = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [hasSaleCars, setHasSaleCars] = useState(false);
+
+    const dispatch = useAppDispatch();
+    const { user } = useAppSelector((state) => state.auth);
     const location = useLocation();
     const navigate = useNavigate();
     const isAdmin = location.pathname.startsWith('/admin');
-    const user = storage.getUser() || {};
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -37,8 +40,8 @@ export const Layout = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);  // Run only once on mount — sale car availability rarely changes mid-session
 
-    const handleLogout = () => {
-        adminService.logout();
+    const handleLogout = async () => {
+        await dispatch(logoutUser());
         navigate('/admin/login');
     };
 
@@ -76,7 +79,7 @@ export const Layout = () => {
                         ) : (
                             <div className="flex items-center gap-4">
                                 <span className={`text-sm font-medium ${scrolled ? 'text-gray-700' : 'text-white'}`}>
-                                    {user.name || 'Admin'}
+                                    {user?.name || 'Admin'}
                                 </span>
                                 <span className="text-xs font-bold text-primary-800 bg-primary-100 px-3 py-1.5 rounded-full tracking-wide">Yönetici Paneli</span>
                                 <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 transition-colors">

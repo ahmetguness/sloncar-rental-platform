@@ -110,71 +110,145 @@ function toCSV(rows: Record<string, unknown>[]): string {
 }
 
 async function exportBookingsCSV(dir: string): Promise<string> {
-    const bookings = await prisma.booking.findMany({
-        include: {
-            car: { select: { brand: true, model: true, plateNumber: true } },
-            pickupBranch: { select: { name: true } },
-            dropoffBranch: { select: { name: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-    });
-
-    const rows = bookings.map((b: any) => ({
-        id: b.id,
-        bookingCode: b.bookingCode,
-        customerName: b.customerName,
-        customerSurname: b.customerSurname || '',
-        customerPhone: b.customerPhone,
-        customerEmail: b.customerEmail || '',
-        carBrand: b.car?.brand,
-        carModel: b.car?.model,
-        carPlate: b.car?.plateNumber,
-        pickupBranch: b.pickupBranch?.name,
-        dropoffBranch: b.dropoffBranch?.name,
-        pickupDate: b.pickupDate?.toISOString(),
-        dropoffDate: b.dropoffDate?.toISOString(),
-        totalPrice: b.totalPrice?.toString() || '0',
-        status: b.status,
-        paymentStatus: b.paymentStatus,
-        createdAt: b.createdAt?.toISOString(),
-        updatedAt: b.updatedAt?.toISOString(),
-    }));
-
     const filePath = path.join(dir, `reservations_${getDateString()}.csv`);
-    fs.writeFileSync(filePath, '\uFEFF' + toCSV(rows), 'utf-8'); // BOM for Excel Turkish chars
-    Logger.info(`[Backup] Bookings CSV: ${rows.length} records → ${filePath}`);
+    const stream = fs.createWriteStream(filePath, { encoding: 'utf-8' });
+
+    // Write BOM for Excel
+    stream.write('\uFEFF');
+
+    // Headers
+    const headers = [
+        'id', 'bookingCode', 'customerName', 'customerSurname', 'customerPhone',
+        'customerEmail', 'carBrand', 'carModel', 'carPlate', 'pickupBranch',
+        'dropoffBranch', 'pickupDate', 'dropoffDate', 'totalPrice', 'status',
+        'paymentStatus', 'createdAt', 'updatedAt'
+    ];
+    stream.write(headers.join(',') + '\n');
+
+    const BATCH_SIZE = 500;
+    let cursor: string | undefined;
+
+    while (true) {
+        const bookings = await prisma.booking.findMany({
+            take: BATCH_SIZE,
+            skip: cursor ? 1 : 0,
+            cursor: cursor ? { id: cursor } : undefined,
+            include: {
+                car: { select: { brand: true, model: true, plateNumber: true } },
+                pickupBranch: { select: { name: true } },
+                dropoffBranch: { select: { name: true } },
+            },
+            orderBy: { id: 'asc' }, // Ensure determinstic order for cursor
+        });
+
+        if (bookings.length === 0) break;
+
+        for (const b of bookings) {
+            const row = [
+                b.id,
+                b.bookingCode,
+                b.customerName,
+                b.customerSurname || '',
+                b.customerPhone,
+                b.customerEmail || '',
+                b.car?.brand,
+                b.car?.model,
+                b.car?.plateNumber,
+                b.pickupBranch?.name,
+                b.dropoffBranch?.name,
+                b.pickupDate?.toISOString(),
+                b.dropoffDate?.toISOString(),
+                b.totalPrice?.toString() || '0',
+                b.status,
+                b.paymentStatus,
+                b.createdAt?.toISOString(),
+                b.updatedAt?.toISOString(),
+            ];
+
+            // csv escape
+            const csvRow = row.map(val => escapeCSV(val)).join(',');
+
+            if (!stream.write(csvRow + '\n')) {
+                await new Promise<void>(resolve => stream.once('drain', () => resolve()));
+            }
+        }
+
+        cursor = bookings[bookings.length - 1]?.id;
+
+        if (bookings.length < BATCH_SIZE) break;
+    }
+
+    stream.end();
+    await new Promise<void>(resolve => stream.on('finish', () => resolve()));
+
+    Logger.info(`[Backup] Bookings CSV exported to ${filePath} (Streamed)`);
     return filePath;
 }
 
 async function exportInsurancesCSV(dir: string): Promise<string> {
-    const insurances = await prisma.userInsurance.findMany({
-        include: {
-            user: { select: { name: true, email: true, phone: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-    });
-
-    const rows = insurances.map((i: any) => ({
-        id: i.id,
-        userName: i.user?.name,
-        userEmail: i.user?.email,
-        userPhone: i.user?.phone,
-        companyName: i.companyName,
-        policyNumber: i.policyNumber,
-        policyType: i.policyType || '',
-        premiumAmount: i.premiumAmount?.toString() || '0',
-        coverageLimit: i.coverageLimit?.toString() || '0',
-        startDate: i.startDate?.toISOString(),
-        endDate: i.endDate?.toISOString(),
-        agentName: i.agentName || '',
-        status: i.isActive ? 'Active' : 'Passive',
-        createdAt: i.createdAt?.toISOString(),
-        updatedAt: i.updatedAt?.toISOString(),
-    }));
-
     const filePath = path.join(dir, `insurances_${getDateString()}.csv`);
-    fs.writeFileSync(filePath, '\uFEFF' + toCSV(rows), 'utf-8');
-    Logger.info(`[Backup] Insurances CSV: ${rows.length} records → ${filePath}`);
+    const stream = fs.createWriteStream(filePath, { encoding: 'utf-8' });
+
+    stream.write('\uFEFF');
+
+    const headers = [
+        'id', 'userName', 'userEmail', 'userPhone', 'companyName',
+        'policyNumber', 'policyType', 'premiumAmount', 'coverageLimit',
+        'startDate', 'endDate', 'agentName', 'status', 'createdAt', 'updatedAt'
+    ];
+    stream.write(headers.join(',') + '\n');
+
+    const BATCH_SIZE = 500;
+    let cursor: string | undefined;
+
+    while (true) {
+        const insurances = await prisma.userInsurance.findMany({
+            take: BATCH_SIZE,
+            skip: cursor ? 1 : 0,
+            cursor: cursor ? { id: cursor } : undefined,
+            include: {
+                user: { select: { name: true, email: true, phone: true } },
+            },
+            orderBy: { id: 'asc' },
+        });
+
+        if (insurances.length === 0) break;
+
+        for (const i of insurances) {
+            const row = [
+                i.id,
+                i.user?.name,
+                i.user?.email,
+                i.user?.phone,
+                i.companyName,
+                i.policyNumber,
+                i.policyType || '',
+                i.premiumAmount?.toString() || '0',
+                i.coverageLimit?.toString() || '0',
+                i.startDate?.toISOString(),
+                i.endDate?.toISOString(),
+                i.agentName || '',
+                i.isActive ? 'Active' : 'Passive',
+                i.createdAt?.toISOString(),
+                i.updatedAt?.toISOString(),
+            ];
+
+            const csvRow = row.map(val => escapeCSV(val)).join(',');
+
+            if (!stream.write(csvRow + '\n')) {
+                await new Promise<void>(resolve => stream.once('drain', () => resolve()));
+            }
+        }
+
+        cursor = insurances[insurances.length - 1]?.id;
+
+        if (insurances.length < BATCH_SIZE) break;
+    }
+
+    stream.end();
+    await new Promise<void>(resolve => stream.on('finish', () => resolve()));
+
+    Logger.info(`[Backup] Insurances CSV exported to ${filePath} (Streamed)`);
     return filePath;
 }
 

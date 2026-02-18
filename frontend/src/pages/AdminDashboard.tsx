@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -10,82 +10,21 @@ import { adminService } from '../services/api';
 import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
-import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Clock, Database, Bell, Settings, ChevronDown } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Info, Clock, Database, Bell, Settings, ChevronDown } from 'lucide-react';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { storage } from '../utils/storage';
-import DatePicker, { registerLocale } from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
-import { tr } from 'date-fns/locale';
-// html2canvas, ExcelJS, and file-saver are dynamically imported where used (export button)
-
-registerLocale('tr', tr);
 
 import { Skeleton } from '../components/ui/Skeleton';
+import DebouncedInput from '../components/ui/DebouncedInput';
+import SettingsModal from '../components/modals/SettingsModal';
+import BookingDetailModal from '../components/modals/BookingDetailModal';
+import ManualBookingModal from '../components/modals/ManualBookingModal';
+import InsuranceDetailModal from '../components/modals/InsuranceDetailModal';
+import CreateInsuranceModal from '../components/modals/CreateInsuranceModal';
 
 
 
-const SettingsModal = ({ isOpen, onClose, user, onUpdate }: { isOpen: boolean; onClose: () => void; user: any; onUpdate: (user: any) => void }) => {
-    const { addToast } = useToast();
-    const [loading, setLoading] = useState(false);
-    const [whatsappEnabled, setWhatsappEnabled] = useState(user?.whatsappEnabled ?? true);
 
-    useEffect(() => {
-        if (user) {
-            setWhatsappEnabled(user.whatsappEnabled ?? true);
-        }
-    }, [user]);
-
-    const handleSave = async () => {
-        setLoading(true);
-        try {
-            const res = await adminService.updateProfile({ whatsappEnabled });
-            addToast('Ayarlar güncellendi', 'success');
-            onUpdate(res.data.user);
-            onClose();
-        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-            addToast(error.response?.data?.error?.message || 'Ayarlar güncellenemedi', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Profil Ayarları" size="sm">
-            <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-dark-bg rounded-xl border border-white/5">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
-                            <Megaphone className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h3 className="text-white font-bold text-sm">WhatsApp Bildirimleri</h3>
-                            <p className="text-xs text-gray-400">Yeni rezervasyonlarda bildirim al</p>
-                        </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={whatsappEnabled}
-                            onChange={(e) => setWhatsappEnabled(e.target.checked)}
-                        />
-                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                    </label>
-                </div>
-
-                <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={onClose}>İptal</Button>
-                    <Button onClick={handleSave} disabled={loading}>
-                        {loading ? <Loader2 className="animate-spin" /> : 'Kaydet'}
-                    </Button>
-                </div>
-            </div>
-        </Modal>
-    );
-};
 
 const StatCard = ({ title, value, icon, color, loading, trend, trendUp, data, onClick, isActive }: {
     title: string;
@@ -165,918 +104,9 @@ const StatCard = ({ title, value, icon, color, loading, trend, trendUp, data, on
     );
 };
 
-const BookingDetailModal = ({ booking, onClose, onUpdate }: { booking: Booking; onClose: () => void; onUpdate?: () => void }) => {
-    const { addToast } = useToast();
-    const [isEditing, setIsEditing] = useState(false);
-    const [editDates, setEditDates] = useState({
-        pickup: booking ? new Date(booking.pickupDate) : new Date(),
-        dropoff: booking ? new Date(booking.dropoffDate) : new Date()
-    });
-    const [loading, setLoading] = useState(false);
-    const [unavailableIntervals, setUnavailableIntervals] = useState<{ start: Date; end: Date }[]>([]);
-    useEffect(() => {
-        if (booking) {
-            setEditDates({
-                pickup: new Date(booking.pickupDate),
-                dropoff: new Date(booking.dropoffDate)
-            });
-        }
-    }, [booking]);
-
-    useEffect(() => {
-        if (isEditing && booking?.carId) {
-            fetchUnavailableDates();
-        }
-    }, [isEditing, booking?.carId]);
-
-    const fetchUnavailableDates = async () => {
-        try {
-            // Fetch all bookings for this car to calculate availability
-            const res = await adminService.getBookings({ // Using adminService.getBookings which calls /admin/bookings
-                carId: booking.carId,
-                limit: 100 // Should be enough for near-term conflicts
-            });
-
-            if (res.data) {
-                const intervals = res.data
-                    .filter(b =>
-                        // Exclude current booking
-                        b.id !== booking.id &&
-                        // Only count blocking statuses
-                        (b.status === 'ACTIVE' || b.status === 'RESERVED') &&
-                        // Exclude expired unpaid reservations
-                        !(
-                            b.status === 'RESERVED' &&
-                            b.paymentStatus === 'UNPAID' &&
-                            b.expiresAt &&
-                            new Date() > new Date(b.expiresAt)
-                        )
-                    )
-                    .map(b => ({
-                        start: new Date(b.pickupDate),
-                        end: new Date(b.dropoffDate)
-                    }));
-                setUnavailableIntervals(intervals);
-            }
-        } catch (err) {
-            console.error('Failed to fetch availability', err);
-        }
-    };
-
-    if (!booking) return null;
-
-    const handleSaveDates = async () => {
-        if (!editDates.pickup || !editDates.dropoff) return;
-        setLoading(true);
-        try {
-            await adminService.updateBookingDates(booking.id, {
-                pickupDate: editDates.pickup,
-                dropoffDate: editDates.dropoff
-            });
-            addToast('Rezervasyon tarihleri güncellendi', 'success');
-            setIsEditing(false);
-            if (onUpdate) onUpdate();
-        } catch (err: any) {
-            addToast(err.response?.data?.error?.message || 'Tarihler güncellenemedi', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <Modal isOpen={!!booking} onClose={onClose} title="Rezervasyon Detayı" size="lg">
-            <div className="space-y-8">
-                {/* Header Info */}
-                <div className="-mt-2 mb-6 flex items-center justify-between pb-4 border-b border-white/10 text-sm">
-                    <span className="text-gray-400">Rezervasyon Kodu: <span className="text-primary-400 font-mono font-bold">{booking.bookingCode}</span></span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
-                        ? 'bg-orange-500/20 text-orange-400'
-                        : booking.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400'
-                            : booking.status === 'CANCELLED' ? 'bg-red-500/20 text-red-400'
-                                : booking.status === 'COMPLETED' ? 'bg-gray-500/20 text-gray-400'
-                                    : 'bg-primary-500/20 text-primary-400'
-                        }`}>
-                        {(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
-                            ? 'Süre Doldu'
-                            : booking.status === 'ACTIVE' ? 'Aktif'
-                                : booking.status === 'CANCELLED' ? 'İptal'
-                                    : booking.status === 'COMPLETED' ? 'Tamamlandı'
-                                        : 'Rezerve'}
-                    </span>
-                </div>
-
-                <div className="-mt-4 mb-6 text-xs text-gray-500 text-right">
-                    {booking.createdAt && (
-                        <>
-                            Oluşturulma: <span className="text-gray-300 font-medium">{new Date(booking.createdAt).toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                        </>
-                    )}
-                </div>
-
-                {/* Expired Warning */}
-                {(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt)) && (
-                    <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
-                        <div>
-                            <h4 className="text-sm font-bold text-orange-400 mb-1">Ödeme Süresi Doldu</h4>
-                            <p className="text-sm text-gray-400">
-                                Müşteri 10 dakika içinde ödeme yapmadığı için bu rezervasyonun süresi dolmuştur.
-                                <br />
-                                <span className="text-gray-500 text-xs">Bitiş Zamanı: {new Date(booking.expiresAt).toLocaleTimeString('tr-TR')}</span>
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Status Sections */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Customer Info */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Users className="w-5 h-5 text-primary-500" />
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Müşteri Bilgileri</h3>
-                        </div>
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Ad Soyad</label>
-                                <p className="text-white font-medium">{booking.customerName} {booking.customerSurname}</p>
-                            </div>
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Telefon</label>
-                                <p className="text-white font-mono">{booking.customerPhone}</p>
-                            </div>
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">E-posta</label>
-                                <p className="text-white break-all">{booking.customerEmail}</p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Ehliyet No</label>
-                                    <p className="text-white font-mono">{booking.customerDriverLicense || '-'}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">TC Kimlik</label>
-                                    <p className="text-white font-mono">{booking.customerTC || '-'}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Car Info */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <CarIcon className="w-5 h-5 text-primary-500" />
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Araç Bilgileri</h3>
-                        </div>
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Araç</label>
-                                <p className="text-white font-bold text-lg">{booking.car?.brand} {booking.car?.model}</p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Plaka</label>
-                                    <p className="text-white font-mono">{booking.car?.plateNumber}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Kategori</label>
-                                    <span className="text-xs bg-white/10 px-2 py-1 rounded text-white">{translateCategory(booking.car?.category || '')}</span>
-                                </div>
-                            </div>
-                            <div className="pt-2 border-t border-white/5 mt-2">
-                                <div className="flex justify-between items-center">
-                                    <label className="text-xs text-gray-500">Toplam Tutar</label>
-                                    <p className="text-xl font-bold text-primary-400">{Number(booking.totalPrice).toLocaleString()} ₺</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
 
-                {/* Dates & Notes */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-5 h-5 text-primary-500" />
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Kiralama Süresi</h3>
-                            </div>
-                            {!isEditing && (
-                                <button
-                                    onClick={() => setIsEditing(true)}
-                                    className="text-xs text-primary-400 hover:text-primary-300 font-bold transition-colors"
-                                >
-                                    DÜZENLE
-                                </button>
-                            )}
-                        </div>
 
-                        {isEditing ? (
-                            <div className="bg-dark-bg p-4 rounded-xl border border-primary-500/30 space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs text-gray-500 block mb-1">Alış Tarihi</label>
-                                        <DatePicker
-                                            selected={editDates.pickup}
-                                            onChange={(date: Date | null) => date && setEditDates({ ...editDates, pickup: date })}
-                                            className="w-full bg-dark-surface border border-white/10 rounded px-2 py-1.5 text-sm text-white focus:border-primary-500 focus:outline-none"
-                                            dateFormat="dd/MM/yyyy"
-                                            locale="tr"
-                                            excludeDateIntervals={unavailableIntervals}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-gray-500 block mb-1">Teslim Tarihi</label>
-                                        <DatePicker
-                                            selected={editDates.dropoff}
-                                            onChange={(date: Date | null) => date && setEditDates({ ...editDates, dropoff: date })}
-                                            className="w-full bg-dark-surface border border-white/10 rounded px-2 py-1.5 text-sm text-white focus:border-primary-500 focus:outline-none"
-                                            dateFormat="dd/MM/yyyy"
-                                            minDate={editDates.pickup}
-                                            locale="tr"
-                                            excludeDateIntervals={unavailableIntervals}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex justify-end gap-2 pt-2">
-                                    <Button size="sm" variant="outline" onClick={() => setIsEditing(false)} className="h-8 text-xs border-white/10 text-gray-400">
-                                        İptal
-                                    </Button>
-                                    <Button size="sm" onClick={handleSaveDates} disabled={loading} className="h-8 text-xs bg-primary-500 text-white">
-                                        {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Kaydet'}
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="bg-dark-bg p-4 rounded-xl border border-white/5 flex justify-between items-center text-center">
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Alış</label>
-                                    <p className="text-white font-medium">{new Date(booking.pickupDate).toLocaleDateString('tr-TR')}</p>
-                                </div>
-                                <div className="text-gray-600">➝</div>
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Teslim</label>
-                                    <p className="text-white font-medium">{new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {booking.notes && (
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-5 h-5 flex items-center justify-center rounded-full bg-primary-500/20 text-primary-500 text-xs font-bold">i</div>
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Müşteri Notu</h3>
-                            </div>
-                            <div className="bg-dark-bg p-4 rounded-xl border border-white/5">
-                                <p className="text-gray-300 text-sm italic">"{booking.notes}"</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex justify-end pt-4">
-                    <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
-                        Kapat
-                    </Button>
-                </div>
-            </div>
-        </Modal>
-    );
-};
-
-const ManualBookingModal = ({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) => {
-    const { addToast } = useToast();
-    // Helper to use addToast with 'toast' name if preferred, or just use addToast directly
-    const toast = (msg: string, type: 'success' | 'error') => addToast(msg, type);
-
-    const [step, setStep] = useState(1);
-    const [loading, setLoading] = useState(false);
-    const [dates, setDates] = useState<{ pickup: Date | null; dropoff: Date | null }>({ pickup: null, dropoff: null });
-    const [availableCars, setAvailableCars] = useState<any[]>([]);
-    const [selectedCar, setSelectedCar] = useState<any>(null);
-    const [customer, setCustomer] = useState({
-        name: '', surname: '', phone: '', email: '', tc: '', license: '', notes: ''
-    });
-    const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'POS'>('CASH');
-
-    const formatDateForAPI = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    const handleSearchCars = async () => {
-        if (!dates.pickup || !dates.dropoff) {
-            toast('Lütfen tarihleri seçiniz', 'error');
-            return;
-        }
-        setLoading(true);
-        try {
-            const res = await adminService.getCars({
-                status: 'ACTIVE',
-                pickupDate: formatDateForAPI(dates.pickup),
-                dropoffDate: formatDateForAPI(dates.dropoff),
-                limit: 100
-            });
-            setAvailableCars(res.data);
-            setStep(2);
-        } catch {
-            toast('Araçlar yüklenemedi', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSubmit = async () => {
-        setLoading(true);
-        try {
-            if (!dates.pickup || !dates.dropoff) return; // Should not happen
-
-            // Sanitize payload: valid inputs only
-            const payload: any = {
-                carId: selectedCar.id,
-                customerName: customer.name,
-                customerSurname: customer.surname,
-                customerPhone: customer.phone,
-                customerEmail: customer.email,
-                customerDriverLicense: customer.license,
-                pickupDate: formatDateForAPI(dates.pickup),
-                dropoffDate: formatDateForAPI(dates.dropoff),
-                pickupBranchId: selectedCar.branchId,
-                dropoffBranchId: selectedCar.branchId,
-                paymentMethod,
-                isActive: true
-            };
-
-            if (customer.tc && customer.tc.trim() !== '') {
-                payload.customerTC = customer.tc;
-            }
-            if (customer.notes && customer.notes.trim() !== '') {
-                payload.notes = customer.notes;
-            }
-
-            await adminService.createManualBooking(payload);
-            toast('Rezervasyon oluşturuldu', 'success');
-            onSuccess();
-            onClose();
-            // Reset form
-            setStep(1);
-            setDates({ pickup: null, dropoff: null });
-            setSelectedCar(null);
-            setCustomer({ name: '', surname: '', phone: '', email: '', tc: '', license: '', notes: '' });
-        } catch (err: any) {
-            const errorData = err.response?.data?.error;
-            let errorMessage = errorData?.message || 'Rezervasyon oluşturulamadı';
-
-            // Should show specific validation error if available
-            if (errorData?.code === 'VALIDATION_ERROR' && errorData?.details?.[0]) {
-                errorMessage = errorData.details[0].message;
-            }
-
-            toast(errorMessage, 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (!isOpen) return null;
-
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Yeni Manuel Rezervasyon">
-            <div className="space-y-6">
-                {/* Progress Steps */}
-                <div className="flex items-center justify-between mb-8 px-2 relative">
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-white/10 -z-10" />
-                    {[1, 2, 3, 4].map((s) => (
-                        <div key={s} className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all ${step >= s ? 'bg-primary-500 text-white' : 'bg-dark-bg border border-white/20 text-gray-500'}`}>
-                            {s}
-                        </div>
-                    ))}
-                </div>
-
-                {step === 1 && (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="flex flex-col">
-                                <label className="block text-sm text-gray-400 mb-1">Alış Tarihi</label>
-                                <DatePicker
-                                    selected={dates.pickup}
-                                    onChange={(date: Date | null) => setDates({ ...dates, pickup: date })}
-                                    className="w-full bg-dark-bg border border-white/10 rounded-lg p-2 text-white"
-                                    placeholderText="Tarih seçiniz"
-                                    dateFormat="dd/MM/yyyy"
-                                    locale="tr"
-                                    minDate={new Date()}
-                                />
-                            </div>
-                            <div className="flex flex-col">
-                                <label className="block text-sm text-gray-400 mb-1">Teslim Tarihi</label>
-                                <DatePicker
-                                    selected={dates.dropoff}
-                                    onChange={(date: Date | null) => setDates({ ...dates, dropoff: date })}
-                                    className="w-full bg-dark-bg border border-white/10 rounded-lg p-2 text-white"
-                                    placeholderText="Tarih seçiniz"
-                                    dateFormat="dd/MM/yyyy"
-                                    locale="tr"
-                                    minDate={dates.pickup ? new Date(dates.pickup.getTime() + 24 * 60 * 60 * 1000) : new Date()}
-                                />
-                            </div>
-                        </div>
-                        <Button className="w-full mt-4" onClick={handleSearchCars} disabled={loading}>
-                            {loading ? <Loader2 className="animate-spin" /> : 'Müsait Araçları Ara'}
-                        </Button>
-                    </div>
-                )}
-
-                {step === 2 && (
-                    <div className="space-y-4">
-                        <h3 className="text-white font-bold">Araç Seçimi</h3>
-                        <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                            {availableCars.map(car => (
-                                <div
-                                    key={car.id}
-                                    onClick={() => setSelectedCar(car)}
-                                    className={`p-3 rounded-lg border cursor-pointer flex justify-between items-center transition-all ${selectedCar?.id === car.id ? 'bg-primary-500/20 border-primary-500' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <img src={car.images?.[0] || '/placeholder-car.png'} alt="" className="w-12 h-8 object-cover rounded" />
-                                        <div>
-                                            <div className="text-white font-medium">{car.brand} {car.model}</div>
-                                            <div className="text-xs text-gray-500">{car.plateNumber}</div>
-                                        </div>
-                                    </div>
-                                    <div className="text-primary-400 font-bold">{car.dailyPrice} TL</div>
-                                </div>
-                            ))}
-                            {availableCars.length === 0 && <div className="text-center text-gray-500 py-4">Müsait araç bulunamadı.</div>}
-                        </div>
-                        <div className="flex gap-2">
-                            <Button variant="outline" onClick={() => setStep(1)} className="flex-1">Geri</Button>
-                            <Button onClick={() => setStep(3)} disabled={!selectedCar} className="flex-1">Devam Et</Button>
-                        </div>
-                    </div>
-                )}
-
-                {step === 3 && (
-                    <div className="space-y-4">
-                        <h3 className="text-white font-bold">Müşteri Bilgileri</h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            <input placeholder="Ad" className="bg-dark-bg border border-white/10 rounded p-2 text-white" value={customer.name} onChange={e => setCustomer({ ...customer, name: e.target.value })} />
-                            <input placeholder="Soyad" className="bg-dark-bg border border-white/10 rounded p-2 text-white" value={customer.surname} onChange={e => setCustomer({ ...customer, surname: e.target.value })} />
-                            <input placeholder="Telefon (+90...)" className="bg-dark-bg border border-white/10 rounded p-2 text-white col-span-2" value={customer.phone} onChange={e => setCustomer({ ...customer, phone: e.target.value })} />
-                            <input placeholder="E-posta" className="bg-dark-bg border border-white/10 rounded p-2 text-white col-span-2" value={customer.email} onChange={e => setCustomer({ ...customer, email: e.target.value })} />
-                            <input placeholder="TC Kimlik No (Opsiyonel)" className="bg-dark-bg border border-white/10 rounded p-2 text-white" value={customer.tc} onChange={e => setCustomer({ ...customer, tc: e.target.value })} />
-                            <input placeholder="Ehliyet No" className="bg-dark-bg border border-white/10 rounded p-2 text-white" value={customer.license} onChange={e => setCustomer({ ...customer, license: e.target.value })} />
-                            <input placeholder="Notlar" className="bg-dark-bg border border-white/10 rounded p-2 text-white col-span-2" value={customer.notes} onChange={e => setCustomer({ ...customer, notes: e.target.value })} />
-                        </div>
-                        <div className="flex gap-2">
-                            <Button variant="outline" onClick={() => setStep(2)} className="flex-1">Geri</Button>
-                            <Button onClick={() => setStep(4)} disabled={!customer.name || !customer.phone} className="flex-1">Devam Et</Button>
-                        </div>
-                    </div>
-                )}
-
-                {step === 4 && (
-                    <div className="space-y-6">
-                        <h3 className="text-white font-bold text-center">Ödeme Yöntemi</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <button
-                                onClick={() => setPaymentMethod('CASH')}
-                                className={`p-6 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'CASH' ? 'bg-primary-500/20 border-primary-500 text-primary-400' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
-                            >
-                                <Banknote className="w-8 h-8" />
-                                <span className="font-bold">Nakit</span>
-                            </button>
-                            <button
-                                onClick={() => setPaymentMethod('POS')}
-                                className={`p-6 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'POS' ? 'bg-primary-500/20 border-primary-500 text-primary-400' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
-                            >
-                                <CreditCard className="w-8 h-8" />
-                                <span className="font-bold">Kredi Kartı / POS</span>
-                            </button>
-                        </div>
-                        <div className="bg-white/5 p-4 rounded-lg space-y-2 text-sm text-gray-400">
-                            <div className="flex justify-between"><span>Araç:</span> <span className="text-white">{selectedCar?.brand} {selectedCar?.model}</span></div>
-                            <div className="flex justify-between">
-                                <span>Gün:</span>
-                                <span className="text-white">
-                                    {dates.pickup && dates.dropoff ? Math.ceil((dates.dropoff.getTime() - dates.pickup.getTime()) / (1000 * 60 * 60 * 24)) : 0} Gün
-                                </span>
-                            </div>
-                            <div className="flex justify-between border-t border-white/10 pt-2 text-lg font-bold text-white">
-                                <span>Toplam:</span>
-                                <span className="text-green-400">
-                                    {dates.pickup && dates.dropoff && selectedCar
-                                        ? (selectedCar.dailyPrice * Math.ceil((dates.dropoff.getTime() - dates.pickup.getTime()) / (1000 * 60 * 60 * 24))).toLocaleString()
-                                        : 0} TL
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <Button variant="outline" onClick={() => setStep(3)} className="flex-1">Geri</Button>
-                            <Button onClick={handleSubmit} disabled={loading} className="flex-1 bg-green-500 hover:bg-green-600 text-white border-none">
-                                {loading ? <Loader2 className="animate-spin" /> : 'Rezervasyonu Tamamla'}
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </Modal>
-    );
-};
-
-const InsuranceDetailModal = ({ insurance, onClose, onUpdate, currentUser }: { insurance: UserInsurance; onClose: () => void; onUpdate?: () => void; currentUser: any }) => {
-    const { addToast } = useToast();
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [isDeletingConfirmed, setIsDeletingConfirmed] = useState(false);
-
-    const handleDelete = async () => {
-        setIsDeletingConfirmed(true);
-        try {
-            await adminService.deleteInsurance(insurance.id);
-            addToast('Sigorta kaydı başarıyla silindi', 'success');
-            if (onUpdate) onUpdate();
-            onClose();
-        } catch (error: any) {
-            addToast(error.response?.data?.message || 'Sigorta silinirken bir hata oluştu', 'error');
-            setIsDeletingConfirmed(false);
-        }
-    };
-
-    return (
-        <Modal isOpen={!!insurance} onClose={onClose} title="Sigorta Detayı" size="lg">
-            <div className="space-y-8">
-                {/* Header Info */}
-                <div className="-mt-2 mb-6 flex items-center justify-between pb-4 border-b border-white/10 text-sm">
-                    <span className="text-gray-400">Poliçe No: <span className="text-blue-400 font-mono font-bold">{insurance.policyNumber}</span></span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${insurance.isActive
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-red-500/20 text-red-400'
-                        }`}>
-                        {insurance.isActive ? 'Aktif' : 'Pasif'}
-                    </span>
-                </div>
-
-                <div className="-mt-4 mb-6 text-xs text-gray-500 text-right">
-                    {insurance.createdAt && (
-                        <>
-                            Oluşturulma: <span className="text-gray-300 font-medium">{new Date(insurance.createdAt).toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                        </>
-                    )}
-                </div>
-
-                {/* Main Info Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* User Info */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Users className="w-5 h-5 text-blue-500" />
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Sigortalı Bilgileri</h3>
-                        </div>
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Ad Soyad</label>
-                                <p className="text-white font-medium">{insurance.user?.name}</p>
-                            </div>
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">E-posta</label>
-                                <p className="text-white break-all">{insurance.user?.email}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Policy Info */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Shield className="w-5 h-5 text-blue-500" />
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Poliçe Bilgileri</h3>
-                        </div>
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Sigorta Şirketi</label>
-                                <p className="text-white font-bold text-lg">{insurance.companyName}</p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Poliçe Türü</label>
-                                    <span className="text-xs bg-white/10 px-2 py-1 rounded text-white">{insurance.policyType || '-'}</span>
-                                </div>
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Kapsam Türü</label>
-                                    <span className="text-xs text-gray-400">{insurance.coverageType || '-'}</span>
-                                </div>
-                            </div>
-                            {(insurance.premiumAmount || insurance.coverageLimit) && (
-                                <div className="pt-2 border-t border-white/5 mt-2 grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs text-gray-500">Prim Tutarı</label>
-                                        <p className="text-lg font-bold text-blue-400">{insurance.premiumAmount ? `${Number(insurance.premiumAmount).toLocaleString()} ₺` : '-'}</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-gray-500">Teminat Limiti</label>
-                                        <p className="text-sm font-medium text-white">{insurance.coverageLimit ? `${Number(insurance.coverageLimit).toLocaleString()} ₺` : '-'}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {insurance.deductibleAmount && (
-                                <div>
-                                    <label className="text-xs text-gray-500">Muafiyet Bedeli</label>
-                                    <p className="text-sm text-gray-300">{Number(insurance.deductibleAmount).toLocaleString()} ₺</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Dates & Agent */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-5 h-5 text-blue-500" />
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Geçerlilik süresi</h3>
-                            </div>
-                        </div>
-
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 flex justify-between items-center text-center">
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Başlangıç</label>
-                                <p className="text-white font-medium">{new Date(insurance.startDate).toLocaleDateString('tr-TR')}</p>
-                            </div>
-                            <div className="text-gray-600">➝</div>
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Bitiş</label>
-                                <p className="text-white font-medium">{new Date(insurance.endDate).toLocaleDateString('tr-TR')}</p>
-                            </div>
-                        </div>
-                        {insurance.renewalDate && (
-                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex items-center gap-3">
-                                <Calendar className="w-4 h-4 text-blue-400" />
-                                <span className="text-sm text-blue-200">Yenileme Tarihi: <span className="font-bold">{new Date(insurance.renewalDate).toLocaleDateString('tr-TR')}</span></span>
-                            </div>
-                        )}
-                    </div>
-
-                    {(insurance.agentName || insurance.agentPhone || insurance.agentEmail) && (
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Users className="w-5 h-5 text-blue-500" />
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Acente İletişim</h3>
-                            </div>
-                            <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-2">
-                                {insurance.agentName && <div><span className="text-xs text-gray-500">Yetkili:</span> <span className="text-white text-sm ml-2">{insurance.agentName}</span></div>}
-                                {insurance.agentPhone && <div><span className="text-xs text-gray-500">Tel:</span> <span className="text-white text-sm ml-2">{insurance.agentPhone}</span></div>}
-                                {insurance.agentEmail && <div><span className="text-xs text-gray-500">Email:</span> <span className="text-white text-sm ml-2">{insurance.agentEmail}</span></div>}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Description/Notes */}
-                {insurance.description && (
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Açıklama / Kapsam Detayı</h3>
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 text-sm text-gray-300">
-                            {insurance.description}
-                        </div>
-                    </div>
-                )}
-
-                {/* Document Link */}
-                {insurance.documentUrl && (
-                    <div className="flex justify-end">
-                        <a href={insurance.documentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm font-bold">
-                            <Download className="w-4 h-4" />
-                            Poliçe Dokümanını İndir
-                        </a>
-                    </div>
-                )}
-
-                <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                    {currentUser?.role === 'ADMIN' ? (
-                        isDeleting ? (
-                            <div className="flex items-center gap-4 w-full justify-between bg-red-500/10 p-3 rounded-lg border border-red-500/20">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-red-500/20 rounded-full">
-                                        <AlertCircle className="w-5 h-5 text-red-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-white">Bu sigorta kaydını silmek istediğinize emin misiniz?</p>
-                                        <p className="text-xs text-red-300">Bu işlem geri alınamaz.</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setIsDeleting(false)}
-                                        className="h-8 text-xs border-white/10 text-white hover:bg-white/10"
-                                    >
-                                        İptal
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        onClick={handleDelete}
-                                        className="h-8 text-xs bg-red-500 hover:bg-red-600 text-white border-none"
-                                    >
-                                        {isDeletingConfirmed ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Evet, Sil'}
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <>
-                                {currentUser?.role === 'ADMIN' && (
-                                    <Button
-                                        onClick={() => setIsDeleting(true)}
-                                        variant="outline"
-                                        className="bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 flex items-center gap-2"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Sil
-                                    </Button>
-                                )}
-                                <div className="flex gap-2">
-                                    <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
-                                        Kapat
-                                    </Button>
-                                </div>
-                            </>
-                        )
-                    ) : (
-                        <div className="flex justify-end w-full">
-                            <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
-                                Kapat
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </Modal>
-    );
-};
-
-const CreateInsuranceModal = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) => {
-    const [loading, setLoading] = useState(false);
-    const [users, setUsers] = useState<{ id: string; name: string; email: string; phone: string }[]>([]);
-    const [formData, setFormData] = useState<Partial<UserInsurance>>({
-        isActive: true,
-        paymentStatus: 'PAID',
-
-        policyType: 'Trafik',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]
-    });
-
-    useEffect(() => {
-        loadUsers();
-    }, []);
-
-    const loadUsers = async () => {
-        try {
-            const res = await adminService.getUsers();
-            setUsers(res.data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            // Convert strings to numbers for financial fields
-            const dataToSubmit = {
-                ...formData,
-                startDate: new Date(formData.startDate as string).toISOString(),
-                endDate: new Date(formData.endDate as string).toISOString(),
-                premiumAmount: Number(formData.premiumAmount),
-                coverageLimit: Number(formData.coverageLimit),
-                deductibleAmount: Number(formData.deductibleAmount),
-            };
-            await adminService.createInsurance(dataToSubmit);
-            onSuccess();
-            onClose();
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-        }));
-    };
-
-    return (
-        <Modal isOpen={true} onClose={onClose} title="Yeni Sigorta Ekle" size="lg">
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* User Selection */}
-                    <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Kullanıcı</label>
-                        <select
-                            name="userId"
-                            required
-                            className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500"
-                            onChange={handleChange}
-                            value={formData.userId || ''}
-                        >
-                            <option value="">Seçiniz...</option>
-                            {users.map(u => (
-                                <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Basic Info */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Sigorta Şirketi</label>
-                        <input type="text" name="companyName" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Poliçe No</label>
-                        <input type="text" name="policyNumber" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
-                    </div>
-
-                    {/* Dates */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Başlangıç Tarihi</label>
-                        <input type="date" name="startDate" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} value={formData.startDate?.toString().split('T')[0]} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Bitiş Tarihi</label>
-                        <input type="date" name="endDate" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} value={formData.endDate?.toString().split('T')[0]} />
-                    </div>
-
-                    {/* Details */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Poliçe Türü</label>
-                        <select name="policyType" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} value={formData.policyType}>
-                            <option value="Trafik">Trafik</option>
-                            <option value="Kasko">Kasko</option>
-                            <option value="Ferdi Kaza">Ferdi Kaza</option>
-                            <option value="Konut">Konut</option>
-                            <option value="DASK">DASK</option>
-                            <option value="Sağlık">Sağlık</option>
-                            <option value="Seyahat">Seyahat</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Ödeme Durumu</label>
-                        <select name="paymentStatus" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} value={formData.paymentStatus}>
-                            <option value="PAID">Ödendi</option>
-                            <option value="UNPAID">Ödenmedi</option>
-                            <option value="CANCELLED">İptal</option>
-                        </select>
-                    </div>
-
-                    {/* Financials */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Prim Tutarı (₺)</label>
-                        <input type="number" name="premiumAmount" step="0.01" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Teminat Limiti (₺)</label>
-                        <input type="number" name="coverageLimit" step="0.01" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
-                    </div>
-
-                    {/* Agent */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Acente Adı</label>
-                        <input type="text" name="agentName" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Acente Tel</label>
-                        <input type="text" name="agentPhone" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
-                    </div>
-
-                    {/* Description */}
-                    <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Açıklama / Notlar</label>
-                        <textarea name="description" rows={3} className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white" onChange={handleChange} />
-                    </div>
-                </div>
-
-                <div className="flex justify-end pt-4 border-t border-white/10 gap-3">
-                    <Button type="button" onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
-                        İptal
-                    </Button>
-                    <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Kaydet'}
-                    </Button>
-                </div>
-            </form>
-        </Modal>
-    );
-};
 
 // Helper component for table rows to allow hooks usage
 const BookingRow = React.memo(({
@@ -1280,7 +310,6 @@ export const AdminDashboard = () => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -1306,7 +335,6 @@ export const AdminDashboard = () => {
     // Franchise States
     const [franchisePage, setFranchisePage] = useState(1);
     const [franchiseSearchTerm, setFranchiseSearchTerm] = useState('');
-    const [debouncedFranchiseSearchTerm, setDebouncedFranchiseSearchTerm] = useState('');
     const [highlightedFranchiseId, setHighlightedFranchiseId] = useState<string | null>(null);
 
     // Insurance States
@@ -1314,7 +342,6 @@ export const AdminDashboard = () => {
     const [isCreateInsuranceModalOpen, setIsCreateInsuranceModalOpen] = useState(false);
     const [insurancePage, setInsurancePage] = useState(1);
     const [insuranceSearchTerm, setInsuranceSearchTerm] = useState('');
-    const [debouncedInsuranceSearchTerm, setDebouncedInsuranceSearchTerm] = useState('');
 
     // User Management States
     const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -1344,30 +371,7 @@ export const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'franchise' | 'insurance'>('overview');
     const [chartView, setChartView] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
 
-    // Debounce all search terms (500ms)
-    useEffect(() => {
-        const t = setTimeout(() => {
-            setDebouncedSearchTerm(searchTerm);
-            setCurrentPage(1);
-        }, 500);
-        return () => clearTimeout(t);
-    }, [searchTerm]);
 
-    useEffect(() => {
-        const t = setTimeout(() => {
-            setDebouncedFranchiseSearchTerm(franchiseSearchTerm);
-            setFranchisePage(1);
-        }, 500);
-        return () => clearTimeout(t);
-    }, [franchiseSearchTerm]);
-
-    useEffect(() => {
-        const t = setTimeout(() => {
-            setDebouncedInsuranceSearchTerm(insuranceSearchTerm);
-            setInsurancePage(1);
-        }, 500);
-        return () => clearTimeout(t);
-    }, [insuranceSearchTerm]);
 
     // Load current user from storage
     useEffect(() => {
@@ -1412,29 +416,29 @@ export const AdminDashboard = () => {
             dispatch(fetchBookings({
                 limit: ITEMS_PER_PAGE,
                 offset: (currentPage - 1) * ITEMS_PER_PAGE,
-                search: debouncedSearchTerm || undefined,
+                search: searchTerm || undefined,
                 status: statusFilter || undefined
             }));
         }
-    }, [dispatch, activeTab, currentPage, debouncedSearchTerm, statusFilter]);
+    }, [dispatch, activeTab, currentPage, searchTerm, statusFilter]);
 
     const { data: franchiseData, isLoading: franchisesQueryLoading } = useQuery({
-        queryKey: ['admin-franchises', franchisePage, debouncedFranchiseSearchTerm],
+        queryKey: ['admin-franchises', franchisePage, franchiseSearchTerm],
         queryFn: () => adminService.getFranchiseApplications({
             limit: ITEMS_PER_PAGE,
             offset: (franchisePage - 1) * ITEMS_PER_PAGE,
-            search: debouncedFranchiseSearchTerm || undefined
+            search: franchiseSearchTerm || undefined
         }),
         enabled: activeTab === 'franchise',
         staleTime: 60000,
     });
 
     const { data: insuranceData, isLoading: insurancesQueryLoading } = useQuery({
-        queryKey: ['admin-insurances', insurancePage, debouncedInsuranceSearchTerm],
+        queryKey: ['admin-insurances', insurancePage, insuranceSearchTerm],
         queryFn: () => adminService.getInsurances({
             page: insurancePage,
             limit: ITEMS_PER_PAGE,
-            searchTerm: debouncedInsuranceSearchTerm || undefined
+            searchTerm: insuranceSearchTerm || undefined
         }),
         enabled: activeTab === 'insurance',
         staleTime: 60000,
@@ -1453,7 +457,7 @@ export const AdminDashboard = () => {
             dispatch(fetchBookings({
                 limit: ITEMS_PER_PAGE,
                 offset: (currentPage - 1) * ITEMS_PER_PAGE,
-                search: debouncedSearchTerm || undefined,
+                search: searchTerm || undefined,
                 status: statusFilter || undefined
             }));
             dispatch(fetchDashboardStats());
@@ -1498,6 +502,18 @@ export const AdminDashboard = () => {
         }
     };
 
+    const getChartData = useMemo(() => {
+        if (!revenueData) return [];
+        switch (chartView) {
+            case 'weekly': return revenueData?.weekly || [];
+            case 'monthly': return revenueData?.monthly || [];
+            case 'yearly': return (revenueData?.yearly || []).map((y: { year: number; revenue: number; bookings: number }) => ({ ...y, month: y.year.toString() }));
+            default: return [];
+        }
+    }, [revenueData, chartView]);
+
+    const getDataKey = useCallback(() => chartView === 'yearly' ? 'month' : (chartView === 'weekly' ? 'week' : 'month'), [chartView]);
+
     if (dashboardLoading) return (
         <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center">
             <Loader2 className="animate-spin w-10 h-10 text-primary-500" />
@@ -1513,17 +529,6 @@ export const AdminDashboard = () => {
             </Button>
         </div>
     );
-
-    const getChartData = () => {
-        if (!revenueData) return [];
-        switch (chartView) {
-            case 'weekly': return revenueData.weekly;
-            case 'monthly': return revenueData.monthly;
-            case 'yearly': return revenueData.yearly.map((y: { year: number; revenue: number; bookings: number }) => ({ ...y, month: y.year.toString() }));
-        }
-    };
-
-    const getDataKey = () => chartView === 'yearly' ? 'month' : (chartView === 'weekly' ? 'week' : 'month');
 
     return (
         <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-6">
@@ -1719,12 +724,12 @@ export const AdminDashboard = () => {
                                                     id: b.id,
                                                     type: 'booking',
                                                     title: 'Yeni Rezervasyon (Bekliyor)',
-                                                    desc: `${b.car?.brand} ${b.car?.model} - ${b.customerName} ${b.customerSurname}`,
+                                                    desc: `${b.car?.brand || ''} ${b.car?.model || ''} - ${b.customerName || ''} ${b.customerSurname || ''}`,
                                                     code: b.bookingCode || b.id,
                                                     date: b.createdAt,
                                                     icon: <CarIcon size={16} />,
                                                     color: 'primary',
-                                                    read: b.adminRead
+                                                    read: !!b.adminRead
                                                 }));
 
                                                 const paidBookings = (stats?.latestPaidBookings || []).map(b => ({
@@ -1813,7 +818,7 @@ export const AdminDashboard = () => {
                                                             <div className="text-xs text-gray-300 mt-0.5">{item.desc}</div>
                                                             <div className="text-[10px] text-gray-500 mt-2 font-medium">
                                                                 {new Date(item.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                                                                <span className="mx-1">•</span>
+                                                                <span className="mx-1">â€¢</span>
                                                                 {new Date(item.date).toLocaleDateString('tr-TR')}
                                                             </div>
                                                         </div>
@@ -1842,7 +847,7 @@ export const AdminDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard
                         title="Toplam Ciro"
-                        value={`${stats.totalRevenue.toLocaleString()} ₺`}
+                        value={`${(stats?.totalRevenue || 0).toLocaleString()} ₺`}
                         icon={<span className="text-2xl font-bold">₺</span>}
                         color="green"
                         trend="%12.5"
@@ -1851,7 +856,7 @@ export const AdminDashboard = () => {
                     />
                     <StatCard
                         title="Toplam Rezervasyon"
-                        value={stats.totalBookings}
+                        value={stats?.totalBookings || 0}
                         icon={<Calendar className="w-6 h-6" />}
                         color="blue"
                         trend="%5.2"
@@ -1862,7 +867,7 @@ export const AdminDashboard = () => {
                     />
                     <StatCard
                         title="Aktif Kiralama"
-                        value={stats.activeBookings}
+                        value={stats?.activeBookings || 0}
                         icon={<TrendingUp className="w-6 h-6" />}
                         color="purple"
                         trend="%2.1"
@@ -1873,7 +878,7 @@ export const AdminDashboard = () => {
                     />
                     <StatCard
                         title="Toplam Araç"
-                        value={stats.totalCars}
+                        value={stats?.totalCars || 0}
                         icon={<CarIcon className="w-6 h-6" />}
                         color="orange"
                         trend="Sabit"
@@ -1934,17 +939,17 @@ export const AdminDashboard = () => {
                                                     <h2 className="text-xl font-bold text-white">Gelir Analizi</h2>
                                                     <div className="flex items-center gap-2 mt-2">
                                                         <span className="text-3xl font-black text-green-400">
-                                                            {revenueData.summary.currentYear.toLocaleString()} ₺
+                                                            {(revenueData?.summary?.currentYear || 0).toLocaleString()} ₺
                                                         </span>
-                                                        <span className={`flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${revenueData.summary.growth >= 0
+                                                        <span className={`flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${(revenueData?.summary?.growth || 0) >= 0
                                                             ? 'bg-green-500/20 text-green-400'
                                                             : 'bg-red-500/20 text-red-400'
                                                             }`}>
-                                                            {revenueData.summary.growth >= 0
+                                                            {(revenueData?.summary?.growth || 0) >= 0
                                                                 ? <ArrowUpRight className="w-4 h-4" />
                                                                 : <ArrowDownRight className="w-4 h-4" />
                                                             }
-                                                            {Math.abs(Number(revenueData.summary.growth.toFixed(1)))}%
+                                                            {Math.abs(Number((revenueData?.summary?.growth || 0).toFixed(1)))}%
                                                         </span>
                                                     </div>
                                                 </div>
@@ -1954,7 +959,7 @@ export const AdminDashboard = () => {
                                                         onChange={(e) => setSelectedYear(Number(e.target.value))}
                                                         className="px-4 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                                                     >
-                                                        {revenueData.availableYears.map((year: number) => (
+                                                        {(revenueData?.availableYears || []).map((year: number) => (
                                                             <option key={year} value={year} className="bg-dark-bg">{year}</option>
                                                         ))}
                                                     </select>
@@ -1976,7 +981,7 @@ export const AdminDashboard = () => {
                                                         onClick={async () => {
                                                             if (!revenueData) return;
 
-                                                            // Dynamic imports — loaded only when export is triggered
+                                                            // Dynamic imports â€” loaded only when export is triggered
                                                             const [{ default: ExcelJS }, { saveAs }] = await Promise.all([
                                                                 import('exceljs'),
                                                                 import('file-saver'),
@@ -2000,11 +1005,11 @@ export const AdminDashboard = () => {
                                                             summaryRow.font = { bold: true };
 
                                                             const summaryDataRow = worksheet.addRow([
-                                                                revenueData.summary.currentYear,
-                                                                revenueData.yearly.reduce((acc: number, curr: { bookings: number }) => acc + curr.bookings, 0),
-                                                                revenueData.summary.growth / 100,
-                                                                revenueData.summary.currentMonth,
-                                                                revenueData.summary.lastMonth
+                                                                revenueData?.summary?.currentYear || 0,
+                                                                (revenueData?.yearly || []).reduce((acc: number, curr: { bookings: number }) => acc + (curr.bookings || 0), 0),
+                                                                (revenueData?.summary?.growth || 0) / 100,
+                                                                revenueData?.summary?.currentMonth || 0,
+                                                                revenueData?.summary?.lastMonth || 0
                                                             ]);
 
                                                             summaryDataRow.getCell(1).numFmt = '#,##0 "₺"';
@@ -2024,7 +1029,7 @@ export const AdminDashboard = () => {
                                                                 cell.alignment = { horizontal: 'center' };
                                                             });
 
-                                                            const chartData = getChartData();
+                                                            const chartData = getChartData;
                                                             chartData.forEach((d: any) => {
                                                                 const row = worksheet.addRow([
                                                                     d[getDataKey()],
@@ -2039,7 +1044,7 @@ export const AdminDashboard = () => {
                                                             });
 
                                                             // 4. Add Category Breakdown
-                                                            if (revenueData.byCategory?.length) {
+                                                            if (revenueData?.byCategory?.length) {
                                                                 worksheet.addRow(['']);
                                                                 worksheet.addRow(['']);
                                                                 const catHeader = worksheet.addRow(['Kategori', 'Gelir']);
@@ -2048,14 +1053,14 @@ export const AdminDashboard = () => {
                                                                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6366F1' } };
                                                                     cell.alignment = { horizontal: 'center' };
                                                                 });
-                                                                revenueData.byCategory.forEach((c: { name: string; value: number }) => {
+                                                                (revenueData?.byCategory || []).forEach((c: { name: string; value: number }) => {
                                                                     const row = worksheet.addRow([c.name, c.value]);
                                                                     row.getCell(2).numFmt = '#,##0 "₺"';
                                                                 });
                                                             }
 
                                                             // 5. Add Brand Breakdown
-                                                            if (revenueData.byBrand?.length) {
+                                                            if (revenueData?.byBrand?.length) {
                                                                 worksheet.addRow(['']);
                                                                 const brandHeader = worksheet.addRow(['Marka', 'Gelir']);
                                                                 brandHeader.eachCell((cell) => {
@@ -2063,7 +1068,7 @@ export const AdminDashboard = () => {
                                                                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } };
                                                                     cell.alignment = { horizontal: 'center' };
                                                                 });
-                                                                revenueData.byBrand.forEach((b: { name: string; value: number }) => {
+                                                                (revenueData?.byBrand || []).forEach((b: { name: string; value: number }) => {
                                                                     const row = worksheet.addRow([b.name, b.value]);
                                                                     row.getCell(2).numFmt = '#,##0 "₺"';
                                                                 });
@@ -2090,7 +1095,7 @@ export const AdminDashboard = () => {
                                         <div className="p-6">
                                             <div className="h-80" id="main-revenue-chart">
                                                 <ResponsiveContainer width="100%" height="100%">
-                                                    <ComposedChart data={getChartData()}>
+                                                    <ComposedChart data={getChartData}>
                                                         <defs>
                                                             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                                                                 <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
@@ -2133,8 +1138,8 @@ export const AdminDashboard = () => {
                                                             labelStyle={{ marginBottom: '8px', fontWeight: 'bold', color: '#e2e8f0' }}
                                                             formatter={(value: any, name: any) => [
                                                                 name === 'revenue'
-                                                                    ? <span key="revenue" className="text-primary-400 font-bold">{Number(value).toLocaleString()} ₺</span>
-                                                                    : <span key="bookings" className="text-orange-400 font-bold">{value} Adet</span>,
+                                                                    ? <span key="revenue" className="text-primary-400 font-bold">{(Number(value) || 0).toLocaleString()} ₺</span>
+                                                                    : <span key="bookings" className="text-orange-400 font-bold">{value || 0} Adet</span>,
                                                                 name === 'revenue' ? 'Gelir' : 'Rezervasyon'
                                                             ]}
                                                         />
@@ -2281,24 +1286,15 @@ export const AdminDashboard = () => {
                                         )}
                                     </button>
                                     {/* Search Input */}
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                        <input
-                                            type="text"
-                                            placeholder="İsim ile ara..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="pl-10 pr-8 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 w-52"
-                                        />
-                                        {searchTerm && (
-                                            <button
-                                                onClick={() => setSearchTerm('')}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                                            >
-                                                ×
-                                            </button>
-                                        )}
-                                    </div>
+                                    <DebouncedInput
+                                        value={searchTerm}
+                                        onChange={(val: string) => {
+                                            setSearchTerm(val);
+                                            setCurrentPage(1);
+                                        }}
+                                        placeholder="İsim ile ara..."
+                                        className="w-52"
+                                    />
                                 </div>
                             </div>
                             {/* Filter Chips Row */}
@@ -2361,7 +1357,7 @@ export const AdminDashboard = () => {
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ) : !bookingsData?.data?.length ? (
+                                        ) : !(bookingsData?.data?.length) ? (
                                             <tr>
                                                 <td colSpan={7} className="p-12 text-center">
                                                     <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
@@ -2369,7 +1365,7 @@ export const AdminDashboard = () => {
                                                 </td>
                                             </tr>
                                         ) : (
-                                            bookingsData.data.map((booking: Booking) => (
+                                            (bookingsData?.data || []).map((booking: Booking) => (
                                                 <BookingRow
                                                     key={booking.id}
                                                     booking={booking}
@@ -2383,10 +1379,10 @@ export const AdminDashboard = () => {
                                 </table>
                             </div>
                             {/* Pagination Controls */}
-                            {bookingsData?.pagination && bookingsData.pagination.total > ITEMS_PER_PAGE && (
+                            {bookingsData?.pagination && (bookingsData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
                                 <div className="p-4 border-t border-white/10 flex items-center justify-between">
                                     <div className="text-sm text-gray-400">
-                                        Sayfa {currentPage} / {bookingsData.pagination.totalPages} ({bookingsData.pagination.total} kayıt)
+                                        Sayfa {currentPage} / {bookingsData?.pagination?.totalPages || 1} ({bookingsData?.pagination?.total || 0} kayıt)
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -2398,8 +1394,8 @@ export const AdminDashboard = () => {
                                         </button>
                                         {/* Page Numbers */}
                                         <div className="flex gap-1">
-                                            {Array.from({ length: Math.min(5, bookingsData.pagination.totalPages) }, (_, i) => {
-                                                const totalPages = bookingsData.pagination.totalPages;
+                                            {Array.from({ length: Math.min(5, bookingsData?.pagination?.totalPages || 1) }, (_, i) => {
+                                                const totalPages = bookingsData?.pagination?.totalPages || 1;
                                                 let pageNum: number;
                                                 if (totalPages <= 5) {
                                                     pageNum = i + 1;
@@ -2427,7 +1423,7 @@ export const AdminDashboard = () => {
                                         </div>
                                         <button
                                             onClick={() => setCurrentPage(prev => prev + 1)}
-                                            disabled={currentPage >= bookingsData.pagination.totalPages || bookingsQueryLoading}
+                                            disabled={currentPage >= (bookingsData?.pagination?.totalPages || 1) || bookingsQueryLoading}
                                             className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             <ChevronRight className="w-5 h-5" />
@@ -2457,23 +1453,16 @@ export const AdminDashboard = () => {
                                     </span>
                                 </div>
                                 <div className="flex-1 max-w-md flex justify-end">
-                                    <div className="relative w-full">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                        <input
-                                            type="text"
-                                            placeholder="İsim, Şirket veya Şehir ile ara..."
+                                    <div className="w-full">
+                                        <DebouncedInput
                                             value={franchiseSearchTerm}
-                                            onChange={(e) => setFranchiseSearchTerm(e.target.value)}
-                                            className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
+                                            onChange={(val: string) => {
+                                                setFranchiseSearchTerm(val);
+                                                setFranchisePage(1);
+                                            }}
+                                            placeholder="İsim, Şirket veya Şehir ile ara..."
+                                            className="w-full"
                                         />
-                                        {franchiseSearchTerm && (
-                                            <button
-                                                onClick={() => setFranchiseSearchTerm('')}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                                            >
-                                                ×
-                                            </button>
-                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -2501,7 +1490,7 @@ export const AdminDashboard = () => {
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ) : !franchiseData?.data || franchiseData.data.length === 0 ? (
+                                        ) : !franchiseData?.data?.length ? (
                                             <tr>
                                                 <td colSpan={7} className="p-12 text-center">
                                                     <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
@@ -2509,7 +1498,7 @@ export const AdminDashboard = () => {
                                                 </td>
                                             </tr>
                                         ) : (
-                                            franchiseData.data.map((app: any) => {
+                                            (franchiseData?.data || []).map((app: any) => {
                                                 const statusInfo = FRANCHISE_STATUS_LABELS[app.status] || { label: app.status, color: 'gray' };
                                                 const isHighlighted = highlightedFranchiseId === app.id;
                                                 return (
@@ -2568,10 +1557,10 @@ export const AdminDashboard = () => {
                             </div>
 
                             {/* Pagination Controls */}
-                            {franchiseData?.pagination && franchiseData.pagination.total > ITEMS_PER_PAGE && (
+                            {franchiseData?.pagination && (franchiseData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
                                 <div className="p-4 border-t border-white/10 flex items-center justify-between">
                                     <div className="text-sm text-gray-400">
-                                        Sayfa {franchisePage} / {franchiseData.pagination.totalPages} ({franchiseData.pagination.total} kayıt)
+                                        Sayfa {franchisePage} / {franchiseData?.pagination?.totalPages || 1} ({franchiseData?.pagination?.total || 0} kayıt)
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -2583,8 +1572,8 @@ export const AdminDashboard = () => {
                                         </button>
                                         {/* Page Numbers */}
                                         <div className="flex gap-1">
-                                            {Array.from({ length: Math.min(5, franchiseData.pagination.totalPages) }, (_, i) => {
-                                                const totalPages = franchiseData.pagination.totalPages;
+                                            {Array.from({ length: Math.min(5, franchiseData?.pagination?.totalPages || 1) }, (_, i) => {
+                                                const totalPages = franchiseData?.pagination?.totalPages || 1;
                                                 let pageNum: number;
                                                 if (totalPages <= 5) {
                                                     pageNum = i + 1;
@@ -2612,7 +1601,7 @@ export const AdminDashboard = () => {
                                         </div>
                                         <button
                                             onClick={() => setFranchisePage(prev => prev + 1)}
-                                            disabled={franchisePage >= franchiseData.pagination.totalPages || franchisesQueryLoading}
+                                            disabled={franchisePage >= (franchiseData?.pagination?.totalPages || 1) || franchisesQueryLoading}
                                             className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             <ChevronRight className="w-5 h-5" />
@@ -2660,24 +1649,15 @@ export const AdminDashboard = () => {
                                         <Download className="w-4 h-4" />
                                         <span className="font-semibold">Excel İndir</span>
                                     </Button>
-                                    <div className="relative w-full max-w-md">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                        <input
-                                            type="text"
-                                            placeholder="Poliçe, Şirket veya Kullanıcı Ara..."
-                                            value={insuranceSearchTerm}
-                                            onChange={(e) => setInsuranceSearchTerm(e.target.value)}
-                                            className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
-                                        />
-                                        {insuranceSearchTerm && (
-                                            <button
-                                                onClick={() => setInsuranceSearchTerm('')}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                                            >
-                                                ×
-                                            </button>
-                                        )}
-                                    </div>
+                                    <DebouncedInput
+                                        value={insuranceSearchTerm}
+                                        onChange={(val: string) => {
+                                            setInsuranceSearchTerm(val);
+                                            setInsurancePage(1);
+                                        }}
+                                        placeholder="Poliçe, Şirket veya Kullanıcı Ara..."
+                                        className="w-full max-w-md"
+                                    />
                                 </div>
                             </div>
 
@@ -2700,14 +1680,14 @@ export const AdminDashboard = () => {
                                                     Yükleniyor...
                                                 </td>
                                             </tr>
-                                        ) : !insuranceData?.data || insuranceData.data.length === 0 ? (
+                                        ) : !insuranceData?.data?.length ? (
                                             <tr>
                                                 <td colSpan={5} className="p-12 text-center text-gray-500">
                                                     Kayıt bulunamadı.
                                                 </td>
                                             </tr>
                                         ) : (
-                                            insuranceData.data.map((insurance: any) => (
+                                            (insuranceData?.data || []).map((insurance: any) => (
                                                 <tr key={insurance.id} className="hover:bg-white/5 transition-colors border-b border-white/5">
                                                     <td className="p-4">
                                                         <div className="font-medium text-white">{insurance.user?.name || insurance.fullName}</div>
@@ -2745,10 +1725,10 @@ export const AdminDashboard = () => {
                             </div>
 
                             {/* Pagination Controls */}
-                            {insuranceData?.pagination && insuranceData.pagination.total > ITEMS_PER_PAGE && (
+                            {insuranceData?.pagination && (insuranceData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
                                 <div className="p-4 border-t border-white/10 flex items-center justify-between">
                                     <div className="text-sm text-gray-400">
-                                        Sayfa {insurancePage} / {insuranceData.pagination.totalPages} ({insuranceData.pagination.total} kayıt)
+                                        Sayfa {insurancePage} / {insuranceData?.pagination?.totalPages || 1} ({insuranceData?.pagination?.total || 0} kayıt)
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -2759,8 +1739,8 @@ export const AdminDashboard = () => {
                                             <ChevronLeft className="w-5 h-5" />
                                         </button>
                                         <div className="flex gap-1">
-                                            {Array.from({ length: Math.min(5, insuranceData.pagination.totalPages) }, (_, i) => {
-                                                const totalPages = insuranceData.pagination.totalPages;
+                                            {Array.from({ length: Math.min(5, insuranceData?.pagination?.totalPages || 1) }, (_, i) => {
+                                                const totalPages = insuranceData?.pagination?.totalPages || 1;
                                                 let pageNum: number;
                                                 if (totalPages <= 5) {
                                                     pageNum = i + 1;
@@ -2788,7 +1768,7 @@ export const AdminDashboard = () => {
                                         </div>
                                         <button
                                             onClick={() => setInsurancePage(prev => prev + 1)}
-                                            disabled={insurancePage >= insuranceData.pagination.totalPages || insurancesQueryLoading}
+                                            disabled={insurancePage >= (insuranceData?.pagination?.totalPages || 1) || insurancesQueryLoading}
                                             className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             <ChevronRight className="w-5 h-5" />
@@ -2799,7 +1779,7 @@ export const AdminDashboard = () => {
                         </div>
                     )
                 }
-            </div >
+            </div>
 
             {/* Insurance Detail Modal */}
             {
@@ -2837,7 +1817,7 @@ export const AdminDashboard = () => {
                             dispatch(fetchBookings({
                                 limit: ITEMS_PER_PAGE,
                                 offset: (currentPage - 1) * ITEMS_PER_PAGE,
-                                search: debouncedSearchTerm || undefined,
+                                search: searchTerm || undefined,
                                 status: statusFilter || undefined
                             }));
                             dispatch(fetchDashboardStats());
@@ -2888,13 +1868,13 @@ export const AdminDashboard = () => {
                                         {selectedFranchise.details?.experience && (
                                             <div className="mb-4">
                                                 <span className="text-gray-500 text-sm block mb-1">Deneyim:</span>
-                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.experience}</p>
+                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details?.experience}</p>
                                             </div>
                                         )}
                                         {selectedFranchise.details?.message && (
                                             <div>
                                                 <span className="text-gray-500 text-sm block mb-1">Mesaj:</span>
-                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.message}</p>
+                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details?.message}</p>
                                             </div>
                                         )}
                                     </div>
