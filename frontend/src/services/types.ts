@@ -86,6 +86,7 @@ export interface User {
     name: string;
     role: UserRole;
     phone?: string;
+    whatsappEnabled?: boolean;
     createdAt?: string;
 }
 
@@ -105,6 +106,7 @@ export interface DashboardStats {
     latestNewBookings: any[];
     latestPendingFranchiseApplications: any[];
     latestPaidBookings: any[];
+    totalInsurances: number;
 }
 
 export interface PaginatedResponse<T> {

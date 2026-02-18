@@ -98,5 +98,23 @@ export async function getProfile(userId: string): Promise<AuthResponse['user']> 
         email: user.email,
         name: user.name,
         role: user.role,
+        whatsappEnabled: user.whatsappEnabled
+    };
+}
+
+export async function updateProfile(userId: string, data: { whatsappEnabled?: boolean }): Promise<AuthResponse['user']> {
+    const user = await prisma.user.update({
+        where: { id: userId },
+        data: {
+            whatsappEnabled: data.whatsappEnabled
+        }
+    });
+
+    return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        whatsappEnabled: user.whatsappEnabled
     };
 }

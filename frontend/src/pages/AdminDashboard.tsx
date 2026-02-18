@@ -8,7 +8,7 @@ import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Pencil, Clock, Database } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Pencil, Clock, Database, Bell, Settings, ChevronDown } from 'lucide-react';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { storage } from '../utils/storage';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -34,6 +34,68 @@ interface RevenueAnalytics {
         growth: number;
     };
 }
+
+const SettingsModal = ({ isOpen, onClose, user, onUpdate }: { isOpen: boolean; onClose: () => void; user: any; onUpdate: (user: any) => void }) => {
+    const { addToast } = useToast();
+    const [loading, setLoading] = useState(false);
+    const [whatsappEnabled, setWhatsappEnabled] = useState(user?.whatsappEnabled ?? true);
+
+    useEffect(() => {
+        if (user) {
+            setWhatsappEnabled(user.whatsappEnabled ?? true);
+        }
+    }, [user]);
+
+    const handleSave = async () => {
+        setLoading(true);
+        try {
+            const res = await adminService.updateProfile({ whatsappEnabled });
+            addToast('Ayarlar güncellendi', 'success');
+            onUpdate(res.data.user);
+            onClose();
+        } catch (error: any) {
+            addToast(error.response?.data?.error?.message || 'Ayarlar güncellenemedi', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Profil Ayarları" size="sm">
+            <div className="space-y-6">
+                <div className="flex items-center justify-between p-4 bg-dark-bg rounded-xl border border-white/5">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+                            <Megaphone className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="text-white font-bold text-sm">WhatsApp Bildirimleri</h3>
+                            <p className="text-xs text-gray-400">Yeni rezervasyonlarda bildirim al</p>
+                        </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={whatsappEnabled}
+                            onChange={(e) => setWhatsappEnabled(e.target.checked)}
+                        />
+                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                    </label>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={onClose}>İptal</Button>
+                    <Button onClick={handleSave} disabled={loading}>
+                        {loading ? <Loader2 className="animate-spin" /> : 'Kaydet'}
+                    </Button>
+                </div>
+            </div>
+        </Modal>
+    );
+};
 
 const StatCard = ({ title, value, icon, color, loading, trend, trendUp, data, onClick, isActive }: {
     title: string;
@@ -1266,6 +1328,26 @@ export const AdminDashboard = () => {
 
     // User Management States
     const [currentUser, setCurrentUser] = useState<any | null>(null);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isSystemMenuOpen, setIsSystemMenuOpen] = useState(false);
+    const systemMenuRef = useRef<HTMLDivElement>(null);
+
+    // Close system menu on click outside
+    useEffect(() => {
+        if (!isSystemMenuOpen) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (systemMenuRef.current && !systemMenuRef.current.contains(e.target as Node)) {
+                setIsSystemMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isSystemMenuOpen]);
+
+    const handleUpdateUser = (updatedUser: any) => {
+        setCurrentUser(updatedUser);
+        storage.setUser(updatedUser);
+    };
 
 
 
@@ -1462,6 +1544,14 @@ export const AdminDashboard = () => {
                 </div>
             </Modal>
 
+            {/* Settings Modal */}
+            <SettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                user={currentUser}
+                onUpdate={handleUpdateUser}
+            />
+
             {/* Manual Booking Modal */}
             <ManualBookingModal
                 isOpen={showManualModal}
@@ -1474,7 +1564,7 @@ export const AdminDashboard = () => {
 
             <div className="container mx-auto max-w-7xl space-y-8">
                 {/* Header */}
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
                     <div>
                         <h1 className="text-4xl font-black text-white tracking-tight">
                             GENEL <span className="text-primary-500">BAKIŞ</span>
@@ -1482,221 +1572,254 @@ export const AdminDashboard = () => {
                         <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        {/* Navigation Modules */}
-                        <div className="flex items-center gap-1.5 bg-white/[0.04] backdrop-blur-xl rounded-2xl p-1.5 border border-white/[0.06]">
+                    <div className="flex flex-wrap items-center gap-3">
+                        {/* Business Modules Group */}
+                        <div className="flex items-center bg-white/[0.04] backdrop-blur-xl rounded-xl p-1 border border-white/[0.06]">
                             {[
-                                { to: '/admin/campaigns', icon: <Megaphone className="w-4 h-4" />, label: 'Kampanyalar' },
+                                { to: '/admin/campaigns', icon: <Megaphone className="w-4 h-4" />, label: 'Kampanya' },
                                 { to: '/admin/cars/rental', icon: <Key className="w-4 h-4" />, label: 'Kiralık' },
                                 { to: '/admin/cars/sale', icon: <DollarSign className="w-4 h-4" />, label: 'Satılık' },
                             ].map((item) => (
                                 <Link key={item.to} to={item.to}>
-                                    <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/[0.08] transition-all duration-200">
+                                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all duration-200">
                                         {item.icon}
-                                        {item.label}
+                                        <span className="hidden sm:inline">{item.label}</span>
                                     </button>
                                 </Link>
                             ))}
-                            {currentUser?.role === 'ADMIN' && (
-                                <>
-                                    <div className="w-px h-6 bg-white/[0.08]" />
-                                    <Link to="/admin/audit-logs">
-                                        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-amber-300/80 hover:text-amber-200 hover:bg-amber-500/[0.08] transition-all duration-200">
-                                            <Clock className="w-4 h-4" />
-                                            İşlem Geçmişi
-                                        </button>
-                                    </Link>
-                                    <Link to="/admin/users">
-                                        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-emerald-300/80 hover:text-emerald-200 hover:bg-emerald-500/[0.08] transition-all duration-200">
-                                            <Users className="w-4 h-4" />
-                                            Kullanıcılar
-                                        </button>
-                                    </Link>
-                                    <Link to="/admin/backup">
-                                        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-blue-300/80 hover:text-blue-200 hover:bg-blue-500/[0.08] transition-all duration-200">
-                                            <Database className="w-4 h-4" />
-                                            Yedekleme
-                                        </button>
-                                    </Link>
-                                </>
-                            )}
                         </div>
 
-                        {/* Primary Action */}
-                        <button
-                            onClick={() => setShowManualModal(true)}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-400 hover:to-indigo-400 shadow-[0_4px_20px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_25px_rgba(99,102,241,0.5)] transition-all duration-300"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Yeni Rezervasyon
-                        </button>
-
-                        {/* Notification Bell */}
-                        <div className="relative" ref={notificationRef}>
-                            <Button
-                                variant="secondary"
-                                onClick={() => setShowNotifications(!showNotifications)}
-                                className="relative w-11 h-11 p-0 rounded-xl"
+                        {/* System Modules Dropdown */}
+                        <div className="relative" ref={systemMenuRef}>
+                            <button
+                                onClick={() => setIsSystemMenuOpen(!isSystemMenuOpen)}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border ${isSystemMenuOpen ? 'bg-white/[0.1] text-white border-white/20' : 'bg-white/[0.04] text-gray-400 border-white/[0.06] hover:bg-white/[0.08] hover:text-white'}`}
                             >
-                                {(() => {
-                                    const newBookings = stats?.latestNewBookings || [];
-                                    const pendingFranchise = stats?.latestPendingFranchiseApplications || [];
-                                    const paidBookings = stats?.latestPaidBookings || [];
+                                <Settings className="w-4 h-4" />
+                                <span className="hidden sm:inline">Sistem</span>
+                                <ChevronDown className={`w-3 h-3 transition-transform ${isSystemMenuOpen ? 'rotate-180' : ''}`} />
+                            </button>
 
-                                    const unreadCount = [
-                                        ...newBookings.filter(b => !b.adminRead),
-                                        ...pendingFranchise.filter(f => !f.adminRead),
-                                        ...paidBookings.filter(b => !b.adminRead)
-                                    ].length;
-
-                                    return unreadCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-dark-bg">
-                                            {unreadCount}
-                                        </span>
-                                    );
-                                })()}
-                                <AlertCircle size={20} />
-                            </Button>
-
-                            {/* Notification Dropdown */}
-                            {showNotifications && (
-                                <div className="absolute right-0 mt-4 w-96 bg-dark-surface border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                                    <div className="p-4 border-b border-white/5 flex items-center justify-between">
-                                        <h3 className="font-bold text-white">Bildirimler</h3>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={async () => {
-                                                    try {
-                                                        setShowNotifications(false); // Close immediately for better UX
-                                                        await adminService.markAllNotificationsRead();
-                                                        queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-                                                    } catch (err) {
-                                                        console.error("Failed to mark all read", err);
-                                                    }
-                                                }}
-                                                className="text-xs font-bold text-primary-400 hover:text-primary-300 transition-colors mr-2"
-                                            >
-                                                Tümünü Temizle
-                                            </button>
-                                            <button
-                                                onClick={() => setShowNotifications(false)}
-                                                className="text-xs font-bold text-gray-400 hover:text-gray-300 transition-colors"
-                                            >
-                                                Kapat
-                                            </button>
-                                            <button onClick={() => setShowNotifications(false)} className="text-gray-500 hover:text-white bg-transparent"><X size={16} /></button>
-                                        </div>
-                                    </div>
-                                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-                                        {(() => {
-                                            const newBookings = (stats?.latestNewBookings || []).map(b => ({
-                                                id: b.id,
-                                                type: 'booking',
-                                                title: 'Yeni Rezervasyon (Bekliyor)',
-                                                desc: `${b.car?.brand} ${b.car?.model} - ${b.customerName} ${b.customerSurname}`,
-                                                code: b.bookingCode || b.id,
-                                                date: b.createdAt,
-                                                icon: <CarIcon size={16} />,
-                                                color: 'primary',
-                                                read: b.adminRead
-                                            }));
-
-                                            const paidBookings = (stats?.latestPaidBookings || []).map(b => ({
-                                                id: b.id + '_paid',
-                                                originalId: b.id,
-                                                type: 'booking',
-                                                title: 'Ödeme Alındı',
-                                                desc: `${b.car?.brand} ${b.car?.model} - ${b.customerName} ${b.customerSurname}`,
-                                                code: b.bookingCode || b.id,
-                                                date: b.paidAt,
-                                                icon: <Check size={16} />,
-                                                color: 'green',
-                                                read: b.adminRead
-                                            }));
-
-                                            const pendingFranchise = (stats?.latestPendingFranchiseApplications || []).map(f => ({
-                                                id: f.id,
-                                                type: 'franchise',
-                                                title: 'Bayilik Başvurusu',
-                                                desc: f.companyName || f.contactName,
-                                                date: f.submittedAt,
-                                                icon: <Building2 size={16} />,
-                                                color: 'yellow',
-                                                read: f.adminRead
-                                            }));
-
-                                            const allNotifications = [...newBookings, ...paidBookings, ...pendingFranchise]
-                                                .filter(item => !item.read)
-                                                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-                                            if (allNotifications.length === 0) {
-                                                return (
-                                                    <div className="p-8 text-center text-gray-500 text-sm">
-                                                        <Check className="w-8 h-8 mx-auto mb-2 text-green-500/20" />
-                                                        Bildirim yok.
-                                                    </div>
-                                                );
-                                            }
-
-                                            return allNotifications.map((item, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    onClick={() => {
-                                                        // 1. Immediate UI Feedback (Navigation)
-                                                        setShowNotifications(false);
-
-                                                        if (item.type === 'booking') {
-                                                            const bookingId = (item as any).originalId || item.id;
-                                                            setActiveTab('bookings');
-                                                            setSearchTerm('');
-                                                            setHighlightedBookingId(bookingId);
-                                                            setCurrentPage(1);
-                                                            setTimeout(() => setHighlightedBookingId(null), 5000);
-                                                            const element = document.getElementById('bookings-section');
-                                                            if (element) element.scrollIntoView({ behavior: 'smooth' });
-                                                        } else if (item.type === 'franchise') {
-                                                            setActiveTab('franchise');
-                                                            setFranchiseSearchTerm('');
-                                                            setHighlightedFranchiseId(item.id);
-                                                            setFranchisePage(1);
-                                                            setTimeout(() => setHighlightedFranchiseId(null), 5000);
-                                                            const element = document.getElementById('franchise-section');
-                                                            if (element) element.scrollIntoView({ behavior: 'smooth' });
-                                                        }
-
-                                                        // 2. Background API Call
-                                                        if (!item.read) {
-                                                            const idToMark = (item as any).originalId || item.id;
-                                                            // Fire and forget, don't await
-                                                            adminService.markNotificationRead(idToMark, item.type as any)
-                                                                .then(() => queryClient.invalidateQueries({ queryKey: ['admin-stats'] }))
-                                                                .catch(err => console.error("Failed to mark read", err));
-                                                        }
-                                                    }}
-                                                    className={`p-4 border-b border-white/5 last:border-0 transition-colors cursor-pointer flex gap-4 items-start ${!item.read ? 'bg-white/5 hover:bg-white/10' : 'hover:bg-white/5 opacity-60'
-                                                        } ${item.color === 'green' ? 'border-l-2 border-l-green-500' : 'border-l-2 border-l-primary-500'}`}
-                                                >
-                                                    <div className={`mt-1 p-2 rounded-lg ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : 'bg-primary-500/20 text-primary-400'}`}>
-                                                        {item.icon}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <div className="flex justify-between items-start">
-                                                            <div className={`text-sm font-bold ${!item.read ? 'text-white' : 'text-gray-400'}`}>{item.title}</div>
-                                                            {!item.read && <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5" />}
-                                                        </div>
-                                                        <div className="text-xs text-gray-300 mt-0.5">{item.desc}</div>
-                                                        <div className="text-[10px] text-gray-500 mt-2 font-medium">
-                                                            {new Date(item.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                                                            <span className="mx-1">•</span>
-                                                            {new Date(item.date).toLocaleDateString('tr-TR')}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ));
-                                        })()}
+                            {isSystemMenuOpen && (
+                                <div className="absolute top-full mt-2 right-0 w-48 bg-[#1a1b26] border border-white/10 rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="p-1">
+                                        {currentUser?.role === 'ADMIN' && (
+                                            <>
+                                                <Link to="/admin/audit-logs" onClick={() => setIsSystemMenuOpen(false)}>
+                                                    <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left">
+                                                        <Clock className="w-4 h-4 text-amber-500" />
+                                                        İşlem Geçmişi
+                                                    </button>
+                                                </Link>
+                                                <Link to="/admin/users" onClick={() => setIsSystemMenuOpen(false)}>
+                                                    <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left">
+                                                        <Users className="w-4 h-4 text-emerald-500" />
+                                                        Kullanıcılar
+                                                    </button>
+                                                </Link>
+                                                <Link to="/admin/backup" onClick={() => setIsSystemMenuOpen(false)}>
+                                                    <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left">
+                                                        <Database className="w-4 h-4 text-blue-500" />
+                                                        Yedekleme
+                                                    </button>
+                                                </Link>
+                                                <div className="h-px bg-white/10 my-1" />
+                                            </>
+                                        )}
+                                        <button
+                                            onClick={() => {
+                                                setIsSettingsOpen(true);
+                                                setIsSystemMenuOpen(false);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left"
+                                        >
+                                            <Megaphone className="w-4 h-4 text-purple-500" />
+                                            Bildirim Ayarları
+                                        </button>
                                     </div>
                                 </div>
                             )}
+                        </div>
+
+                        <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block" />
+
+                        {/* Quick Actions */}
+                        <div className="flex items-center gap-2">
+                            {/* Notification Bell */}
+                            <div className="relative" ref={notificationRef}>
+                                <Button
+                                    variant="secondary"
+                                    className="relative w-11 h-11 p-0 rounded-xl bg-white/[0.04] border-white/[0.06] hover:bg-white/[0.08]"
+                                    onClick={() => setShowNotifications(!showNotifications)}
+                                >
+                                    {(() => {
+                                        const newBookings = stats?.latestNewBookings || [];
+                                        const pendingFranchise = stats?.latestPendingFranchiseApplications || [];
+                                        const paidBookings = stats?.latestPaidBookings || [];
+
+                                        const unreadCount = [
+                                            ...newBookings.filter(b => !b.adminRead),
+                                            ...pendingFranchise.filter(f => !f.adminRead),
+                                            ...paidBookings.filter(b => !b.adminRead)
+                                        ].length;
+
+                                        return unreadCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-dark-bg">
+                                                {unreadCount}
+                                            </span>
+                                        );
+                                    })()}
+                                    <Bell className="w-5 h-5 text-gray-400" />
+                                </Button>
+
+                                {/* Notification Dropdown */}
+                                {showNotifications && (
+                                    <div className="absolute right-0 mt-4 w-96 bg-dark-surface border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                                        <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                                            <h3 className="font-bold text-white">Bildirimler</h3>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            setShowNotifications(false); // Close immediately for better UX
+                                                            await adminService.markAllNotificationsRead();
+                                                            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+                                                        } catch (err) {
+                                                            console.error("Failed to mark all read", err);
+                                                        }
+                                                    }}
+                                                    className="text-xs font-bold text-primary-400 hover:text-primary-300 transition-colors mr-2"
+                                                >
+                                                    Tümünü Temizle
+                                                </button>
+                                                <button
+                                                    onClick={() => setShowNotifications(false)}
+                                                    className="text-gray-500 hover:text-white bg-transparent"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                                            {(() => {
+                                                const newBookings = (stats?.latestNewBookings || []).map(b => ({
+                                                    id: b.id,
+                                                    type: 'booking',
+                                                    title: 'Yeni Rezervasyon (Bekliyor)',
+                                                    desc: `${b.car?.brand} ${b.car?.model} - ${b.customerName} ${b.customerSurname}`,
+                                                    code: b.bookingCode || b.id,
+                                                    date: b.createdAt,
+                                                    icon: <CarIcon size={16} />,
+                                                    color: 'primary',
+                                                    read: b.adminRead
+                                                }));
+
+                                                const paidBookings = (stats?.latestPaidBookings || []).map(b => ({
+                                                    id: b.id + '_paid',
+                                                    originalId: b.id,
+                                                    type: 'booking',
+                                                    title: 'Ödeme Alındı',
+                                                    desc: `${b.car?.brand} ${b.car?.model} - ${b.customerName} ${b.customerSurname}`,
+                                                    code: b.bookingCode || b.id,
+                                                    date: b.paidAt,
+                                                    icon: <Check size={16} />,
+                                                    color: 'green',
+                                                    read: b.adminRead
+                                                }));
+
+                                                const pendingFranchise = (stats?.latestPendingFranchiseApplications || []).map(f => ({
+                                                    id: f.id,
+                                                    type: 'franchise',
+                                                    title: 'Bayilik Başvurusu',
+                                                    desc: f.companyName || f.contactName,
+                                                    date: f.submittedAt,
+                                                    icon: <Building2 size={16} />,
+                                                    color: 'yellow',
+                                                    read: f.adminRead
+                                                }));
+
+                                                const allNotifications = [...newBookings, ...paidBookings, ...pendingFranchise]
+                                                    .filter(item => !item.read)
+                                                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                                                if (allNotifications.length === 0) {
+                                                    return (
+                                                        <div className="p-8 text-center text-gray-500 text-sm">
+                                                            <Check className="w-8 h-8 mx-auto mb-2 text-green-500/20" />
+                                                            Bildirim yok.
+                                                        </div>
+                                                    );
+                                                }
+
+                                                return allNotifications.map((item, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        onClick={() => {
+                                                            // 1. Immediate UI Feedback (Navigation)
+                                                            setShowNotifications(false);
+
+                                                            if (item.type === 'booking') {
+                                                                const bookingId = (item as any).originalId || item.id;
+                                                                setActiveTab('bookings');
+                                                                setSearchTerm('');
+                                                                setHighlightedBookingId(bookingId);
+                                                                setCurrentPage(1);
+                                                                setTimeout(() => setHighlightedBookingId(null), 5000);
+                                                                const element = document.getElementById('bookings-section');
+                                                                if (element) element.scrollIntoView({ behavior: 'smooth' });
+                                                            } else if (item.type === 'franchise') {
+                                                                setActiveTab('franchise');
+                                                                setFranchiseSearchTerm('');
+                                                                setHighlightedFranchiseId(item.id);
+                                                                setFranchisePage(1);
+                                                                setTimeout(() => setHighlightedFranchiseId(null), 5000);
+                                                                const element = document.getElementById('franchise-section');
+                                                                if (element) element.scrollIntoView({ behavior: 'smooth' });
+                                                            }
+
+                                                            // 2. Background API Call
+                                                            if (!item.read) {
+                                                                const idToMark = (item as any).originalId || item.id;
+                                                                // Fire and forget, don't await
+                                                                adminService.markNotificationRead(idToMark, item.type as any)
+                                                                    .then(() => queryClient.invalidateQueries({ queryKey: ['admin-stats'] }))
+                                                                    .catch(err => console.error("Failed to mark read", err));
+                                                            }
+                                                        }}
+                                                        className={`p-4 border-b border-white/5 last:border-0 transition-colors cursor-pointer flex gap-4 items-start ${!item.read ? 'bg-white/5 hover:bg-white/10' : 'hover:bg-white/5 opacity-60'
+                                                            } ${item.color === 'green' ? 'border-l-2 border-l-green-500' : 'border-l-2 border-l-primary-500'}`}
+                                                    >
+                                                        <div className={`mt-1 p-2 rounded-lg ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : 'bg-primary-500/20 text-primary-400'}`}>
+                                                            {item.icon}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="flex justify-between items-start">
+                                                                <div className={`text-sm font-bold ${!item.read ? 'text-white' : 'text-gray-400'}`}>{item.title}</div>
+                                                                {!item.read && <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5" />}
+                                                            </div>
+                                                            <div className="text-xs text-gray-300 mt-0.5">{item.desc}</div>
+                                                            <div className="text-[10px] text-gray-500 mt-2 font-medium">
+                                                                {new Date(item.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                                                <span className="mx-1">•</span>
+                                                                {new Date(item.date).toLocaleDateString('tr-TR')}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ));
+                                            })()}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Primary Action */}
+                            <button
+                                onClick={() => setShowManualModal(true)}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-400 hover:to-indigo-400 shadow-[0_4px_20px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_25px_rgba(99,102,241,0.5)] transition-all duration-300"
+                            >
+                                <Plus className="w-5 h-5" />
+                                <span className="hidden sm:inline">Yeni Rezervasyon</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1752,7 +1875,7 @@ export const AdminDashboard = () => {
                         { key: 'overview', label: 'Genel Bakış', icon: <TrendingUp className="w-4 h-4" />, count: null },
                         { key: 'bookings', label: 'Rezervasyonlar', icon: <Calendar className="w-4 h-4" />, count: stats?.totalBookings || null },
                         { key: 'franchise', label: 'Franchise', icon: <Building2 className="w-4 h-4" />, count: stats?.pendingFranchiseApplications || null },
-                        { key: 'insurance', label: 'Sigorta', icon: <Shield className="w-4 h-4" />, count: insuranceData?.pagination?.total || null },
+                        { key: 'insurance', label: 'Sigorta', icon: <Shield className="w-4 h-4" />, count: stats?.totalInsurances || null },
                     ] as const).map((tab) => {
                         const isActive = activeTab === tab.key;
                         return (
@@ -1785,986 +1908,1002 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Revenue Analytics Section */}
-                {activeTab === 'overview' && (
-                    <>
-                        {revenueData && (
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {/* Main Revenue Chart (Dual Axis) */}
-                                <div className="lg:col-span-2 bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                                    <div className="p-6 border-b border-white/10">
-                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                            <div>
-                                                <h2 className="text-xl font-bold text-white">Gelir Analizi</h2>
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <span className="text-3xl font-black text-green-400">
-                                                        {revenueData.summary.currentYear.toLocaleString()} ₺
-                                                    </span>
-                                                    <span className={`flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${revenueData.summary.growth >= 0
-                                                        ? 'bg-green-500/20 text-green-400'
-                                                        : 'bg-red-500/20 text-red-400'
-                                                        }`}>
-                                                        {revenueData.summary.growth >= 0
-                                                            ? <ArrowUpRight className="w-4 h-4" />
-                                                            : <ArrowDownRight className="w-4 h-4" />
-                                                        }
-                                                        {Math.abs(Number(revenueData.summary.growth.toFixed(1)))}%
-                                                    </span>
+                {
+                    activeTab === 'overview' && (
+                        <>
+                            {revenueData && (
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    {/* Main Revenue Chart (Dual Axis) */}
+                                    <div className="lg:col-span-2 bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                                        <div className="p-6 border-b border-white/10">
+                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                                <div>
+                                                    <h2 className="text-xl font-bold text-white">Gelir Analizi</h2>
+                                                    <div className="flex items-center gap-2 mt-2">
+                                                        <span className="text-3xl font-black text-green-400">
+                                                            {revenueData.summary.currentYear.toLocaleString()} ₺
+                                                        </span>
+                                                        <span className={`flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${revenueData.summary.growth >= 0
+                                                            ? 'bg-green-500/20 text-green-400'
+                                                            : 'bg-red-500/20 text-red-400'
+                                                            }`}>
+                                                            {revenueData.summary.growth >= 0
+                                                                ? <ArrowUpRight className="w-4 h-4" />
+                                                                : <ArrowDownRight className="w-4 h-4" />
+                                                            }
+                                                            {Math.abs(Number(revenueData.summary.growth.toFixed(1)))}%
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <select
-                                                    value={selectedYear}
-                                                    onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                                    className="px-4 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                                >
-                                                    {revenueData.availableYears.map((year: number) => (
-                                                        <option key={year} value={year} className="bg-dark-bg">{year}</option>
-                                                    ))}
-                                                </select>
-                                                <div className="flex bg-dark-bg rounded-xl p-1 border border-white/10">
-                                                    {(['weekly', 'monthly', 'yearly'] as const).map((view) => (
-                                                        <button
-                                                            key={view}
-                                                            onClick={() => setChartView(view)}
-                                                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${chartView === view
-                                                                ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
-                                                                : 'text-gray-400 hover:text-white'
-                                                                }`}
-                                                        >
-                                                            {view === 'weekly' ? 'Haftalık' : view === 'monthly' ? 'Aylık' : 'Yıllık'}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                                <button
-                                                    onClick={async () => {
-                                                        if (!revenueData) return;
-
-                                                        // Dynamic imports — loaded only when export is triggered
-                                                        const [{ default: ExcelJS }, { saveAs }] = await Promise.all([
-                                                            import('exceljs'),
-                                                            import('file-saver'),
-                                                        ]);
-
-                                                        const workbook = new ExcelJS.Workbook();
-                                                        const worksheet = workbook.addWorksheet('Gelir Raporu');
-
-                                                        // 1. Add Title
-                                                        worksheet.mergeCells('A1:E1');
-                                                        const titleCell = worksheet.getCell('A1');
-                                                        titleCell.value = `SlonCar Gelir Raporu (${selectedYear}) - ${chartView === 'weekly' ? 'Haftalık' : chartView === 'monthly' ? 'Aylık' : 'Yıllık'}`;
-                                                        titleCell.font = { name: 'Arial', family: 4, size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
-                                                        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } };
-                                                        titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                                                        worksheet.getRow(1).height = 30;
-
-                                                        // 2. Add Summary Data
-                                                        worksheet.addRow(['']);
-                                                        const summaryRow = worksheet.addRow(['Toplam Ciro', 'Adet', 'Büyüme', 'Şu Anki Dönem', 'Geçen Dönem']);
-                                                        summaryRow.font = { bold: true };
-
-                                                        const summaryDataRow = worksheet.addRow([
-                                                            revenueData.summary.currentYear,
-                                                            revenueData.yearly.reduce((acc: number, curr: { bookings: number }) => acc + curr.bookings, 0),
-                                                            revenueData.summary.growth / 100,
-                                                            revenueData.summary.currentMonth,
-                                                            revenueData.summary.lastMonth
-                                                        ]);
-
-                                                        summaryDataRow.getCell(1).numFmt = '#,##0 "₺"';
-                                                        summaryDataRow.getCell(3).numFmt = '0.0%';
-                                                        summaryDataRow.getCell(4).numFmt = '#,##0 "₺"';
-                                                        summaryDataRow.getCell(5).numFmt = '#,##0 "₺"';
-
-                                                        // 3. Add Main Table Data
-                                                        worksheet.addRow(['']);
-                                                        worksheet.addRow(['']);
-
-                                                        const headers = ['Dönem', 'Gelir', 'Rezervasyon Sayısı', 'Ortalama Gelir'];
-                                                        const headerRow = worksheet.addRow(headers);
-                                                        headerRow.eachCell((cell) => {
-                                                            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                                                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4B5563' } };
-                                                            cell.alignment = { horizontal: 'center' };
-                                                        });
-
-                                                        const chartData = getChartData();
-                                                        chartData.forEach((d: any) => {
-                                                            const row = worksheet.addRow([
-                                                                d[getDataKey()],
-                                                                d.revenue,
-                                                                d.bookings,
-                                                                d.bookings > 0 ? d.revenue / d.bookings : 0
-                                                            ]);
-                                                            row.getCell(2).numFmt = '#,##0 "₺"';
-                                                            row.getCell(4).numFmt = '#,##0 "₺"';
-                                                            row.getCell(1).alignment = { horizontal: 'center' };
-                                                            row.getCell(3).alignment = { horizontal: 'center' };
-                                                        });
-
-                                                        // 4. Add Category Breakdown
-                                                        if (revenueData.byCategory?.length) {
-                                                            worksheet.addRow(['']);
-                                                            worksheet.addRow(['']);
-                                                            const catHeader = worksheet.addRow(['Kategori', 'Gelir']);
-                                                            catHeader.eachCell((cell) => {
-                                                                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                                                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6366F1' } };
-                                                                cell.alignment = { horizontal: 'center' };
-                                                            });
-                                                            revenueData.byCategory.forEach((c: { name: string; value: number }) => {
-                                                                const row = worksheet.addRow([c.name, c.value]);
-                                                                row.getCell(2).numFmt = '#,##0 "₺"';
-                                                            });
-                                                        }
-
-                                                        // 5. Add Brand Breakdown
-                                                        if (revenueData.byBrand?.length) {
-                                                            worksheet.addRow(['']);
-                                                            const brandHeader = worksheet.addRow(['Marka', 'Gelir']);
-                                                            brandHeader.eachCell((cell) => {
-                                                                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                                                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } };
-                                                                cell.alignment = { horizontal: 'center' };
-                                                            });
-                                                            revenueData.byBrand.forEach((b: { name: string; value: number }) => {
-                                                                const row = worksheet.addRow([b.name, b.value]);
-                                                                row.getCell(2).numFmt = '#,##0 "₺"';
-                                                            });
-                                                        }
-
-                                                        // Auto-width columns
-                                                        worksheet.columns.forEach(column => {
-                                                            column.width = 20;
-                                                        });
-                                                        worksheet.getColumn(1).width = 25;
-
-                                                        // Generate Buffer
-                                                        const buffer = await workbook.xlsx.writeBuffer();
-                                                        saveAs(new Blob([buffer]), `SlonCar_Gelir_Raporu_${selectedYear}.xlsx`);
-                                                    }}
-                                                    className="p-2.5 rounded-xl bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all"
-                                                    title="Excel İndir (Grafikli)"
-                                                >
-                                                    <Download className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="p-6">
-                                        <div className="h-80" id="main-revenue-chart">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <ComposedChart data={getChartData()}>
-                                                    <defs>
-                                                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                                        </linearGradient>
-                                                    </defs>
-                                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                                                    <XAxis
-                                                        dataKey={getDataKey()}
-                                                        stroke="#9ca3af"
-                                                        fontSize={12}
-                                                        tickLine={false}
-                                                        axisLine={false}
-                                                    />
-                                                    <YAxis
-                                                        yAxisId="left"
-                                                        stroke="#9ca3af"
-                                                        fontSize={12}
-                                                        tickLine={false}
-                                                        axisLine={false}
-                                                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                                                    />
-                                                    <YAxis
-                                                        yAxisId="right"
-                                                        orientation="right"
-                                                        stroke="#9ca3af"
-                                                        fontSize={12}
-                                                        tickLine={false}
-                                                        axisLine={false}
-                                                    />
-                                                    <Tooltip
-                                                        contentStyle={{
-                                                            backgroundColor: '#1e293b',
-                                                            border: '1px solid rgba(255,255,255,0.1)',
-                                                            borderRadius: '12px',
-                                                            color: 'white',
-                                                            boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)'
-                                                        }}
-                                                        itemStyle={{ padding: 0 }}
-                                                        labelStyle={{ marginBottom: '8px', fontWeight: 'bold', color: '#e2e8f0' }}
-                                                        formatter={(value: any, name: any) => [
-                                                            name === 'revenue'
-                                                                ? <span key="revenue" className="text-primary-400 font-bold">{Number(value).toLocaleString()} ₺</span>
-                                                                : <span key="bookings" className="text-orange-400 font-bold">{value} Adet</span>,
-                                                            name === 'revenue' ? 'Gelir' : 'Rezervasyon'
-                                                        ]}
-                                                    />
-                                                    <Area
-                                                        yAxisId="left"
-                                                        type="monotone"
-                                                        dataKey="revenue"
-                                                        stroke="#6366f1"
-                                                        strokeWidth={3}
-                                                        fillOpacity={1}
-                                                        fill="url(#colorRevenue)"
-                                                    />
-                                                    <Line
-                                                        yAxisId="right"
-                                                        type="monotone"
-                                                        dataKey="bookings"
-                                                        stroke="#f97316"
-                                                        strokeWidth={3}
-                                                        dot={{ r: 4, fill: '#1e293b', stroke: '#f97316', strokeWidth: 2 }}
-                                                        activeDot={{ r: 6, fill: '#f97316' }}
-                                                    />
-                                                </ComposedChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Category Breakdown (Mock Pie Chart) */}
-                                <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                                    <div className="p-6 border-b border-white/10">
-                                        <h2 className="text-xl font-bold text-white">Kategori Dağılımı</h2>
-                                        <p className="text-xs text-gray-500 mt-1">Hasılatın araç türüne göre dağılımı</p>
-                                    </div>
-                                    <div className="p-6">
-                                        <div className="h-[200px] relative" id="category-pie-chart">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie
-                                                        data={[
-                                                            { name: 'SUV', value: 35, color: '#6366f1' },       // Indigo
-                                                            { name: 'Sedan', value: 25, color: '#8b5cf6' },     // Violet
-                                                            { name: 'Lüks', value: 20, color: '#ec4899' },      // Pink
-                                                            { name: 'Hatchback', value: 15, color: '#06b6d4' }, // Cyan
-                                                            { name: 'Van', value: 5, color: '#10b981' }         // Emerald
-                                                        ]}
-                                                        cx="50%"
-                                                        cy="50%"
-                                                        innerRadius={60}
-                                                        outerRadius={80}
-                                                        paddingAngle={5}
-                                                        dataKey="value"
-                                                        stroke="none"
+                                                <div className="flex items-center gap-3">
+                                                    <select
+                                                        value={selectedYear}
+                                                        onChange={(e) => setSelectedYear(Number(e.target.value))}
+                                                        className="px-4 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                                                     >
-                                                        {[
-                                                            { name: 'SUV', value: 35, color: '#6366f1' },
-                                                            { name: 'Sedan', value: 25, color: '#8b5cf6' },
-                                                            { name: 'Lüks', value: 20, color: '#ec4899' },
-                                                            { name: 'Hatchback', value: 15, color: '#06b6d4' },
-                                                            { name: 'Van', value: 5, color: '#10b981' }
-                                                        ].map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                                        {revenueData.availableYears.map((year: number) => (
+                                                            <option key={year} value={year} className="bg-dark-bg">{year}</option>
                                                         ))}
-                                                    </Pie>
-                                                    <Tooltip
-                                                        contentStyle={{
-                                                            backgroundColor: '#1e293b',
-                                                            border: '1px solid rgba(255,255,255,0.1)',
-                                                            borderRadius: '12px',
-                                                            color: 'white'
+                                                    </select>
+                                                    <div className="flex bg-dark-bg rounded-xl p-1 border border-white/10">
+                                                        {(['weekly', 'monthly', 'yearly'] as const).map((view) => (
+                                                            <button
+                                                                key={view}
+                                                                onClick={() => setChartView(view)}
+                                                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${chartView === view
+                                                                    ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
+                                                                    : 'text-gray-400 hover:text-white'
+                                                                    }`}
+                                                            >
+                                                                {view === 'weekly' ? 'Haftalık' : view === 'monthly' ? 'Aylık' : 'Yıllık'}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (!revenueData) return;
+
+                                                            // Dynamic imports — loaded only when export is triggered
+                                                            const [{ default: ExcelJS }, { saveAs }] = await Promise.all([
+                                                                import('exceljs'),
+                                                                import('file-saver'),
+                                                            ]);
+
+                                                            const workbook = new ExcelJS.Workbook();
+                                                            const worksheet = workbook.addWorksheet('Gelir Raporu');
+
+                                                            // 1. Add Title
+                                                            worksheet.mergeCells('A1:E1');
+                                                            const titleCell = worksheet.getCell('A1');
+                                                            titleCell.value = `SlonCar Gelir Raporu (${selectedYear}) - ${chartView === 'weekly' ? 'Haftalık' : chartView === 'monthly' ? 'Aylık' : 'Yıllık'}`;
+                                                            titleCell.font = { name: 'Arial', family: 4, size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+                                                            titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } };
+                                                            titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+                                                            worksheet.getRow(1).height = 30;
+
+                                                            // 2. Add Summary Data
+                                                            worksheet.addRow(['']);
+                                                            const summaryRow = worksheet.addRow(['Toplam Ciro', 'Adet', 'Büyüme', 'Şu Anki Dönem', 'Geçen Dönem']);
+                                                            summaryRow.font = { bold: true };
+
+                                                            const summaryDataRow = worksheet.addRow([
+                                                                revenueData.summary.currentYear,
+                                                                revenueData.yearly.reduce((acc: number, curr: { bookings: number }) => acc + curr.bookings, 0),
+                                                                revenueData.summary.growth / 100,
+                                                                revenueData.summary.currentMonth,
+                                                                revenueData.summary.lastMonth
+                                                            ]);
+
+                                                            summaryDataRow.getCell(1).numFmt = '#,##0 "₺"';
+                                                            summaryDataRow.getCell(3).numFmt = '0.0%';
+                                                            summaryDataRow.getCell(4).numFmt = '#,##0 "₺"';
+                                                            summaryDataRow.getCell(5).numFmt = '#,##0 "₺"';
+
+                                                            // 3. Add Main Table Data
+                                                            worksheet.addRow(['']);
+                                                            worksheet.addRow(['']);
+
+                                                            const headers = ['Dönem', 'Gelir', 'Rezervasyon Sayısı', 'Ortalama Gelir'];
+                                                            const headerRow = worksheet.addRow(headers);
+                                                            headerRow.eachCell((cell) => {
+                                                                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                                                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4B5563' } };
+                                                                cell.alignment = { horizontal: 'center' };
+                                                            });
+
+                                                            const chartData = getChartData();
+                                                            chartData.forEach((d: any) => {
+                                                                const row = worksheet.addRow([
+                                                                    d[getDataKey()],
+                                                                    d.revenue,
+                                                                    d.bookings,
+                                                                    d.bookings > 0 ? d.revenue / d.bookings : 0
+                                                                ]);
+                                                                row.getCell(2).numFmt = '#,##0 "₺"';
+                                                                row.getCell(4).numFmt = '#,##0 "₺"';
+                                                                row.getCell(1).alignment = { horizontal: 'center' };
+                                                                row.getCell(3).alignment = { horizontal: 'center' };
+                                                            });
+
+                                                            // 4. Add Category Breakdown
+                                                            if (revenueData.byCategory?.length) {
+                                                                worksheet.addRow(['']);
+                                                                worksheet.addRow(['']);
+                                                                const catHeader = worksheet.addRow(['Kategori', 'Gelir']);
+                                                                catHeader.eachCell((cell) => {
+                                                                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                                                                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6366F1' } };
+                                                                    cell.alignment = { horizontal: 'center' };
+                                                                });
+                                                                revenueData.byCategory.forEach((c: { name: string; value: number }) => {
+                                                                    const row = worksheet.addRow([c.name, c.value]);
+                                                                    row.getCell(2).numFmt = '#,##0 "₺"';
+                                                                });
+                                                            }
+
+                                                            // 5. Add Brand Breakdown
+                                                            if (revenueData.byBrand?.length) {
+                                                                worksheet.addRow(['']);
+                                                                const brandHeader = worksheet.addRow(['Marka', 'Gelir']);
+                                                                brandHeader.eachCell((cell) => {
+                                                                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                                                                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } };
+                                                                    cell.alignment = { horizontal: 'center' };
+                                                                });
+                                                                revenueData.byBrand.forEach((b: { name: string; value: number }) => {
+                                                                    const row = worksheet.addRow([b.name, b.value]);
+                                                                    row.getCell(2).numFmt = '#,##0 "₺"';
+                                                                });
+                                                            }
+
+                                                            // Auto-width columns
+                                                            worksheet.columns.forEach(column => {
+                                                                column.width = 20;
+                                                            });
+                                                            worksheet.getColumn(1).width = 25;
+
+                                                            // Generate Buffer
+                                                            const buffer = await workbook.xlsx.writeBuffer();
+                                                            saveAs(new Blob([buffer]), `SlonCar_Gelir_Raporu_${selectedYear}.xlsx`);
                                                         }}
-                                                        formatter={(value: any) => [`%${value}`, 'Pay']}
-                                                    />
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                            {/* Center Text */}
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                                <span className="text-3xl font-black text-white">5</span>
-                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Kategori</span>
+                                                        className="p-2.5 rounded-xl bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all"
+                                                        title="Excel İndir (Grafikli)"
+                                                    >
+                                                        <Download className="w-5 h-5" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                        {/* Legend */}
-                                        <div className="grid grid-cols-2 gap-3 mt-4">
-                                            {[
-                                                { name: 'SUV', value: 35, color: 'bg-primary-500' },
-                                                { name: 'Sedan', value: 25, color: 'bg-violet-500' },
-                                                { name: 'Lüks', value: 20, color: 'bg-pink-500' },
-                                                { name: 'Hatchback', value: 15, color: 'bg-cyan-500' },
-                                                { name: 'Van', value: 5, color: 'bg-emerald-500' }
-                                            ].map((item, i) => (
-                                                <div key={i} className="flex items-center gap-2">
-                                                    <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                                                    <span className="text-sm text-gray-400">{item.name}</span>
-                                                    <span className="text-sm font-bold text-white ml-auto">%{item.value}</span>
+                                        <div className="p-6">
+                                            <div className="h-80" id="main-revenue-chart">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <ComposedChart data={getChartData()}>
+                                                        <defs>
+                                                            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
+                                                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                                                        <XAxis
+                                                            dataKey={getDataKey()}
+                                                            stroke="#9ca3af"
+                                                            fontSize={12}
+                                                            tickLine={false}
+                                                            axisLine={false}
+                                                        />
+                                                        <YAxis
+                                                            yAxisId="left"
+                                                            stroke="#9ca3af"
+                                                            fontSize={12}
+                                                            tickLine={false}
+                                                            axisLine={false}
+                                                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                                        />
+                                                        <YAxis
+                                                            yAxisId="right"
+                                                            orientation="right"
+                                                            stroke="#9ca3af"
+                                                            fontSize={12}
+                                                            tickLine={false}
+                                                            axisLine={false}
+                                                        />
+                                                        <Tooltip
+                                                            contentStyle={{
+                                                                backgroundColor: '#1e293b',
+                                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                                borderRadius: '12px',
+                                                                color: 'white',
+                                                                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)'
+                                                            }}
+                                                            itemStyle={{ padding: 0 }}
+                                                            labelStyle={{ marginBottom: '8px', fontWeight: 'bold', color: '#e2e8f0' }}
+                                                            formatter={(value: any, name: any) => [
+                                                                name === 'revenue'
+                                                                    ? <span key="revenue" className="text-primary-400 font-bold">{Number(value).toLocaleString()} ₺</span>
+                                                                    : <span key="bookings" className="text-orange-400 font-bold">{value} Adet</span>,
+                                                                name === 'revenue' ? 'Gelir' : 'Rezervasyon'
+                                                            ]}
+                                                        />
+                                                        <Area
+                                                            yAxisId="left"
+                                                            type="monotone"
+                                                            dataKey="revenue"
+                                                            stroke="#6366f1"
+                                                            strokeWidth={3}
+                                                            fillOpacity={1}
+                                                            fill="url(#colorRevenue)"
+                                                        />
+                                                        <Line
+                                                            yAxisId="right"
+                                                            type="monotone"
+                                                            dataKey="bookings"
+                                                            stroke="#f97316"
+                                                            strokeWidth={3}
+                                                            dot={{ r: 4, fill: '#1e293b', stroke: '#f97316', strokeWidth: 2 }}
+                                                            activeDot={{ r: 6, fill: '#f97316' }}
+                                                        />
+                                                    </ComposedChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Category Breakdown (Mock Pie Chart) */}
+                                    <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                                        <div className="p-6 border-b border-white/10">
+                                            <h2 className="text-xl font-bold text-white">Kategori Dağılımı</h2>
+                                            <p className="text-xs text-gray-500 mt-1">Hasılatın araç türüne göre dağılımı</p>
+                                        </div>
+                                        <div className="p-6">
+                                            <div className="h-[200px] relative" id="category-pie-chart">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={[
+                                                                { name: 'SUV', value: 35, color: '#6366f1' },       // Indigo
+                                                                { name: 'Sedan', value: 25, color: '#8b5cf6' },     // Violet
+                                                                { name: 'Lüks', value: 20, color: '#ec4899' },      // Pink
+                                                                { name: 'Hatchback', value: 15, color: '#06b6d4' }, // Cyan
+                                                                { name: 'Van', value: 5, color: '#10b981' }         // Emerald
+                                                            ]}
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius={60}
+                                                            outerRadius={80}
+                                                            paddingAngle={5}
+                                                            dataKey="value"
+                                                            stroke="none"
+                                                        >
+                                                            {[
+                                                                { name: 'SUV', value: 35, color: '#6366f1' },
+                                                                { name: 'Sedan', value: 25, color: '#8b5cf6' },
+                                                                { name: 'Lüks', value: 20, color: '#ec4899' },
+                                                                { name: 'Hatchback', value: 15, color: '#06b6d4' },
+                                                                { name: 'Van', value: 5, color: '#10b981' }
+                                                            ].map((entry, index) => (
+                                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                                            ))}
+                                                        </Pie>
+                                                        <Tooltip
+                                                            contentStyle={{
+                                                                backgroundColor: '#1e293b',
+                                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                                borderRadius: '12px',
+                                                                color: 'white'
+                                                            }}
+                                                            formatter={(value: any) => [`%${value}`, 'Pay']}
+                                                        />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                                {/* Center Text */}
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                                    <span className="text-3xl font-black text-white">5</span>
+                                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Kategori</span>
                                                 </div>
-                                            ))}
+                                            </div>
+                                            {/* Legend */}
+                                            <div className="grid grid-cols-2 gap-3 mt-4">
+                                                {[
+                                                    { name: 'SUV', value: 35, color: 'bg-primary-500' },
+                                                    { name: 'Sedan', value: 25, color: 'bg-violet-500' },
+                                                    { name: 'Lüks', value: 20, color: 'bg-pink-500' },
+                                                    { name: 'Hatchback', value: 15, color: 'bg-cyan-500' },
+                                                    { name: 'Van', value: 5, color: 'bg-emerald-500' }
+                                                ].map((item, i) => (
+                                                    <div key={i} className="flex items-center gap-2">
+                                                        <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                                                        <span className="text-sm text-gray-400">{item.name}</span>
+                                                        <span className="text-sm font-bold text-white ml-auto">%{item.value}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </>
-                )}
+                            )}
+                        </>
+                    )
+                }
 
                 {/* All Bookings Table with Pagination */}
-                {activeTab === 'bookings' && (
-                    <div id="bookings-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                        <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <h2 className="text-xl font-bold text-white">Tüm Rezervasyonlar</h2>
-                                <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                    {bookingsData?.pagination?.total || 0} kayıt
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                {currentUser?.role === 'ADMIN' && (
-                                    <div className="flex items-center gap-2">
-                                        <Link to="/admin/audit-logs">
-                                            <Button variant="secondary" size="sm" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white whitespace-nowrap">
-                                                <Clock className="w-4 h-4" />
-                                                İşlem Geçmişi
-                                            </Button>
-                                        </Link>
-                                        <Link to="/admin/users">
-                                            <Button variant="secondary" size="sm" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white whitespace-nowrap">
-                                                <Users className="w-4 h-4" />
-                                                Kullanıcı Yönetimi
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                )}
-                                {/* Filter Toggle */}
-                                <button
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className={`p-2 rounded-lg border transition-all flex items-center gap-2 ${showFilters || statusFilter
-                                        ? 'bg-primary-500/20 border-primary-500/50 text-primary-400'
-                                        : 'bg-dark-bg border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                        }`}
-                                >
-                                    <Filter className="w-4 h-4" />
-                                    {statusFilter && (
-                                        <span className="text-xs font-bold">1</span>
-                                    )}
-                                </button>
-                                {/* Search Input */}
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                    <input
-                                        type="text"
-                                        placeholder="İsim ile ara..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="pl-10 pr-8 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 w-52"
-                                    />
-                                    {searchTerm && (
-                                        <button
-                                            onClick={() => setSearchTerm('')}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                                        >
-                                            ×
-                                        </button>
-                                    )}
+                {
+                    activeTab === 'bookings' && (
+                        <div id="bookings-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                            <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <h2 className="text-xl font-bold text-white">Tüm Rezervasyonlar</h2>
+                                    <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                        {bookingsData?.pagination?.total || 0} kayıt
+                                    </span>
                                 </div>
-                            </div>
-                        </div>
-                        {/* Filter Chips Row */}
-                        {showFilters && (
-                            <div className="px-6 py-4 border-b border-white/10 bg-dark-bg/30">
-                                <div className="flex flex-wrap items-center gap-3">
-                                    <span className="text-xs font-bold text-gray-500 uppercase">Durum:</span>
-                                    <div className="flex flex-wrap gap-2">
-                                        {STATUS_OPTIONS.map((status) => (
+                                <div className="flex items-center gap-3">
+                                    {currentUser?.role === 'ADMIN' && (
+                                        <div className="flex items-center gap-2">
+                                            <Link to="/admin/audit-logs">
+                                                <Button variant="secondary" size="sm" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white whitespace-nowrap">
+                                                    <Clock className="w-4 h-4" />
+                                                    İşlem Geçmişi
+                                                </Button>
+                                            </Link>
+                                            <Link to="/admin/users">
+                                                <Button variant="secondary" size="sm" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white whitespace-nowrap">
+                                                    <Users className="w-4 h-4" />
+                                                    Kullanıcı Yönetimi
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    )}
+                                    {/* Filter Toggle */}
+                                    <button
+                                        onClick={() => setShowFilters(!showFilters)}
+                                        className={`p-2 rounded-lg border transition-all flex items-center gap-2 ${showFilters || statusFilter
+                                            ? 'bg-primary-500/20 border-primary-500/50 text-primary-400'
+                                            : 'bg-dark-bg border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                            }`}
+                                    >
+                                        <Filter className="w-4 h-4" />
+                                        {statusFilter && (
+                                            <span className="text-xs font-bold">1</span>
+                                        )}
+                                    </button>
+                                    {/* Search Input */}
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                        <input
+                                            type="text"
+                                            placeholder="İsim ile ara..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="pl-10 pr-8 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 w-52"
+                                        />
+                                        {searchTerm && (
                                             <button
-                                                key={status.value}
-                                                onClick={() => setStatusFilter(status.value)}
-                                                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${statusFilter === status.value
-                                                    ? status.color === 'green' ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]' :
-                                                        status.color === 'red' ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
-                                                            status.color === 'primary' ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' :
-                                                                'bg-gray-500 text-white shadow-[0_0_15px_rgba(107,114,128,0.4)]'
-                                                    : 'bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                                    }`}
+                                                onClick={() => setSearchTerm('')}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
                                             >
-                                                {status.label}
+                                                ×
                                             </button>
-                                        ))}
+                                        )}
                                     </div>
-                                    {/* Clear Filters */}
-                                    {statusFilter && (
-                                        <button
-                                            onClick={() => setStatusFilter('')}
-                                            className="ml-auto flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors"
-                                        >
-                                            <X className="w-3 h-3" />
-                                            Filtreleri Temizle
-                                        </button>
-                                    )}
                                 </div>
                             </div>
-                        )}
-
-
-                        <div className="overflow-x-auto custom-scrollbar pb-4">
-                            <table className="w-full text-left min-w-[1200px]">
-                                <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
-                                    <tr>
-                                        <th className="p-4 text-center">Kod</th>
-                                        <th className="p-4">Müşteri</th>
-                                        <th className="p-4">Araç</th>
-                                        <th className="p-4 text-center">Tarihler</th>
-                                        <th className="p-4 text-center">Ödeme & Tutar</th>
-                                        <th className="p-4 text-center">Durum</th>
-                                        <th className="p-4 text-center">Detaylar</th>
-                                        <th className="p-4 text-center">İşlem</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5 relative">
-                                    {bookingsQueryLoading ? (
-                                        <tr>
-                                            <td colSpan={9} className="p-12 text-center">
-                                                <div className="flex justify-center items-center">
-                                                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : !bookingsData?.data?.length ? (
-                                        <tr>
-                                            <td colSpan={7} className="p-12 text-center">
-                                                <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                                                <p className="text-gray-400">Henüz rezervasyon yok</p>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        bookingsData.data.map((booking: Booking) => (
-                                            <BookingRow
-                                                key={booking.id}
-                                                booking={booking}
-                                                onView={setSelectedBooking}
-                                                onAction={handleAction}
-                                                isHighlighted={highlightedBookingId === booking.id}
-                                            />
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                        {/* Pagination Controls */}
-                        {bookingsData?.pagination && bookingsData.pagination.total > ITEMS_PER_PAGE && (
-                            <div className="p-4 border-t border-white/10 flex items-center justify-between">
-                                <div className="text-sm text-gray-400">
-                                    Sayfa {currentPage} / {bookingsData.pagination.totalPages} ({bookingsData.pagination.total} kayıt)
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setCurrentPage(prev => prev - 1)}
-                                        disabled={currentPage === 1 || bookingsQueryLoading}
-                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                    >
-                                        <ChevronLeft className="w-5 h-5" />
-                                    </button>
-                                    {/* Page Numbers */}
-                                    <div className="flex gap-1">
-                                        {Array.from({ length: Math.min(5, bookingsData.pagination.totalPages) }, (_, i) => {
-                                            const totalPages = bookingsData.pagination.totalPages;
-                                            let pageNum: number;
-                                            if (totalPages <= 5) {
-                                                pageNum = i + 1;
-                                            } else if (currentPage <= 3) {
-                                                pageNum = i + 1;
-                                            } else if (currentPage >= totalPages - 2) {
-                                                pageNum = totalPages - 4 + i;
-                                            } else {
-                                                pageNum = currentPage - 2 + i;
-                                            }
-                                            return (
+                            {/* Filter Chips Row */}
+                            {showFilters && (
+                                <div className="px-6 py-4 border-b border-white/10 bg-dark-bg/30">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <span className="text-xs font-bold text-gray-500 uppercase">Durum:</span>
+                                        <div className="flex flex-wrap gap-2">
+                                            {STATUS_OPTIONS.map((status) => (
                                                 <button
-                                                    key={pageNum}
-                                                    onClick={() => setCurrentPage(pageNum)}
-                                                    disabled={bookingsQueryLoading}
-                                                    className={`w-10 h-10 rounded-lg font-bold transition-all ${currentPage === pageNum
-                                                        ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
-                                                        : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50'
+                                                    key={status.value}
+                                                    onClick={() => setStatusFilter(status.value)}
+                                                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${statusFilter === status.value
+                                                        ? status.color === 'green' ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]' :
+                                                            status.color === 'red' ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
+                                                                status.color === 'primary' ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' :
+                                                                    'bg-gray-500 text-white shadow-[0_0_15px_rgba(107,114,128,0.4)]'
+                                                        : 'bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-white/20'
                                                         }`}
                                                 >
-                                                    {pageNum}
+                                                    {status.label}
                                                 </button>
-                                            );
-                                        })}
-                                    </div>
-                                    <button
-                                        onClick={() => setCurrentPage(prev => prev + 1)}
-                                        disabled={currentPage >= bookingsData.pagination.totalPages || bookingsQueryLoading}
-                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                    >
-                                        <ChevronRight className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-
-                {/* Franchise Applications Section */}
-                {activeTab === 'franchise' && (
-                    <div id="franchise-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                        <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                                        <Building2 className="w-5 h-5 text-purple-400" />
-                                    </div>
-                                    Franchise Başvuruları
-                                </h2>
-                                <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                    {franchiseData?.pagination?.total || 0} başvuru
-                                </span>
-                            </div>
-                            <div className="flex-1 max-w-md flex justify-end">
-                                <div className="relative w-full">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                    <input
-                                        type="text"
-                                        placeholder="İsim, Şirket veya Şehir ile ara..."
-                                        value={franchiseSearchTerm}
-                                        onChange={(e) => setFranchiseSearchTerm(e.target.value)}
-                                        className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
-                                    />
-                                    {franchiseSearchTerm && (
-                                        <button
-                                            onClick={() => setFranchiseSearchTerm('')}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                                        >
-                                            ×
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
-                                    <tr>
-                                        <th className="p-4">Başvuran</th>
-                                        <th className="p-4">İletişim</th>
-                                        <th className="p-4">Lokasyon</th>
-                                        <th className="p-4">Bütçe</th>
-                                        <th className="p-4">Durum</th>
-                                        <th className="p-4">Tarih</th>
-                                        <th className="p-4">İşlem</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5 relative">
-                                    {franchisesQueryLoading ? (
-                                        <tr>
-                                            <td colSpan={7} className="p-12 text-center">
-                                                <div className="flex justify-center items-center">
-                                                    <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : !franchiseData?.data || franchiseData.data.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={7} className="p-12 text-center">
-                                                <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                                                <p className="text-gray-400">Henüz franchise başvurusu yok</p>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        franchiseData.data.map((app: any) => {
-                                            const statusInfo = FRANCHISE_STATUS_LABELS[app.status] || { label: app.status, color: 'gray' };
-                                            const isHighlighted = highlightedFranchiseId === app.id;
-                                            return (
-                                                <tr
-                                                    key={app.id}
-                                                    className={`transition-all group border-b border-white/5 last:border-0 ${isHighlighted
-                                                        ? 'bg-purple-500/20 hover:bg-purple-500/30 shadow-[inset_0_0_20px_rgba(168,85,247,0.2)]'
-                                                        : 'hover:bg-white/5'
-                                                        }`}
-                                                >
-                                                    <td className="p-4 max-w-[200px]">
-                                                        <div className="font-medium text-white truncate" title={app.contactName}>{app.contactName}</div>
-                                                        {app.companyName && <div className="text-xs text-gray-400 truncate" title={app.companyName}>{app.companyName}</div>}
-                                                    </td>
-                                                    <td className="p-4 max-w-[200px]">
-                                                        <div className="text-sm text-gray-300 truncate" title={app.contactEmail}>{app.contactEmail}</div>
-                                                        <div className="text-xs text-gray-500 truncate">{app.contactPhone}</div>
-                                                    </td>
-                                                    <td className="p-4 text-gray-300 truncate max-w-[150px]" title={app.city}>{app.city || '-'}</td>
-                                                    <td className="p-4 text-sm text-gray-400">{app.details?.investmentBudget || '-'}</td>
-                                                    <td className="p-4">
-                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${statusInfo.color === 'green' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                                                            statusInfo.color === 'red' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                                                statusInfo.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                                                                    statusInfo.color === 'blue' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                                        'bg-gray-500/10 text-gray-400 border-gray-500/20'
-                                                            }`}>
-                                                            <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.color === 'green' ? 'bg-green-500' :
-                                                                statusInfo.color === 'red' ? 'bg-red-500' :
-                                                                    statusInfo.color === 'yellow' ? 'bg-yellow-500' :
-                                                                        statusInfo.color === 'blue' ? 'bg-blue-500' :
-                                                                            'bg-gray-500'
-                                                                }`} />
-                                                            {statusInfo.label}
-                                                        </span>
-                                                    </td>
-                                                    <td className="p-4 text-sm text-gray-400">
-                                                        {new Date(app.submittedAt || app.createdAt).toLocaleDateString('tr-TR')}
-                                                    </td>
-                                                    <td className="p-4">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-purple-500/30 text-purple-400 hover:bg-purple-500/20"
-                                                            onClick={() => setSelectedFranchise(app)}
-                                                        >
-                                                            Detaylar
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination Controls */}
-                        {franchiseData?.pagination && franchiseData.pagination.total > ITEMS_PER_PAGE && (
-                            <div className="p-4 border-t border-white/10 flex items-center justify-between">
-                                <div className="text-sm text-gray-400">
-                                    Sayfa {franchisePage} / {franchiseData.pagination.totalPages} ({franchiseData.pagination.total} kayıt)
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setFranchisePage(prev => prev - 1)}
-                                        disabled={franchisePage === 1 || franchisesQueryLoading}
-                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                    >
-                                        <ChevronLeft className="w-5 h-5" />
-                                    </button>
-                                    {/* Page Numbers */}
-                                    <div className="flex gap-1">
-                                        {Array.from({ length: Math.min(5, franchiseData.pagination.totalPages) }, (_, i) => {
-                                            const totalPages = franchiseData.pagination.totalPages;
-                                            let pageNum: number;
-                                            if (totalPages <= 5) {
-                                                pageNum = i + 1;
-                                            } else if (franchisePage <= 3) {
-                                                pageNum = i + 1;
-                                            } else if (franchisePage >= totalPages - 2) {
-                                                pageNum = totalPages - 4 + i;
-                                            } else {
-                                                pageNum = franchisePage - 2 + i;
-                                            }
-                                            return (
-                                                <button
-                                                    key={pageNum}
-                                                    onClick={() => setFranchisePage(pageNum)}
-                                                    disabled={franchisesQueryLoading}
-                                                    className={`w-10 h-10 rounded-lg font-bold transition-all ${franchisePage === pageNum
-                                                        ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
-                                                        : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50'
-                                                        }`}
-                                                >
-                                                    {pageNum}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    <button
-                                        onClick={() => setFranchisePage(prev => prev + 1)}
-                                        disabled={franchisePage >= franchiseData.pagination.totalPages || franchisesQueryLoading}
-                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                    >
-                                        <ChevronRight className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-
-                {/* Insurance Section */}
-                {activeTab === 'insurance' && (
-                    <div id="insurance-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                        <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                                        <Building2 className="w-5 h-5 text-blue-400" />
-                                    </div>
-                                    Sigortalar
-                                </h2>
-                                <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                    {insuranceData?.pagination?.total || 0} kayıt
-                                </span>
-                            </div>
-                            <div className="flex-1 max-w-2xl flex justify-end items-center gap-4">
-                                <Button
-                                    onClick={async () => {
-                                        try {
-                                            const response = await adminService.exportInsurances();
-                                            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                                            const { saveAs } = await import('file-saver');
-                                            saveAs(blob, `Sigortalar_${new Date().toLocaleDateString('tr-TR')}.xlsx`);
-                                            toast('Excel başarıyla indirildi', 'success');
-                                        } catch (error) {
-                                            console.error('Export error:', error);
-                                            toast('Excel indirilirken bir hata oluştu', 'error');
-                                        }
-                                    }}
-                                    className="bg-[#107c41] hover:bg-[#0c5c30] text-white border-none shadow-lg shadow-green-900/20 flex items-center gap-2 transition-all hover:scale-105 whitespace-nowrap px-6"
-                                >
-                                    <Download className="w-4 h-4" />
-                                    <span className="font-semibold">Excel İndir</span>
-                                </Button>
-                                <div className="relative w-full max-w-md">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                    <input
-                                        type="text"
-                                        placeholder="Poliçe, Şirket veya Kullanıcı Ara..."
-                                        value={insuranceSearchTerm}
-                                        onChange={(e) => setInsuranceSearchTerm(e.target.value)}
-                                        className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
-                                    />
-                                    {insuranceSearchTerm && (
-                                        <button
-                                            onClick={() => setInsuranceSearchTerm('')}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                                        >
-                                            ×
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="overflow-x-auto custom-scrollbar">
-                            <table className="w-full text-left">
-                                <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
-                                    <tr>
-                                        <th className="p-4">Kullanıcı</th>
-                                        <th className="p-4">Sigorta Şirketi</th>
-                                        <th className="p-4">Poliçe No</th>
-                                        <th className="p-4">Detaylar</th>
-                                        <th className="p-4">Erişim</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5">
-                                    {insurancesQueryLoading ? (
-                                        <tr>
-                                            <td colSpan={5} className="p-12 text-center text-gray-500">
-                                                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
-                                                Yükleniyor...
-                                            </td>
-                                        </tr>
-                                    ) : !insuranceData?.data || insuranceData.data.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={5} className="p-12 text-center text-gray-500">
-                                                Kayıt bulunamadı.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        insuranceData.data.map((insurance: any) => (
-                                            <tr key={insurance.id} className="hover:bg-white/5 transition-colors border-b border-white/5">
-                                                <td className="p-4">
-                                                    <div className="font-medium text-white">{insurance.user?.name || insurance.fullName}</div>
-                                                    <div className="text-xs text-gray-500">{insurance.user?.email || insurance.email}</div>
-                                                </td>
-                                                <td className="p-4 text-gray-300 font-bold">{insurance.insuranceCompany}</td>
-                                                <td className="p-4">
-                                                    <span className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg border border-blue-500/20 font-mono text-sm">
-                                                        {insurance.policyNumber}
-                                                    </span>
-                                                </td>
-                                                <td className="p-4 text-sm text-gray-400 max-w-xs truncate" title={insurance.description}>
-                                                    {insurance.description || '-'}
-                                                </td>
-                                                <td className="p-4">
-                                                    {insurance.fileUrl ? (
-                                                        <a
-                                                            href={insurance.fileUrl}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-bold"
-                                                        >
-                                                            <Info className="w-4 h-4" />
-                                                            Belge Görüntüle
-                                                        </a>
-                                                    ) : (
-                                                        <span className="text-gray-600 italic text-xs">Dosya Yok</span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination Controls */}
-                        {insuranceData?.pagination && insuranceData.pagination.total > ITEMS_PER_PAGE && (
-                            <div className="p-4 border-t border-white/10 flex items-center justify-between">
-                                <div className="text-sm text-gray-400">
-                                    Sayfa {insurancePage} / {insuranceData.pagination.totalPages} ({insuranceData.pagination.total} kayıt)
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setInsurancePage(prev => prev - 1)}
-                                        disabled={insurancePage === 1 || insurancesQueryLoading}
-                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                    >
-                                        <ChevronLeft className="w-5 h-5" />
-                                    </button>
-                                    <div className="flex gap-1">
-                                        {Array.from({ length: Math.min(5, insuranceData.pagination.totalPages) }, (_, i) => {
-                                            const totalPages = insuranceData.pagination.totalPages;
-                                            let pageNum: number;
-                                            if (totalPages <= 5) {
-                                                pageNum = i + 1;
-                                            } else if (insurancePage <= 3) {
-                                                pageNum = i + 1;
-                                            } else if (insurancePage >= totalPages - 2) {
-                                                pageNum = totalPages - 4 + i;
-                                            } else {
-                                                pageNum = insurancePage - 2 + i;
-                                            }
-                                            return (
-                                                <button
-                                                    key={pageNum}
-                                                    onClick={() => setInsurancePage(pageNum)}
-                                                    disabled={insurancesQueryLoading}
-                                                    className={`w-10 h-10 rounded-lg font-bold transition-all ${insurancePage === pageNum
-                                                        ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
-                                                        : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50'
-                                                        }`}
-                                                >
-                                                    {pageNum}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    <button
-                                        onClick={() => setInsurancePage(prev => prev + 1)}
-                                        disabled={insurancePage >= insuranceData.pagination.totalPages || insurancesQueryLoading}
-                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                    >
-                                        <ChevronRight className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* Insurance Detail Modal */}
-            {selectedInsurance && (
-                <InsuranceDetailModal
-                    insurance={selectedInsurance}
-                    onClose={() => setSelectedInsurance(null)}
-                    onUpdate={() => {
-                        queryClient.invalidateQueries({ queryKey: ['admin-insurances'] });
-                    }}
-                    currentUser={currentUser}
-                />
-            )}
-
-            {/* Create Insurance Modal */}
-            {isCreateInsuranceModalOpen && (
-                <CreateInsuranceModal
-                    onClose={() => setIsCreateInsuranceModalOpen(false)}
-                    onSuccess={() => {
-                        queryClient.invalidateQueries({ queryKey: ['admin-insurances'] });
-                    }}
-                />
-            )}
-
-            {/* Booking Detail Modal */}
-            {selectedBooking && (
-                <BookingDetailModal
-                    booking={selectedBooking}
-                    onClose={() => setSelectedBooking(null)}
-                    onUpdate={() => {
-                        queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
-                        queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-                    }}
-                />
-            )}
-
-            {/* Franchise Detail Modal */}
-            {selectedFranchise && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedFranchise(null)}>
-                    <div className="bg-dark-surface rounded-2xl border border-white/10 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-                        <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-dark-surface z-10">
-                            <div>
-                                <h3 className="text-xl font-bold text-white">Franchise Başvuru Detayları</h3>
-                                <p className="text-sm text-gray-400 mt-1">{selectedFranchise.details?.applicationNumber || selectedFranchise.id}</p>
-                            </div>
-                            <button onClick={() => setSelectedFranchise(null)} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-6">
-                            {/* Contact Info */}
-                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">İletişim Bilgileri</h4>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><span className="text-gray-500">Ad Soyad:</span> <span className="text-white ml-2">{selectedFranchise.contactName}</span></div>
-                                    <div><span className="text-gray-500">E-posta:</span> <span className="text-white ml-2">{selectedFranchise.contactEmail}</span></div>
-                                    <div><span className="text-gray-500">Telefon:</span> <span className="text-white ml-2">{selectedFranchise.contactPhone}</span></div>
-                                    {selectedFranchise.companyName && <div><span className="text-gray-500">Şirket:</span> <span className="text-white ml-2">{selectedFranchise.companyName}</span></div>}
-                                </div>
-                            </div>
-
-                            {/* Location & Investment */}
-                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Lokasyon & Yatırım</h4>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><span className="text-gray-500">Şehir:</span> <span className="text-white ml-2">{selectedFranchise.city || '-'}</span></div>
-                                    <div><span className="text-gray-500">Bütçe:</span> <span className="text-white ml-2">{selectedFranchise.details?.investmentBudget || '-'}</span></div>
-                                </div>
-                            </div>
-
-                            {/* Experience & Message */}
-                            {(selectedFranchise.details?.experience || selectedFranchise.details?.message) && (
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Deneyim & Mesaj</h4>
-                                    {selectedFranchise.details?.experience && (
-                                        <div className="mb-4">
-                                            <span className="text-gray-500 text-sm block mb-1">Deneyim:</span>
-                                            <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.experience}</p>
+                                            ))}
                                         </div>
-                                    )}
-                                    {selectedFranchise.details?.message && (
-                                        <div>
-                                            <span className="text-gray-500 text-sm block mb-1">Mesaj:</span>
-                                            <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.message}</p>
-                                        </div>
-                                    )}
+                                        {/* Clear Filters */}
+                                        {statusFilter && (
+                                            <button
+                                                onClick={() => setStatusFilter('')}
+                                                className="ml-auto flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors"
+                                            >
+                                                <X className="w-3 h-3" />
+                                                Filtreleri Temizle
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             )}
 
-                            {/* Status */}
-                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Durum</h4>
-                                <div className="flex items-center justify-between">
-                                    <span className={`px-4 py-2 rounded-full text-sm font-bold ${selectedFranchise.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
-                                        selectedFranchise.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
-                                            selectedFranchise.status === 'IN_REVIEW' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                selectedFranchise.status === 'SUBMITTED' ? 'bg-blue-500/20 text-blue-400' :
-                                                    'bg-gray-500/20 text-gray-400'
-                                        }`}>
-                                        {FRANCHISE_STATUS_LABELS[selectedFranchise.status]?.label || selectedFranchise.status}
+
+                            <div className="overflow-x-auto custom-scrollbar pb-4">
+                                <table className="w-full text-left min-w-[1200px]">
+                                    <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                        <tr>
+                                            <th className="p-4 text-center">Kod</th>
+                                            <th className="p-4">Müşteri</th>
+                                            <th className="p-4">Araç</th>
+                                            <th className="p-4 text-center">Tarihler</th>
+                                            <th className="p-4 text-center">Ödeme & Tutar</th>
+                                            <th className="p-4 text-center">Durum</th>
+                                            <th className="p-4 text-center">Detaylar</th>
+                                            <th className="p-4 text-center">İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5 relative">
+                                        {bookingsQueryLoading ? (
+                                            <tr>
+                                                <td colSpan={9} className="p-12 text-center">
+                                                    <div className="flex justify-center items-center">
+                                                        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ) : !bookingsData?.data?.length ? (
+                                            <tr>
+                                                <td colSpan={7} className="p-12 text-center">
+                                                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                                                    <p className="text-gray-400">Henüz rezervasyon yok</p>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            bookingsData.data.map((booking: Booking) => (
+                                                <BookingRow
+                                                    key={booking.id}
+                                                    booking={booking}
+                                                    onView={setSelectedBooking}
+                                                    onAction={handleAction}
+                                                    isHighlighted={highlightedBookingId === booking.id}
+                                                />
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {/* Pagination Controls */}
+                            {bookingsData?.pagination && bookingsData.pagination.total > ITEMS_PER_PAGE && (
+                                <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                                    <div className="text-sm text-gray-400">
+                                        Sayfa {currentPage} / {bookingsData.pagination.totalPages} ({bookingsData.pagination.total} kayıt)
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setCurrentPage(prev => prev - 1)}
+                                            disabled={currentPage === 1 || bookingsQueryLoading}
+                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            <ChevronLeft className="w-5 h-5" />
+                                        </button>
+                                        {/* Page Numbers */}
+                                        <div className="flex gap-1">
+                                            {Array.from({ length: Math.min(5, bookingsData.pagination.totalPages) }, (_, i) => {
+                                                const totalPages = bookingsData.pagination.totalPages;
+                                                let pageNum: number;
+                                                if (totalPages <= 5) {
+                                                    pageNum = i + 1;
+                                                } else if (currentPage <= 3) {
+                                                    pageNum = i + 1;
+                                                } else if (currentPage >= totalPages - 2) {
+                                                    pageNum = totalPages - 4 + i;
+                                                } else {
+                                                    pageNum = currentPage - 2 + i;
+                                                }
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        onClick={() => setCurrentPage(pageNum)}
+                                                        disabled={bookingsQueryLoading}
+                                                        className={`w-10 h-10 rounded-lg font-bold transition-all ${currentPage === pageNum
+                                                            ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
+                                                            : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50'
+                                                            }`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <button
+                                            onClick={() => setCurrentPage(prev => prev + 1)}
+                                            disabled={currentPage >= bookingsData.pagination.totalPages || bookingsQueryLoading}
+                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            <ChevronRight className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
+
+
+                {/* Franchise Applications Section */}
+                {
+                    activeTab === 'franchise' && (
+                        <div id="franchise-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                            <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                                            <Building2 className="w-5 h-5 text-purple-400" />
+                                        </div>
+                                        Franchise Başvuruları
+                                    </h2>
+                                    <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                        {franchiseData?.pagination?.total || 0} başvuru
                                     </span>
-                                    <span className="text-sm text-gray-400">
-                                        {new Date(selectedFranchise.submittedAt || selectedFranchise.createdAt).toLocaleString('tr-TR')}
+                                </div>
+                                <div className="flex-1 max-w-md flex justify-end">
+                                    <div className="relative w-full">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                        <input
+                                            type="text"
+                                            placeholder="İsim, Şirket veya Şehir ile ara..."
+                                            value={franchiseSearchTerm}
+                                            onChange={(e) => setFranchiseSearchTerm(e.target.value)}
+                                            className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
+                                        />
+                                        {franchiseSearchTerm && (
+                                            <button
+                                                onClick={() => setFranchiseSearchTerm('')}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                        <tr>
+                                            <th className="p-4">Başvuran</th>
+                                            <th className="p-4">İletişim</th>
+                                            <th className="p-4">Lokasyon</th>
+                                            <th className="p-4">Bütçe</th>
+                                            <th className="p-4">Durum</th>
+                                            <th className="p-4">Tarih</th>
+                                            <th className="p-4">İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5 relative">
+                                        {franchisesQueryLoading ? (
+                                            <tr>
+                                                <td colSpan={7} className="p-12 text-center">
+                                                    <div className="flex justify-center items-center">
+                                                        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ) : !franchiseData?.data || franchiseData.data.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={7} className="p-12 text-center">
+                                                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                                                    <p className="text-gray-400">Henüz franchise başvurusu yok</p>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            franchiseData.data.map((app: any) => {
+                                                const statusInfo = FRANCHISE_STATUS_LABELS[app.status] || { label: app.status, color: 'gray' };
+                                                const isHighlighted = highlightedFranchiseId === app.id;
+                                                return (
+                                                    <tr
+                                                        key={app.id}
+                                                        className={`transition-all group border-b border-white/5 last:border-0 ${isHighlighted
+                                                            ? 'bg-purple-500/20 hover:bg-purple-500/30 shadow-[inset_0_0_20px_rgba(168,85,247,0.2)]'
+                                                            : 'hover:bg-white/5'
+                                                            }`}
+                                                    >
+                                                        <td className="p-4 max-w-[200px]">
+                                                            <div className="font-medium text-white truncate" title={app.contactName}>{app.contactName}</div>
+                                                            {app.companyName && <div className="text-xs text-gray-400 truncate" title={app.companyName}>{app.companyName}</div>}
+                                                        </td>
+                                                        <td className="p-4 max-w-[200px]">
+                                                            <div className="text-sm text-gray-300 truncate" title={app.contactEmail}>{app.contactEmail}</div>
+                                                            <div className="text-xs text-gray-500 truncate">{app.contactPhone}</div>
+                                                        </td>
+                                                        <td className="p-4 text-gray-300 truncate max-w-[150px]" title={app.city}>{app.city || '-'}</td>
+                                                        <td className="p-4 text-sm text-gray-400">{app.details?.investmentBudget || '-'}</td>
+                                                        <td className="p-4">
+                                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${statusInfo.color === 'green' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                                                statusInfo.color === 'red' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                                    statusInfo.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                                                                        statusInfo.color === 'blue' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                                            'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                                                }`}>
+                                                                <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.color === 'green' ? 'bg-green-500' :
+                                                                    statusInfo.color === 'red' ? 'bg-red-500' :
+                                                                        statusInfo.color === 'yellow' ? 'bg-yellow-500' :
+                                                                            statusInfo.color === 'blue' ? 'bg-blue-500' :
+                                                                                'bg-gray-500'
+                                                                    }`} />
+                                                                {statusInfo.label}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-4 text-sm text-gray-400">
+                                                            {new Date(app.submittedAt || app.createdAt).toLocaleDateString('tr-TR')}
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-purple-500/30 text-purple-400 hover:bg-purple-500/20"
+                                                                onClick={() => setSelectedFranchise(app)}
+                                                            >
+                                                                Detaylar
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Pagination Controls */}
+                            {franchiseData?.pagination && franchiseData.pagination.total > ITEMS_PER_PAGE && (
+                                <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                                    <div className="text-sm text-gray-400">
+                                        Sayfa {franchisePage} / {franchiseData.pagination.totalPages} ({franchiseData.pagination.total} kayıt)
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setFranchisePage(prev => prev - 1)}
+                                            disabled={franchisePage === 1 || franchisesQueryLoading}
+                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            <ChevronLeft className="w-5 h-5" />
+                                        </button>
+                                        {/* Page Numbers */}
+                                        <div className="flex gap-1">
+                                            {Array.from({ length: Math.min(5, franchiseData.pagination.totalPages) }, (_, i) => {
+                                                const totalPages = franchiseData.pagination.totalPages;
+                                                let pageNum: number;
+                                                if (totalPages <= 5) {
+                                                    pageNum = i + 1;
+                                                } else if (franchisePage <= 3) {
+                                                    pageNum = i + 1;
+                                                } else if (franchisePage >= totalPages - 2) {
+                                                    pageNum = totalPages - 4 + i;
+                                                } else {
+                                                    pageNum = franchisePage - 2 + i;
+                                                }
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        onClick={() => setFranchisePage(pageNum)}
+                                                        disabled={franchisesQueryLoading}
+                                                        className={`w-10 h-10 rounded-lg font-bold transition-all ${franchisePage === pageNum
+                                                            ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+                                                            : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50'
+                                                            }`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <button
+                                            onClick={() => setFranchisePage(prev => prev + 1)}
+                                            disabled={franchisePage >= franchiseData.pagination.totalPages || franchisesQueryLoading}
+                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            <ChevronRight className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
+
+
+                {/* Insurance Section */}
+                {
+                    activeTab === 'insurance' && (
+                        <div id="insurance-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                            <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                                            <Building2 className="w-5 h-5 text-blue-400" />
+                                        </div>
+                                        Sigortalar
+                                    </h2>
+                                    <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                        {insuranceData?.pagination?.total || 0} kayıt
                                     </span>
+                                </div>
+                                <div className="flex-1 max-w-2xl flex justify-end items-center gap-4">
+                                    <Button
+                                        onClick={async () => {
+                                            try {
+                                                const response = await adminService.exportInsurances();
+                                                const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                                                const { saveAs } = await import('file-saver');
+                                                saveAs(blob, `Sigortalar_${new Date().toLocaleDateString('tr-TR')}.xlsx`);
+                                                toast('Excel başarıyla indirildi', 'success');
+                                            } catch (error) {
+                                                console.error('Export error:', error);
+                                                toast('Excel indirilirken bir hata oluştu', 'error');
+                                            }
+                                        }}
+                                        className="bg-[#107c41] hover:bg-[#0c5c30] text-white border-none shadow-lg shadow-green-900/20 flex items-center gap-2 transition-all hover:scale-105 whitespace-nowrap px-6"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        <span className="font-semibold">Excel İndir</span>
+                                    </Button>
+                                    <div className="relative w-full max-w-md">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                        <input
+                                            type="text"
+                                            placeholder="Poliçe, Şirket veya Kullanıcı Ara..."
+                                            value={insuranceSearchTerm}
+                                            onChange={(e) => setInsuranceSearchTerm(e.target.value)}
+                                            className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                                        />
+                                        {insuranceSearchTerm && (
+                                            <button
+                                                onClick={() => setInsuranceSearchTerm('')}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full text-left">
+                                    <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                        <tr>
+                                            <th className="p-4">Kullanıcı</th>
+                                            <th className="p-4">Sigorta Şirketi</th>
+                                            <th className="p-4">Poliçe No</th>
+                                            <th className="p-4">Detaylar</th>
+                                            <th className="p-4">Erişim</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {insurancesQueryLoading ? (
+                                            <tr>
+                                                <td colSpan={5} className="p-12 text-center text-gray-500">
+                                                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
+                                                    Yükleniyor...
+                                                </td>
+                                            </tr>
+                                        ) : !insuranceData?.data || insuranceData.data.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="p-12 text-center text-gray-500">
+                                                    Kayıt bulunamadı.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            insuranceData.data.map((insurance: any) => (
+                                                <tr key={insurance.id} className="hover:bg-white/5 transition-colors border-b border-white/5">
+                                                    <td className="p-4">
+                                                        <div className="font-medium text-white">{insurance.user?.name || insurance.fullName}</div>
+                                                        <div className="text-xs text-gray-500">{insurance.user?.email || insurance.email}</div>
+                                                    </td>
+                                                    <td className="p-4 text-gray-300 font-bold">{insurance.insuranceCompany}</td>
+                                                    <td className="p-4">
+                                                        <span className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg border border-blue-500/20 font-mono text-sm">
+                                                            {insurance.policyNumber}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-4 text-sm text-gray-400 max-w-xs truncate" title={insurance.description}>
+                                                        {insurance.description || '-'}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        {insurance.fileUrl ? (
+                                                            <a
+                                                                href={insurance.fileUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-bold"
+                                                            >
+                                                                <Info className="w-4 h-4" />
+                                                                Belge Görüntüle
+                                                            </a>
+                                                        ) : (
+                                                            <span className="text-gray-600 italic text-xs">Dosya Yok</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Pagination Controls */}
+                            {insuranceData?.pagination && insuranceData.pagination.total > ITEMS_PER_PAGE && (
+                                <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                                    <div className="text-sm text-gray-400">
+                                        Sayfa {insurancePage} / {insuranceData.pagination.totalPages} ({insuranceData.pagination.total} kayıt)
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setInsurancePage(prev => prev - 1)}
+                                            disabled={insurancePage === 1 || insurancesQueryLoading}
+                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            <ChevronLeft className="w-5 h-5" />
+                                        </button>
+                                        <div className="flex gap-1">
+                                            {Array.from({ length: Math.min(5, insuranceData.pagination.totalPages) }, (_, i) => {
+                                                const totalPages = insuranceData.pagination.totalPages;
+                                                let pageNum: number;
+                                                if (totalPages <= 5) {
+                                                    pageNum = i + 1;
+                                                } else if (insurancePage <= 3) {
+                                                    pageNum = i + 1;
+                                                } else if (insurancePage >= totalPages - 2) {
+                                                    pageNum = totalPages - 4 + i;
+                                                } else {
+                                                    pageNum = insurancePage - 2 + i;
+                                                }
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        onClick={() => setInsurancePage(pageNum)}
+                                                        disabled={insurancesQueryLoading}
+                                                        className={`w-10 h-10 rounded-lg font-bold transition-all ${insurancePage === pageNum
+                                                            ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                                                            : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50'
+                                                            }`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <button
+                                            onClick={() => setInsurancePage(prev => prev + 1)}
+                                            disabled={insurancePage >= insuranceData.pagination.totalPages || insurancesQueryLoading}
+                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            <ChevronRight className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
+            </div >
+
+            {/* Insurance Detail Modal */}
+            {
+                selectedInsurance && (
+                    <InsuranceDetailModal
+                        insurance={selectedInsurance}
+                        onClose={() => setSelectedInsurance(null)}
+                        onUpdate={() => {
+                            queryClient.invalidateQueries({ queryKey: ['admin-insurances'] });
+                        }}
+                        currentUser={currentUser}
+                    />
+                )
+            }
+
+            {/* Create Insurance Modal */}
+            {
+                isCreateInsuranceModalOpen && (
+                    <CreateInsuranceModal
+                        onClose={() => setIsCreateInsuranceModalOpen(false)}
+                        onSuccess={() => {
+                            queryClient.invalidateQueries({ queryKey: ['admin-insurances'] });
+                        }}
+                    />
+                )
+            }
+
+            {/* Booking Detail Modal */}
+            {
+                selectedBooking && (
+                    <BookingDetailModal
+                        booking={selectedBooking}
+                        onClose={() => setSelectedBooking(null)}
+                        onUpdate={() => {
+                            queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+                            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+                        }}
+                    />
+                )
+            }
+
+            {/* Franchise Detail Modal */}
+            {
+                selectedFranchise && (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedFranchise(null)}>
+                        <div className="bg-dark-surface rounded-2xl border border-white/10 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+                            <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-dark-surface z-10">
+                                <div>
+                                    <h3 className="text-xl font-bold text-white">Franchise Başvuru Detayları</h3>
+                                    <p className="text-sm text-gray-400 mt-1">{selectedFranchise.details?.applicationNumber || selectedFranchise.id}</p>
+                                </div>
+                                <button onClick={() => setSelectedFranchise(null)} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="p-6 space-y-6">
+                                {/* Contact Info */}
+                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">İletişim Bilgileri</h4>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div><span className="text-gray-500">Ad Soyad:</span> <span className="text-white ml-2">{selectedFranchise.contactName}</span></div>
+                                        <div><span className="text-gray-500">E-posta:</span> <span className="text-white ml-2">{selectedFranchise.contactEmail}</span></div>
+                                        <div><span className="text-gray-500">Telefon:</span> <span className="text-white ml-2">{selectedFranchise.contactPhone}</span></div>
+                                        {selectedFranchise.companyName && <div><span className="text-gray-500">Şirket:</span> <span className="text-white ml-2">{selectedFranchise.companyName}</span></div>}
+                                    </div>
+                                </div>
+
+                                {/* Location & Investment */}
+                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Lokasyon & Yatırım</h4>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div><span className="text-gray-500">Şehir:</span> <span className="text-white ml-2">{selectedFranchise.city || '-'}</span></div>
+                                        <div><span className="text-gray-500">Bütçe:</span> <span className="text-white ml-2">{selectedFranchise.details?.investmentBudget || '-'}</span></div>
+                                    </div>
+                                </div>
+
+                                {/* Experience & Message */}
+                                {(selectedFranchise.details?.experience || selectedFranchise.details?.message) && (
+                                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                        <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Deneyim & Mesaj</h4>
+                                        {selectedFranchise.details?.experience && (
+                                            <div className="mb-4">
+                                                <span className="text-gray-500 text-sm block mb-1">Deneyim:</span>
+                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.experience}</p>
+                                            </div>
+                                        )}
+                                        {selectedFranchise.details?.message && (
+                                            <div>
+                                                <span className="text-gray-500 text-sm block mb-1">Mesaj:</span>
+                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details.message}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Status */}
+                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Durum</h4>
+                                    <div className="flex items-center justify-between">
+                                        <span className={`px-4 py-2 rounded-full text-sm font-bold ${selectedFranchise.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
+                                            selectedFranchise.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
+                                                selectedFranchise.status === 'IN_REVIEW' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                    selectedFranchise.status === 'SUBMITTED' ? 'bg-blue-500/20 text-blue-400' :
+                                                        'bg-gray-500/20 text-gray-400'
+                                            }`}>
+                                            {FRANCHISE_STATUS_LABELS[selectedFranchise.status]?.label || selectedFranchise.status}
+                                        </span>
+                                        <span className="text-sm text-gray-400">
+                                            {new Date(selectedFranchise.submittedAt || selectedFranchise.createdAt).toLocaleString('tr-TR')}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div>
     );
 };

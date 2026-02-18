@@ -13,12 +13,23 @@ export const AdminLogin = () => {
     const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
 
     useEffect(() => {
         if (adminService.isAuthenticated()) {
-            navigate('/admin/dashboard');
+            navigate('/admin/dashboard', { replace: true });
+        } else {
+            setCheckingAuth(false);
         }
     }, [navigate]);
+
+    if (checkingAuth) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-dark-bg">
+                <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

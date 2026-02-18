@@ -6,8 +6,9 @@ import type { Campaign } from '../services/campaign.service';
 import { Button } from '../components/ui/Button';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
-import { Loader2, Plus, Edit2, Trash2, ArrowLeft, Save, Eye, EyeOff, Upload, X } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, ArrowLeft, Save, Eye, EyeOff, Upload, X, AlertTriangle } from 'lucide-react';
 import { Input } from '../components/ui/Input';
+import { storage } from '../utils/storage';
 
 export const AdminCampaigns = () => {
     const { addToast } = useToast();
@@ -26,6 +27,13 @@ export const AdminCampaigns = () => {
     const [saving, setSaving] = useState(false);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    // Delete Modal State
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
+
+    const user = storage.getUser();
+    const canDelete = user?.role !== 'STAFF';
 
     const loadCampaigns = async () => {
         setLoading(true);
@@ -73,12 +81,20 @@ export const AdminCampaigns = () => {
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Bu kampanyayı silmek istediğinize emin misiniz?')) return;
+    const handleDeleteClick = (campaign: Campaign) => {
+        setCampaignToDelete(campaign);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!campaignToDelete) return;
+
         try {
-            await campaignService.delete(id);
+            await campaignService.delete(campaignToDelete.id);
             addToast('Kampanya silindi', 'success');
             loadCampaigns();
+            setIsDeleteModalOpen(false);
+            setCampaignToDelete(null);
         } catch (error) {
             addToast('Silme işlemi başarısız', 'error');
         }
@@ -110,13 +126,6 @@ export const AdminCampaigns = () => {
             }
 
             const dataToSubmit = { ...formData, imageUrl: finalImageUrl };
-
-            // Image is no longer required
-            // if (!dataToSubmit.imageUrl) {
-            //     addToast('Lütfen bir görsel seçin', 'error');
-            //     setSaving(false);
-            //     return;
-            // }
 
             if (editingCampaign) {
                 await campaignService.update(editingCampaign.id, dataToSubmit);
@@ -216,9 +225,11 @@ export const AdminCampaigns = () => {
                                                     <button onClick={() => handleEdit(campaign)} className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors" title="Düzenle">
                                                         <Edit2 className="w-5 h-5" />
                                                     </button>
-                                                    <button onClick={() => handleDelete(campaign.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Sil">
-                                                        <Trash2 className="w-5 h-5" />
-                                                    </button>
+                                                    {canDelete && (
+                                                        <button onClick={() => handleDeleteClick(campaign)} className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Sil">
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))
@@ -230,7 +241,7 @@ export const AdminCampaigns = () => {
                 </div>
             </div>
 
-            {/* Modal */}
+            {/* Edit/Create Modal */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingCampaign ? 'Kampanyayı Düzenle' : 'Yeni Kampanya'}>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
@@ -305,6 +316,40 @@ export const AdminCampaigns = () => {
                     </div>
                 </form>
             </Modal>
+
+            {/* Delete Confirmation Modal */}
+            <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Kampanyayı Sil">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4 bg-red-500/10 p-4 rounded-lg border border-red-500/20">
+                        <div className="p-3 bg-red-500/20 rounded-full">
+                            <AlertTriangle className="w-6 h-6 text-red-500" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-white">Emin misiniz?</h3>
+                            <p className="text-gray-400 text-sm">Bu kampanyayı kalıcı olarak silmek üzeresiniz. Bu işlem geri alınamaz.</p>
+                        </div>
+                    </div>
+
+                    {campaignToDelete && (
+                        <div className="bg-white/5 p-4 rounded-lg border border-white/10">
+                            <div className="text-sm text-gray-500 mb-1">Silinecek Kampanya:</div>
+                            <div className="font-medium text-white">{campaignToDelete.title}</div>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>İptal</Button>
+                        <Button
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                            onClick={confirmDelete}
+                        >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Evet, Sil
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };
+

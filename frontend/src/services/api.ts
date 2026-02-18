@@ -6,7 +6,8 @@ import type {
     AuthResponse,
     PaginatedResponse,
     DashboardStats,
-    ActionLog
+    ActionLog,
+    User
 } from './types';
 import { storage } from '../utils/storage';
 
@@ -119,6 +120,10 @@ export const adminService = {
     },
     isAuthenticated: () => {
         return storage.isAuthenticated();
+    },
+    updateProfile: async (data: { whatsappEnabled: boolean }) => {
+        const response = await api.patch<{ success: true; data: { user: User } }>('/auth/profile', data);
+        return response.data;
     },
     getDashboard: async () => {
         const response = await api.get<{ data: DashboardStats }>('/admin/dashboard');

@@ -79,6 +79,15 @@ const setAuth = (token: string, user: any, rememberMe: boolean) => {
     }
 };
 
+const setUser = (user: any) => {
+    const userStr = JSON.stringify(user);
+    if (localStorage.getItem('user')) {
+        localStorage.setItem('user', userStr);
+    } else {
+        sessionStorage.setItem('user', userStr);
+    }
+};
+
 const isAuthenticated = (): boolean => {
     const token = getToken();
     if (!token) return false;
@@ -100,6 +109,7 @@ export const storage = {
     getToken,
     getUser,
     setAuth,
+    setUser,
     clearAuth,
     isAuthenticated
 };

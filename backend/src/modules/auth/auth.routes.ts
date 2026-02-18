@@ -85,4 +85,26 @@ router.post('/login', validate(loginSchema, 'body'), authController.login);
  */
 router.get('/profile', authMiddleware, authController.getProfile);
 
+/**
+ * @openapi
+ * /api/auth/profile:
+ *   patch:
+ *     tags: [Auth]
+ *     summary: Update admin profile
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               whatsappEnabled:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ */
+router.patch('/profile', authMiddleware, authController.updateProfile);
+
 export default router;

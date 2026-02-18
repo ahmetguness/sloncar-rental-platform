@@ -15,6 +15,7 @@ export interface DashboardStats {
     latestNewBookings: any[];
     latestPendingFranchiseApplications: any[];
     latestPaidBookings: any[];
+    totalInsurances: number;
 }
 
 export async function markNotificationRead(id: string, type: 'booking' | 'franchise'): Promise<void> {
@@ -78,7 +79,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         newBookingsCount,
         latestNewBookings,
         latestPendingFranchiseApplications,
-        latestPaidBookings
+        latestPaidBookings,
+        totalInsurances
     ] = await Promise.all([
         prisma.booking.count(),
         prisma.booking.count({ where: { status: BookingStatus.ACTIVE } }),
@@ -113,7 +115,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
             take: 5,
             orderBy: { paidAt: 'desc' },
             include: { car: { select: { brand: true, model: true } } }
-        })
+        }),
+        prisma.userInsurance.count({ where: { isActive: true } })
     ]);
 
     const totalRevenue = Number(revenueAggregate._sum.totalPrice || 0);
@@ -129,7 +132,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         newBookingsCount,
         latestNewBookings,
         latestPendingFranchiseApplications,
-        latestPaidBookings
+        latestPaidBookings,
+        totalInsurances
     };
 }
 

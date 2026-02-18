@@ -31,6 +31,7 @@
     "@prisma/client": "^5.10.0",
     "@types/exceljs": "^0.5.3",
     "@types/multer": "^2.0.0",
+    "axios": "^1.13.5",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.9.0",
     "compression": "^1.8.1",

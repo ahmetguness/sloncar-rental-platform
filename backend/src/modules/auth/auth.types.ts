@@ -6,6 +6,7 @@ export interface AuthResponse {
         email: string;
         name: string;
         role: UserRole;
+        whatsappEnabled?: boolean;
     };
     token: string;
 }
