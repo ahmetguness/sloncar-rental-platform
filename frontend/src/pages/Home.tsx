@@ -144,7 +144,7 @@ export const Home = () => {
             delete cleanedFilters.brand;
 
             const finalFilters = Object.fromEntries(
-                Object.entries(cleanedFilters).filter(([_, v]) => v !== '')
+                Object.entries(cleanedFilters).filter(([, v]) => v !== '')
             );
 
             const response = await carService.getAll(finalFilters);

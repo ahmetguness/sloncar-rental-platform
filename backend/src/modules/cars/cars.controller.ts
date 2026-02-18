@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as carsService from './cars.service.js';
 import { auditService } from '../audit/audit.service.js';
-import { CreateCarInput, UpdateCarInput, CarQueryInput, carQuerySchema } from './cars.validators.js';
+import { CreateCarInput, UpdateCarInput, carQuerySchema } from './cars.validators.js';
 
 export async function listCars(
     req: Request,

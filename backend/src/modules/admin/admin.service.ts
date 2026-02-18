@@ -66,7 +66,7 @@ export interface RevenueAnalytics {
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-    const today = new Date();
+
 
     const [
         totalBookings,

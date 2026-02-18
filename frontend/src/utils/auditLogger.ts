@@ -76,7 +76,7 @@ export const formatDetails = (action: string, details: string | null | undefined
             default:
                 return details;
         }
-    } catch (e) {
+    } catch {
         return details;
     }
 };

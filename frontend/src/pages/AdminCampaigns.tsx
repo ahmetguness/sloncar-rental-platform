@@ -40,7 +40,7 @@ export const AdminCampaigns = () => {
         try {
             const data = await campaignService.getAll();
             setCampaigns(data);
-        } catch (error) {
+        } catch {
             addToast('Kampanyalar yüklenirken hata oluştu', 'error');
         } finally {
             setLoading(false);
@@ -95,7 +95,7 @@ export const AdminCampaigns = () => {
             loadCampaigns();
             setIsDeleteModalOpen(false);
             setCampaignToDelete(null);
-        } catch (error) {
+        } catch {
             addToast('Silme işlemi başarısız', 'error');
         }
     };
@@ -118,7 +118,7 @@ export const AdminCampaigns = () => {
             if (imageFile) {
                 try {
                     finalImageUrl = await uploadService.uploadImage(imageFile);
-                } catch (error) {
+                } catch {
                     addToast('Görsel yüklenemedi', 'error');
                     setSaving(false);
                     return;
@@ -136,7 +136,7 @@ export const AdminCampaigns = () => {
             }
             setIsModalOpen(false);
             loadCampaigns();
-        } catch (error) {
+        } catch {
             addToast('İşlem başarısız', 'error');
         } finally {
             setSaving(false);
@@ -148,7 +148,7 @@ export const AdminCampaigns = () => {
             await campaignService.update(campaign.id, { isActive: !campaign.isActive });
             addToast('Durum güncellendi', 'success');
             loadCampaigns();
-        } catch (error) {
+        } catch {
             addToast('Durum güncellenemedi', 'error');
         }
     };

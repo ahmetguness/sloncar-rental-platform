@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import * as authService from './auth.service.js';
 import { auditService } from '../audit/audit.service.js';
 import { RegisterInput, LoginInput } from './auth.validators.js';
-import { ApiError } from '../../middlewares/errorHandler.js';
+
 
 export async function register(
     req: Request,

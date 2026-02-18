@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken, JwtPayload } from '../lib/jwt.js';
+import { verifyToken } from '../lib/jwt.js';
 import { ApiError } from './errorHandler.js';
 import { UserRole } from '@prisma/client';
 

@@ -1,55 +1,42 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminService } from '../services/api';
-
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { loginUser, clearError } from '../features/auth/authSlice';
 import { Button } from '../components/ui/Button';
 import { Lock, Mail, Eye, EyeOff, Shield, Check } from 'lucide-react';
 import logo from '../assets/logo/logo.jpg';
 
 export const AdminLogin = () => {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+    const { isAuthenticated, user, status, error } = useAppSelector((state) => state.auth);
+
     const [credentials, setCredentials] = useState({ email: '', password: '' });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
-    const [checkingAuth, setCheckingAuth] = useState(true);
 
+    // Redirect if already authenticated
     useEffect(() => {
-        if (adminService.isAuthenticated()) {
-            navigate('/admin/dashboard', { replace: true });
-        } else {
-            setCheckingAuth(false);
+        if (isAuthenticated && user) {
+            if (user.role === 'ADMIN' || user.role === 'STAFF') {
+                navigate('/admin/dashboard', { replace: true });
+            } else {
+                navigate('/', { replace: true });
+            }
         }
-    }, [navigate]);
+    }, [isAuthenticated, user, navigate]);
 
-    if (checkingAuth) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-dark-bg">
-                <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
-    }
+    // Clear error on unmount
+    useEffect(() => {
+        return () => { dispatch(clearError()); }
+    }, [dispatch]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        setError(null);
-
-        try {
-            const data = await adminService.login({ ...credentials, rememberMe });
-
-            if (data.user.role === 'ADMIN' || data.user.role === 'STAFF') {
-                navigate('/admin/dashboard');
-            } else {
-                navigate('/');
-            }
-        } catch (err: any) {
-            setError('Giriş başarısız. Bilgilerinizi kontrol edin.');
-        } finally {
-            setLoading(false);
-        }
+        dispatch(loginUser({ ...credentials, rememberMe }));
     };
+
+    const isLoading = status === 'loading';
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-dark-bg relative overflow-hidden">
@@ -139,7 +126,6 @@ export const AdminLogin = () => {
                                     className="sr-only"
                                     checked={rememberMe}
                                     onChange={(e) => {
-                                        console.log('Checkbox toggled:', e.target.checked);
                                         setRememberMe(e.target.checked);
                                     }}
                                 />
@@ -153,10 +139,9 @@ export const AdminLogin = () => {
                         <Button
                             type="submit"
                             className="w-full h-14 text-base font-bold mt-6 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all"
-                            disabled={loading}
-                            onClick={() => console.log('Submitting login with rememberMe:', rememberMe)}
+                            disabled={isLoading}
                         >
-                            {loading ? (
+                            {isLoading ? (
                                 <span className="flex items-center gap-2">
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                     Giriş Yapılıyor...
@@ -164,7 +149,6 @@ export const AdminLogin = () => {
                             ) : 'Giriş Yap'}
                         </Button>
                     </form>
-
                 </div>
 
                 {/* Footer */}

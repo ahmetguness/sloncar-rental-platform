@@ -7,7 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 
 import { env } from './config/env.js';
 import { swaggerSpec } from './config/swagger.js';
-import { errorHandler, requestLogger } from './middlewares/index.js';
+import { errorHandler } from './middlewares/index.js';
 
 
 import authRoutes from './modules/auth/auth.routes.js';

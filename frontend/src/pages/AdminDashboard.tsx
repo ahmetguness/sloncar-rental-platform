@@ -1,6 +1,9 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchDashboardStats, fetchRevenueAnalytics } from '../features/dashboard/dashboardSlice';
+import { fetchBookings, selectAllBookings } from '../features/bookings/bookingsSlice';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { adminService } from '../services/api';
@@ -8,7 +11,7 @@ import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
 import { translateCategory } from '../utils/translate';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Pencil, Clock, Database, Bell, Settings, ChevronDown } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Search, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CreditCard, Banknote, CheckCircle, Megaphone, DollarSign, Shield, Trash2, Info, Clock, Database, Bell, Settings, ChevronDown } from 'lucide-react';
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { storage } from '../utils/storage';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -20,20 +23,7 @@ registerLocale('tr', tr);
 
 import { Skeleton } from '../components/ui/Skeleton';
 
-interface RevenueAnalytics {
-    weekly: { week: string; revenue: number; bookings: number }[];
-    monthly: { month: string; revenue: number; bookings: number }[];
-    yearly: { year: number; revenue: number; bookings: number }[];
-    byCategory: { name: string; value: number }[];
-    byBrand: { name: string; value: number }[];
-    availableYears: number[];
-    summary: {
-        currentMonth: number;
-        lastMonth: number;
-        currentYear: number;
-        growth: number;
-    };
-}
+
 
 const SettingsModal = ({ isOpen, onClose, user, onUpdate }: { isOpen: boolean; onClose: () => void; user: any; onUpdate: (user: any) => void }) => {
     const { addToast } = useToast();
@@ -53,7 +43,7 @@ const SettingsModal = ({ isOpen, onClose, user, onUpdate }: { isOpen: boolean; o
             addToast('Ayarlar güncellendi', 'success');
             onUpdate(res.data.user);
             onClose();
-        } catch (error: any) {
+        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             addToast(error.response?.data?.error?.message || 'Ayarlar güncellenemedi', 'error');
         } finally {
             setLoading(false);
@@ -493,7 +483,7 @@ const ManualBookingModal = ({ isOpen, onClose, onSuccess }: { isOpen: boolean; o
             });
             setAvailableCars(res.data);
             setStep(2);
-        } catch (err) {
+        } catch {
             toast('Araçlar yüklenemedi', 'error');
         } finally {
             setLoading(false);
@@ -1284,7 +1274,7 @@ const BookingRow = React.memo(({
 
 export const AdminDashboard = () => {
     const ITEMS_PER_PAGE = 10;
-    const navigate = useNavigate();
+
     const queryClient = useQueryClient();
     const { addToast: toast } = useToast();
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -1385,30 +1375,48 @@ export const AdminDashboard = () => {
         if (user) setCurrentUser(user);
     }, []);
 
-    // Queries
-    const { data: stats, isLoading: statsLoading } = useQuery({
-        queryKey: ['admin-stats'],
-        queryFn: () => adminService.getDashboard(),
-        staleTime: 60000,
-    });
+    // Redux State
+    const dispatch = useAppDispatch();
+    const { stats, revenueData, loading: dashboardLoading } = useAppSelector(state => state.dashboard);
 
-    const { data: revenueData, isLoading: revenueLoading } = useQuery({
-        queryKey: ['admin-revenue', selectedYear],
-        queryFn: () => adminService.getRevenueAnalytics(selectedYear),
-        staleTime: 300000, // 5 minutes
-    });
+    useEffect(() => {
+        dispatch(fetchDashboardStats());
+    }, [dispatch]);
 
-    const { data: bookingsData, isLoading: bookingsQueryLoading } = useQuery({
-        queryKey: ['admin-bookings', currentPage, debouncedSearchTerm, statusFilter],
-        queryFn: () => adminService.getBookings({
-            limit: ITEMS_PER_PAGE,
-            offset: (currentPage - 1) * ITEMS_PER_PAGE,
-            search: debouncedSearchTerm || undefined,
-            status: statusFilter || undefined
-        }),
-        enabled: activeTab === 'bookings' || activeTab === 'overview', // Pre-load bookings if on overview to show some? Or just bookings? Let's say bookings only.
-        staleTime: 30000,
-    });
+    useEffect(() => {
+        dispatch(fetchRevenueAnalytics(selectedYear));
+    }, [dispatch, selectedYear]);
+
+    // Bookings Redux
+    const {
+        loading: bookingsLoading,
+        total: totalBookings,
+        totalPages: totalBookingPages
+    } = useAppSelector(state => state.bookings);
+    const bookingsList = useAppSelector(selectAllBookings);
+
+    // Alias and structure for compatibility
+    const bookingsQueryLoading = bookingsLoading;
+    const bookingsData = {
+        data: bookingsList,
+        pagination: {
+            total: totalBookings,
+            totalPages: totalBookingPages,
+            page: currentPage,
+            limit: ITEMS_PER_PAGE
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'bookings' || activeTab === 'overview') {
+            dispatch(fetchBookings({
+                limit: ITEMS_PER_PAGE,
+                offset: (currentPage - 1) * ITEMS_PER_PAGE,
+                search: debouncedSearchTerm || undefined,
+                status: statusFilter || undefined
+            }));
+        }
+    }, [dispatch, activeTab, currentPage, debouncedSearchTerm, statusFilter]);
 
     const { data: franchiseData, isLoading: franchisesQueryLoading } = useQuery({
         queryKey: ['admin-franchises', franchisePage, debouncedFranchiseSearchTerm],
@@ -1442,8 +1450,13 @@ export const AdminDashboard = () => {
         onSuccess: (_, variables) => {
             const actionText = variables.action === 'cancel' ? 'iptal edildi' : variables.action === 'start' ? 'başlatıldı' : 'tamamlandı';
             toast(`Rezervasyon başarıyla ${actionText}`, 'success');
-            queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
-            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+            dispatch(fetchBookings({
+                limit: ITEMS_PER_PAGE,
+                offset: (currentPage - 1) * ITEMS_PER_PAGE,
+                search: debouncedSearchTerm || undefined,
+                status: statusFilter || undefined
+            }));
+            dispatch(fetchDashboardStats());
         },
         onError: (err: any) => {
             toast(err.response?.data?.message || 'İşlem başarısız', 'error');
@@ -1485,7 +1498,7 @@ export const AdminDashboard = () => {
         }
     };
 
-    if (statsLoading) return (
+    if (dashboardLoading) return (
         <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center">
             <Loader2 className="animate-spin w-10 h-10 text-primary-500" />
         </div>
@@ -1495,7 +1508,7 @@ export const AdminDashboard = () => {
         <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center flex-col gap-4">
             <AlertCircle className="w-12 h-12 text-red-500" />
             <div className="text-white text-lg font-bold">Veri yükleme hatası</div>
-            <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-stats'] })} variant="outline">
+            <Button onClick={() => dispatch(fetchDashboardStats())} variant="outline">
                 Tekrar Dene
             </Button>
         </div>
@@ -2821,8 +2834,13 @@ export const AdminDashboard = () => {
                         booking={selectedBooking}
                         onClose={() => setSelectedBooking(null)}
                         onUpdate={() => {
-                            queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
-                            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+                            dispatch(fetchBookings({
+                                limit: ITEMS_PER_PAGE,
+                                offset: (currentPage - 1) * ITEMS_PER_PAGE,
+                                search: debouncedSearchTerm || undefined,
+                                status: statusFilter || undefined
+                            }));
+                            dispatch(fetchDashboardStats());
                         }}
                     />
                 )

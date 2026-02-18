@@ -3,7 +3,7 @@ import * as adminService from './admin.service.js';
 import { auditService } from '../audit/audit.service.js';
 
 export async function getDashboardStats(
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> {

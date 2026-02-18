@@ -49,7 +49,7 @@ export const insuranceController = {
         }
     },
 
-    exportInsurances: async (req: Request, res: Response, next: NextFunction) => {
+    exportInsurances: async (_req: Request, res: Response, next: NextFunction) => {
         try {
             const workbook = await insuranceService.exportInsurances();
             res.setHeader(

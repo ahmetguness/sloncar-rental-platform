@@ -160,7 +160,7 @@ export const AdminUsers = () => {
 
     const currentUser = useMemo(() => storage.getUser(), []);
 
-    const { data: userData, isLoading, isError, refetch } = useQuery({
+    const { data: userData, isLoading, refetch } = useQuery({
         queryKey: ['admin-users', currentPage, searchTerm],
         queryFn: () => adminService.getUsers({ page: currentPage, limit: 10, search: searchTerm }),
         staleTime: 60000,

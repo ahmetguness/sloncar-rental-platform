@@ -48,7 +48,7 @@ export async function triggerManualBackup(
 }
 
 export async function getBackupHistory(
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> {

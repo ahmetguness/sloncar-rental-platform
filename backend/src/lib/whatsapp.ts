@@ -1,13 +1,7 @@
 
 import axios from 'axios';
 
-interface WhatsAppTemplate {
-    name: string;
-    language: {
-        code: string;
-    };
-    components?: any[]; // Flexible content for header, body params etc.
-}
+
 
 export class WhatsAppService {
     private token: string;

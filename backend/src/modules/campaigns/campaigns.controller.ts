@@ -3,7 +3,7 @@ import * as campaignService from './campaigns.service.js';
 import { ApiResponse } from '../../lib/api-response.js';
 import { auditService } from '../audit/audit.service.js';
 
-export async function listPublicCampaigns(req: Request, res: Response, next: NextFunction) {
+export async function listPublicCampaigns(_req: Request, res: Response, next: NextFunction) {
     try {
         const campaigns = await campaignService.listActiveCampaigns();
         ApiResponse.success(res, campaigns);
@@ -12,7 +12,7 @@ export async function listPublicCampaigns(req: Request, res: Response, next: Nex
     }
 }
 
-export async function listAllCampaigns(req: Request, res: Response, next: NextFunction) {
+export async function listAllCampaigns(_req: Request, res: Response, next: NextFunction) {
     try {
         const campaigns = await campaignService.listAllCampaigns();
         ApiResponse.success(res, campaigns);
