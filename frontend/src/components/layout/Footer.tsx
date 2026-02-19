@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Phone, MapPin, Instagram, Facebook } from 'lucide-react';
+import { useAppSelector } from '../../store/hooks';
 import logo from '../../assets/logo/logo.jpg';
 
 export const Footer = () => {
+    const { isAuthenticated } = useAppSelector((state) => state.auth);
+
     return (
         <footer className="bg-dark-surface border-t border-white/5 text-gray-400 py-16 relative overflow-hidden font-sans">
             {/* Background Glow */}
@@ -114,7 +117,11 @@ export const Footer = () => {
                 <div className="flex gap-6">
                     <Link to="#" className="hover:text-white transition-colors">Gizlilik Politikası</Link>
                     <Link to="#" className="hover:text-white transition-colors">Kullanım Şartları</Link>
-                    <Link to="/admin/login" className="hover:text-primary-500 transition-colors">Yönetici Girişi</Link>
+                    {isAuthenticated ? (
+                        <Link to="/admin/dashboard" className="hover:text-primary-500 transition-colors">Yönetici Paneli</Link>
+                    ) : (
+                        <Link to="/admin/login" className="hover:text-primary-500 transition-colors">Yönetici Girişi</Link>
+                    )}
                 </div>
             </div>
         </footer>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { loginUser, clearError } from '../features/auth/authSlice';
 import { Button } from '../components/ui/Button';
-import { Lock, Mail, Eye, EyeOff, Shield, Check } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Shield, Check, Loader2 } from 'lucide-react';
 import { normalizeEmail } from '../utils/formatters';
 import logo from '../assets/logo/logo.jpg';
 
@@ -39,14 +39,11 @@ export const AdminLogin = () => {
 
     const isLoading = status === 'loading';
 
-    // Show loading state while checking authentication or redirecting
+    // Show loading state while checking authentication or redirecting (Matches AdminDashboard loading state)
     if (isAuthenticated) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-dark-bg">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-gray-400 text-sm animate-pulse">Yönlendiriliyorsunuz...</p>
-                </div>
+            <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center">
+                <Loader2 className="animate-spin w-10 h-10 text-primary-500" />
             </div>
         );
     }
