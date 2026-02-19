@@ -49,6 +49,8 @@ export const Home = () => {
 
     // Ensure we have enough items for scrolling to cover viewport + buffer
     const displayBrands = useMemo(() => {
+        if (effectiveBrands.length < 8) return effectiveBrands;
+
         let base = effectiveBrands;
         // Duplicate until we have enough items to fill the viewport
         while (base.length < 12) {
@@ -71,6 +73,8 @@ export const Home = () => {
 
     // Robust Auto-scroll with requestAnimationFrame and sub-pixel accumulation
     useEffect(() => {
+        if (effectiveBrands.length < 8) return;
+
         // Initialize accumulator with current position
         if (scrollContainerRef.current) {
             scrollAccumulator.current = scrollContainerRef.current.scrollLeft;
@@ -153,11 +157,11 @@ export const Home = () => {
             if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
             observer.disconnect();
         };
-    }, [isPaused, displayBrands]); // Re-run if paused changes or brands update
+    }, [isPaused, displayBrands, effectiveBrands.length]); // Re-run if paused changes or brands update
 
     // Initial positioning
     useEffect(() => {
-        if (displayBrands.length > 0 && scrollContainerRef.current) {
+        if (effectiveBrands.length >= 8 && displayBrands.length > 0 && scrollContainerRef.current) {
             // Initial center position setup
             setTimeout(() => {
                 if (scrollContainerRef.current && scrollContainerRef.current.scrollLeft < 10) {
@@ -670,17 +674,19 @@ export const Home = () => {
                     onTouchEnd={() => setIsPaused(false)}
                 >
                     {/* Prev Button - Absolute & Glassmorphism */}
-                    <button
-                        onClick={scrollLeft}
-                        className="hidden md:block absolute left-0 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/40 hover:border-primary-500/50 transition-all opacity-0 group-hover/carousel:opacity-100 -translate-x-6"
-                    >
-                        <ChevronLeft className="w-6 h-6" />
-                    </button>
+                    {effectiveBrands.length >= 8 && (
+                        <button
+                            onClick={scrollLeft}
+                            className="hidden md:block absolute left-0 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/40 hover:border-primary-500/50 transition-all opacity-0 group-hover/carousel:opacity-100 -translate-x-6"
+                        >
+                            <ChevronLeft className="w-6 h-6" />
+                        </button>
+                    )}
 
                     {/* Scrollable Container */}
                     <div
                         ref={scrollContainerRef}
-                        className="flex overflow-x-auto gap-6 pb-4 pt-2 px-12 scroll-auto no-scrollbar max-w-[1200px]"
+                        className={`flex overflow-x-auto gap-6 pb-4 pt-2 px-12 scroll-auto no-scrollbar max-w-[1200px] ${effectiveBrands.length < 8 ? 'justify-center mx-auto' : ''}`}
                         style={{
                             scrollbarWidth: 'none',
                             msOverflowStyle: 'none',
@@ -718,12 +724,14 @@ export const Home = () => {
                     </div>
 
                     {/* Next Button - Absolute & Glassmorphism */}
-                    <button
-                        onClick={scrollRight}
-                        className="hidden md:block absolute right-0 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/40 hover:border-primary-500/50 transition-all opacity-0 group-hover/carousel:opacity-100 translate-x-6"
-                    >
-                        <ChevronRight className="w-6 h-6" />
-                    </button>
+                    {effectiveBrands.length >= 8 && (
+                        <button
+                            onClick={scrollRight}
+                            className="hidden md:block absolute right-0 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/40 hover:border-primary-500/50 transition-all opacity-0 group-hover/carousel:opacity-100 translate-x-6"
+                        >
+                            <ChevronRight className="w-6 h-6" />
+                        </button>
+                    )}
                 </div>
             </div>
 

@@ -3,15 +3,15 @@ import { useParams, Link } from 'react-router-dom';
 import { carService } from '../services/api';
 import type { Car } from '../services/types';
 import { Button } from '../components/ui/Button';
-import { Loader2, ArrowLeft, Fuel, Cog, Users, Gauge, CheckCircle, AlertTriangle, MessageCircle, Phone, Info } from 'lucide-react';
-import { translateCategory, translateFuel } from '../utils/translate';
+import { Loader2, ArrowLeft, Fuel, Cog, Users, Gauge, CheckCircle, MessageCircle, Phone } from 'lucide-react';
+import { translateFuel } from '../utils/translate';
 import { CarDamageMap } from '../components/ui/CarDamageMap';
+import { ImageCarousel } from '../components/ui/ImageCarousel';
 
 export const CarDetail = () => {
     const { id } = useParams();
     const [car, setCar] = useState<Car | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeImage, setActiveImage] = useState(0);
 
     useEffect(() => {
         if (!id) return;
@@ -53,209 +53,154 @@ export const CarDetail = () => {
                     <span>Satılık Araçlara Dön</span>
                 </Link>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    {/* Left: Gallery */}
-                    <div className="space-y-4">
-                        <div className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-dark-surface border border-white/5 shadow-2xl group">
-                            {car.images && car.images.length > 0 ? (
-                                <img
-                                    src={car.images[activeImage]}
-                                    alt={car.model}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-600">Görsel Yok</div>
-                            )}
-
-                            {/* Badges */}
-                            <div className="absolute top-4 left-4 flex gap-2">
-                                <span className="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white border border-white/10 uppercase tracking-wider">
-                                    {translateCategory(car.category)}
-                                </span>
-                                {car.isFeatured && (
-                                    <span className="bg-primary-500/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white border border-primary-400/20 flex items-center gap-1.5 animate-pulse">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                                        Öne Çıkan
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Thumbnails */}
-                        {car.images && car.images.length > 1 && (
-                            <div className="grid grid-cols-5 gap-2">
-                                {car.images.map((img, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => setActiveImage(idx)}
-                                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'border-primary-500 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'
-                                            }`}
-                                    >
-                                        <img src={img} alt={`View ${idx}`} className="w-full h-full object-cover" />
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                {/* 1. Hero Section (Full Width) */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-12">
+                    {/* Left: Interactive Gallery (8/12) */}
+                    <div className="lg:col-span-8">
+                        <ImageCarousel
+                            images={car.images}
+                            alt={`${car.brand} ${car.model}`}
+                            category={car.category}
+                        />
                     </div>
 
-                    {/* Right: Info */}
-                    <div className="space-y-8">
-                        <div>
-                            <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight mb-2">{car.brand} <span className="text-primary-500">{car.model}</span></h1>
-                            <div className="flex items-center gap-4 text-gray-400 font-medium text-lg">
-                                <span>{car.year}</span>
-                                <span className="w-1 h-1 rounded-full bg-gray-600" />
-                                <span>{car.mileage.toLocaleString()} KM</span>
-                                <span className="w-1 h-1 rounded-full bg-gray-600" />
-                                <span>{car.color}</span>
-                            </div>
-                        </div>
+                    {/* Right: Quick Buy Box (4/12) */}
+                    <div className="lg:col-span-4 space-y-6">
+                        <div className="bg-dark-surface/40 backdrop-blur-md rounded-[2.5rem] p-8 border border-white/5 shadow-2xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full -translate-y-16 translate-x-16 blur-3xl group-hover:bg-primary-500/20 transition-all duration-700" />
 
-                        {/* Price Card */}
-                        <div className="bg-dark-surface-lighter/50 rounded-2xl p-6 border border-white/10 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Satış Fiyatı</p>
-                                <div className="text-3xl font-black text-white flex items-baseline gap-1">
-                                    {Number(car.salePrice).toLocaleString()} <span className="text-lg font-bold text-primary-500">₺</span>
+                            <div className="space-y-4 mb-8">
+                                <h1 className="text-4xl font-black text-white tracking-tighter">
+                                    {car.brand} <span className="text-primary-500">{car.model}</span>
+                                </h1>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <span className="bg-white/5 text-gray-400 px-3 py-1 rounded-lg text-xs font-bold border border-white/5">{car.year}</span>
+                                    <span className="bg-white/5 text-gray-400 px-3 py-1 rounded-lg text-xs font-bold border border-white/5">{car.mileage.toLocaleString()} KM</span>
                                 </div>
                             </div>
-                            <div className="flex gap-3">
-                                <Button className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2 shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+
+                            <div className="bg-black/40 rounded-3xl p-6 border border-white/5 mb-8">
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-2">Satış Fiyatı</p>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-5xl font-black text-white tracking-tighter">
+                                        {Number(car.salePrice).toLocaleString()}
+                                    </span>
+                                    <span className="text-2xl font-bold text-primary-500">₺</span>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-3">
+                                <Button className="w-full bg-green-600 hover:bg-green-500 text-white font-black h-16 rounded-2xl flex items-center justify-center gap-3 shadow-[0_10px_40px_-10px_rgba(22,163,74,0.4)] active:scale-95 transition-all">
                                     <Phone className="w-5 h-5" />
-                                    <span className="hidden sm:inline">Hemen Ara</span>
+                                    <span>Hemen Ara</span>
                                 </Button>
-                                <Button className="bg-dark-surface border border-white/10 hover:bg-white/5 text-white font-bold px-4 py-3 rounded-xl flex items-center gap-2">
+                                <Button className="w-full bg-white/5 hover:bg-white/10 text-white font-bold h-16 rounded-2xl flex items-center justify-center gap-3 border border-white/5 transition-all">
                                     <MessageCircle className="w-5 h-5" />
+                                    <span>WhatsApp</span>
                                 </Button>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        {/* Key Specs */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-dark-surface/50 p-4 rounded-xl border border-white/5 flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-primary-500/10 text-primary-500"><Cog className="w-6 h-6" /></div>
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase font-bold">Vites</p>
-                                    <p className="font-bold text-white">{car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'}</p>
-                                </div>
+                {/* 2. Horizontal Specs Band (Minimalist & Glass) */}
+                <div className="w-full bg-white/5 backdrop-blur-xl border-y border-white/5 py-6 px-8 mb-12 flex flex-wrap items-center justify-between gap-8 rounded-[1.5rem]">
+                    {[
+                        { icon: Cog, label: 'Şanzıman', value: car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel' },
+                        { icon: Fuel, label: 'Yakıt', value: translateFuel(car.fuel) },
+                        { icon: Users, label: 'Koltuk', value: `${car.seats} Kişilik` },
+                        { icon: Gauge, label: 'Motor', value: '2.0L' }
+                    ].map((spec, i) => (
+                        <div key={i} className="flex items-center gap-4 group">
+                            <div className="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
+                                <spec.icon className="w-5 h-5" />
                             </div>
-                            <div className="bg-dark-surface/50 p-4 rounded-xl border border-white/5 flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-primary-500/10 text-primary-500"><Fuel className="w-6 h-6" /></div>
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase font-bold">Yakıt</p>
-                                    <p className="font-bold text-white capitalize">{translateFuel(car.fuel)}</p>
-                                </div>
-                            </div>
-                            <div className="bg-dark-surface/50 p-4 rounded-xl border border-white/5 flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-primary-500/10 text-primary-500"><Users className="w-6 h-6" /></div>
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase font-bold">Koltuk</p>
-                                    <p className="font-bold text-white">{car.seats} Kişilik</p>
-                                </div>
-                            </div>
-                            <div className="bg-dark-surface/50 p-4 rounded-xl border border-white/5 flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-primary-500/10 text-primary-500"><Gauge className="w-6 h-6" /></div>
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase font-bold">Motor</p>
-                                    <p className="font-bold text-white">2.0L</p>
-                                </div>
+                            <div>
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{spec.label}</p>
+                                <p className="font-bold text-white text-sm capitalize">{spec.value}</p>
                             </div>
                         </div>
+                    ))}
+                </div>
 
-                        {/* Expert Report & Features */}
-                        <div className="space-y-6">
-                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                                <Info className="w-5 h-5 text-primary-500" />
-                                Araç Durumu & Özellikler
-                            </h3>
-
-                            {/* Visual Damage Map */}
-                            <div className="bg-dark-surface/30 rounded-2xl p-4 border border-white/5">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Görsel Hasar Kaydı</p>
+                {/* 3. Balanced Information Section (Two Columns) */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+                    {/* Left: Modern Damage Map */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-4">
+                            <h3 className="text-xl font-black text-white uppercase tracking-tight">Hasar <span className="text-primary-500">Durumu</span></h3>
+                            <div className="h-px flex-1 bg-white/10" />
+                        </div>
+                        <div className="bg-dark-surface/30 rounded-[2.5rem] p-10 border border-white/5 flex items-center justify-center relative group">
+                            <div className="absolute inset-0 bg-primary-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl rounded-full" />
+                            <div className="relative z-10 w-full max-w-sm">
                                 <CarDamageMap
                                     changedParts={car.changedParts || []}
                                     paintedParts={car.paintedParts || []}
                                     readonly
                                 />
                             </div>
+                        </div>
+                    </div>
 
-                            {/* Accident Description */}
-                            <div className="bg-dark-surface/30 rounded-xl p-5 border border-white/5">
-                                <p className="text-sm font-bold text-gray-400 uppercase mb-2">Ekspertiz / Tramer Kaydı</p>
-                                <p className="text-gray-200 leading-relaxed break-words whitespace-pre-wrap">
-                                    {car.accidentDescription || "Hasar kaydı bilgisi girilmemiştir."}
-                                </p>
-                            </div>
+                    {/* Right: Expert Data & Tags */}
+                    <div className="space-y-8">
+                        <div className="flex items-center gap-4">
+                            <h3 className="text-xl font-black text-white uppercase tracking-tight">Ekspertiz <span className="text-primary-500">Notları</span></h3>
+                            <div className="h-px flex-1 bg-white/10" />
+                        </div>
 
-                            {/* Changed/Painted Parts Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <p className="text-sm font-bold text-red-400 uppercase mb-3 flex items-center gap-2">
-                                        <AlertTriangle className="w-4 h-4" /> Değişen Parçalar
-                                    </p>
-                                    {car.changedParts && car.changedParts.length > 0 ? (
-                                        <ul className="space-y-2">
-                                            {car.changedParts.map((part, i) => (
-                                                <li key={i} className="flex items-start gap-2 text-gray-300 text-sm">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
-                                                    <span className="break-all w-full min-w-0">{part}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p className="text-sm text-gray-500 italic">Değişen parça yok.</p>
-                                    )}
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-yellow-400 uppercase mb-3 flex items-center gap-2">
-                                        <AlertTriangle className="w-4 h-4" /> Boyalı Parçalar
-                                    </p>
-                                    {car.paintedParts && car.paintedParts.length > 0 ? (
-                                        <ul className="space-y-2">
-                                            {car.paintedParts.map((part, i) => (
-                                                <li key={i} className="flex items-start gap-2 text-gray-300 text-sm">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0" />
-                                                    <span className="break-all w-full min-w-0">{part}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p className="text-sm text-gray-500 italic">Boyalı parça yok.</p>
-                                    )}
-                                </div>
-                            </div>
+                        <div className="bg-dark-surface/30 rounded-[2.5rem] p-8 border border-white/5">
+                            <p className="text-gray-400 italic leading-relaxed text-lg">
+                                "{car.accidentDescription || "Araç hakkında herhangi bir kaza veya tramer kaydı bilgisi not düşülmemiştir."}"
+                            </p>
+                        </div>
 
-                            {/* Features List */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <p className="text-sm font-bold text-blue-400 uppercase mb-3 flex items-center gap-2 mt-4">
-                                    <CheckCircle className="w-4 h-4" /> Ekstra Özellikler
-                                </p>
-                                {car.features && car.features.length > 0 ? (
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {car.features.map((feature, i) => (
-                                            <div key={i} className="bg-dark-surface/50 px-3 py-2 rounded-lg border border-white/5 text-sm text-gray-300 flex items-start gap-2 min-w-0">
-                                                <CheckCircle className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
-                                                <span className="break-all w-full min-w-0">{feature}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-gray-500 italic">Ekstra özellik girilmemiştir.</p>
-                                )}
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-4 pl-1">Değişen Parçalar</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {car.changedParts?.length ? car.changedParts.map((p, i) => (
+                                        <span key={i} className="text-xs bg-red-500/10 text-red-500 px-4 py-2 rounded-xl font-bold border border-red-500/20">{p}</span>
+                                    )) : <span className="text-xs text-gray-600 italic">Kayıt yok</span>}
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-4 pl-1">Boyalı Parçalar</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {car.paintedParts?.length ? car.paintedParts.map((p, i) => (
+                                        <span key={i} className="text-xs bg-amber-500/10 text-amber-500 px-4 py-2 rounded-xl font-bold border border-amber-500/20">{p}</span>
+                                    )) : <span className="text-xs text-gray-600 italic">Kayıt yok</span>}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Description */}
-                        {car.description && (
-                            <div className="pt-6 border-t border-white/5">
-                                <h3 className="text-lg font-bold text-white mb-3">Açıklama</h3>
-                                <p className="text-gray-400 leading-relaxed whitespace-pre-wrap">
-                                    {car.description}
-                                </p>
+                        <div>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-4 pl-1">Ekstra Donanımlar</p>
+                            <div className="flex flex-wrap gap-2">
+                                {car.features?.map((f, i) => (
+                                    <span key={i} className="text-xs bg-primary-500/5 text-primary-400 px-4 py-2 rounded-xl font-bold border border-primary-500/10 flex items-center gap-2">
+                                        <CheckCircle className="w-3 h-3" />
+                                        {f}
+                                    </span>
+                                ))}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
+
+                {/* 4. Description Section (Full Width) */}
+                {car.description && (
+                    <div className="space-y-6 max-w-4xl">
+                        <div className="flex items-center gap-4">
+                            <h3 className="text-xl font-black text-white uppercase tracking-tight">Genel <span className="text-primary-500">Açıklama</span></h3>
+                            <div className="h-px flex-1 bg-white/10" />
+                        </div>
+                        <p className="text-gray-400 text-lg leading-relaxed whitespace-pre-wrap">
+                            {car.description}
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );

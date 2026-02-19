@@ -9,7 +9,6 @@ import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { Skeleton } from '../components/ui/Skeleton';
 import { storage } from '../utils/storage';
-import { CarDamageMap } from '../components/ui/CarDamageMap';
 
 interface Brand {
     id: string;
@@ -633,7 +632,7 @@ export const AdminRentalCars = () => {
                                                     const url = await uploadService.uploadImage(file);
                                                     setFormData(prev => ({
                                                         ...prev,
-                                                        images: [url] // Replace existing images with new one
+                                                        images: [...prev.images, url] // Add new image to the list
                                                     }));
                                                     toast('Fotoğraf yüklendi', 'success');
                                                 } catch (err) {
@@ -659,7 +658,7 @@ export const AdminRentalCars = () => {
                                         <label className={labelClass}>Yüklenen Fotoğraf</label>
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-2">
                                             {formData.images.map((img, idx) => (
-                                                <div key={idx} className="relative group aspect-[4/3] bg-black rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                                                <div key={idx} className="relative group aspect-video bg-black rounded-xl overflow-hidden border border-white/10 shadow-lg">
                                                     <img src={img} alt={`Car ${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                         <button
@@ -680,45 +679,7 @@ export const AdminRentalCars = () => {
                                 <label className={labelClass}>Açıklama</label>
                                 <textarea rows={2} className={inputClass} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Araç hakkında notlar..." />
                             </div>
-                            <div className="lg:col-span-3 border-t border-white/10 pt-6 mt-2">
-                                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                                    <AlertTriangle className="w-5 h-5 text-primary-500" />
-                                    Ekspertiz ve Özellikler
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="md:col-span-2">
-                                        <label className={labelClass}>Ekspertiz / Tramer Açıklaması</label>
-                                        <textarea rows={2} className={inputClass} value={formData.accidentDescription} onChange={e => setFormData({ ...formData, accidentDescription: e.target.value })} placeholder="Hasar kaydı ve ekspertiz detayları..." />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className={labelClass}>Görsel Hasar Kaydı (Parçalara Tıklayın)</label>
-                                        <CarDamageMap
-                                            changedParts={formData.changedParts.split(',').map(s => s.trim()).filter(Boolean)}
-                                            paintedParts={formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean)}
-                                            onChange={(partName, newState) => {
-                                                const changedArray = formData.changedParts.split(',').map(s => s.trim()).filter(Boolean);
-                                                const paintedArray = formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean);
 
-                                                const newChanged = changedArray.filter(p => p !== partName);
-                                                const newPainted = paintedArray.filter(p => p !== partName);
-
-                                                if (newState === 'CHANGED') newChanged.push(partName);
-                                                if (newState === 'PAINTED') newPainted.push(partName);
-
-                                                setFormData({
-                                                    ...formData,
-                                                    changedParts: newChanged.join(', '),
-                                                    paintedParts: newPainted.join(', ')
-                                                });
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className={labelClass}>Ekstra Özellikler (Virgülle ayırın)</label>
-                                        <input type="text" className={inputClass} value={formData.features} onChange={e => setFormData({ ...formData, features: e.target.value })} placeholder="Sunroof, Navigasyon, Deri Koltuk..." />
-                                    </div>
-                                </div>
-                            </div>
                             <div className="lg:col-span-3 flex justify-end gap-4 pt-6 border-t border-white/10">
                                 <Button type="button" onClick={handleCancelForm} className="px-6 py-3 bg-dark-bg border border-white/10 text-gray-400 hover:text-white rounded-xl transition-all">
                                     İptal

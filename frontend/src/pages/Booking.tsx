@@ -5,12 +5,16 @@ import type { Car, CreateBookingRequest } from '../services/types';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Loader2, CheckCircle, MapPin, Users, Fuel, Cog, Gauge } from 'lucide-react';
+import { ImageCarousel } from '../components/ui/ImageCarousel';
 import { Link } from 'react-router-dom';
-import { translateCategory, translateFuel } from '../utils/translate';
+import { translateFuel } from '../utils/translate';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { tr } from 'date-fns/locale/tr';
+import { formatPhoneNumber, cleanPhoneNumber } from '../utils/formatters';
 registerLocale('tr', tr);
+
+
 
 export const Booking = () => {
     const { carId } = useParams();
@@ -128,31 +132,11 @@ export const Booking = () => {
         }
     }, [startDate, endDate, car]);
 
-    const formatPhoneNumber = (value: string) => {
-        // Remove all non-digit characters
-        const phoneNumber = value.replace(/\D/g, '');
-        const phoneNumberLength = phoneNumber.length;
-
-        if (phoneNumberLength < 4) return phoneNumber;
-        if (phoneNumberLength < 7) {
-            return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
-        }
-        if (phoneNumberLength < 9) {
-            return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)} ${phoneNumber.slice(6)}`;
-        }
-        return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)} ${phoneNumber.slice(6, 8)} ${phoneNumber.slice(8, 10)}`;
-    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         let value = e.target.value;
         if (e.target.name === 'customerPhone') {
-            // Handle backspace or direct valid input, but for simple masking we format the raw digits
-            // However, to allow deleting, we usually need to be careful. 
-            // Simple approach: unformat, slice if needed, reformat.
-            // But for a simple "formatter on typing", re-formatting the cleaned numeric string works well enough for valid inputs.
-            // Limit to 10 digits (plus format chars)
-            const raw = value.replace(/\D/g, '').slice(0, 10);
-            value = formatPhoneNumber(raw);
+            value = formatPhoneNumber(cleanPhoneNumber(value));
         }
         setFormData({ ...formData, [e.target.name]: value });
     };
@@ -306,27 +290,13 @@ export const Booking = () => {
                 <div className="bg-dark-surface rounded-3xl p-1 border border-white/5 shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-500 to-transparent opacity-50" />
 
-                    {/* Image Container */}
-                    <div className="relative rounded-2xl overflow-hidden aspect-[4/3] bg-dark-bg">
-                        {car.images && car.images[0] ? (
-                            <img
-                                src={car.images[0]}
-                                alt={car.model}
-                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-700">Görsel Yok</div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-dark-surface via-transparent to-transparent opacity-60" />
-                        <div className="absolute top-3 left-3">
-                            <span className="bg-black/40 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-lg text-xs font-bold text-white uppercase tracking-wider">
-                                {translateCategory(car.category)}
-                            </span>
-                        </div>
+                    {/* Image Section */}
+                    <div className="p-3">
+                        <ImageCarousel images={car.images} alt={car.model} category={car.category} />
                     </div>
 
                     {/* Content */}
-                    <div className="p-5">
+                    <div className="px-5 pb-5">
                         <div className="mb-6">
                             <h2 className="text-2xl font-bold text-white leading-tight mb-1 break-words">{car.brand}</h2>
                             <p className="text-lg text-gray-400 font-medium break-words">{car.model}</p>

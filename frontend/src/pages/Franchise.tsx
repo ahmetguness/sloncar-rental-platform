@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { franchiseService } from '../services/api';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import { formatPhoneNumber, cleanPhoneNumber } from '../utils/formatters';
 import { Building2, User, Mail, Phone, MapPin, Wallet, Briefcase, CheckCircle, Send, ChevronRight, ChevronLeft, Globe } from 'lucide-react';
 
 const CITIES = [
@@ -44,22 +45,12 @@ export const Franchise = () => {
         message: ''
     });
 
-    const formatPhoneNumber = (value: string) => {
-        const phoneNumber = value.replace(/\D/g, '');
-        const phoneNumberLength = phoneNumber.length;
-        if (phoneNumberLength < 4) return phoneNumber;
-        if (phoneNumberLength < 7) return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
-        if (phoneNumberLength < 9) return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)} ${phoneNumber.slice(6)}`;
-        return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)} ${phoneNumber.slice(6, 8)} ${phoneNumber.slice(8, 10)}`;
-    };
-
     const updateField = (field: keyof FormData, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const raw = e.target.value.replace(/\D/g, '').slice(0, 10);
-        const formatted = formatPhoneNumber(raw);
+        const formatted = formatPhoneNumber(cleanPhoneNumber(e.target.value));
         updateField('contactPhone', formatted);
     };
 

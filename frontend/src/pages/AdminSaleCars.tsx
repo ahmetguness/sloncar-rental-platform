@@ -647,7 +647,7 @@ export const AdminSaleCars = () => {
                                                     const url = await uploadService.uploadImage(file);
                                                     setFormData(prev => ({
                                                         ...prev,
-                                                        images: [url] // Replace existing images with new one
+                                                        images: [...prev.images, url] // Add new image to the list
                                                     }));
                                                     toast('Fotoğraf yüklendi', 'success');
                                                 } catch (err) {
@@ -673,7 +673,7 @@ export const AdminSaleCars = () => {
                                         <label className={labelClass}>Yüklenen Fotoğraf</label>
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-2">
                                             {formData.images.map((img, idx) => (
-                                                <div key={idx} className="relative group aspect-[4/3] bg-black rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                                                <div key={idx} className="relative group aspect-video bg-black rounded-xl overflow-hidden border border-white/10 shadow-lg">
                                                     <img src={img} alt={`Car ${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                         <button

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { adminService } from '../../services/api';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import { formatPhoneNumber, cleanPhoneNumber } from '../../utils/formatters';
 import { Loader2 } from 'lucide-react';
 import type { UserInsurance } from '../../services/types';
 
@@ -60,9 +61,15 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
+        let finalValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+
+        if (name === 'agentPhone' && typeof finalValue === 'string') {
+            finalValue = formatPhoneNumber(cleanPhoneNumber(finalValue));
+        }
+
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+            [name]: finalValue
         }));
     };
 

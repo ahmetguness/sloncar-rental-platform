@@ -106,12 +106,19 @@ class NotificationService {
                     ];
 
                     console.log(`[Notification] Sending 'new_booking_alert' template to Admin: ${admin.phone}`);
-                    const sent = await whatsAppService.sendTemplateMessage(admin.phone, 'new_booking_alert', 'tr', adminComponents);
+                    let sent = await whatsAppService.sendTemplateMessage(admin.phone, 'new_booking_alert', 'tr', adminComponents);
+
+                    // Fallback to plain text if template fails
+                    if (!sent) {
+                        console.log(`[Notification] Template failed. Falling back to text message for Admin: ${admin.phone}`);
+                        const textBody = `🏠 Yeni Rezervasyon!\n\nKod: ${booking.bookingCode}\nMüşteri: ${booking.customerName} ${booking.customerSurname}\nTelefon: ${booking.customerPhone}\nAraç: ${booking.car?.brand} ${booking.car?.model}\nTarih: ${new Date(booking.pickupDate).toLocaleDateString('tr-TR')} - ${new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}\nTutar: ${booking.totalPrice} TL`;
+                        sent = await whatsAppService.sendTextMessage(admin.phone, textBody);
+                    }
 
                     await this.logNotification('WHATSAPP', {
                         to: admin.phone,
                         subject: `Yeni Rezervasyon Bildirimi (${sent ? 'SENT' : 'FAILED'})`,
-                        body: `Template: new_booking_alert | Params: ${JSON.stringify(adminComponents)}`
+                        body: `Result: ${sent ? 'Success' : 'Failed'} | Template: new_booking_alert`
                     });
                 }
             }

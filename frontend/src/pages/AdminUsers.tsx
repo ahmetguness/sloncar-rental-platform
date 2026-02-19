@@ -6,6 +6,7 @@ import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { Button } from '../components/ui/Button';
 import { storage } from '../utils/storage';
+import { formatPhoneNumber, cleanPhoneNumber } from '../utils/formatters';
 import { Loader2, ArrowLeft, Plus, Search, Pencil, Trash2, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const EditUserModal = ({ user, onClose, onSuccess }: { user: any; onClose: () => void; onSuccess: () => void }) => {
@@ -112,8 +113,9 @@ const CreateUserModal = ({ onClose, onSuccess }: { onClose: () => void; onSucces
                     <input
                         type="tel"
                         className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="(5XX) XXX XX XX"
                         value={formData.phone}
-                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                        onChange={e => setFormData({ ...formData, phone: formatPhoneNumber(cleanPhoneNumber(e.target.value)) })}
                     />
                 </div>
                 <div>

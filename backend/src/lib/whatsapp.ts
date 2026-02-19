@@ -25,14 +25,21 @@ export class WhatsAppService {
      * Assuming Turkish numbers for now if no country code provided
      */
     private formatPhoneNumber(phone: string): string {
+        // Remove all non-digits
         let cleaned = phone.replace(/\D/g, '');
 
-        // If it starts with 0, remove it (0532... -> 532...)
+        // Handle Case 1: Already starts with 90 (Turkish country code)
+        // Ensure it has 12 digits (90 + 10 digits)
+        if (cleaned.startsWith('90') && cleaned.length === 12) {
+            return cleaned;
+        }
+
+        // Handle Case 2: Starts with 0 (e.g. 05446455135 -> 905446455135)
         if (cleaned.startsWith('0')) {
             cleaned = cleaned.substring(1);
         }
 
-        // If length is 10 (e.g. 5321234567), add 90
+        // Handle Case 3: 10 digit number (e.g. 5446455135 -> 905446455135)
         if (cleaned.length === 10) {
             cleaned = '90' + cleaned;
         }
@@ -71,7 +78,15 @@ export class WhatsAppService {
             return true;
         } catch (error: any) {
             const errMsg = error?.response?.data || error.message;
-            console.error('[WhatsApp] Global Error:', errMsg);
+            const code = error?.response?.data?.error?.code;
+
+            if (code === 131030) {
+                console.error(`[WhatsApp] Recipient ${formattedTo} not in allowed list (Sandbox Mode).`);
+            } else if (code === 132001) {
+                console.error(`[WhatsApp] Template '${templateName}' or translation 'tr' missing.`);
+            } else {
+                console.error('[WhatsApp] Global Error:', JSON.stringify(errMsg));
+            }
             // Log to file for debugging
             try {
                 const fs = await import('fs');
