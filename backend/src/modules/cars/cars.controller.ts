@@ -96,3 +96,19 @@ export async function deleteCar(
         next(error);
     }
 }
+
+export async function getUsedBrands(
+    _req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const brands = await carsService.getUsedBrands();
+        res.json({
+            success: true,
+            data: brands,
+        });
+    } catch (error) {
+        next(error);
+    }
+}

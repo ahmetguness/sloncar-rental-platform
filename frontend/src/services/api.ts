@@ -10,6 +10,7 @@ import type {
     User
 } from './types';
 import { storage } from '../utils/storage';
+import { BRANDS } from '../constants/brands';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -54,17 +55,19 @@ export const carService = {
     getAvailability: async (id: string, from: string, to: string) => {
         const response = await api.get<{ data: any }>(`/cars/${id}/availability`, { params: { from, to } });
         return response.data.data;
+    },
+    getUsedBrands: async () => {
+        const response = await api.get<{ success: boolean, data: string[] }>('/cars/brands');
+        return response.data.data;
     }
 };
 
 export const brandService = {
     getAll: async () => {
-        const response = await api.get<{ id: string; name: string; logoUrl: string }[]>('/brands');
-        return response.data;
+        return BRANDS;
     },
     getAllAdmin: async () => {
-        const response = await api.get<{ id: string; name: string; logoUrl: string }[]>('/brands/all');
-        return response.data;
+        return BRANDS;
     }
 };
 

@@ -10,6 +10,19 @@ import {
 
 const router = Router();
 
+
+/**
+ * @swagger
+ * /cars/brands:
+ *   get:
+ *     tags: [Cars]
+ *     summary: Get unique brands currently in the fleet
+ *     responses:
+ *       200:
+ *         description: List of brand names
+ */
+router.get('/brands', carsController.getUsedBrands);
+
 /**
  * @swagger
  * /cars:

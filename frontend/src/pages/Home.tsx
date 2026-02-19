@@ -210,8 +210,17 @@ export const Home = () => {
 
     const fetchBrands = async () => {
         try {
-            const data = await brandService.getAll();
-            setBrands(data);
+            const [allBrands, usedBrandNames] = await Promise.all([
+                brandService.getAll(),
+                carService.getUsedBrands()
+            ]);
+
+            // Filter allBrands to only include those that have at least one car in fleet
+            const filteredBrands = allBrands.filter(b =>
+                usedBrandNames.some(name => name.toLowerCase() === b.name.toLowerCase())
+            );
+
+            setBrands(filteredBrands);
         } catch (error) {
             console.error('Failed to fetch brands', error);
         }

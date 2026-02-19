@@ -286,3 +286,17 @@ export async function deleteCar(id: string): Promise<void> {
         await tx.car.delete({ where: { id } });
     });
 }
+
+export async function getUsedBrands(): Promise<string[]> {
+    const cars = await prisma.car.findMany({
+        where: {
+            status: { not: 'INACTIVE' }
+        },
+        select: {
+            brand: true
+        },
+        distinct: ['brand']
+    });
+
+    return cars.map(car => car.brand);
+}

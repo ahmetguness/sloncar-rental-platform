@@ -20,7 +20,6 @@ import franchiseRoutes, {
     adminFranchiseRouter
 } from './modules/franchise/franchise.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
-import brandsRoutes from './modules/brands/brands.routes.js';
 import branchesRoutes from './modules/branches/branches.routes.js';
 import uploadRoutes from './modules/upload/upload.routes.js';
 import campaignRoutes, { adminCampaignRouter } from './modules/campaigns/campaigns.routes.js';
@@ -94,7 +93,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/cars', carsRoutes);
 app.use('/api/cars/:id/availability', carAvailabilityRouter);
 app.use('/api/bookings', bookingsRoutes);
-app.use('/api/brands', brandsRoutes);
 app.use('/api/branches', branchesRoutes);
 app.use('/api/franchise-applications', franchiseRoutes);
 app.use('/api/campaigns', campaignRoutes);
