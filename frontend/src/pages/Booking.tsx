@@ -175,6 +175,7 @@ export const Booking = () => {
             };
 
             if (!payload.customerTC) delete payload.customerTC;
+            if (!payload.customerDriverLicense) delete payload.customerDriverLicense;
             if (!payload.notes) delete payload.notes;
 
             const res = await bookingService.create(payload as CreateBookingRequest);
@@ -468,10 +469,7 @@ export const Booking = () => {
                                     <Input label="E-posta" type="email" name="customerEmail" value={formData.customerEmail} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Input label="Ehliyet No" name="customerDriverLicense" value={formData.customerDriverLicense} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
-                                    <Input label="TC Kimlik (Opsiyonel)" name="customerTC" value={formData.customerTC} onChange={handleChange} className="bg-dark-bg border-transparent focus:border-primary-500/50" />
-                                </div>
+
 
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 mb-3 uppercase tracking-wide ml-1">Notlar (Opsiyonel)</label>

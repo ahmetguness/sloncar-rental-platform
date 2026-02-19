@@ -2,6 +2,7 @@ import app from './app.js';
 import { env } from './config/env.js';
 import prisma from './lib/prisma.js';
 import { initBackupScheduler } from './modules/backup/backup.scheduler.js';
+import { cronService } from './services/cron.service.js';
 
 const PORT = env.APP_PORT;
 
@@ -13,6 +14,9 @@ async function main() {
 
         // Initialize Backup Scheduler
         initBackupScheduler();
+
+        // Initialize Cron Service (Booking Expiration)
+        cronService.init();
 
         // Start server
         const server = app.listen(PORT, () => {

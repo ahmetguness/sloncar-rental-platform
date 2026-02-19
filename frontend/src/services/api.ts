@@ -35,9 +35,8 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 409) {
-            const message = error.response?.data?.message ||
-                'Bu kayıt başka bir kullanıcı tarafından değiştirilmiş. Lütfen sayfayı yenileyip tekrar deneyin.';
-            alert(message);
+            // Alert removed to prevent native popup, handled by UI components
+            // const message = error.response?.data?.message || ...
         }
         return Promise.reject(error);
     }
@@ -56,8 +55,8 @@ export const carService = {
         const response = await api.get<{ data: any }>(`/cars/${id}/availability`, { params: { from, to } });
         return response.data.data;
     },
-    getUsedBrands: async () => {
-        const response = await api.get<{ success: boolean, data: { name: string, logoUrl: string }[] }>('/cars/brands');
+    getUsedBrands: async (type?: 'RENTAL' | 'SALE') => {
+        const response = await api.get<{ success: boolean, data: { name: string, logoUrl: string }[] }>('/cars/brands', { params: { type } });
         return response.data.data;
     }
 };

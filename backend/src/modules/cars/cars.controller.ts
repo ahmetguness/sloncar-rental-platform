@@ -87,7 +87,7 @@ export async function deleteCar(
     next: NextFunction
 ): Promise<void> {
     try {
-        const car = await carsService.deleteCar(req.params.id!) as any;
+        const car = await carsService.deleteCar(req.params.id!);
 
         auditService.logAction(req.user?.userId, 'DELETE_CAR', { carId: req.params.id, brand: car.brand, model: car.model, plate: car.plateNumber }, req);
 
@@ -98,12 +98,14 @@ export async function deleteCar(
 }
 
 export async function getUsedBrands(
-    _req: Request,
+    req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> {
     try {
-        const brands = await carsService.getUsedBrands();
+        const { type } = req.query;
+        // Cast type to CarType if provided, validation could be added but for now simplistic casting
+        const brands = await carsService.getUsedBrands(type as any);
         res.json({
             success: true,
             data: brands,

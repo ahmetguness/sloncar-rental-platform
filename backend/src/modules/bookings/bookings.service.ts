@@ -842,12 +842,13 @@ export async function getAdminBookings(
                     select: {
                         id: true,
                         brand: true,
+                        brandLogo: true,
                         model: true,
                         plateNumber: true,
                         dailyPrice: true,
                         category: true,
                         images: true,
-                    }
+                    },
                 },
                 pickupBranch: true,
                 dropoffBranch: true,
@@ -855,7 +856,7 @@ export async function getAdminBookings(
             orderBy: { createdAt: 'desc' },
             skip,
             take: limit,
-        })
+        }),
     ]);
 
     return {
@@ -867,4 +868,26 @@ export async function getAdminBookings(
             totalPages: Math.ceil(total / limit),
         },
     };
+}
+
+// SYSTEM - Cancel expired unpaid bookings
+export async function cancelExpiredBookings() {
+    const expiredBookings = await prisma.booking.updateMany({
+        where: {
+            status: BookingStatus.RESERVED,
+            paymentStatus: PaymentStatus.UNPAID,
+            expiresAt: {
+                lt: new Date()
+            }
+        },
+        data: {
+            status: BookingStatus.CANCELLED
+        }
+    });
+
+    if (expiredBookings.count > 0) {
+        console.log(`[CRON] Cancelled ${expiredBookings.count} expired unpaid bookings.`);
+    }
+
+    return expiredBookings.count;
 }

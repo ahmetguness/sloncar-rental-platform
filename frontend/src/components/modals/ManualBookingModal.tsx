@@ -71,7 +71,7 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                 customerSurname: customer.surname,
                 customerPhone: customer.phone,
                 customerEmail: customer.email,
-                customerDriverLicense: customer.license,
+
                 pickupDate: formatDateForAPI(dates.pickup),
                 dropoffDate: formatDateForAPI(dates.dropoff),
                 pickupBranchId: selectedCar.branchId,
@@ -82,6 +82,9 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
 
             if (customer.tc && customer.tc.trim() !== '') {
                 payload.customerTC = customer.tc;
+            }
+            if (customer.license && customer.license.trim() !== '') {
+                payload.customerDriverLicense = customer.license;
             }
             if (customer.notes && customer.notes.trim() !== '') {
                 payload.notes = customer.notes;
@@ -262,14 +265,7 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                                     <label className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-1">E-posta</label>
                                     <input placeholder="email@örnek.com" className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 outline-none transition-colors" value={customer.email} onChange={e => setCustomer({ ...customer, email: e.target.value })} />
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-1">TC Kimlik No (Opsiyonel)</label>
-                                    <input placeholder="11 haneli TC no" className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 outline-none transition-colors" value={customer.tc} onChange={e => setCustomer({ ...customer, tc: e.target.value })} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-1">Ehliyet No</label>
-                                    <input placeholder="Ehliyet numarasını giriniz" className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 outline-none transition-colors" value={customer.license} onChange={e => setCustomer({ ...customer, license: e.target.value })} />
-                                </div>
+
                                 <div className="col-span-2 space-y-1.5">
                                     <label className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-1">Notlar</label>
                                     <textarea rows={3} placeholder="Rezervasyonla ilgili ek notlar..." className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 outline-none transition-colors resize-none" value={customer.notes} onChange={e => setCustomer({ ...customer, notes: e.target.value })} />

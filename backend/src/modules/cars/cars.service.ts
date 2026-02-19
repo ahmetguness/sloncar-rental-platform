@@ -226,10 +226,11 @@ export async function updateCar(id: string, input: UpdateCarInput & { version?: 
     return car;
 }
 
-export async function deleteCar(id: string): Promise<void> {
-    await prisma.$transaction(async (tx) => {
+export async function deleteCar(id: string): Promise<CarWithBranch> {
+    const deletedCar = await prisma.$transaction(async (tx) => {
         const car = await tx.car.findUnique({
             where: { id },
+            include: { branch: true },
         });
 
         if (!car) {
@@ -256,12 +257,11 @@ export async function deleteCar(id: string): Promise<void> {
             }
 
             // Soft Delete
-            await tx.car.update({
+            return await tx.car.update({
                 where: { id },
-                data: { status: 'INACTIVE' }
+                data: { status: 'INACTIVE' },
+                include: { branch: true },
             });
-
-            return;
         }
 
         // Only hard delete if NO history exists
@@ -284,14 +284,23 @@ export async function deleteCar(id: string): Promise<void> {
         }
 
         await tx.car.delete({ where: { id } });
+        return car;
     });
+
+    return deletedCar;
 }
 
-export async function getUsedBrands(): Promise<{ name: string, logoUrl: string | null }[]> {
+export async function getUsedBrands(type?: 'RENTAL' | 'SALE'): Promise<{ name: string, logoUrl: string | null }[]> {
+    const where: Prisma.CarWhereInput = {
+        status: { not: 'INACTIVE' }
+    };
+
+    if (type) {
+        where.type = type;
+    }
+
     const cars = await prisma.car.findMany({
-        where: {
-            status: { not: 'INACTIVE' }
-        },
+        where,
         select: {
             brand: true,
             brandLogo: true

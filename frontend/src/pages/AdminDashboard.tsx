@@ -22,6 +22,79 @@ import ManualBookingModal from '../components/modals/ManualBookingModal';
 import InsuranceDetailModal from '../components/modals/InsuranceDetailModal';
 import CreateInsuranceModal from '../components/modals/CreateInsuranceModal';
 
+// Internal BrandLogo Component
+// Load all brand logos from assets
+const BRAND_LOGOS = import.meta.glob('/src/assets/logo/brand_logos/*.png', { eager: true, as: 'url' });
+
+// Internal BrandLogo Component
+const BrandLogo = ({ name, url, className = "w-8 h-8" }: { name: string, url?: string, className?: string }) => {
+    const [imageSrc, setImageSrc] = useState<string | null>(url || null);
+    const [hasError, setHasError] = useState(false);
+
+    useEffect(() => {
+        if (url) {
+            setImageSrc(url);
+            setHasError(false);
+        } else {
+            // Try to find local logo
+            // Normalize name to Title Case to match filenames (e.g. "BMW" -> "BMW", "toyota" -> "Toyota")
+            // Actually filenames are mixed case: Audi.png, BMW.png, Mercedes-Benz.png
+            // Best strategy: Try exact match first, then case-insensitive match
+            const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+            const localLogoKey = Object.keys(BRAND_LOGOS).find(key => {
+                const fileName = key.split('/').pop()?.replace('.png', '') || '';
+                return normalize(fileName) === normalize(name);
+            });
+
+            if (localLogoKey) {
+                setImageSrc(BRAND_LOGOS[localLogoKey] as string);
+                setHasError(false);
+            } else {
+                setHasError(true);
+            }
+        }
+    }, [url, name]);
+
+    // Handle image load error
+    const handleError = () => {
+        if (imageSrc === url && url) {
+            // If remote URL failed, try local
+            const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const localLogoKey = Object.keys(BRAND_LOGOS).find(key => {
+                const fileName = key.split('/').pop()?.replace('.png', '') || '';
+                return normalize(fileName) === normalize(name);
+            });
+
+            if (localLogoKey) {
+                setImageSrc(BRAND_LOGOS[localLogoKey] as string);
+                setHasError(false); // Reset error because we have a new candidate
+            } else {
+                setHasError(true);
+            }
+        } else {
+            setHasError(true);
+        }
+    };
+
+    if (hasError || !imageSrc) {
+        return (
+            <div className={`${className} rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white uppercase flex-shrink-0 border border-white/10`}>
+                {name?.substring(0, 2)}
+            </div>
+        );
+    }
+
+    return (
+        <img
+            src={imageSrc}
+            alt={name}
+            className={`${className} object-contain bg-white/5 rounded-full p-0.5`}
+            onError={handleError}
+        />
+    );
+};
+
 
 
 
@@ -168,9 +241,16 @@ const BookingRow = React.memo(({
                 </div>
             </td>
             <td className="p-4">
-                <div className="flex items-center gap-2">
-                    <CarIcon className="w-4 h-4 text-gray-500 shrink-0" />
-                    <span className="text-gray-300 truncate max-w-[150px]" title={`${booking.car?.brand} ${booking.car?.model}`}>{booking.car?.brand} {booking.car?.model}</span>
+                <div className="flex items-center gap-3">
+                    <BrandLogo
+                        name={booking.car?.brand || ''}
+                        url={booking.car?.brandLogo}
+                        className="w-8 h-8"
+                    />
+                    <div>
+                        <div className="font-medium text-white truncate max-w-[150px]" title={`${booking.car?.brand} ${booking.car?.model}`}>{booking.car?.brand} {booking.car?.model}</div>
+                        <div className="text-xs text-gray-500">{booking.car?.plateNumber}</div>
+                    </div>
                 </div>
             </td>
             <td className="p-4 text-center">
@@ -302,6 +382,7 @@ const BookingRow = React.memo(({
 }); // End of React.memo
 
 
+
 export const AdminDashboard = () => {
     const ITEMS_PER_PAGE = 10;
 
@@ -361,12 +442,27 @@ export const AdminDashboard = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isSystemMenuOpen]);
 
+
     const handleUpdateUser = (updatedUser: any) => {
         setCurrentUser(updatedUser);
         storage.setUser(updatedUser);
     };
 
+    // Memoized Search Handlers to prevent infinite re-renders in DebouncedInput
+    const handleBookingSearch = useCallback((val: string) => {
+        setSearchTerm(val);
+        setCurrentPage(1);
+    }, []);
 
+    const handleFranchiseSearch = useCallback((val: string) => {
+        setFranchiseSearchTerm(val);
+        setFranchisePage(1);
+    }, []);
+
+    const handleInsuranceSearch = useCallback((val: string) => {
+        setInsuranceSearchTerm(val);
+        setInsurancePage(1);
+    }, []);
 
     const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'franchise' | 'insurance'>('overview');
     const [chartView, setChartView] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
@@ -1256,22 +1352,7 @@ export const AdminDashboard = () => {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    {currentUser?.role === 'ADMIN' && (
-                                        <div className="flex items-center gap-2">
-                                            <Link to="/admin/audit-logs">
-                                                <Button variant="secondary" size="sm" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white whitespace-nowrap">
-                                                    <Clock className="w-4 h-4" />
-                                                    İşlem Geçmişi
-                                                </Button>
-                                            </Link>
-                                            <Link to="/admin/users">
-                                                <Button variant="secondary" size="sm" className="flex items-center gap-2 bg-dark-bg/50 border-white/10 hover:bg-white/10 text-white whitespace-nowrap">
-                                                    <Users className="w-4 h-4" />
-                                                    Kullanıcı Yönetimi
-                                                </Button>
-                                            </Link>
-                                        </div>
-                                    )}
+
                                     {/* Filter Toggle */}
                                     <button
                                         onClick={() => setShowFilters(!showFilters)}
@@ -1288,10 +1369,7 @@ export const AdminDashboard = () => {
                                     {/* Search Input */}
                                     <DebouncedInput
                                         value={searchTerm}
-                                        onChange={(val: string) => {
-                                            setSearchTerm(val);
-                                            setCurrentPage(1);
-                                        }}
+                                        onChange={handleBookingSearch}
                                         placeholder="İsim ile ara..."
                                         className="w-52"
                                     />
@@ -1340,7 +1418,7 @@ export const AdminDashboard = () => {
                                         <tr>
                                             <th className="p-4 text-center">Kod</th>
                                             <th className="p-4">Müşteri</th>
-                                            <th className="p-4">Araç</th>
+                                            <th className="p-4 w-[250px]">Araç</th>
                                             <th className="p-4 text-center">Tarihler</th>
                                             <th className="p-4 text-center">Ödeme & Tutar</th>
                                             <th className="p-4 text-center">Durum</th>
@@ -1456,10 +1534,7 @@ export const AdminDashboard = () => {
                                     <div className="w-full">
                                         <DebouncedInput
                                             value={franchiseSearchTerm}
-                                            onChange={(val: string) => {
-                                                setFranchiseSearchTerm(val);
-                                                setFranchisePage(1);
-                                            }}
+                                            onChange={handleFranchiseSearch}
                                             placeholder="İsim, Şirket veya Şehir ile ara..."
                                             className="w-full"
                                         />
@@ -1651,10 +1726,7 @@ export const AdminDashboard = () => {
                                     </Button>
                                     <DebouncedInput
                                         value={insuranceSearchTerm}
-                                        onChange={(val: string) => {
-                                            setInsuranceSearchTerm(val);
-                                            setInsurancePage(1);
-                                        }}
+                                        onChange={handleInsuranceSearch}
                                         placeholder="Poliçe, Şirket veya Kullanıcı Ara..."
                                         className="w-full max-w-md"
                                     />

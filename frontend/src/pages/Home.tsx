@@ -185,7 +185,7 @@ export const Home = () => {
         try {
             const [allBrands, usedBrandNames] = await Promise.all([
                 brandService.getAllAdmin(),
-                carService.getUsedBrands()
+                carService.getUsedBrands('RENTAL')
             ]);
 
             const filteredBrands = allBrands.filter(b =>
@@ -400,7 +400,7 @@ export const Home = () => {
                                     onClick={() => {
                                         setFilters({ brand: '', category: '', minPrice: '', maxPrice: '', pickupDate: '', dropoffDate: '' });
                                         setTimeout(() => {
-                                            carService.getAll({ limit: 12, page: 1 }).then(res => {
+                                            carService.getAll({ limit: 12, page: 1, type: 'RENTAL' }).then(res => {
                                                 setCars(res.data);
                                                 setPagination(res.pagination);
                                                 setPage(1);
@@ -554,7 +554,7 @@ export const Home = () => {
                                 onClick={() => {
                                     setFilters({ brand: '', category: '', minPrice: '', maxPrice: '', pickupDate: '', dropoffDate: '' });
                                     setTimeout(() => {
-                                        carService.getAll({ limit: 12, page: 1 }).then(res => {
+                                        carService.getAll({ limit: 12, page: 1, type: 'RENTAL' }).then(res => {
                                             setCars(res.data);
                                             setPagination(res.pagination);
                                             setPage(1);
@@ -648,7 +648,7 @@ export const Home = () => {
                                 key={`${brand.name}-${index}`}
                                 onClick={() => {
                                     setFilters(prev => ({ ...prev, brand: brand.name }));
-                                    carService.getAll({ q: brand.name, limit: 12, page: 1 }).then(res => {
+                                    carService.getAll({ q: brand.name, limit: 12, page: 1, type: 'RENTAL' }).then(res => {
                                         setCars(res.data);
                                         setPagination(res.pagination);
                                         setPage(1);

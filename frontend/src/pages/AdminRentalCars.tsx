@@ -96,6 +96,7 @@ export const AdminRentalCars = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [activeBookingError, setActiveBookingError] = useState(false);
     const [currentUser, setCurrentUser] = useState<any>(null);
 
     useEffect(() => {
@@ -225,6 +226,32 @@ export const AdminRentalCars = () => {
         setFormData({ ...initialFormData, branchId: defaultBranch?.id || '' });
     };
 
+    // Helper to extract error message
+    const getErrorMessage = (err: any): string => {
+        if (err.response?.data) {
+            const data = err.response.data;
+
+            // Check for validation details (Zod errors)
+            if (data.error?.details && Array.isArray(data.error.details)) {
+                return data.error.details
+                    .map((d: any) => `${d.path}: ${d.message}`)
+                    .join(', ');
+            }
+
+            // Check for specific error object
+            if (data.error?.message) {
+                return data.error.message;
+            }
+
+            // Check for top-level message
+            if (data.message) {
+                return data.message;
+            }
+        }
+
+        return err.message || 'İşlem başarısız';
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
@@ -268,7 +295,14 @@ export const AdminRentalCars = () => {
             handleCancelForm();
             loadCars(currentPage);
         } catch (err: any) {
-            toast(err.response?.data?.error?.message || 'İşlem başarısız', 'error');
+            console.error('Car operation failed:', err);
+            // Check for active booking error
+            if (err.response?.status === 409 &&
+                err.response?.data?.error?.message?.includes('Aktif rezervasyonu olan araç')) {
+                setActiveBookingError(true);
+                return;
+            }
+            toast(getErrorMessage(err), 'error');
         } finally {
             setSubmitting(false);
         }
@@ -287,7 +321,15 @@ export const AdminRentalCars = () => {
                 loadCars(currentPage);
             }
         } catch (err: any) {
-            toast(err.response?.data?.error?.message || 'Silme işlemi başarısız', 'error');
+            console.error('Delete failed:', err);
+            // Check for active booking error
+            if (err.response?.status === 409 &&
+                err.response?.data?.error?.message?.includes('Aktif rezervasyonu olan araç')) {
+                setDeleteId(null); // Close delete confirmation
+                setActiveBookingError(true);
+                return;
+            }
+            toast(getErrorMessage(err), 'error');
         } finally {
             setDeleting(false);
             setDeleteId(null);
@@ -348,6 +390,37 @@ export const AdminRentalCars = () => {
                             disabled={deleting}
                         >
                             {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Evet, Sil'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={activeBookingError}
+                onClose={() => setActiveBookingError(false)}
+                title="İşlem Gerçekleştirilemedi"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center mx-auto animate-pulse">
+                        <AlertTriangle className="w-6 h-6 text-orange-500" />
+                    </div>
+                    <div className="text-center space-y-2">
+                        <h3 className="text-lg font-bold text-white">Aktif Rezervasyon Mevcut</h3>
+                        <p className="text-gray-300">
+                            Bu aracın şu anda aktif veya gelecek bir rezervasyonu bulunmaktadır.
+                            Müşteri mağduriyetini önlemek için bu araç <span className="text-orange-400 font-bold">silinemez</span> veya <span className="text-orange-400 font-bold">pasife alınamaz</span>.
+                        </p>
+                        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 text-sm text-orange-300 mt-2">
+                            Lütfen önce ilgili rezervasyonları iptal edin veya tamamlanmasını bekleyin.
+                        </div>
+                    </div>
+                    <div className="flex justify-center pt-4">
+                        <Button
+                            className="bg-orange-500 hover:bg-orange-600 text-white w-full border-none font-bold shadow-[0_0_20px_rgba(249,115,22,0.3)]"
+                            onClick={() => setActiveBookingError(false)}
+                        >
+                            Anladım
                         </Button>
                     </div>
                 </div>

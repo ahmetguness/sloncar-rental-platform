@@ -10,7 +10,7 @@ const carTypeEnum = z.nativeEnum(CarType);
 
 const baseCarSchema = z.object({
     brand: z.string().min(1, 'Brand is required'),
-    brandLogo: z.string().url().optional().or(z.literal('')),
+    brandLogo: z.string().optional().or(z.literal('')),
     model: z.string().min(1, 'Model is required'),
     year: z.number().int().min(1900).max(new Date().getFullYear() + 1),
     type: carTypeEnum.default('RENTAL'),
