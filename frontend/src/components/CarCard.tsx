@@ -95,8 +95,8 @@ const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) =>
 };
 
 export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
-    // Fallback to helper if prop not provided (or for now, just prioritize prop)
-    const logoUrl = brandLogoUrl || getBrandLogo(car.brand);
+    // Fallback to helper if prop not provided, prioritizing car.brandLogo
+    const logoUrl = car.brandLogo || brandLogoUrl || getBrandLogo(car.brand);
 
     const targetLink = car.type === 'SALE' ? `/car/${car.id}` : `/book/${car.id}`;
 

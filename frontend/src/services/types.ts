@@ -1,6 +1,7 @@
 export interface Car {
     id: string;
     brand: string;
+    brandLogo?: string;
     model: string;
     year: number;
     transmission: 'MANUAL' | 'AUTO';

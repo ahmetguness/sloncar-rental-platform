@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { loginUser, clearError } from '../features/auth/authSlice';
 import { Button } from '../components/ui/Button';
 import { Lock, Mail, Eye, EyeOff, Shield, Check } from 'lucide-react';
+import { normalizeEmail } from '../utils/formatters';
 import logo from '../assets/logo/logo.jpg';
 
 export const AdminLogin = () => {
@@ -37,6 +38,18 @@ export const AdminLogin = () => {
     };
 
     const isLoading = status === 'loading';
+
+    // Show loading state while checking authentication or redirecting
+    if (isAuthenticated) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-dark-bg">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-gray-400 text-sm animate-pulse">Yönlendiriliyorsunuz...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-dark-bg relative overflow-hidden">
@@ -86,7 +99,7 @@ export const AdminLogin = () => {
                                 <input
                                     type="email"
                                     value={credentials.email}
-                                    onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+                                    onChange={(e) => setCredentials({ ...credentials, email: normalizeEmail(e.target.value) })}
                                     className="w-full bg-dark-bg border border-white/10 rounded-xl px-4 py-3.5 pl-12 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                                     placeholder="admin@example.com"
                                     required

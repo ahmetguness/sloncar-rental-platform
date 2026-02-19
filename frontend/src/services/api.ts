@@ -57,7 +57,7 @@ export const carService = {
         return response.data.data;
     },
     getUsedBrands: async () => {
-        const response = await api.get<{ success: boolean, data: string[] }>('/cars/brands');
+        const response = await api.get<{ success: boolean, data: { name: string, logoUrl: string }[] }>('/cars/brands');
         return response.data.data;
     }
 };
@@ -67,7 +67,22 @@ export const brandService = {
         return BRANDS;
     },
     getAllAdmin: async () => {
-        return BRANDS;
+        try {
+            const usedBrands = await carService.getUsedBrands();
+            // Merge predefined brands with used brands that have a logoUrl (custom ones)
+            const customBrands = usedBrands
+                .filter(ub => ub.logoUrl && !BRANDS.some(b => b.name.toLowerCase() === ub.name.toLowerCase()))
+                .map(ub => ({
+                    id: ub.name.toLowerCase(),
+                    name: ub.name,
+                    logoUrl: ub.logoUrl!
+                }));
+
+            return [...BRANDS, ...customBrands];
+        } catch (error) {
+            console.error('Failed to fetch dynamic brands', error);
+            return BRANDS;
+        }
     }
 };
 

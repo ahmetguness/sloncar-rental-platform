@@ -287,16 +287,20 @@ export async function deleteCar(id: string): Promise<void> {
     });
 }
 
-export async function getUsedBrands(): Promise<string[]> {
+export async function getUsedBrands(): Promise<{ name: string, logoUrl: string | null }[]> {
     const cars = await prisma.car.findMany({
         where: {
             status: { not: 'INACTIVE' }
         },
         select: {
-            brand: true
+            brand: true,
+            brandLogo: true
         },
         distinct: ['brand']
     });
 
-    return cars.map(car => car.brand);
+    return cars.map(car => ({
+        name: car.brand,
+        logoUrl: car.brandLogo
+    }));
 }

@@ -11,7 +11,7 @@ import { translateFuel } from '../utils/translate';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { tr } from 'date-fns/locale/tr';
-import { formatPhoneNumber, cleanPhoneNumber } from '../utils/formatters';
+import { formatPhoneNumber, cleanPhoneNumber, normalizeEmail } from '../utils/formatters';
 registerLocale('tr', tr);
 
 
@@ -137,6 +137,8 @@ export const Booking = () => {
         let value = e.target.value;
         if (e.target.name === 'customerPhone') {
             value = formatPhoneNumber(cleanPhoneNumber(value));
+        } else if (e.target.name === 'customerEmail') {
+            value = normalizeEmail(value);
         }
         setFormData({ ...formData, [e.target.name]: value });
     };

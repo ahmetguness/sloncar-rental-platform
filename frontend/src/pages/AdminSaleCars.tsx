@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { adminService, uploadService, brandService } from '../services/api';
 import type { Car } from '../services/types';
 import { Button } from '../components/ui/Button';
+import { BrandAutocomplete } from '../components/ui/BrandAutocomplete';
 import { translateCategory, translateFuel } from '../utils/translate';
 import { Loader2, Plus, Edit2, Trash2, X, Upload, Car as CarIcon, ArrowLeft, Search, ChevronLeft, ChevronRight, AlertTriangle, Filter } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
@@ -25,6 +26,7 @@ interface Branch {
 
 const initialFormData = {
     brand: '',
+    brandLogo: '',
     model: '',
     year: new Date().getFullYear() as number | string,
     transmission: 'AUTO' as 'MANUAL' | 'AUTO',
@@ -188,6 +190,7 @@ export const AdminSaleCars = () => {
         setEditingCar(car);
         setFormData({
             brand: car.brand,
+            brandLogo: car.brandLogo || '',
             model: car.model,
             year: car.year,
             transmission: car.transmission,
@@ -492,25 +495,14 @@ export const AdminSaleCars = () => {
                         <h2 className="text-2xl font-bold text-white mb-6 animate-pulse">{editingCar ? 'Satılık Araç Düzenle' : 'Yeni Satılık Araç Ekle'}</h2>
 
                         <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div>
-                                <label className={labelClass}>Marka *</label>
-                                <select required className={inputClass} value={formData.brand} onChange={e => setFormData({ ...formData, brand: e.target.value })}>
-                                    <option value="" className="bg-dark-bg">Marka Seçin</option>
-                                    {brands.map(brand => (
-                                        <option key={brand.id} value={brand.name} className="bg-dark-bg">
-                                            {brand.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {formData.brand && (
-                                    <div className="mt-2 flex items-center gap-3 p-2.5 bg-dark-bg rounded-xl border border-white/10">
-                                        <BrandLogo
-                                            name={formData.brand}
-                                            url={brands.find(b => b.name === formData.brand)?.logoUrl}
-                                        />
-                                        <span className="text-sm font-medium text-white">{formData.brand}</span>
-                                    </div>
-                                )}
+                            <div className="lg:col-span-1">
+                                <BrandAutocomplete
+                                    brands={brands}
+                                    value={formData.brand}
+                                    logoUrl={formData.brandLogo}
+                                    onChange={(name, logo) => setFormData(prev => ({ ...prev, brand: name, brandLogo: logo || '' }))}
+                                    required
+                                />
                             </div>
                             <div>
                                 <label className={labelClass}>Model *</label>
@@ -811,7 +803,7 @@ export const AdminSaleCars = () => {
                                                 <div className="flex items-center gap-3">
                                                     <BrandLogo
                                                         name={car.brand}
-                                                        url={brands.find(b => b.name === car.brand)?.logoUrl}
+                                                        url={car.brandLogo || brands.find(b => b.name === car.brand)?.logoUrl}
                                                     />
                                                     <div>
                                                         <div className="font-medium text-white">{car.brand} {car.model}</div>

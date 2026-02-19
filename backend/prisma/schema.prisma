@@ -105,6 +105,7 @@ enum CarType {
 model Car {
   id           String       @id @default(uuid())
   brand        String
+  brandLogo    String?      // Custom brand logo URL
   model        String
   year         Int
   type         CarType      @default(RENTAL) // Default to rental

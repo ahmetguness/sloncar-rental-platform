@@ -10,7 +10,7 @@ const baseBookingSchemaObject = z.object({
     customerName: z.string().min(2, 'Müşteri adı gerekli'),
     customerSurname: z.string().min(2, 'Müşteri soyadı gerekli'),
     customerPhone: z.string().min(7, 'Telefon numarası gerekli'),
-    customerEmail: z.string().email('Geçerli e-posta adresi giriniz'),
+    customerEmail: z.string().min(3, 'Geçerli e-posta adresi giriniz'),
     customerTC: z.string().length(11, 'TC kimlik numarası 11 haneli olmalı').optional(),
     customerDriverLicense: z.string().min(5, 'Ehliyet numarası gerekli'),
     // Booking Details

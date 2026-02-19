@@ -25,3 +25,20 @@ export const formatPhoneNumber = (value: string): string => {
 export const cleanPhoneNumber = (value: string): string => {
     return value.replace(/\D/g, '').slice(0, 10);
 };
+
+/**
+ * Normalizes email by converting Turkish characters to their Latin equivalents 
+ * and converting to lowercase.
+ */
+export const normalizeEmail = (email: string): string => {
+    const turkishChars: { [key: string]: string } = {
+        'ı': 'i', 'İ': 'i',
+        'ş': 's', 'Ş': 's',
+        'ğ': 'g', 'Ğ': 'g',
+        'ü': 'u', 'Ü': 'u',
+        'ö': 'o', 'Ö': 'o',
+        'ç': 'c', 'Ç': 'c'
+    };
+
+    return email.replace(/[ıİşŞğĞüÜöÖçÇ]/g, match => turkishChars[match]).toLowerCase();
+};

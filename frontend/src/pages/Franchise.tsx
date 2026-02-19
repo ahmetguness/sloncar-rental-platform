@@ -4,6 +4,7 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { formatPhoneNumber, cleanPhoneNumber } from '../utils/formatters';
 import { Building2, User, Mail, Phone, MapPin, Wallet, Briefcase, CheckCircle, Send, ChevronRight, ChevronLeft, Globe } from 'lucide-react';
+import { normalizeEmail } from '../utils/formatters';
 
 const CITIES = [
     'İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Adana', 'Konya', 'Gaziantep',
@@ -212,158 +213,160 @@ export const Franchise = () => {
                         </div>
 
                         {/* RIGHT SIDE: Form Content */}
-                        <div className="md:w-2/3 p-6 md:p-12 relative min-h-[500px]">
-                            {/* Step 1: Contact Info */}
-                            {step === 1 && (
-                                <div className="space-y-8 animate-fade-in absolute inset-0 p-8 md:p-12 overflow-y-auto custom-scrollbar">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-white mb-2">İletişim Bilgileri</h2>
-                                        <p className="text-gray-400 text-sm">Size ulaşabilmemiz için iletişim bilgilerinizi giriniz.</p>
-                                    </div>
+                        <div className="md:w-2/3 flex flex-col min-h-[500px]">
+                            <div className="flex-1 p-6 md:p-12">
+                                {/* Step 1: Contact Info */}
+                                {step === 1 && (
+                                    <div className="space-y-8 animate-fade-in pb-8">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-white mb-2">İletişim Bilgileri</h2>
+                                            <p className="text-gray-400 text-sm">Size ulaşabilmemiz için iletişim bilgilerinizi giriniz.</p>
+                                        </div>
 
-                                    <div className="space-y-5">
-                                        <div className="group/input">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">Ad Soyad *</label>
-                                            <Input
-                                                value={formData.contactName}
-                                                onChange={e => updateField('contactName', e.target.value)}
-                                                placeholder="Adınız ve Soyadınız"
-                                                className="bg-black/20 border-white/10 focus:bg-black/40 h-12 text-lg"
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-5">
+                                        <div className="space-y-5">
                                             <div className="group/input">
-                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">E-posta Adresi *</label>
-                                                <div className="relative">
-                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-primary-500 transition-colors" size={18} />
-                                                    <Input
-                                                        type="email"
-                                                        value={formData.contactEmail}
-                                                        onChange={e => updateField('contactEmail', e.target.value)}
-                                                        placeholder="ornek@email.com"
-                                                        className="bg-black/20 border-white/10 focus:bg-black/40 h-12 pl-12"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="group/input">
-                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">Telefon Numarası *</label>
-                                                <div className="relative">
-                                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-primary-500 transition-colors" size={18} />
-                                                    <Input
-                                                        type="tel"
-                                                        value={formData.contactPhone}
-                                                        onChange={handlePhoneChange}
-                                                        placeholder="(5XX) XXX XX XX"
-                                                        className="bg-black/20 border-white/10 focus:bg-black/40 h-12 pl-12"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="group/input pt-2">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">Şirket Adı (Opsiyonel)</label>
-                                            <div className="relative">
-                                                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-primary-500 transition-colors" size={18} />
+                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">Ad Soyad *</label>
                                                 <Input
-                                                    value={formData.companyName}
-                                                    onChange={e => updateField('companyName', e.target.value)}
-                                                    placeholder="Varsa mevcut şirketinizin adı"
-                                                    className="bg-black/20 border-white/10 focus:bg-black/40 h-12 pl-12"
+                                                    value={formData.contactName}
+                                                    onChange={e => updateField('contactName', e.target.value)}
+                                                    placeholder="Adınız ve Soyadınız"
+                                                    className="bg-black/20 border-white/10 focus:bg-black/40 h-12 text-lg"
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-1 gap-5">
+                                                <div className="group/input">
+                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">E-posta Adresi *</label>
+                                                    <div className="relative">
+                                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-primary-500 transition-colors" size={18} />
+                                                        <Input
+                                                            type="email"
+                                                            value={formData.contactEmail}
+                                                            onChange={e => updateField('contactEmail', normalizeEmail(e.target.value))}
+                                                            placeholder="ornek@email.com"
+                                                            className="bg-black/20 border-white/10 focus:bg-black/40 h-12 pl-12"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="group/input">
+                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">Telefon Numarası *</label>
+                                                    <div className="relative">
+                                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-primary-500 transition-colors" size={18} />
+                                                        <Input
+                                                            type="tel"
+                                                            value={formData.contactPhone}
+                                                            onChange={handlePhoneChange}
+                                                            placeholder="(5XX) XXX XX XX"
+                                                            className="bg-black/20 border-white/10 focus:bg-black/40 h-12 pl-12"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="group/input pt-2">
+                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">Şirket Adı (Opsiyonel)</label>
+                                                <div className="relative">
+                                                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-primary-500 transition-colors" size={18} />
+                                                    <Input
+                                                        value={formData.companyName}
+                                                        onChange={e => updateField('companyName', e.target.value)}
+                                                        placeholder="Varsa mevcut şirketinizin adı"
+                                                        className="bg-black/20 border-white/10 focus:bg-black/40 h-12 pl-12"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Step 2: Location & Investment */}
+                                {step === 2 && (
+                                    <div className="space-y-8 animate-fade-in pb-8">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-white mb-2">Lokasyon ve Yatırım</h2>
+                                            <p className="text-gray-400 text-sm">Hedeflediğiniz bölge ve yatırım planınız.</p>
+                                        </div>
+
+                                        <div className="space-y-6">
+                                            <div className="group/input">
+                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">Hedef Şehir *</label>
+                                                <div className="relative">
+                                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-primary-500 transition-colors pointer-events-none" size={18} />
+                                                    <select
+                                                        value={formData.city}
+                                                        onChange={e => updateField('city', e.target.value)}
+                                                        className="w-full h-12 px-4 pl-12 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-black/40 transition-all appearance-none cursor-pointer"
+                                                    >
+                                                        <option value="" className="bg-dark-bg text-gray-400">Şehir Seçin</option>
+                                                        {CITIES.map(city => (
+                                                            <option key={city} value={city} className="bg-dark-bg">{city}</option>
+                                                        ))}
+                                                    </select>
+                                                    <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 rotate-90 pointer-events-none" size={16} />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 block flex items-center gap-2">
+                                                    <Wallet size={14} /> Yatırım Bütçesi Planı
+                                                </label>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    {INVESTMENT_OPTIONS.map(option => (
+                                                        <button
+                                                            key={option}
+                                                            type="button"
+                                                            onClick={() => updateField('investmentBudget', option)}
+                                                            className={`p-4 rounded-xl text-left text-sm font-bold transition-all border relative overflow-hidden group ${formData.investmentBudget === option
+                                                                ? 'bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/20'
+                                                                : 'bg-black/20 border-white/5 text-gray-400 hover:border-white/20 hover:bg-white/5'
+                                                                }`}
+                                                        >
+                                                            {formData.investmentBudget === option && (
+                                                                <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />
+                                                            )}
+                                                            <span className="relative z-10">{option}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Step 3: Experience & Message */}
+                                {step === 3 && (
+                                    <div className="space-y-8 animate-fade-in pb-8">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-white mb-2">Deneyim ve Vizyon</h2>
+                                            <p className="text-gray-400 text-sm">Sizi iş ortağımız olarak daha yakından tanımak isteriz.</p>
+                                        </div>
+
+                                        <div className="space-y-6">
+                                            <div className="group/input">
+                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">İş Deneyimi & Sektör Geçmişi</label>
+                                                <textarea
+                                                    value={formData.experience}
+                                                    onChange={e => updateField('experience', e.target.value)}
+                                                    placeholder="Sektördeki tecrübelerinizden ve varsa mevcut işletmelerinizden kısaca bahsedin..."
+                                                    rows={4}
+                                                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-black/40 resize-none transition-all placeholder:text-gray-600"
+                                                />
+                                            </div>
+                                            <div className="group/input">
+                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">Eklemek İstedikleriniz</label>
+                                                <textarea
+                                                    value={formData.message}
+                                                    onChange={e => updateField('message', e.target.value)}
+                                                    placeholder="Bize iletmek istediğiniz soru, görüş veya özel notlarınız..."
+                                                    rows={4}
+                                                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-black/40 resize-none transition-all placeholder:text-gray-600"
                                                 />
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
 
-                            {/* Step 2: Location & Investment */}
-                            {step === 2 && (
-                                <div className="space-y-8 animate-fade-in absolute inset-0 p-8 md:p-12 overflow-y-auto custom-scrollbar">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-white mb-2">Lokasyon ve Yatırım</h2>
-                                        <p className="text-gray-400 text-sm">Hedeflediğiniz bölge ve yatırım planınız.</p>
-                                    </div>
-
-                                    <div className="space-y-6">
-                                        <div className="group/input">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">Hedef Şehir *</label>
-                                            <div className="relative">
-                                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-primary-500 transition-colors pointer-events-none" size={18} />
-                                                <select
-                                                    value={formData.city}
-                                                    onChange={e => updateField('city', e.target.value)}
-                                                    className="w-full h-12 px-4 pl-12 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-black/40 transition-all appearance-none cursor-pointer"
-                                                >
-                                                    <option value="" className="bg-dark-bg text-gray-400">Şehir Seçin</option>
-                                                    {CITIES.map(city => (
-                                                        <option key={city} value={city} className="bg-dark-bg">{city}</option>
-                                                    ))}
-                                                </select>
-                                                <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 rotate-90 pointer-events-none" size={16} />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 block flex items-center gap-2">
-                                                <Wallet size={14} /> Yatırım Bütçesi Planı
-                                            </label>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                {INVESTMENT_OPTIONS.map(option => (
-                                                    <button
-                                                        key={option}
-                                                        type="button"
-                                                        onClick={() => updateField('investmentBudget', option)}
-                                                        className={`p-4 rounded-xl text-left text-sm font-bold transition-all border relative overflow-hidden group ${formData.investmentBudget === option
-                                                            ? 'bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/20'
-                                                            : 'bg-black/20 border-white/5 text-gray-400 hover:border-white/20 hover:bg-white/5'
-                                                            }`}
-                                                    >
-                                                        {formData.investmentBudget === option && (
-                                                            <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />
-                                                        )}
-                                                        <span className="relative z-10">{option}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Step 3: Experience & Message */}
-                            {step === 3 && (
-                                <div className="space-y-8 animate-fade-in absolute inset-0 p-8 md:p-12 overflow-y-auto custom-scrollbar">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-white mb-2">Deneyim ve Vizyon</h2>
-                                        <p className="text-gray-400 text-sm">Sizi iş ortağımız olarak daha yakından tanımak isteriz.</p>
-                                    </div>
-
-                                    <div className="space-y-6">
-                                        <div className="group/input">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">İş Deneyimi & Sektör Geçmişi</label>
-                                            <textarea
-                                                value={formData.experience}
-                                                onChange={e => updateField('experience', e.target.value)}
-                                                placeholder="Sektördeki tecrübelerinizden ve varsa mevcut işletmelerinizden kısaca bahsedin..."
-                                                rows={4}
-                                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-black/40 resize-none transition-all placeholder:text-gray-600"
-                                            />
-                                        </div>
-                                        <div className="group/input">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block group-focus-within/input:text-primary-400 transition-colors">Eklemek İstedikleriniz</label>
-                                            <textarea
-                                                value={formData.message}
-                                                onChange={e => updateField('message', e.target.value)}
-                                                placeholder="Bize iletmek istediğiniz soru, görüş veya özel notlarınız..."
-                                                rows={4}
-                                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-black/40 resize-none transition-all placeholder:text-gray-600"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Sticky Bottom Actions */}
-                            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 bg-dark-surface/95 backdrop-blur-md border-t border-white/5 flex justify-between items-center z-20 rounded-br-[2rem] rounded-bl-[2rem] md:rounded-bl-none">
+                            {/* Bottom Actions */}
+                            <div className="p-6 md:p-8 bg-dark-surface/95 backdrop-blur-md border-t border-white/5 flex justify-between items-center z-20 rounded-br-[2rem] rounded-bl-[2rem] md:rounded-bl-none">
                                 <button
                                     onClick={() => setStep(s => s - 1)}
                                     disabled={step === 1}
@@ -395,7 +398,7 @@ export const Franchise = () => {
 
                             {/* Error Toast */}
                             {error && (
-                                <div className="absolute bottom-24 left-8 right-8 animate-slide-up">
+                                <div className="px-8 pb-4 animate-slide-up">
                                     <div className="bg-red-500/10 border border-red-500/20 backdrop-blur-md p-4 rounded-xl text-red-200 text-sm flex items-center gap-3 shadow-xl">
                                         <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
                                         {error}

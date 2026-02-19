@@ -381,7 +381,7 @@ export const AdminDashboard = () => {
 
     // Redux State
     const dispatch = useAppDispatch();
-    const { stats, revenueData, loading: dashboardLoading } = useAppSelector(state => state.dashboard);
+    const { stats, revenueData, loading: dashboardLoading, error } = useAppSelector(state => state.dashboard);
 
     useEffect(() => {
         dispatch(fetchDashboardStats());
@@ -514,13 +514,13 @@ export const AdminDashboard = () => {
 
     const getDataKey = useCallback(() => chartView === 'yearly' ? 'month' : (chartView === 'weekly' ? 'week' : 'month'), [chartView]);
 
-    if (dashboardLoading) return (
+    if (dashboardLoading || (!stats && !error)) return (
         <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center">
             <Loader2 className="animate-spin w-10 h-10 text-primary-500" />
         </div>
     );
 
-    if (!stats) return (
+    if (error) return (
         <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center flex-col gap-4">
             <AlertCircle className="w-12 h-12 text-red-500" />
             <div className="text-white text-lg font-bold">Veri yükleme hatası</div>

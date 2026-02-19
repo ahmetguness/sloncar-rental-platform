@@ -127,7 +127,7 @@ export const franchiseDetailsSchema = z.object({
 // Create application (draft)
 export const createFranchiseSchema = z.object({
     contactName: z.string().min(2, 'Contact name is required'),
-    contactEmail: z.string().email('Valid email is required'),
+    contactEmail: z.string().min(3, 'Valid email is required'),
     contactPhone: z.string().min(5, 'Phone number is required'),
     companyName: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
@@ -137,7 +137,7 @@ export const createFranchiseSchema = z.object({
 // Update application
 export const updateFranchiseSchema = z.object({
     contactName: z.string().min(2).optional(),
-    contactEmail: z.string().email().optional(),
+    contactEmail: z.string().min(3).optional(),
     contactPhone: z.string().min(5).optional(),
     companyName: z.string().optional(),
     city: z.string().optional(),
@@ -174,7 +174,7 @@ export type FranchiseDetails = z.infer<typeof franchiseDetailsSchema>;
 // Public (no auth) application schema
 export const publicFranchiseSchema = z.object({
     contactName: z.string().min(2, 'İsim gereklidir'),
-    contactEmail: z.string().email('Geçerli bir e-posta adresi giriniz'),
+    contactEmail: z.string().min(3, 'Geçerli bir e-posta adresi giriniz'),
     contactPhone: z.string().min(7, 'Geçerli bir telefon numarası giriniz'), // Relaxed from 10
     companyName: z.string().optional().nullable(),
     city: z.string().min(2, 'Şehir gereklidir'),
