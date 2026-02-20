@@ -44,7 +44,7 @@ const bookingsSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(fetchBookings.pending, (state) => {
-                state.loading = true;
+                // state.loading = true; // Prevent UI flicker on background refresh
                 state.error = null;
             })
             .addCase(fetchBookings.fulfilled, (state, action) => {

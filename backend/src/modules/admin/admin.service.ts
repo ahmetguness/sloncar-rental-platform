@@ -16,9 +16,11 @@ export interface DashboardStats {
     latestPendingFranchiseApplications: any[];
     latestPaidBookings: any[];
     totalInsurances: number;
+    newInsurancesCount: number;
+    latestExpiringInsurances: any[];
 }
 
-export async function markNotificationRead(id: string, type: 'booking' | 'franchise'): Promise<void> {
+export async function markNotificationRead(id: string, type: 'booking' | 'franchise' | 'insurance'): Promise<void> {
     if (type === 'booking') {
         // ID might have suffix like _paid, remove it if present, though usually we pass raw ID
         // The frontend passes exact ID. For paid bookings, we might have a suffix in frontend state but we should pass distinct ID?
@@ -34,6 +36,12 @@ export async function markNotificationRead(id: string, type: 'booking' | 'franch
             where: { id },
             data: { adminRead: true }
         });
+    } else if (type === 'insurance') {
+        const cleanId = id.replace('_insurance', '');
+        await prisma.userInsurance.update({
+            where: { id: cleanId },
+            data: { adminRead: true }
+        });
     }
 }
 
@@ -44,6 +52,10 @@ export async function markAllNotificationsRead(): Promise<void> {
             data: { adminRead: true }
         }),
         prisma.franchiseApplication.updateMany({
+            where: { adminRead: false },
+            data: { adminRead: true }
+        }),
+        prisma.userInsurance.updateMany({
             where: { adminRead: false },
             data: { adminRead: true }
         })
@@ -80,7 +92,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         latestNewBookings,
         latestPendingFranchiseApplications,
         latestPaidBookings,
-        totalInsurances
+        totalInsurances,
+        newInsurancesCount,
+        latestExpiringInsurances
     ] = await Promise.all([
         prisma.booking.count(),
         prisma.booking.count({ where: { status: BookingStatus.ACTIVE } }),
@@ -116,7 +130,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
             orderBy: { paidAt: 'desc' },
             include: { car: { select: { brand: true, model: true } } }
         }),
-        prisma.userInsurance.count({ where: { isActive: true } })
+        prisma.userInsurance.count({ where: { isActive: true } }),
+        prisma.userInsurance.count({ where: { adminRead: false } }),
+        prisma.userInsurance.findMany({
+            where: { adminRead: false },
+            take: 5,
+            orderBy: { endDate: 'asc' },
+            include: { user: { select: { name: true, email: true } } }
+        })
     ]);
 
     const totalRevenue = Number(revenueAggregate._sum.totalPrice || 0);
@@ -133,7 +154,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         latestNewBookings,
         latestPendingFranchiseApplications,
         latestPaidBookings,
-        totalInsurances
+        totalInsurances,
+        newInsurancesCount,
+        latestExpiringInsurances
     };
 }
 

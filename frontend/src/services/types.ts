@@ -108,6 +108,8 @@ export interface DashboardStats {
     latestPendingFranchiseApplications: any[];
     latestPaidBookings: any[];
     totalInsurances: number;
+    newInsurancesCount: number;
+    latestExpiringInsurances: any[];
 }
 
 export interface PaginatedResponse<T> {

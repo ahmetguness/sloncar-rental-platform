@@ -54,7 +54,7 @@ const dashboardSlice = createSlice({
         builder
             // Stats
             .addCase(fetchDashboardStats.pending, (state) => {
-                state.loading = true;
+                // state.loading = true; // Do not block UI on background fetches
                 state.error = null;
             })
             .addCase(fetchDashboardStats.fulfilled, (state, action: PayloadAction<DashboardStats>) => {

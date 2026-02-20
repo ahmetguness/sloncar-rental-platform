@@ -19,3 +19,26 @@ export function adminGuard(
 
     next();
 }
+
+/**
+ * Super Admin Guard - Only allows users with ADMIN role
+ * Used for sensitive operations like user management and role updates
+ */
+export function superAdminGuard(
+    req: Request,
+    _res: Response,
+    next: NextFunction
+): void {
+    if (!req.user) {
+        next(ApiError.unauthorized('Authentication required'));
+        return;
+    }
+
+    if (req.user.role !== UserRole.ADMIN) {
+        next(ApiError.forbidden('Admin access required (Super Admin)'));
+        return;
+    }
+
+    next();
+}
+

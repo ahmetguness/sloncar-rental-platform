@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as adminController from './admin.controller.js';
-import { authMiddleware, adminGuard, deleteGuard } from '../../middlewares/index.js';
+import { authMiddleware, adminGuard, superAdminGuard, deleteGuard } from '../../middlewares/index.js';
 
 const router = Router();
 
@@ -19,7 +19,7 @@ const router = Router();
 router.get(
     '/dashboard',
     authMiddleware,
-    adminGuard,
+    superAdminGuard,
     adminController.getDashboardStats
 );
 
@@ -44,7 +44,7 @@ router.get(
 router.get(
     '/revenue',
     authMiddleware,
-    adminGuard,
+    superAdminGuard,
     adminController.getRevenueAnalytics
 );
 
@@ -102,7 +102,7 @@ router.get(
 router.post(
     '/users',
     authMiddleware,
-    adminGuard, // Now ADMIN (prev Super Admin) and STAFF can create users
+    superAdminGuard, // Restricted to ADMIN only
     adminController.createUser
 );
 
@@ -127,8 +127,8 @@ router.post(
 router.delete(
     '/users/:id',
     authMiddleware,
-    adminGuard,
-    deleteGuard, // Only ADMIN (prev Super Admin/Admin) can delete, STAFF cannot
+    superAdminGuard, // Restricted to ADMIN only
+    deleteGuard, // Further restriction if needed (can be combined or simplified)
     adminController.deleteUser
 );
 
@@ -163,7 +163,7 @@ router.delete(
 router.patch(
     '/users/:id',
     authMiddleware,
-    adminGuard, // Now ADMIN (prev Super Admin) and STAFF can update roles
+    superAdminGuard, // Restricted to ADMIN only
     adminController.updateUser
 );
 

@@ -233,17 +233,37 @@ export async function getBookingByCode(
 
     const processedBooking = await checkAndExpireBooking(booking as BookingWithRelations);
 
-    // MASK SENSITIVE PII
+    // AGGRESSIVE PII MASKING
     if (processedBooking.customerTC) {
-        // Keep only last 2 digits visible for verification context if needed, mask rest
         processedBooking.customerTC = processedBooking.customerTC.replace(/./g, (char, index, str) => index < str.length - 2 ? '*' : char);
     }
     if (processedBooking.customerDriverLicense) {
-        processedBooking.customerDriverLicense = '******'; // Fully mask
+        processedBooking.customerDriverLicense = '******';
+    }
+
+    // Mask personal details
+    if (processedBooking.customerName) {
+        processedBooking.customerName = processedBooking.customerName.charAt(0) + '***';
+    }
+    if (processedBooking.customerSurname) {
+        processedBooking.customerSurname = processedBooking.customerSurname.charAt(0) + '***';
+    }
+    if (processedBooking.customerEmail && processedBooking.customerEmail.includes('@')) {
+        const parts = processedBooking.customerEmail.split('@');
+        const user = parts[0];
+        const domain = parts[1];
+        if (user && domain) {
+            processedBooking.customerEmail = user.charAt(0) + '***@' + domain;
+        }
+    }
+
+    if (processedBooking.customerPhone) {
+        processedBooking.customerPhone = '***' + processedBooking.customerPhone.slice(-4);
     }
 
     return processedBooking;
 }
+
 
 // PUBLIC - Extend booking (customer self-service)
 export async function extendBooking(
@@ -482,7 +502,7 @@ export async function lookupBookingsByPhone(
 ): Promise<Partial<BookingWithRelations>[]> {
     const bookings = await prisma.booking.findMany({
         where: {
-            customerPhone: { contains: phone },
+            customerPhone: phone, // EXACT MATCH ONLY
         },
         select: {
             bookingCode: true,
@@ -496,15 +516,14 @@ export async function lookupBookingsByPhone(
             },
             pickupBranch: true,
             dropoffBranch: true,
-            // EXPLICITLY EXCLUDED:
-            // customerName, customerSurname, customerEmail, customerTC, customerDriverLicense
         },
         orderBy: { createdAt: 'desc' },
-        take: 10,
+        take: 5, // Limit to 5
     });
 
     return bookings as unknown as Partial<BookingWithRelations>[];
 }
+
 
 // ADMIN - Cancel booking
 export async function cancelBooking(

@@ -4,6 +4,46 @@ import ExcelJS from 'exceljs';
 const prisma = new PrismaClient();
 
 export const insuranceService = {
+    checkInsuranceExpiries: async () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const tenDaysFromNow = new Date(today);
+        tenDaysFromNow.setDate(today.getDate() + 10);
+
+        // Find insurances expiring in 10 days or exactly today
+        // Marking them as adminRead = false gives them a notification badge
+
+        const expiringIn10Days = await prisma.userInsurance.updateMany({
+            where: {
+                endDate: {
+                    gte: tenDaysFromNow,
+                    lt: new Date(tenDaysFromNow.getTime() + 24 * 60 * 60 * 1000)
+                },
+                adminRead: true
+            },
+            data: {
+                adminRead: false
+            }
+        });
+
+        const expiredToday = await prisma.userInsurance.updateMany({
+            where: {
+                endDate: {
+                    gte: today,
+                    lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
+                },
+                adminRead: true
+            },
+            data: {
+                adminRead: false
+            }
+        });
+
+        if (expiringIn10Days.count > 0 || expiredToday.count > 0) {
+            console.log(`[CRON] Detected ${expiringIn10Days.count} insurances expiring in 10 days, ${expiredToday.count} expiring today.`);
+        }
+    },
     getAllInsurances: async (params: {
         page?: number;
         limit?: number;

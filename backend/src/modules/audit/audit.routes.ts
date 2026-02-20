@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { auditController } from './audit.controller.js';
-import { authMiddleware as authenticate, adminGuard as authorizeAdmin } from '../../middlewares/index.js';
+import { authMiddleware as authenticate, superAdminGuard as authorizeAdmin } from '../../middlewares/index.js';
 
 const router = Router();
 

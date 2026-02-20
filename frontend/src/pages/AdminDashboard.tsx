@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -24,7 +24,7 @@ import CreateInsuranceModal from '../components/modals/CreateInsuranceModal';
 
 // Internal BrandLogo Component
 // Load all brand logos from assets
-const BRAND_LOGOS = import.meta.glob('/src/assets/logo/brand_logos/*.png', { eager: true, as: 'url' });
+const BRAND_LOGOS = import.meta.glob('/src/assets/logo/brand_logos/*.png', { eager: true, query: '?url', import: 'default' });
 
 // Internal BrandLogo Component
 const BrandLogo = ({ name, url, className = "w-8 h-8" }: { name: string, url?: string, className?: string }) => {
@@ -199,7 +199,7 @@ const BookingRow = React.memo(({
     const handleCopyCode = (code: string, id: string) => {
         navigator.clipboard.writeText(code);
         setCopiedId(id);
-        addToast('Kod kopyalandı', 'success');
+        addToast('Kod kopyalandi', 'success');
         setTimeout(() => setCopiedId(null), 2000);
     };
 
@@ -300,8 +300,8 @@ const BookingRow = React.memo(({
                     {(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
                         ? 'Süre Doldu'
                         : booking.status === 'ACTIVE' ? 'Aktif'
-                            : booking.status === 'CANCELLED' ? 'İptal'
-                                : booking.status === 'COMPLETED' ? 'Tamamlandı'
+                            : booking.status === 'CANCELLED' ? 'Iptal'
+                                : booking.status === 'COMPLETED' ? 'Tamamlandi'
                                     : 'Rezerve'}
                 </span>
             </td>
@@ -372,7 +372,7 @@ const BookingRow = React.memo(({
                                 onAction('cancel', booking.id);
                             }}
                         >
-                            İptal
+                            Iptal
                         </Button>
                     )}
                 </div>
@@ -481,6 +481,12 @@ export const AdminDashboard = () => {
 
     useEffect(() => {
         dispatch(fetchDashboardStats());
+        // Auto-refresh every 30 seconds for notifications and stats
+        const intervalId = setInterval(() => {
+            dispatch(fetchDashboardStats());
+        }, 30000);
+
+        return () => clearInterval(intervalId);
     }, [dispatch]);
 
     useEffect(() => {
@@ -548,8 +554,8 @@ export const AdminDashboard = () => {
             return adminService.completeBooking(id);
         },
         onSuccess: (_, variables) => {
-            const actionText = variables.action === 'cancel' ? 'iptal edildi' : variables.action === 'start' ? 'başlatıldı' : 'tamamlandı';
-            toast(`Rezervasyon başarıyla ${actionText}`, 'success');
+            const actionText = variables.action === 'cancel' ? 'iptal edildi' : variables.action === 'start' ? 'baslatildi' : 'tamamlandi';
+            toast(`Rezervasyon basariyla ${actionText}`, 'success');
             dispatch(fetchBookings({
                 limit: ITEMS_PER_PAGE,
                 offset: (currentPage - 1) * ITEMS_PER_PAGE,
@@ -559,7 +565,7 @@ export const AdminDashboard = () => {
             dispatch(fetchDashboardStats());
         },
         onError: (err: any) => {
-            toast(err.response?.data?.message || 'İşlem başarısız', 'error');
+            toast(err.response?.data?.message || 'Islem basarisiz', 'error');
         }
     });
 
@@ -567,15 +573,15 @@ export const AdminDashboard = () => {
         { value: '', label: 'Tümü', color: 'gray' },
         { value: 'RESERVED', label: 'Rezerve', color: 'primary' },
         { value: 'ACTIVE', label: 'Aktif', color: 'green' },
-        { value: 'COMPLETED', label: 'Tamamlandı', color: 'gray' },
-        { value: 'CANCELLED', label: 'İptal', color: 'red' },
+        { value: 'COMPLETED', label: 'Tamamlandi', color: 'gray' },
+        { value: 'CANCELLED', label: 'Iptal', color: 'red' },
     ];
 
     const FRANCHISE_STATUS_LABELS: Record<string, { label: string; color: string }> = {
         DRAFT: { label: 'Taslak', color: 'gray' },
         SUBMITTED: { label: 'Gönderildi', color: 'blue' },
-        IN_REVIEW: { label: 'İnceleniyor', color: 'yellow' },
-        APPROVED: { label: 'Onaylandı', color: 'green' },
+        IN_REVIEW: { label: 'Inceleniyor', color: 'yellow' },
+        APPROVED: { label: 'Onaylandi', color: 'green' },
         REJECTED: { label: 'Reddedildi', color: 'red' },
     };
 
@@ -619,7 +625,7 @@ export const AdminDashboard = () => {
     if (error) return (
         <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center flex-col gap-4">
             <AlertCircle className="w-12 h-12 text-red-500" />
-            <div className="text-white text-lg font-bold">Veri yükleme hatası</div>
+            <div className="text-white text-lg font-bold">Veri yükleme hatasi</div>
             <Button onClick={() => dispatch(fetchDashboardStats())} variant="outline">
                 Tekrar Dene
             </Button>
@@ -632,7 +638,7 @@ export const AdminDashboard = () => {
             <Modal
                 isOpen={!!cancelingId}
                 onClose={() => setCancelingId(null)}
-                title={bookingAction === 'start' ? "Kiralamayı Başlat" : bookingAction === 'complete' ? "Teslim Al" : "Rezervasyonu İptal Et"}
+                title={bookingAction === 'start' ? "Kiralamayi Baslat" : bookingAction === 'complete' ? "Teslim Al" : "Rezervasyonu Iptal Et"}
                 size="sm"
             >
                 <div className="space-y-4">
@@ -641,10 +647,10 @@ export const AdminDashboard = () => {
                     </div>
                     <p className="text-gray-300 text-center">
                         {bookingAction === 'start'
-                            ? 'Aracı teslim etmek ve kiralamayı başlatmak istediğinize emin misiniz?'
+                            ? 'Araci teslim etmek ve kiralamayi baslatmak istediginize emin misiniz?'
                             : bookingAction === 'complete'
-                                ? 'Aracı teslim almak ve kiralamayı tamamlamak istediğinize emin misiniz?'
-                                : 'Bu rezervasyonu iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'}
+                                ? 'Araci teslim almak ve kiralamayi tamamlamak istediginize emin misiniz?'
+                                : 'Bu rezervasyonu iptal etmek istediginizden emin misiniz? Bu islem geri alinamaz.'}
                     </p>
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="outline" onClick={() => setCancelingId(null)}>Vazgeç</Button>
@@ -652,7 +658,7 @@ export const AdminDashboard = () => {
                             className={`${bookingAction === 'start' ? 'bg-green-500 hover:bg-green-600' : bookingAction === 'complete' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-red-500 hover:bg-red-600'} text-white border-none`}
                             onClick={confirmAction}
                         >
-                            {bookingAction === 'start' ? 'Evet, Başlat' : bookingAction === 'complete' ? 'Evet, Teslim Al' : 'Evet, İptal Et'}
+                            {bookingAction === 'start' ? 'Evet, Baslat' : bookingAction === 'complete' ? 'Evet, Teslim Al' : 'Evet, Iptal Et'}
                         </Button>
                     </div>
                 </div>
@@ -676,12 +682,22 @@ export const AdminDashboard = () => {
                 }}
             />
 
+            {/* Create Insurance Modal */}
+            {isCreateInsuranceModalOpen && (
+                <CreateInsuranceModal
+                    onClose={() => setIsCreateInsuranceModalOpen(false)}
+                    onSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ['admin-insurances'] });
+                    }}
+                />
+            )}
+
             <div className="container mx-auto max-w-7xl space-y-8">
                 {/* Header */}
                 <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
                     <div>
                         <h1 className="text-4xl font-black text-white tracking-tight">
-                            GENEL <span className="text-primary-500">BAKIŞ</span>
+                            GENEL <span className="text-primary-500">BAKIS</span>
                         </h1>
                         <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
                     </div>
@@ -691,8 +707,8 @@ export const AdminDashboard = () => {
                         <div className="flex items-center bg-white/[0.04] backdrop-blur-xl rounded-xl p-1 border border-white/[0.06]">
                             {[
                                 { to: '/admin/campaigns', icon: <Megaphone className="w-4 h-4" />, label: 'Kampanya' },
-                                { to: '/admin/cars/rental', icon: <Key className="w-4 h-4" />, label: 'Kiralık' },
-                                { to: '/admin/cars/sale', icon: <DollarSign className="w-4 h-4" />, label: 'Satılık' },
+                                { to: '/admin/cars/rental', icon: <Key className="w-4 h-4" />, label: 'Kiralik' },
+                                { to: '/admin/cars/sale', icon: <DollarSign className="w-4 h-4" />, label: 'Satilik' },
                             ].map((item) => (
                                 <Link key={item.to} to={item.to}>
                                     <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all duration-200">
@@ -722,13 +738,13 @@ export const AdminDashboard = () => {
                                                 <Link to="/admin/audit-logs" onClick={() => setIsSystemMenuOpen(false)}>
                                                     <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left">
                                                         <Clock className="w-4 h-4 text-amber-500" />
-                                                        İşlem Geçmişi
+                                                        Islem Geçmisi
                                                     </button>
                                                 </Link>
                                                 <Link to="/admin/users" onClick={() => setIsSystemMenuOpen(false)}>
                                                     <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left">
                                                         <Users className="w-4 h-4 text-emerald-500" />
-                                                        Kullanıcılar
+                                                        Kullanicilar
                                                     </button>
                                                 </Link>
                                                 <Link to="/admin/backup" onClick={() => setIsSystemMenuOpen(false)}>
@@ -748,7 +764,7 @@ export const AdminDashboard = () => {
                                             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left"
                                         >
                                             <Megaphone className="w-4 h-4 text-purple-500" />
-                                            Bildirim Ayarları
+                                            Bildirim Ayarlari
                                         </button>
                                     </div>
                                 </div>
@@ -770,11 +786,13 @@ export const AdminDashboard = () => {
                                         const newBookings = stats?.latestNewBookings || [];
                                         const pendingFranchise = stats?.latestPendingFranchiseApplications || [];
                                         const paidBookings = stats?.latestPaidBookings || [];
+                                        const expiringInsurances = stats?.latestExpiringInsurances || [];
 
                                         const unreadCount = [
                                             ...newBookings.filter(b => !b.adminRead),
                                             ...pendingFranchise.filter(f => !f.adminRead),
-                                            ...paidBookings.filter(b => !b.adminRead)
+                                            ...paidBookings.filter(b => !b.adminRead),
+                                            ...expiringInsurances.filter(i => !i.adminRead)
                                         ].length;
 
                                         return unreadCount > 0 && (
@@ -797,6 +815,7 @@ export const AdminDashboard = () => {
                                                         try {
                                                             setShowNotifications(false); // Close immediately for better UX
                                                             await adminService.markAllNotificationsRead();
+                                                            await dispatch(fetchDashboardStats());
                                                             queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
                                                         } catch (err) {
                                                             console.error("Failed to mark all read", err);
@@ -832,7 +851,7 @@ export const AdminDashboard = () => {
                                                     id: b.id + '_paid',
                                                     originalId: b.id,
                                                     type: 'booking',
-                                                    title: 'Ödeme Alındı',
+                                                    title: 'Ödeme Alindi',
                                                     desc: `${b.car?.brand} ${b.car?.model} - ${b.customerName} ${b.customerSurname}`,
                                                     code: b.bookingCode || b.id,
                                                     date: b.paidAt,
@@ -844,7 +863,7 @@ export const AdminDashboard = () => {
                                                 const pendingFranchise = (stats?.latestPendingFranchiseApplications || []).map(f => ({
                                                     id: f.id,
                                                     type: 'franchise',
-                                                    title: 'Bayilik Başvurusu',
+                                                    title: 'Bayilik Basvurusu',
                                                     desc: f.companyName || f.contactName,
                                                     date: f.submittedAt,
                                                     icon: <Building2 size={16} />,
@@ -852,7 +871,29 @@ export const AdminDashboard = () => {
                                                     read: f.adminRead
                                                 }));
 
-                                                const allNotifications = [...newBookings, ...paidBookings, ...pendingFranchise]
+                                                const expiringList = (stats?.latestExpiringInsurances || []).map(i => {
+                                                    const today = new Date();
+                                                    today.setHours(0, 0, 0, 0);
+                                                    const endDate = new Date(i.endDate);
+                                                    endDate.setHours(0, 0, 0, 0);
+                                                    const diffTime = endDate.getTime() - today.getTime();
+                                                    const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                    let statusText = daysRemaining < 0 ? 'Süresi Doldu' : (daysRemaining === 0 ? 'Bugün Sona Eriyor' : `${daysRemaining} Gün Kaldı`);
+
+                                                    return {
+                                                        id: i.id + '_insurance',
+                                                        originalId: i.id,
+                                                        type: 'insurance',
+                                                        title: 'Sigorta Süresi Uyarısı',
+                                                        desc: `${i.policyNumber} - ${statusText} - ${i.user?.name || i.fullName || ''}`,
+                                                        date: i.endDate,
+                                                        icon: <Shield size={16} />,
+                                                        color: daysRemaining <= 0 ? 'red' : 'yellow',
+                                                        read: !!i.adminRead
+                                                    };
+                                                });
+
+                                                const allNotifications = [...newBookings, ...paidBookings, ...pendingFranchise, ...expiringList]
                                                     .filter(item => !item.read)
                                                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -889,6 +930,14 @@ export const AdminDashboard = () => {
                                                                 setTimeout(() => setHighlightedFranchiseId(null), 5000);
                                                                 const element = document.getElementById('franchise-section');
                                                                 if (element) element.scrollIntoView({ behavior: 'smooth' });
+                                                            } else if (item.type === 'insurance') {
+                                                                setActiveTab('insurance');
+                                                                setInsuranceSearchTerm('');
+                                                                setInsurancePage(1);
+                                                                setTimeout(() => {
+                                                                    const element = document.getElementById('insurance-section') || document.querySelector('.overflow-x-auto.custom-scrollbar table');
+                                                                    if (element) element.scrollIntoView({ behavior: 'smooth' });
+                                                                }, 100);
                                                             }
 
                                                             // 2. Background API Call
@@ -896,14 +945,17 @@ export const AdminDashboard = () => {
                                                                 const idToMark = (item as any).originalId || item.id;
                                                                 // Fire and forget, don't await
                                                                 adminService.markNotificationRead(idToMark, item.type as any)
-                                                                    .then(() => queryClient.invalidateQueries({ queryKey: ['admin-stats'] }))
+                                                                    .then(async () => {
+                                                                        await dispatch(fetchDashboardStats());
+                                                                        queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+                                                                    })
                                                                     .catch(err => console.error("Failed to mark read", err));
                                                             }
                                                         }}
                                                         className={`p-4 border-b border-white/5 last:border-0 transition-colors cursor-pointer flex gap-4 items-start ${!item.read ? 'bg-white/5 hover:bg-white/10' : 'hover:bg-white/5 opacity-60'
-                                                            } ${item.color === 'green' ? 'border-l-2 border-l-green-500' : 'border-l-2 border-l-primary-500'}`}
+                                                            } ${item.color === 'green' ? 'border-l-2 border-l-green-500' : item.color === 'red' ? 'border-l-2 border-l-red-500' : item.color === 'yellow' ? 'border-l-2 border-l-yellow-500' : 'border-l-2 border-l-primary-500'}`}
                                                     >
-                                                        <div className={`mt-1 p-2 rounded-lg ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : 'bg-primary-500/20 text-primary-400'}`}>
+                                                        <div className={`mt-1 p-2 rounded-lg ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : item.color === 'red' ? 'bg-red-500/20 text-red-400' : item.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-primary-500/20 text-primary-400'}`}>
                                                             {item.icon}
                                                         </div>
                                                         <div className="flex-1">
@@ -914,7 +966,7 @@ export const AdminDashboard = () => {
                                                             <div className="text-xs text-gray-300 mt-0.5">{item.desc}</div>
                                                             <div className="text-[10px] text-gray-500 mt-2 font-medium">
                                                                 {new Date(item.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                                                                <span className="mx-1">â€¢</span>
+                                                                <span className="mx-1">•</span>
                                                                 {new Date(item.date).toLocaleDateString('tr-TR')}
                                                             </div>
                                                         </div>
@@ -944,7 +996,7 @@ export const AdminDashboard = () => {
                     <StatCard
                         title="Toplam Ciro"
                         value={`${(stats?.totalRevenue || 0).toLocaleString()} ₺`}
-                        icon={<span className="text-2xl font-bold">₺</span>}
+                        icon={<span className="text-2xl font-bold">?</span>}
                         color="green"
                         trend="%12.5"
                         trendUp={true}
@@ -986,7 +1038,7 @@ export const AdminDashboard = () => {
                 {/* Tab Navigation */}
                 <div className="relative flex items-center justify-center bg-dark-surface-lighter/40 backdrop-blur-2xl rounded-2xl p-1.5 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
                     {([
-                        { key: 'overview', label: 'Genel Bakış', icon: <TrendingUp className="w-4 h-4" />, count: null },
+                        { key: 'overview', label: 'Genel Bakis', icon: <TrendingUp className="w-4 h-4" />, count: null },
                         { key: 'bookings', label: 'Rezervasyonlar', icon: <Calendar className="w-4 h-4" />, count: stats?.totalBookings || null },
                         { key: 'franchise', label: 'Franchise', icon: <Building2 className="w-4 h-4" />, count: stats?.pendingFranchiseApplications || null },
                         { key: 'insurance', label: 'Sigorta', icon: <Shield className="w-4 h-4" />, count: stats?.totalInsurances || null },
@@ -1069,7 +1121,7 @@ export const AdminDashboard = () => {
                                                                     : 'text-gray-400 hover:text-white'
                                                                     }`}
                                                             >
-                                                                {view === 'weekly' ? 'Haftalık' : view === 'monthly' ? 'Aylık' : 'Yıllık'}
+                                                                {view === 'weekly' ? 'Haftalik' : view === 'monthly' ? 'Aylik' : 'Yillik'}
                                                             </button>
                                                         ))}
                                                     </div>
@@ -1077,7 +1129,7 @@ export const AdminDashboard = () => {
                                                         onClick={async () => {
                                                             if (!revenueData) return;
 
-                                                            // Dynamic imports â€” loaded only when export is triggered
+                                                            // Dynamic imports Ã¢â‚¬â€ loaded only when export is triggered
                                                             const [{ default: ExcelJS }, { saveAs }] = await Promise.all([
                                                                 import('exceljs'),
                                                                 import('file-saver'),
@@ -1089,7 +1141,7 @@ export const AdminDashboard = () => {
                                                             // 1. Add Title
                                                             worksheet.mergeCells('A1:E1');
                                                             const titleCell = worksheet.getCell('A1');
-                                                            titleCell.value = `SlonCar Gelir Raporu (${selectedYear}) - ${chartView === 'weekly' ? 'Haftalık' : chartView === 'monthly' ? 'Aylık' : 'Yıllık'}`;
+                                                            titleCell.value = `SlonCar Gelir Raporu (${selectedYear}) - ${chartView === 'weekly' ? 'Haftalik' : chartView === 'monthly' ? 'Aylik' : 'Yillik'}`;
                                                             titleCell.font = { name: 'Arial', family: 4, size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
                                                             titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } };
                                                             titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -1097,7 +1149,7 @@ export const AdminDashboard = () => {
 
                                                             // 2. Add Summary Data
                                                             worksheet.addRow(['']);
-                                                            const summaryRow = worksheet.addRow(['Toplam Ciro', 'Adet', 'Büyüme', 'Şu Anki Dönem', 'Geçen Dönem']);
+                                                            const summaryRow = worksheet.addRow(['Toplam Ciro', 'Adet', 'Büyüme', 'Su Anki Dönem', 'Geçen Dönem']);
                                                             summaryRow.font = { bold: true };
 
                                                             const summaryDataRow = worksheet.addRow([
@@ -1108,16 +1160,16 @@ export const AdminDashboard = () => {
                                                                 revenueData?.summary?.lastMonth || 0
                                                             ]);
 
-                                                            summaryDataRow.getCell(1).numFmt = '#,##0 "₺"';
+                                                            summaryDataRow.getCell(1).numFmt = '#,##0 "?"';
                                                             summaryDataRow.getCell(3).numFmt = '0.0%';
-                                                            summaryDataRow.getCell(4).numFmt = '#,##0 "₺"';
-                                                            summaryDataRow.getCell(5).numFmt = '#,##0 "₺"';
+                                                            summaryDataRow.getCell(4).numFmt = '#,##0 "?"';
+                                                            summaryDataRow.getCell(5).numFmt = '#,##0 "?"';
 
                                                             // 3. Add Main Table Data
                                                             worksheet.addRow(['']);
                                                             worksheet.addRow(['']);
 
-                                                            const headers = ['Dönem', 'Gelir', 'Rezervasyon Sayısı', 'Ortalama Gelir'];
+                                                            const headers = ['Dönem', 'Gelir', 'Rezervasyon Sayisi', 'Ortalama Gelir'];
                                                             const headerRow = worksheet.addRow(headers);
                                                             headerRow.eachCell((cell) => {
                                                                 cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1133,8 +1185,8 @@ export const AdminDashboard = () => {
                                                                     d.bookings,
                                                                     d.bookings > 0 ? d.revenue / d.bookings : 0
                                                                 ]);
-                                                                row.getCell(2).numFmt = '#,##0 "₺"';
-                                                                row.getCell(4).numFmt = '#,##0 "₺"';
+                                                                row.getCell(2).numFmt = '#,##0 "?"';
+                                                                row.getCell(4).numFmt = '#,##0 "?"';
                                                                 row.getCell(1).alignment = { horizontal: 'center' };
                                                                 row.getCell(3).alignment = { horizontal: 'center' };
                                                             });
@@ -1151,7 +1203,7 @@ export const AdminDashboard = () => {
                                                                 });
                                                                 (revenueData?.byCategory || []).forEach((c: { name: string; value: number }) => {
                                                                     const row = worksheet.addRow([c.name, c.value]);
-                                                                    row.getCell(2).numFmt = '#,##0 "₺"';
+                                                                    row.getCell(2).numFmt = '#,##0 "?"';
                                                                 });
                                                             }
 
@@ -1166,7 +1218,7 @@ export const AdminDashboard = () => {
                                                                 });
                                                                 (revenueData?.byBrand || []).forEach((b: { name: string; value: number }) => {
                                                                     const row = worksheet.addRow([b.name, b.value]);
-                                                                    row.getCell(2).numFmt = '#,##0 "₺"';
+                                                                    row.getCell(2).numFmt = '#,##0 "?"';
                                                                 });
                                                             }
 
@@ -1181,7 +1233,7 @@ export const AdminDashboard = () => {
                                                             saveAs(new Blob([buffer]), `SlonCar_Gelir_Raporu_${selectedYear}.xlsx`);
                                                         }}
                                                         className="p-2.5 rounded-xl bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all"
-                                                        title="Excel İndir (Grafikli)"
+                                                        title="Excel Indir (Grafikli)"
                                                     >
                                                         <Download className="w-5 h-5" />
                                                     </button>
@@ -1266,8 +1318,8 @@ export const AdminDashboard = () => {
                                     {/* Category Breakdown (Mock Pie Chart) */}
                                     <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
                                         <div className="p-6 border-b border-white/10">
-                                            <h2 className="text-xl font-bold text-white">Kategori Dağılımı</h2>
-                                            <p className="text-xs text-gray-500 mt-1">Hasılatın araç türüne göre dağılımı</p>
+                                            <h2 className="text-xl font-bold text-white">Kategori Dagilimi</h2>
+                                            <p className="text-xs text-gray-500 mt-1">Hasilatin araç türüne göre dagilimi</p>
                                         </div>
                                         <div className="p-6">
                                             <div className="h-[200px] relative" id="category-pie-chart">
@@ -1348,7 +1400,7 @@ export const AdminDashboard = () => {
                                 <div className="flex items-center gap-4">
                                     <h2 className="text-xl font-bold text-white">Tüm Rezervasyonlar</h2>
                                     <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                        {bookingsData?.pagination?.total || 0} kayıt
+                                        {bookingsData?.pagination?.total || 0} kayit
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -1370,7 +1422,7 @@ export const AdminDashboard = () => {
                                     <DebouncedInput
                                         value={searchTerm}
                                         onChange={handleBookingSearch}
-                                        placeholder="İsim ile ara..."
+                                        placeholder="Isim ile ara..."
                                         className="w-52"
                                     />
                                 </div>
@@ -1417,13 +1469,13 @@ export const AdminDashboard = () => {
                                     <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                         <tr>
                                             <th className="p-4 text-center">Kod</th>
-                                            <th className="p-4">Müşteri</th>
+                                            <th className="p-4">Müsteri</th>
                                             <th className="p-4 w-[250px]">Araç</th>
                                             <th className="p-4 text-center">Tarihler</th>
                                             <th className="p-4 text-center">Ödeme & Tutar</th>
                                             <th className="p-4 text-center">Durum</th>
                                             <th className="p-4 text-center">Detaylar</th>
-                                            <th className="p-4 text-center">İşlem</th>
+                                            <th className="p-4 text-center">Islem</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5 relative">
@@ -1460,7 +1512,7 @@ export const AdminDashboard = () => {
                             {bookingsData?.pagination && (bookingsData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
                                 <div className="p-4 border-t border-white/10 flex items-center justify-between">
                                     <div className="text-sm text-gray-400">
-                                        Sayfa {currentPage} / {bookingsData?.pagination?.totalPages || 1} ({bookingsData?.pagination?.total || 0} kayıt)
+                                        Sayfa {currentPage} / {bookingsData?.pagination?.totalPages || 1} ({bookingsData?.pagination?.total || 0} kayit)
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -1524,10 +1576,10 @@ export const AdminDashboard = () => {
                                         <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
                                             <Building2 className="w-5 h-5 text-purple-400" />
                                         </div>
-                                        Franchise Başvuruları
+                                        Franchise Basvurulari
                                     </h2>
                                     <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                        {franchiseData?.pagination?.total || 0} başvuru
+                                        {franchiseData?.pagination?.total || 0} basvuru
                                     </span>
                                 </div>
                                 <div className="flex-1 max-w-md flex justify-end">
@@ -1535,7 +1587,7 @@ export const AdminDashboard = () => {
                                         <DebouncedInput
                                             value={franchiseSearchTerm}
                                             onChange={handleFranchiseSearch}
-                                            placeholder="İsim, Şirket veya Şehir ile ara..."
+                                            placeholder="Isim, Sirket veya Sehir ile ara..."
                                             className="w-full"
                                         />
                                     </div>
@@ -1547,13 +1599,13 @@ export const AdminDashboard = () => {
                                 <table className="w-full text-left">
                                     <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                         <tr>
-                                            <th className="p-4">Başvuran</th>
-                                            <th className="p-4">İletişim</th>
+                                            <th className="p-4">Basvuran</th>
+                                            <th className="p-4">Iletisim</th>
                                             <th className="p-4">Lokasyon</th>
                                             <th className="p-4">Bütçe</th>
                                             <th className="p-4">Durum</th>
                                             <th className="p-4">Tarih</th>
-                                            <th className="p-4">İşlem</th>
+                                            <th className="p-4">Islem</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5 relative">
@@ -1569,7 +1621,7 @@ export const AdminDashboard = () => {
                                             <tr>
                                                 <td colSpan={7} className="p-12 text-center">
                                                     <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                                                    <p className="text-gray-400">Henüz franchise başvurusu yok</p>
+                                                    <p className="text-gray-400">Henüz franchise basvurusu yok</p>
                                                 </td>
                                             </tr>
                                         ) : (
@@ -1635,7 +1687,7 @@ export const AdminDashboard = () => {
                             {franchiseData?.pagination && (franchiseData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
                                 <div className="p-4 border-t border-white/10 flex items-center justify-between">
                                     <div className="text-sm text-gray-400">
-                                        Sayfa {franchisePage} / {franchiseData?.pagination?.totalPages || 1} ({franchiseData?.pagination?.total || 0} kayıt)
+                                        Sayfa {franchisePage} / {franchiseData?.pagination?.totalPages || 1} ({franchiseData?.pagination?.total || 0} kayit)
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -1702,10 +1754,18 @@ export const AdminDashboard = () => {
                                         Sigortalar
                                     </h2>
                                     <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
-                                        {insuranceData?.pagination?.total || 0} kayıt
+                                        {insuranceData?.pagination?.total || 0} kayit
                                     </span>
                                 </div>
                                 <div className="flex-1 max-w-2xl flex justify-end items-center gap-4">
+                                    <Button
+                                        onClick={() => setIsCreateInsuranceModalOpen(true)}
+                                        className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/30 font-medium px-4 py-2 whitespace-nowrap"
+                                    >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Yeni Sigorta Ekle
+                                    </Button>
+
                                     <Button
                                         onClick={async () => {
                                             try {
@@ -1713,21 +1773,21 @@ export const AdminDashboard = () => {
                                                 const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                                                 const { saveAs } = await import('file-saver');
                                                 saveAs(blob, `Sigortalar_${new Date().toLocaleDateString('tr-TR')}.xlsx`);
-                                                toast('Excel başarıyla indirildi', 'success');
+                                                toast('Excel basariyla indirildi', 'success');
                                             } catch (error) {
                                                 console.error('Export error:', error);
-                                                toast('Excel indirilirken bir hata oluştu', 'error');
+                                                toast('Excel indirilirken bir hata olustu', 'error');
                                             }
                                         }}
                                         className="bg-[#107c41] hover:bg-[#0c5c30] text-white border-none shadow-lg shadow-green-900/20 flex items-center gap-2 transition-all hover:scale-105 whitespace-nowrap px-6"
                                     >
                                         <Download className="w-4 h-4" />
-                                        <span className="font-semibold">Excel İndir</span>
+                                        <span className="font-semibold">Excel Indir</span>
                                     </Button>
                                     <DebouncedInput
                                         value={insuranceSearchTerm}
                                         onChange={handleInsuranceSearch}
-                                        placeholder="Poliçe, Şirket veya Kullanıcı Ara..."
+                                        placeholder="Poliçe, Sirket veya Kullanici Ara..."
                                         className="w-full max-w-md"
                                     />
                                 </div>
@@ -1737,11 +1797,11 @@ export const AdminDashboard = () => {
                                 <table className="w-full text-left">
                                     <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                         <tr>
-                                            <th className="p-4">Kullanıcı</th>
-                                            <th className="p-4">Sigorta Şirketi</th>
+                                            <th className="p-4">Kullanici</th>
+                                            <th className="p-4">Sigorta Sirketi</th>
                                             <th className="p-4">Poliçe No</th>
                                             <th className="p-4">Detaylar</th>
-                                            <th className="p-4">Erişim</th>
+                                            <th className="p-4">Erisim</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
@@ -1755,42 +1815,71 @@ export const AdminDashboard = () => {
                                         ) : !insuranceData?.data?.length ? (
                                             <tr>
                                                 <td colSpan={5} className="p-12 text-center text-gray-500">
-                                                    Kayıt bulunamadı.
+                                                    Kayit bulunamadi.
                                                 </td>
                                             </tr>
                                         ) : (
-                                            (insuranceData?.data || []).map((insurance: any) => (
-                                                <tr key={insurance.id} className="hover:bg-white/5 transition-colors border-b border-white/5">
-                                                    <td className="p-4">
-                                                        <div className="font-medium text-white">{insurance.user?.name || insurance.fullName}</div>
-                                                        <div className="text-xs text-gray-500">{insurance.user?.email || insurance.email}</div>
-                                                    </td>
-                                                    <td className="p-4 text-gray-300 font-bold">{insurance.insuranceCompany}</td>
-                                                    <td className="p-4">
-                                                        <span className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg border border-blue-500/20 font-mono text-sm">
-                                                            {insurance.policyNumber}
-                                                        </span>
-                                                    </td>
-                                                    <td className="p-4 text-sm text-gray-400 max-w-xs truncate" title={insurance.description}>
-                                                        {insurance.description || '-'}
-                                                    </td>
-                                                    <td className="p-4">
-                                                        {insurance.fileUrl ? (
-                                                            <a
-                                                                href={insurance.fileUrl}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-bold"
-                                                            >
-                                                                <Info className="w-4 h-4" />
-                                                                Belge Görüntüle
-                                                            </a>
-                                                        ) : (
-                                                            <span className="text-gray-600 italic text-xs">Dosya Yok</span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))
+                                            (insuranceData?.data || []).map((insurance: any) => {
+                                                const today = new Date();
+                                                today.setHours(0, 0, 0, 0); // Normalize today
+                                                const endDate = new Date(insurance.endDate);
+                                                endDate.setHours(0, 0, 0, 0); // Normalize end date
+
+                                                // Calculate difference in days
+                                                const diffTime = endDate.getTime() - today.getTime();
+                                                const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                                                // Determine styles based on expiration
+                                                let rowStyle = "hover:bg-white/5 transition-colors border-b border-white/5";
+                                                let badge = null;
+
+                                                if (daysRemaining < 0) {
+                                                    rowStyle = "bg-red-500/10 hover:bg-red-500/20 transition-colors border-b border-red-500/30";
+                                                    badge = <span className="mt-1 inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Süresi Doldu ({-daysRemaining} gün geçti)</span>;
+                                                } else if (daysRemaining === 0) {
+                                                    rowStyle = "bg-red-500/10 hover:bg-red-500/20 transition-colors border-b border-red-500/30";
+                                                    badge = <span className="mt-1 inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Bugün Sona Eriyor</span>;
+                                                } else if (daysRemaining <= 10) {
+                                                    rowStyle = "bg-yellow-500/10 hover:bg-yellow-500/20 transition-colors border-b border-yellow-500/30";
+                                                    badge = <span className="mt-1 inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500/20 text-yellow-500 border border-yellow-500/30">{daysRemaining} Gün Kaldı</span>;
+                                                } else {
+                                                    badge = <span className="mt-1 inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-white/5 text-gray-400">{daysRemaining} Gün Kaldı</span>;
+                                                }
+
+                                                return (
+                                                    <tr key={insurance.id} className={rowStyle}>
+                                                        <td className="p-4">
+                                                            <div className="font-medium text-white">{insurance.user?.name || insurance.fullName}</div>
+                                                            <div className="text-xs text-gray-500">{insurance.user?.email || insurance.email}</div>
+                                                        </td>
+                                                        <td className="p-4 text-gray-300 font-bold">{insurance.insuranceCompany}</td>
+                                                        <td className="p-4">
+                                                            <span className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg border border-blue-500/20 font-mono text-sm">
+                                                                {insurance.policyNumber}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-4 text-sm text-gray-400 max-w-xs truncate flex flex-col items-start gap-1" title={insurance.description}>
+                                                            {insurance.description || '-'}
+                                                            {badge}
+                                                        </td>
+                                                        <td className="p-4">
+                                                            {insurance.fileUrl ? (
+                                                                <a
+                                                                    href={insurance.fileUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-bold"
+                                                                >
+                                                                    <Info className="w-4 h-4" />
+                                                                    Belge Görüntüle
+                                                                </a>
+                                                            ) : (
+                                                                <span className="text-gray-600 italic text-xs">Dosya Yok</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
                                         )}
                                     </tbody>
                                 </table>
@@ -1800,7 +1889,7 @@ export const AdminDashboard = () => {
                             {insuranceData?.pagination && (insuranceData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
                                 <div className="p-4 border-t border-white/10 flex items-center justify-between">
                                     <div className="text-sm text-gray-400">
-                                        Sayfa {insurancePage} / {insuranceData?.pagination?.totalPages || 1} ({insuranceData?.pagination?.total || 0} kayıt)
+                                        Sayfa {insurancePage} / {insuranceData?.pagination?.totalPages || 1} ({insuranceData?.pagination?.total || 0} kayit)
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -1905,7 +1994,7 @@ export const AdminDashboard = () => {
                         <div className="bg-dark-surface rounded-2xl border border-white/10 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
                             <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-dark-surface z-10">
                                 <div>
-                                    <h3 className="text-xl font-bold text-white">Franchise Başvuru Detayları</h3>
+                                    <h3 className="text-xl font-bold text-white">Franchise Basvuru Detaylari</h3>
                                     <p className="text-sm text-gray-400 mt-1">{selectedFranchise.details?.applicationNumber || selectedFranchise.id}</p>
                                 </div>
                                 <button onClick={() => setSelectedFranchise(null)} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10">
@@ -1915,20 +2004,20 @@ export const AdminDashboard = () => {
                             <div className="p-6 space-y-6">
                                 {/* Contact Info */}
                                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">İletişim Bilgileri</h4>
+                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Iletisim Bilgileri</h4>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div><span className="text-gray-500">Ad Soyad:</span> <span className="text-white ml-2">{selectedFranchise.contactName}</span></div>
                                         <div><span className="text-gray-500">E-posta:</span> <span className="text-white ml-2">{selectedFranchise.contactEmail}</span></div>
                                         <div><span className="text-gray-500">Telefon:</span> <span className="text-white ml-2">{selectedFranchise.contactPhone}</span></div>
-                                        {selectedFranchise.companyName && <div><span className="text-gray-500">Şirket:</span> <span className="text-white ml-2">{selectedFranchise.companyName}</span></div>}
+                                        {selectedFranchise.companyName && <div><span className="text-gray-500">Sirket:</span> <span className="text-white ml-2">{selectedFranchise.companyName}</span></div>}
                                     </div>
                                 </div>
 
                                 {/* Location & Investment */}
                                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Lokasyon & Yatırım</h4>
+                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Lokasyon & Yatirim</h4>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div><span className="text-gray-500">Şehir:</span> <span className="text-white ml-2">{selectedFranchise.city || '-'}</span></div>
+                                        <div><span className="text-gray-500">Sehir:</span> <span className="text-white ml-2">{selectedFranchise.city || '-'}</span></div>
                                         <div><span className="text-gray-500">Bütçe:</span> <span className="text-white ml-2">{selectedFranchise.details?.investmentBudget || '-'}</span></div>
                                     </div>
                                 </div>
@@ -1974,6 +2063,6 @@ export const AdminDashboard = () => {
                     </div>
                 )
             }
-        </div>
+        </div >
     );
 };

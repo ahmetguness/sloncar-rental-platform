@@ -246,7 +246,7 @@ export const adminService = {
         const response = await api.patch<{ success: boolean; data: any }>(`/admin/franchise-applications/${id}/status`, { status, adminNote });
         return response.data.data;
     },
-    markNotificationRead: async (id: string, type: 'booking' | 'franchise') => {
+    markNotificationRead: async (id: string, type: 'booking' | 'franchise' | 'insurance') => {
         const response = await api.post('/admin/notifications/mark-read', { id, type });
         return response.data;
     },
