@@ -93,14 +93,17 @@ export const ImageCarousel = ({
 
             {/* Thumbnails */}
             {images.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none px-1">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {images.map((img, idx) => (
                         <button
                             key={idx}
-                            onClick={() => setCurrentIndex(idx)}
-                            className={`relative flex-shrink-0 w-24 aspect-video rounded-xl overflow-hidden border-2 transition-all duration-300 ${idx === currentIndex
-                                ? 'border-primary-500 scale-105 shadow-lg shadow-primary-500/20'
-                                : 'border-white/5 opacity-40 hover:opacity-100'
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentIndex(idx);
+                            }}
+                            className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all duration-300 w-full ${idx === currentIndex
+                                ? 'border-primary-500 scale-[1.03] shadow-lg shadow-primary-500/20'
+                                : 'border-white/5 opacity-50 hover:opacity-100 hover:scale-[1.02]'
                                 }`}
                         >
                             <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Car } from '../services/types';
-import { Fuel, Cog, Car as CarIcon, ArrowRight, Gauge, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Fuel, Cog, Car as CarIcon, ArrowRight, Gauge, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { translateCategory, translateFuel } from '../utils/translate';
 import { getBrandLogo } from '../utils/brandLogos';
@@ -10,8 +10,24 @@ interface CarCardProps {
     brandLogoUrl?: string;
 }
 
-const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) => {
+const CarImageCarousel = ({ images, alt, autoPlay }: { images: string[], alt: string, autoPlay?: boolean }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        let intervalId: ReturnType<typeof setInterval>;
+
+        if (autoPlay && images && images.length > 1) {
+            intervalId = setInterval(() => {
+                setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+            }, 4000);
+        } else if (!autoPlay) {
+            setCurrentIndex(0);
+        }
+
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [autoPlay, images]);
 
     const nextSlide = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -50,14 +66,15 @@ const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) =>
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
                 {images.map((img, idx) => (
-                    <img
-                        key={idx}
-                        src={img}
-                        alt={`${alt} - ${idx + 1}`}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-cover flex-shrink-0 brightness-90 group-hover/card:brightness-100 transition-all duration-700 group-hover/card:scale-110"
-                    />
+                    <div key={idx} className="w-full h-full flex-shrink-0 overflow-hidden relative">
+                        <img
+                            src={img}
+                            alt={`${alt} - ${idx + 1}`}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover brightness-90 group-hover/card:brightness-100 transition-all duration-700 group-hover/card:scale-110"
+                        />
+                    </div>
                 ))}
             </div>
 
@@ -95,6 +112,8 @@ const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) =>
 };
 
 export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
+    const [isHovered, setIsHovered] = useState(false);
+
     // Fallback to helper if prop not provided, prioritizing car.brandLogo
     const logoUrl = car.brandLogo || brandLogoUrl || getBrandLogo(car.brand);
 
@@ -103,6 +122,8 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
     return (
         <Link
             to={targetLink}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             className="group/card block h-full relative bg-dark-surface-lighter rounded-3xl shadow-lg border border-white/5 hover:border-primary-500/30 overflow-hidden hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_0_30px_rgba(30,27,75,0.5)]"
         >
             {/* Glow Effect behind card */}
@@ -110,7 +131,7 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
 
             {/* Image Area */}
             <div className="aspect-video bg-dark-bg relative overflow-hidden">
-                <CarImageCarousel images={car.images} alt={`${car.brand} ${car.model}`} />
+                <CarImageCarousel images={car.images} alt={`${car.brand} ${car.model}`} autoPlay={isHovered} />
 
                 {/* Top Badges */}
                 <div className="absolute top-4 left-4 z-20 flex gap-2">
@@ -127,15 +148,11 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
 
                 {/* Bottom Badge (Status or Mileage) */}
                 <div className="absolute bottom-4 left-4 z-20">
-                    {car.type === 'SALE' ? (
+                    {car.type === 'SALE' && (
                         <div className="bg-dark-surface/80 backdrop-blur px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-lg flex items-center gap-1.5 border border-white/10">
                             <Gauge className="w-3.5 h-3.5 text-primary-500" />
                             {car.mileage.toLocaleString()} KM
                         </div>
-                    ) : (
-                        <span className="bg-green-600/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-lg flex items-center gap-1.5 border border-green-400/20">
-                            <Check size={12} className="stroke-[3px]" /> Müsait
-                        </span>
                     )}
                 </div>
             </div>

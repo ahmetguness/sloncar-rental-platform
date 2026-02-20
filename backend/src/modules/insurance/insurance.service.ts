@@ -97,7 +97,10 @@ export const insuranceService = {
 
     createInsurance: async (data: Prisma.UserInsuranceCreateInput) => {
         return prisma.userInsurance.create({
-            data,
+            data: {
+                ...data,
+                adminRead: true,
+            },
             include: {
                 user: {
                     select: {
