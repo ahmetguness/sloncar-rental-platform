@@ -253,119 +253,119 @@ export const MyBooking = () => {
                         {/* Main Grid */}
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                            {/* LEFT: Car Visuals & Specs */}
+                            {/* LEFT: Car Visuals & Driver Info */}
                             <div className="lg:col-span-8 space-y-8">
-                                {/* Removed Driver Info Block from Here */}
-
-                                {/* Hero Image Container & Specs */}
-                                <div className="space-y-6">
-                                    <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-dark-surface p-2">
-                                        {booking.car?.images && booking.car.images.length > 0 && (
-                                            <div className="relative w-full h-full rounded-2xl overflow-hidden">
-                                                <ImageCarousel images={booking.car.images} alt={booking.car.model} />
-                                            </div>
-                                        )}
-                                    </div>
+                                {/* Hero Image Container */}
+                                <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-dark-surface p-2">
+                                    {booking.car?.images && booking.car.images.length > 0 && (
+                                        <div className="relative w-full h-full rounded-2xl overflow-hidden">
+                                            <ImageCarousel images={booking.car.images} alt={booking.car.model} />
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
 
-                            {/* RIGHT: Specs, Info, Timeline & Actions */}
-                            <div className="lg:col-span-4 space-y-6">
-                                {/* Driver Info & Specs */}
-                                <div className="space-y-6">
-                                    <div className="bg-dark-surface-lighter/30 border border-white/5 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-gray-400">
-                                                <Users size={24} />
+                                {/* Driver Info Row */}
+                                <div className="bg-dark-surface-lighter/30 border border-white/5 rounded-3xl p-6 md:p-8 flex flex-col xl:flex-row items-center justify-between gap-6 shadow-xl">
+                                    <div className="flex items-center gap-5 w-full xl:w-auto overflow-hidden">
+                                        <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/5 flex items-center justify-center text-gray-400 border border-white/10">
+                                            <Users size={28} />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="text-xs font-bold text-primary-500 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" /> SÜRÜCÜ BİLGİLERİ
                                             </div>
-                                            <div>
-                                                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">SÜRÜCÜ BİLGİLERİ</div>
-                                                <div className="text-xl font-bold text-white tracking-wide">
-                                                    {booking.customerName.substring(0, 2)}**** {booking.customerSurname.substring(0, 2)}****
-                                                </div>
-                                                <div className="flex flex-col gap-1 mt-2">
-                                                    {booking.customerTC && (
-                                                        <div className="text-sm text-gray-400 font-mono flex items-center gap-2">
-                                                            <span className="text-gray-600">TC:</span>
-                                                            {booking.customerTC.replace(/(\d{3})\d{6}(\d{2})/, '$1******$2')}
-                                                        </div>
-                                                    )}
+                                            <div className="text-xl md:text-2xl font-black text-white tracking-wide truncate">
+                                                {booking.customerName} {booking.customerSurname}
+                                            </div>
+                                            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2">
+                                                {booking.customerTC && (
                                                     <div className="text-sm text-gray-400 font-mono flex items-center gap-2">
-                                                        <span className="text-gray-600">TEL:</span>
-                                                        ******{booking.customerPhone.slice(-2)}
+                                                        <span className="text-gray-500 font-bold">TC:</span>
+                                                        {booking.customerTC.replace(/(\d{3})\d{6}(\d{2})/, '$1******$2')}
                                                     </div>
+                                                )}
+                                                <div className="text-sm text-gray-400 font-mono flex items-center gap-2">
+                                                    <span className="text-gray-500 font-bold">TEL:</span>
+                                                    {booking.customerPhone}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     {booking.paymentStatus !== 'PAID' && booking.status !== 'CANCELLED' && (
-                                        <div className="flex flex-col items-center md:items-end gap-4 w-full p-6 bg-dark-surface-lighter/30 rounded-2xl border border-dashed border-white/20">
+                                        <div className="w-full xl:w-auto shrink-0 flex flex-col items-center xl:items-end gap-3 p-5 bg-[#1e1b4b]/40 rounded-2xl border border-primary-500/20 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]">
                                             {timeLeft > 0 ? (
-                                                <div className="flex flex-col items-center w-full">
-                                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ÖDEME İÇİN KALAN SÜRE</div>
-                                                    <div className="font-mono text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 tabular-nums animate-pulse tracking-tight text-center">
+                                                <div className="flex flex-col items-center xl:items-end">
+                                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 opacity-80">ÖDEME İÇİN KALAN SÜRE</div>
+                                                    <div className="font-mono text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500 tabular-nums animate-pulse tracking-tight drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
                                                         {formatTimeLeft(timeLeft)}
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="flex flex-col items-center w-full">
-                                                    <div className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">ÖDEME SÜRESİ</div>
-                                                    <div className="font-black text-2xl text-red-500 tracking-tight text-center">SÜRE DOLDU</div>
+                                                <div className="flex flex-col items-center xl:items-end">
+                                                    <div className="text-[10px] font-bold text-red-500/80 uppercase tracking-widest mb-1">ÖDEME SÜRESİ</div>
+                                                    <div className="font-black text-2xl md:text-3xl text-red-500 tracking-tight drop-shadow-[0_0_15px_rgba(239,68,68,0.3)]">SÜRE DOLDU</div>
                                                 </div>
                                             )}
 
                                             <Button
                                                 onClick={handlePay}
                                                 disabled={paying || timeLeft <= 0}
-                                                className={`w-full px-8 h-14 bg-gradient-to-r ${timeLeft > 0 ? 'from-primary-600 via-primary-500 to-primary-600 hover:from-primary-500 hover:to-primary-400' : 'from-gray-600 to-gray-700 cursor-not-allowed opacity-50'} text-white font-bold text-lg rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all transform hover:scale-[1.02] border border-white/10 relative overflow-hidden group`}
+                                                className={`w-full xl:w-auto min-w-[200px] h-14 bg-gradient-to-r ${timeLeft > 0 ? 'from-primary-600 via-primary-500 to-primary-600 hover:from-primary-500 hover:to-primary-400' : 'from-gray-700 to-gray-800 cursor-not-allowed opacity-50'} text-white font-bold text-lg rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all transform border border-white/10`}
                                             >
-                                                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
-                                                {paying ? <Loader2 className="animate-spin mr-2" /> : <span className="flex items-center justify-center gap-2">HEMEN ÖDE <CheckCircle size={18} className="text-white fill-white/20" /></span>}
+                                                {paying ? <Loader2 className="animate-spin w-6 h-6" /> : <span className="flex items-center justify-center gap-2">HEMEN ÖDE <CheckCircle size={18} className="text-white fill-white/20" /></span>}
                                             </Button>
 
-                                            <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/20 p-3 rounded-lg w-full">
-                                                <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                                                <p className="text-xs text-gray-300 leading-relaxed text-left">
-                                                    <span className="text-red-400 font-bold block mb-0.5">ÖNEMLİ HATIRLATMA</span>
-                                                    Rezervasyonunuzun onayı için <strong className="text-white">10 dakika</strong> içinde ödeme işlemini tamamlamanız gerekmektedir.
+                                            <div className="flex items-start gap-3 w-full max-w-sm">
+                                                <AlertCircle className="w-4 h-4 text-primary-400 shrink-0 mt-0.5" />
+                                                <p className="text-[11px] text-primary-200/70 leading-relaxed text-left">
+                                                    Onay için <strong className="text-primary-100 font-bold">10 dakika</strong> içinde ödeme işlemini tamamlamanız gerekmektedir.
                                                 </p>
                                             </div>
                                         </div>
                                     )}
+                                </div>
+                            </div>
 
-                                    {/* Specs Stacked */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="bg-white/5 border border-white/10 px-4 py-3 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 shadow-sm">
-                                            <span className="w-2.5 h-2.5 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></span>
-                                            {booking.car?.year} Model
+                            {/* RIGHT: Specs & Timeline */}
+                            <div className="lg:col-span-4 space-y-6">
+                                {/* Timeline Card */}
+                                <div className="bg-dark-surface-lighter/30 border border-white/10 rounded-3xl p-6 md:p-8 flex flex-col sticky top-24 shadow-2xl">
+                                    {/* Specs Stacked Inside Timeline Card Top */}
+                                    <div className="grid grid-cols-2 gap-3 mb-8 pb-8 border-b border-white/5">
+                                        <div className="bg-white/5 border border-white/10 px-3 py-3 rounded-2xl text-white text-sm font-bold flex flex-col items-center justify-center gap-1.5 shadow-sm group hover:bg-white/10 transition-colors">
+                                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">MODEL YILI</span>
+                                            <span className="flex items-center gap-2 text-base">
+                                                <span className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(99,102,241,0.8)]"></span>
+                                                {booking.car?.year}
+                                            </span>
                                         </div>
-                                        <div className="bg-white/5 border border-white/10 px-4 py-3 rounded-xl text-white text-sm font-bold capitalize text-center shadow-sm">
+                                        <div className="bg-white/5 border border-white/10 px-3 py-3 rounded-2xl text-white text-sm font-bold capitalize flex flex-col items-center justify-center gap-1.5 shadow-sm group hover:bg-white/10 transition-colors text-center text-base">
+                                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">YAKIT</span>
                                             {booking.car?.fuel}
                                         </div>
-                                        <div className="bg-white/5 border border-white/10 px-4 py-3 rounded-xl text-white text-sm font-bold capitalize text-center shadow-sm">
-                                            {booking.car?.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'}
+                                        <div className="bg-white/5 border border-white/10 px-3 py-3 rounded-2xl text-white text-sm font-bold capitalize flex flex-col items-center justify-center gap-1.5 shadow-sm group hover:bg-white/10 transition-colors text-center text-base">
+                                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">VİTES</span>
+                                            {booking.car?.transmission === 'AUTO' ? 'Oto.' : 'Manuel'}
                                         </div>
-                                        <div className="bg-white/5 border border-white/10 px-4 py-3 rounded-xl text-white text-sm font-bold capitalize text-center shadow-sm">
+                                        <div className="bg-white/5 border border-white/10 px-3 py-3 rounded-2xl text-white text-sm font-bold capitalize flex flex-col items-center justify-center gap-1.5 shadow-sm group hover:bg-white/10 transition-colors text-center text-base">
+                                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">RENK</span>
                                             {booking.car?.color}
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Timeline Card */}
-                                <div className="bg-dark-surface-lighter/30 border border-white/10 rounded-3xl p-6 md:p-8 flex flex-col">
                                     {booking.car?.plateNumber && (
-                                        <div className="mb-6 p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between group hover:bg-white/10 transition-colors">
-                                            <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">ARAÇ PLAKASI</div>
-                                            <div className="bg-white/10 border border-white/20 px-4 py-2 rounded-xl text-white text-lg md:text-xl font-black tracking-widest uppercase flex items-center gap-3 shadow-sm">
-                                                {booking.car.plateNumber}
+                                        <div className="mb-6 px-5 py-4 bg-dark-bg/50 border border-white/5 rounded-2xl flex items-center justify-between group hover:border-primary-500/30 transition-colors">
+                                            <div className="text-xs font-black text-gray-500 uppercase tracking-widest">ARAÇ PLAKASI</div>
+                                            <div className="bg-white text-dark-bg px-3 md:px-4 py-1.5 rounded-lg text-base md:text-lg font-black tracking-widest uppercase shadow-[0_0_15px_rgba(255,255,255,0.2)] border-2 border-gray-300">
+                                                TR <span className="ml-1">{booking.car.plateNumber}</span>
                                             </div>
                                         </div>
                                     )}
 
-                                    <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                                        <div className="w-1 h-6 bg-primary-500 rounded-full" />
-                                        Sürüş Planı
+                                    <h3 className="text-lg font-black text-white mb-8 flex items-center gap-3">
+                                        <div className="w-1.5 h-6 bg-primary-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                                        SÜRÜŞ PLANI
                                     </h3>
 
                                     <div className="relative pl-4 space-y-10 flex-grow">
@@ -375,54 +375,54 @@ export const MyBooking = () => {
                                         {/* Pickup */}
                                         <div className="relative pl-16 md:pl-20">
                                             <div className="absolute left-0 top-1 w-12 h-12 bg-dark-bg border-2 border-primary-500 rounded-2xl flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.3)] z-10">
-                                                <span className="text-[10px] font-bold text-primary-500">ALIŞ</span>
+                                                <span className="text-[10px] font-black text-primary-500">ALIŞ</span>
                                             </div>
                                             <div>
-                                                <div className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                                                <div className="text-xl md:text-2xl font-black text-white tracking-tight">
                                                     {new Date(booking.pickupDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
                                                 </div>
-                                                <div className="text-gray-400 font-mono text-base md:text-lg mb-1">
+                                                <div className="text-gray-400 font-mono text-base md:text-lg mb-1.5 font-bold">
                                                     {new Date(booking.pickupDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                                 </div>
-                                                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-white/5 py-1 px-2 rounded inline-block">
-                                                    Başlangıç
+                                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-white/5 py-1 px-2.5 rounded-md inline-block border border-white/5">
+                                                    BAŞLANGIÇ
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Duration Center */}
                                         <div className="relative pl-16 md:pl-20">
-                                            <div className="inline-flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 rounded-xl bg-primary-500/10 border border-primary-500/30 text-primary-300 font-bold backdrop-blur-md text-xs md:text-sm">
-                                                <CarIcon size={16} />
-                                                {getRentalDays()} GÜN KİRALAMA
+                                            <div className="inline-flex items-center gap-2 md:gap-3 px-4 py-2.5 rounded-xl bg-primary-500/10 border border-primary-500/30 text-primary-300 font-bold backdrop-blur-md text-xs md:text-sm shadow-[0_0_20px_rgba(99,102,241,0.1)] hover:bg-primary-500/20 transition-colors">
+                                                <CarIcon size={18} />
+                                                <span className="tracking-widest">{getRentalDays()} GÜN KİRALAMA</span>
                                             </div>
                                         </div>
 
                                         {/* Dropoff */}
                                         <div className="relative pl-16 md:pl-20">
                                             <div className="absolute left-1 top-2 w-10 h-10 bg-dark-bg border-2 border-gray-600 rounded-xl flex items-center justify-center z-10">
-                                                <div className="w-3 h-3 bg-white rounded-full" />
+                                                <div className="w-3 h-3 bg-white/50 rounded-full" />
                                             </div>
                                             <div>
-                                                <div className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                                                <div className="text-xl md:text-2xl font-black text-white tracking-tight">
                                                     {new Date(booking.dropoffDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
                                                 </div>
-                                                <div className="text-gray-400 font-mono text-base md:text-lg mb-1">
+                                                <div className="text-gray-400 font-mono text-base md:text-lg mb-1.5 font-bold">
                                                     {new Date(booking.dropoffDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                                 </div>
-                                                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-white/5 py-1 px-2 rounded inline-block">
-                                                    Bitiş
+                                                <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-white/5 py-1 px-2.5 rounded-md inline-block border border-white/5">
+                                                    BİTİŞ
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="mt-8 pt-6 border-t border-white/5">
+                                    <div className="mt-8 pt-8 border-t border-white/5">
                                         <button
                                             onClick={copyToClipboard}
-                                            className="w-full py-4 rounded-xl border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-primary-500/50 hover:bg-primary-500/5 transition-all text-sm font-medium flex items-center justify-center gap-2 group shadow-sm bg-dark-bg/50"
+                                            className="w-full py-4 rounded-xl border-2 border-dashed border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 hover:bg-primary-500/5 transition-all text-sm font-bold flex items-center justify-center gap-2 group shadow-sm bg-dark-bg/30"
                                         >
-                                            {copied ? <CheckCircle size={16} className="text-green-500" /> : <span className="group-hover:text-primary-400 font-bold uppercase tracking-wider">PNR Kopyala</span>}
+                                            {copied ? <CheckCircle size={18} className="text-green-500" /> : <span className="group-hover:text-primary-400 font-black uppercase tracking-widest">PNR KOPYALA</span>}
                                         </button>
                                     </div>
                                 </div>

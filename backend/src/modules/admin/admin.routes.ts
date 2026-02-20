@@ -19,7 +19,7 @@ const router = Router();
 router.get(
     '/dashboard',
     authMiddleware,
-    superAdminGuard,
+    adminGuard,
     adminController.getDashboardStats
 );
 
@@ -44,7 +44,7 @@ router.get(
 router.get(
     '/revenue',
     authMiddleware,
-    superAdminGuard,
+    adminGuard,
     adminController.getRevenueAnalytics
 );
 

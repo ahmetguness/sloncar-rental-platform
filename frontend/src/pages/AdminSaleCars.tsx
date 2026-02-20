@@ -228,6 +228,32 @@ export const AdminSaleCars = () => {
         setFormData({ ...initialFormData, branchId: defaultBranch?.id || '' });
     };
 
+    // Helper to extract error message
+    const getErrorMessage = (err: any): string => {
+        if (err.response?.data) {
+            const data = err.response.data;
+
+            // Check for validation details (Zod errors)
+            if (data.error?.details && Array.isArray(data.error.details)) {
+                return data.error.details
+                    .map((d: any) => `${d.path}: ${d.message}`)
+                    .join(', ');
+            }
+
+            // Check for specific error object
+            if (data.error?.message) {
+                return data.error.message;
+            }
+
+            // Check for top-level message
+            if (data.message) {
+                return data.message;
+            }
+        }
+
+        return err.message || 'İşlem başarısız';
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
@@ -272,7 +298,8 @@ export const AdminSaleCars = () => {
             handleCancelForm();
             loadCars(currentPage);
         } catch (err: any) {
-            toast(err.response?.data?.error?.message || 'İşlem başarısız', 'error');
+            console.error('Car operation failed:', err);
+            toast(getErrorMessage(err), 'error');
         } finally {
             setSubmitting(false);
         }
@@ -291,7 +318,8 @@ export const AdminSaleCars = () => {
                 loadCars(currentPage);
             }
         } catch (err: any) {
-            toast(err.response?.data?.error?.message || 'Silme işlemi başarısız', 'error');
+            console.error('Delete failed:', err);
+            toast(getErrorMessage(err), 'error');
         } finally {
             setDeleting(false);
             setDeleteId(null);

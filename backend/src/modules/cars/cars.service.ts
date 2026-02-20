@@ -133,7 +133,7 @@ export async function createCar(input: CreateCarInput): Promise<CarWithBranch> {
     });
 
     if (existingCar) {
-        throw ApiError.conflict('Car with this plate number already exists');
+        throw ApiError.conflict('Bu plakaya sahip bir araç zaten mevcut');
     }
 
     const car = await prisma.car.create({
@@ -173,7 +173,7 @@ export async function updateCar(id: string, input: UpdateCarInput & { version?: 
             });
 
             if (duplicateCar) {
-                throw ApiError.conflict('Car with this plate number already exists');
+                throw ApiError.conflict('Bu plakaya sahip bir araç zaten mevcut');
             }
         }
 
