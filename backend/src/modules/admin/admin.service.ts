@@ -102,7 +102,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
             where: { status: BookingStatus.COMPLETED },
             _sum: { totalPrice: true }
         }),
-        prisma.car.count(),
+        prisma.car.count({ where: { status: { not: 'INACTIVE' } } }),
         prisma.user.count(),
         prisma.booking.findMany({
             take: 5,
