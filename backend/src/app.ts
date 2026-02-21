@@ -8,6 +8,7 @@ import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env.js';
 import { swaggerSpec } from './config/swagger.js';
 import { errorHandler } from './middlewares/index.js';
+import { verifyToken } from './lib/jwt.js';
 
 
 import authRoutes from './modules/auth/auth.routes.js';
@@ -51,6 +52,23 @@ const limiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => {
+        try {
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                const token = authHeader.split(' ')[1];
+                if (token) {
+                    const payload = verifyToken(token);
+                    if (payload.role === 'ADMIN' || payload.role === 'SUPER_ADMIN') {
+                        return true;
+                    }
+                }
+            }
+        } catch {
+            // Ignore errors, let rate limit apply
+        }
+        return false;
+    }
 });
 
 
