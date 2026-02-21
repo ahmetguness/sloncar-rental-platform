@@ -18,6 +18,8 @@ async function main() {
         // Initialize Cron Service (Booking Expiration)
         cronService.init();
 
+	app.set("trust proxy", 1);
+
         // Start server
         const server = app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);

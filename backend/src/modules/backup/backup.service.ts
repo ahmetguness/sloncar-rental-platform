@@ -265,28 +265,9 @@ async function createPgDump(dir: string): Promise<string> {
 
     const filePath = path.join(dir, `backup_${getDateString()}.sql`);
 
-    // Use absolute path for pg_dump on Windows if found
-    const pgDumpPath = 'C:\\Program Files\\PostgreSQL\\18\\bin\\pg_dump.exe';
-
-    // Proper quoting for Windows cmd.exe: wrap paths in quotes
-    const command = `"${pgDumpPath}" "${cleanDbUrl}" --no-owner --no-privileges -f "${filePath}"`;
-
-    try {
-        Logger.info(`[Backup] Attempting pg_dump with absolute path: ${pgDumpPath}`);
-        await execAsync(command, { windowsHide: true });
-        Logger.info(`[Backup] PostgreSQL dump successful.`);
-    } catch (err: any) {
-        Logger.warn(`[Backup] Absolute path pg_dump failed: ${err.message}`);
-        Logger.info(`[Backup] Attempting pg_dump with global command...`);
-        try {
-            await execAsync(`pg_dump "${cleanDbUrl}" --no-owner --no-privileges -f "${filePath}"`, { windowsHide: true });
-            Logger.info(`[Backup] PostgreSQL dump successful with global command.`);
-        } catch (globalErr: any) {
-            Logger.error(`[Backup] pg_dump failed completely. Error: ${globalErr.message}`);
-            throw globalErr;
-        }
-    }
-
+// Use global pg_dump (Linux/macOS compatible)
+await execAsync(`pg_dump "${cleanDbUrl}" --no-owner --no-privileges -f "${filePath}"`);
+Logger.info(`[Backup] PostgreSQL dump successful with global command.`);
     return filePath;
 }
 
@@ -362,31 +343,43 @@ async function getLastChangeTimestamp(): Promise<number> {
         'franchiseApplication', 'franchiseAuditLog', 'userInsurance', 'actionLog'
     ];
     let maxTs = 0;
-    for (const table of tables) {
+for (const table of tables) {
+    // These tables do NOT have updatedAt
+    if (table === 'franchiseAuditLog' || table === 'actionLog') {
+        const foundCreate = await (prisma as any)[table].findFirst({
+            orderBy: { createdAt: 'desc' },
+            select: { createdAt: true },
+        });
+        if (foundCreate?.createdAt) {
+            maxTs = Math.max(maxTs, foundCreate.createdAt.getTime());
+        }
+        continue;
+    }
+
+    try {
+        // Try updatedAt first
+        const foundUpdate = await (prisma as any)[table].findFirst({
+            orderBy: { updatedAt: 'desc' },
+            select: { updatedAt: true },
+        });
+        if (foundUpdate?.updatedAt) {
+            maxTs = Math.max(maxTs, foundUpdate.updatedAt.getTime());
+        }
+    } catch (e) {
+        // Fallback to createdAt if updatedAt doesn't exist (common in log tables)
         try {
-            // Try updatedAt first
-            const foundUpdate = await (prisma as any)[table].findFirst({
-                orderBy: { updatedAt: 'desc' },
-                select: { updatedAt: true },
+            const foundCreate = await (prisma as any)[table].findFirst({
+                orderBy: { createdAt: 'desc' },
+                select: { createdAt: true },
             });
-            if (foundUpdate && foundUpdate.updatedAt) {
-                maxTs = Math.max(maxTs, foundUpdate.updatedAt.getTime());
+            if (foundCreate?.createdAt) {
+                maxTs = Math.max(maxTs, foundCreate.createdAt.getTime());
             }
-        } catch (e) {
-            // Fallback to createdAt if updatedAt doesn't exist (common in log tables)
-            try {
-                const foundCreate = await (prisma as any)[table].findFirst({
-                    orderBy: { createdAt: 'desc' },
-                    select: { createdAt: true },
-                });
-                if (foundCreate && foundCreate.createdAt) {
-                    maxTs = Math.max(maxTs, foundCreate.createdAt.getTime());
-                }
-            } catch (innerE) {
-                // Ignore if neither field exists
-            }
+        } catch (innerE) {
+            // Ignore if neither field exists
         }
     }
+}
     return maxTs;
 }
 

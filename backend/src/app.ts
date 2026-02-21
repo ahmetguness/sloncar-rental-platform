@@ -28,6 +28,7 @@ import auditRouter from './modules/audit/audit.routes.js';
 import backupRoutes from './modules/backup/backup.routes.js';
 
 const app = express();
+app.set("trust proxy", true);
 
 
 app.use(helmet());
