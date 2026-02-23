@@ -210,6 +210,12 @@ export const adminService = {
             responseType: 'blob',
         });
     },
+    importInsurances: async (data: FormData) => {
+        const response = await api.post('/admin/insurances/import', data, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
     // Users
     getUsers: async (params?: any) => {
         const response = await api.get<{ success: boolean; data: any[]; pagination: any }>('/admin/users', { params });

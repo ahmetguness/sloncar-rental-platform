@@ -70,6 +70,16 @@ enum FranchiseApplicationStatus {
   REJECTED
 }
 
+enum InsuranceBranch {
+  KASKO
+  DASK
+  TRAFIK
+  KONUT
+  SAGLIK
+  DIGER
+}
+
+
 // ============================================================================
 // MODELS
 // ============================================================================
@@ -160,7 +170,7 @@ model User {
   // Relations
   bookings              Booking[]
   franchiseApplications FranchiseApplication[]
-  insurances            UserInsurance[]
+  insurances            Insurance[]
   actionLogs            ActionLog[]
 
   whatsappEnabled Boolean @default(true)
@@ -317,46 +327,36 @@ model Campaign {
   @@index([order])
 }
 
-/// UserInsurance represents insurance coverage details for a user
-model UserInsurance {
+/// Insurance represents insurance coverage details for a user or vehicle
+model Insurance {
   id String @id @default(uuid())
 
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  // New Required Fields
+  month           String
+  startDate       DateTime
+  tcNo            String
+  fullName        String
+  profession      String?
+  phone           String?
+  plate           String?
+  serialOrOrderNo String?
+  amount          Decimal         @db.Decimal(10, 2)
+  branch          InsuranceBranch
+  company         String
+  policyNo        String          @unique
+  description     String?
 
-  companyName  String
-  policyNumber String   @unique
-  policyType   String? // e.g. "Trafik", "Kasko", "Ferdi Kaza"
-  startDate    DateTime
-  endDate      DateTime
-
-  // Financial Details
-  premiumAmount    Decimal? @db.Decimal(10, 2)
-  coverageLimit    Decimal? @db.Decimal(12, 2)
-  deductibleAmount Decimal? @db.Decimal(10, 2)
-
-  coverageType String? // Keep for backward compatibility or general type
-  description  String? // Detailed description of coverage
-
-  // Agent/Contact Info
-  agentName  String?
-  agentPhone String?
-  agentEmail String?
-
-  documentUrl String?
-  isActive    Boolean @default(true)
-
-  // Status and Dates
-  renewalDate   DateTime?
-  paymentStatus String    @default("PAID") // PAID, UNPAID, CANCELLED
-
+  // Existing Relations/Fields (User is now optional)
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  adminRead Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  // Admin notification status
-  adminRead Boolean  @default(false)
 
   @@index([userId])
-  @@index([policyNumber])
+  @@index([policyNo])
+  @@index([tcNo])
+  @@map("insurances")
 }
 
 /// ActionLog tracks important actions performed by admins

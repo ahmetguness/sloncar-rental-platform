@@ -122,39 +122,30 @@ export interface PaginatedResponse<T> {
     };
 }
 
+export type InsuranceBranch = 'KASKO' | 'DASK' | 'TRAFIK' | 'KONUT' | 'SAGLIK' | 'DIGER';
+
 export interface UserInsurance {
     id: string;
-    userId: string;
+    month: string;
+    startDate: string;
+    tcNo: string;
+    fullName: string;
+    profession?: string;
+    phone?: string;
+    plate?: string;
+    serialOrOrderNo?: string;
+    amount: number;
+    branch: InsuranceBranch;
+    company: string;
+    policyNo: string;
+    description?: string;
+
+    userId?: string;
     user?: {
         name: string;
         email: string;
     };
-    companyName: string;
-    policyNumber: string;
-    policyType?: string;
-    startDate: string; // ISO Date
-    endDate: string; // ISO Date
-
-    // Financial Details
-    premiumAmount?: number;
-    coverageLimit?: number;
-    deductibleAmount?: number;
-
-    coverageType?: string;
-    description?: string;
-
-    // Contact
-    agentName?: string;
-    agentPhone?: string;
-    agentEmail?: string;
-
-    documentUrl?: string;
-    isActive: boolean;
-
-    // Status
-    renewalDate?: string;
-    paymentStatus: 'PAID' | 'UNPAID' | 'CANCELLED';
-
+    adminRead: boolean;
     createdAt: string;
     updatedAt: string;
 }

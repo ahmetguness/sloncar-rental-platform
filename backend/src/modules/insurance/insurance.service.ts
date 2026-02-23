@@ -1,43 +1,64 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, InsuranceBranch } from '@prisma/client';
 import ExcelJS from 'exceljs';
+import stream from 'stream';
 
 const prisma = new PrismaClient();
 
+// A helper dictionary to map Turkish headers to our DTO/prisma model
+const COLUMN_MAP: Record<string, keyof Prisma.InsuranceCreateInput> = {
+    'AY': 'month',
+    'BAŞLANGIÇ TARİHİ': 'startDate',
+    'TC': 'tcNo',
+    'İSİM / SOYİSİM': 'fullName',
+    'MESLEK': 'profession',
+    'CEP': 'phone',
+    'PLAKA': 'plate',
+    'SERİ NO / SIRA NO': 'serialOrOrderNo',
+    'TL': 'amount',
+    'BRANŞ': 'branch',
+    'ŞİRKET': 'company',
+    'POLİÇE NO': 'policyNo',
+    'AÇIKLAMA': 'description',
+} as any;
+
+const TURKISH_MONTHS = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
+
 export const insuranceService = {
     checkInsuranceExpiries: async () => {
+        // Find insurances expiring in 10 days or exactly today based on 1-year policy rules
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         const tenDaysFromNow = new Date(today);
         tenDaysFromNow.setDate(today.getDate() + 10);
 
-        // Find insurances expiring in 10 days or exactly today
-        // Marking them as adminRead = false gives them a notification badge
+        // A policy expiring in 10 days means it was created exactly 1 year before tenDaysFromNow
+        const tenDaysFromNowMinus1Year = new Date(tenDaysFromNow);
+        tenDaysFromNowMinus1Year.setFullYear(tenDaysFromNow.getFullYear() - 1);
 
-        const expiringIn10Days = await prisma.userInsurance.updateMany({
+        const todayMinus1Year = new Date(today);
+        todayMinus1Year.setFullYear(today.getFullYear() - 1);
+
+        const expiringIn10Days = await prisma.insurance.updateMany({
             where: {
-                endDate: {
-                    gte: tenDaysFromNow,
-                    lt: new Date(tenDaysFromNow.getTime() + 24 * 60 * 60 * 1000)
+                startDate: {
+                    gte: tenDaysFromNowMinus1Year,
+                    lt: new Date(tenDaysFromNowMinus1Year.getTime() + 24 * 60 * 60 * 1000)
                 },
                 adminRead: true
             },
-            data: {
-                adminRead: false
-            }
+            data: { adminRead: false }
         });
 
-        const expiredToday = await prisma.userInsurance.updateMany({
+        const expiredToday = await prisma.insurance.updateMany({
             where: {
-                endDate: {
-                    gte: today,
-                    lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
+                startDate: {
+                    gte: todayMinus1Year,
+                    lt: new Date(todayMinus1Year.getTime() + 24 * 60 * 60 * 1000)
                 },
                 adminRead: true
             },
-            data: {
-                adminRead: false
-            }
+            data: { adminRead: false }
         });
 
         if (expiringIn10Days.count > 0 || expiredToday.count > 0) {
@@ -48,25 +69,51 @@ export const insuranceService = {
         page?: number;
         limit?: number;
         searchTerm?: string;
+        status?: string;
     }) => {
         const page = Number(params.page) || 1;
         const limit = Number(params.limit) || 10;
         const skip = (page - 1) * limit;
 
-        const where: Prisma.UserInsuranceWhereInput = {};
+        const where: Prisma.InsuranceWhereInput = {};
 
         if (params.searchTerm) {
             where.OR = [
-                { policyNumber: { contains: params.searchTerm, mode: 'insensitive' } },
-                { companyName: { contains: params.searchTerm, mode: 'insensitive' } },
+                { policyNo: { contains: params.searchTerm, mode: 'insensitive' } },
+                { company: { contains: params.searchTerm, mode: 'insensitive' } },
+                { fullName: { contains: params.searchTerm, mode: 'insensitive' } },
+                { tcNo: { contains: params.searchTerm, mode: 'insensitive' } },
+                { plate: { contains: params.searchTerm, mode: 'insensitive' } },
                 { user: { email: { contains: params.searchTerm, mode: 'insensitive' } } },
-                { user: { name: { contains: params.searchTerm, mode: 'insensitive' } } },
             ];
         }
 
+        // Status Filtering
+        if (params.status) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const oneYearAgo = new Date(today);
+            oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+            const oneYearAgoPlus10 = new Date(oneYearAgo);
+            oneYearAgoPlus10.setDate(oneYearAgo.getDate() + 10);
+
+            if (params.status === 'EXPIRED') {
+                where.startDate = { lt: oneYearAgo };
+            } else if (params.status === 'CRITICAL') {
+                where.startDate = {
+                    gte: oneYearAgo,
+                    lte: oneYearAgoPlus10
+                };
+            } else if (params.status === 'ACTIVE') {
+                where.startDate = { gt: oneYearAgoPlus10 };
+            }
+        }
+
         const [total, insurances] = await Promise.all([
-            prisma.userInsurance.count({ where }),
-            prisma.userInsurance.findMany({
+            prisma.insurance.count({ where }),
+            prisma.insurance.findMany({
                 where,
                 include: {
                     user: {
@@ -80,7 +127,7 @@ export const insuranceService = {
                 },
                 skip,
                 take: limit,
-                orderBy: { createdAt: 'desc' },
+                orderBy: { startDate: 'asc' },
             }),
         ]);
 
@@ -95,8 +142,8 @@ export const insuranceService = {
         };
     },
 
-    createInsurance: async (data: Prisma.UserInsuranceCreateInput) => {
-        return prisma.userInsurance.create({
+    createInsurance: async (data: Prisma.InsuranceCreateInput) => {
+        return prisma.insurance.create({
             data: {
                 ...data,
                 adminRead: true,
@@ -115,23 +162,313 @@ export const insuranceService = {
     },
 
     deleteInsurance: async (id: string) => {
-        return prisma.userInsurance.delete({
+        return prisma.insurance.delete({
             where: { id },
         });
     },
 
+    importInsurances: async (buffer: Buffer | any) => {
+        console.log('[IMPORT] Starting import process...');
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(buffer);
+        const worksheet = workbook.worksheets[0]; // first sheet
+
+        if (!worksheet) {
+            throw new Error('Excel is empty or missing worksheet');
+        }
+
+        console.log(`[IMPORT] Worksheet found. Total rows: ${worksheet.rowCount}`);
+
+        const headers: Record<number, string> = {};
+        let headerRowIdx = 1;
+
+        // Find the header row (assume row 1)
+        worksheet.getRow(headerRowIdx).eachCell((cell, colNumber) => {
+            if (cell.value) {
+                headers[colNumber] = cell.value.toString().trim().toUpperCase();
+            }
+        });
+
+        console.log('[IMPORT] Detected headers:', JSON.stringify(headers));
+
+        // Ensure we matched required headers (case-insensitive)
+        const requiredHeaders = ['BAŞLANGIÇ TARİHİ', 'TC', 'İSİM / SOYİSİM', 'ŞİRKET'];
+        const missingHeaders = requiredHeaders.filter(
+            (rh) => !Object.values(headers).some(h => h.includes(rh))
+        );
+
+        if (missingHeaders.length > 0) {
+            console.error('[IMPORT] Missing required columns:', missingHeaders);
+            throw new Error(`Gerekli sütunlar eksik: ${missingHeaders.join(', ')}`);
+        }
+
+        const validRows: any[] = [];
+        const failedRows: any[] = [];
+        let currentMonth = '';
+
+        const parseBranch = (val: string): InsuranceBranch => {
+            if (!val) return InsuranceBranch.DIGER;
+            const up = val.toUpperCase().trim();
+            if (Object.values(InsuranceBranch).includes(up as InsuranceBranch)) {
+                return up as InsuranceBranch;
+            }
+            if (up.includes('KASKO')) return InsuranceBranch.KASKO;
+            if (up.includes('TRAFİK')) return InsuranceBranch.TRAFIK;
+            if (up.includes('DASK')) return InsuranceBranch.DASK;
+            if (up.includes('SAĞLIK')) return InsuranceBranch.SAGLIK;
+            if (up.includes('KONUT')) return InsuranceBranch.KONUT;
+            if (up.includes('İŞYERİ')) return InsuranceBranch.DIGER;
+            return InsuranceBranch.DIGER;
+        };
+
+        const getCellValue = (cell: ExcelJS.Cell): any => {
+            if (!cell || cell.value === null || cell.value === undefined) return null;
+            if (typeof cell.value === 'object') {
+                const cellVal = cell.value as any;
+                if ('result' in cellVal) return cellVal.result;
+                if ('richText' in cellVal && Array.isArray(cellVal.richText)) {
+                    return cellVal.richText.map((rt: any) => rt.text).join('');
+                }
+                if ('text' in cellVal) return cellVal.text;
+                if ('hyperlink' in cellVal) return cellVal.text || cellVal.hyperlink;
+            }
+            return cell.value;
+        };
+
+        const sanitizeString = (val: any): string => {
+            if (val === null || val === undefined) return '';
+            let str = val.toString().trim();
+            // Remove scientific notation artifacts or ".0" from integer-like numbers
+            if (/^\d+\.0+$/.test(str)) {
+                str = str.split('.')[0];
+            }
+            return str;
+        };
+
+
+        const parseNumber = (val: any): number => {
+            if (val === null || val === undefined) return 0;
+            if (typeof val === 'number') return val;
+            let str = val.toString().trim();
+            if (!str) return 0;
+            // Handle Turkish format: 1.234,56
+            if (str.includes(',') && str.includes('.')) {
+                if (str.lastIndexOf('.') < str.lastIndexOf(',')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                } else {
+                    str = str.replace(/,/g, '');
+                }
+            } else if (str.includes(',')) {
+                str = str.replace(',', '.');
+            }
+            // Remove non-numeric except dot
+            str = str.replace(/[^0-9.]/g, '');
+            const parsed = parseFloat(str);
+            return isNaN(parsed) ? 0 : parsed;
+        };
+
+        const parseDate = (val: any): Date | null => {
+            if (!val) return null;
+            if (val instanceof Date) return val;
+
+            if (typeof val === 'number') {
+                return new Date((val - 25569) * 86400 * 1000);
+            }
+
+            const str = val.toString().trim();
+            if (!str) return null;
+
+            const dotParts = str.split('.');
+            if (dotParts.length === 3) {
+                const day = parseInt(dotParts[0], 10);
+                const month = parseInt(dotParts[1], 10) - 1;
+                const year = parseInt(dotParts[2], 10);
+                const date = new Date(year, month, day);
+                if (!isNaN(date.getTime())) return date;
+            }
+
+            const slashParts = str.split('/');
+            if (slashParts.length === 3) {
+                const day = parseInt(slashParts[0], 10);
+                const month = parseInt(slashParts[1], 10) - 1;
+                const year = parseInt(slashParts[2], 10);
+                const date = new Date(year, month, day);
+                if (!isNaN(date.getTime())) return date;
+            }
+
+            const parsed = new Date(str);
+            if (!isNaN(parsed.getTime())) return parsed;
+            return null;
+        };
+
+        const findColIndex = (name: string) => {
+            const upName = name.toUpperCase();
+            const entry = Object.entries(headers).find(([_, val]) => val.includes(upName));
+            return entry ? Number(entry[0]) : null;
+        };
+
+        const policyColIdx = findColIndex('POLİÇE NO');
+        const nameColIdx = findColIndex('İSİM / SOYİSİM');
+        const descriptionColIdx = findColIndex('AÇIKLAMA');
+        const professionColIdx = findColIndex('MESLEK');
+
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === headerRowIdx) return; // skip header
+
+            let hasAnyValue = false;
+            let rowText = '';
+            row.eachCell((cell) => {
+                const val = getCellValue(cell);
+                if (val !== null && val !== undefined && val.toString().trim() !== '') {
+                    hasAnyValue = true;
+                    rowText += val.toString().toUpperCase() + ' ';
+                }
+            });
+
+            if (!hasAnyValue) return;
+
+            // Check if it's a month header row (sticky month)
+            for (const month of TURKISH_MONTHS) {
+                if (rowText.includes(month)) {
+                    currentMonth = month;
+                    // If this row ONLY has the month name, skip processing it as a data row
+                    if (rowText.trim() === month) return;
+                }
+            }
+
+            let rowData: any = {};
+            try {
+                row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                    const headerName = headers[colNumber];
+                    if (!headerName) return;
+
+                    const mappedKeyEntry = Object.entries(COLUMN_MAP).find(
+                        ([key]) => headerName.includes(key.toUpperCase())
+                    );
+                    const mappedKey = mappedKeyEntry?.[1];
+
+                    if (mappedKey) {
+                        rowData[mappedKey] = getCellValue(cell);
+                    }
+                });
+
+                // Month Handling
+                rowData.month = rowData.month || currentMonth;
+
+                // Smart Policy/TC/Company Harvesting
+                rowData.tcNo = sanitizeString(rowData.tcNo);
+                rowData.policyNo = sanitizeString(rowData.policyNo);
+                rowData.fullName = sanitizeString(rowData.fullName);
+                rowData.company = sanitizeString(rowData.company);
+
+                // --- FALLBACKS & PLACEHOLDERS ---
+
+                // 1. Name check - if no name, skip silently
+                if (!rowData.fullName) {
+                    return;
+                }
+
+                // 2. TC Placeholder
+                if (!rowData.tcNo) {
+                    rowData.tcNo = '11111111111';
+                }
+
+                // 3. Company Placeholder
+                if (!rowData.company) {
+                    rowData.company = 'BELİRTİLMEDİ';
+                }
+
+                // 4. Policy Number Harvesting & Placeholder
+                if (!rowData.policyNo) {
+                    const searchableText = `${rowData.description || ''} ${rowData.profession || ''} ${rowData.fullName || ''} ${rowText}`;
+                    const daskMatch = searchableText.match(/(?:DASK\s+)?POLİÇE\s+NO[:\s]+([A-Z0-9.\-/]{5,})/i);
+                    if (daskMatch && daskMatch[1]) {
+                        rowData.policyNo = daskMatch[1].trim();
+                    } else {
+                        const genericPolicyMatch = searchableText.match(/(\d{8,15})/);
+                        if (genericPolicyMatch && genericPolicyMatch[1] !== rowData.tcNo) {
+                            rowData.policyNo = genericPolicyMatch[1];
+                        }
+                    }
+                }
+
+                // If STILL missing policy number, generate a temporary one (Deterministic: TC + Name part)
+                if (!rowData.policyNo) {
+                    const namePart = rowData.fullName.replace(/\s/g, '').slice(0, 10).toUpperCase();
+                    rowData.policyNo = `OTOMATİK-${rowData.tcNo}-${namePart}`;
+                }
+
+                // 5. Date Placeholder (Use today if missing or invalid)
+                let startDate = parseDate(rowData.startDate);
+                if (!startDate) {
+                    startDate = new Date();
+                }
+
+                // Final required field check
+                if (!rowData.policyNo || !rowData.tcNo) {
+                    throw new Error(`Eksik bilgiler. Poliçe: ${rowData.policyNo ? 'Tam' : 'YOK'}, TC: ${rowData.tcNo ? 'Tam' : 'YOK'}`);
+                }
+
+                validRows.push({
+                    month: rowData.month?.toString() || '',
+                    startDate: startDate,
+                    tcNo: rowData.tcNo,
+                    fullName: rowData.fullName,
+                    profession: rowData.profession?.toString() || null,
+                    phone: rowData.phone?.toString() || null,
+                    plate: rowData.plate?.toString() || null,
+                    serialOrOrderNo: rowData.serialOrOrderNo?.toString() || null,
+                    amount: parseNumber(rowData.amount),
+                    branch: parseBranch(rowData.branch?.toString() || rowText), // Try to find branch in full row text if empty
+                    company: rowData.company,
+                    policyNo: rowData.policyNo,
+                    description: rowData.description?.toString() || null,
+                    adminRead: true,
+                });
+
+            } catch (err: any) {
+                failedRows.push({
+                    rowNumber,
+                    error: err.message,
+                    rowData: {
+                        policyNo: rowData.policyNo || 'Bilinmiyor',
+                        fullName: rowData.fullName || 'Bilinmiyor'
+                    }
+                });
+            }
+        });
+
+        console.log(`[IMPORT] Parsing complete. Valid rows: ${validRows.length}, Failed rows: ${failedRows.length}`);
+
+        const BATCH_SIZE = 500;
+        let insertedCount = 0;
+
+        if (validRows.length > 0) {
+            for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
+                const batch = validRows.slice(i, i + BATCH_SIZE);
+                await prisma.$transaction(async (tx) => {
+                    const result = await tx.insurance.createMany({
+                        data: batch,
+                        skipDuplicates: true,
+                    });
+                    insertedCount += result.count;
+                });
+            }
+        }
+
+        const duplicateCount = validRows.length - insertedCount;
+        console.log(`[IMPORT] DB insert complete. Newly inserted: ${insertedCount}. Skipped as duplicates: ${duplicateCount}`);
+
+        return {
+            insertedCount,
+            duplicateCount,
+            failedCount: failedRows.length,
+            failedRows,
+        };
+    },
+
     exportInsurances: async () => {
-        const insurances = await prisma.userInsurance.findMany({
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        phone: true,
-                    },
-                },
-            },
+        const insurances = await prisma.insurance.findMany({
             orderBy: { createdAt: 'desc' },
         });
 
@@ -139,34 +476,36 @@ export const insuranceService = {
         const worksheet = workbook.addWorksheet('Sigortalar');
 
         worksheet.columns = [
-            { header: 'Kullanıcı Adı', key: 'userName', width: 20 },
-            { header: 'E-posta', key: 'userEmail', width: 25 },
-            { header: 'Telefon', key: 'userPhone', width: 15 },
-            { header: 'Sigorta Şirketi', key: 'companyName', width: 20 },
-            { header: 'Poliçe No', key: 'policyNumber', width: 15 },
-            { header: 'Poliçe Tipi', key: 'policyType', width: 15 },
-            { header: 'Prim Tutarı', key: 'premiumAmount', width: 15 },
-            { header: 'Teminat Limiti', key: 'coverageLimit', width: 15 },
-            { header: 'Başlangıç', key: 'startDate', width: 15 },
-            { header: 'Bitiş', key: 'endDate', width: 15 },
-            { header: 'Acente', key: 'agentName', width: 20 },
-            { header: 'Durum', key: 'status', width: 10 },
+            { header: 'AY', key: 'month', width: 10 },
+            { header: 'BAŞLANGIÇ TARİHİ', key: 'startDate', width: 15 },
+            { header: 'TC', key: 'tcNo', width: 15 },
+            { header: 'İSİM / SOYİSİM', key: 'fullName', width: 25 },
+            { header: 'MESLEK', key: 'profession', width: 20 },
+            { header: 'CEP', key: 'phone', width: 15 },
+            { header: 'PLAKA', key: 'plate', width: 15 },
+            { header: 'SERİ NO / SIRA NO', key: 'serialOrOrderNo', width: 20 },
+            { header: 'TL', key: 'amount', width: 15 },
+            { header: 'BRANŞ', key: 'branch', width: 15 },
+            { header: 'ŞİRKET', key: 'company', width: 20 },
+            { header: 'POLİÇE NO', key: 'policyNo', width: 20 },
+            { header: 'AÇIKLAMA', key: 'description', width: 30 },
         ];
 
         insurances.forEach((ins: any) => {
             worksheet.addRow({
-                userName: ins.user?.name || '-',
-                userEmail: ins.user?.email || '-',
-                userPhone: ins.user?.phone || '-',
-                companyName: ins.companyName,
-                policyNumber: ins.policyNumber,
-                policyType: ins.policyType || '-',
-                premiumAmount: ins.premiumAmount,
-                coverageLimit: ins.coverageLimit,
+                month: ins.month,
                 startDate: new Date(ins.startDate).toLocaleDateString('tr-TR'),
-                endDate: new Date(ins.endDate).toLocaleDateString('tr-TR'),
-                agentName: ins.agentName || '-',
-                status: ins.isActive ? 'Aktif' : 'Pasif',
+                tcNo: ins.tcNo,
+                fullName: ins.fullName,
+                profession: ins.profession || '',
+                phone: ins.phone || '',
+                plate: ins.plate || '',
+                serialOrOrderNo: ins.serialOrOrderNo || '',
+                amount: ins.amount,
+                branch: ins.branch,
+                company: ins.company,
+                policyNo: ins.policyNo,
+                description: ins.description || '',
             });
         });
 

@@ -192,9 +192,9 @@ async function exportInsurancesCSV(dir: string): Promise<string> {
     stream.write('\uFEFF');
 
     const headers = [
-        'id', 'userName', 'userEmail', 'userPhone', 'companyName',
-        'policyNumber', 'policyType', 'premiumAmount', 'coverageLimit',
-        'startDate', 'endDate', 'agentName', 'status', 'createdAt', 'updatedAt'
+        'id', 'month', 'startDate', 'tcNo', 'fullName',
+        'profession', 'phone', 'plate', 'serialOrOrderNo',
+        'amount', 'branch', 'company', 'policyNo', 'description', 'createdAt', 'updatedAt'
     ];
     stream.write(headers.join(',') + '\n');
 
@@ -202,13 +202,10 @@ async function exportInsurancesCSV(dir: string): Promise<string> {
     let cursor: string | undefined;
 
     while (true) {
-        const insurances = await prisma.userInsurance.findMany({
+        const insurances = await prisma.insurance.findMany({
             take: BATCH_SIZE,
             skip: cursor ? 1 : 0,
             cursor: cursor ? { id: cursor } : undefined,
-            include: {
-                user: { select: { name: true, email: true, phone: true } },
-            },
             orderBy: { id: 'asc' },
         });
 
@@ -217,18 +214,19 @@ async function exportInsurancesCSV(dir: string): Promise<string> {
         for (const i of insurances) {
             const row = [
                 i.id,
-                i.user?.name,
-                i.user?.email,
-                i.user?.phone,
-                i.companyName,
-                i.policyNumber,
-                i.policyType || '',
-                i.premiumAmount?.toString() || '0',
-                i.coverageLimit?.toString() || '0',
+                i.month,
                 i.startDate?.toISOString(),
-                i.endDate?.toISOString(),
-                i.agentName || '',
-                i.isActive ? 'Active' : 'Passive',
+                i.tcNo,
+                i.fullName,
+                i.profession || '',
+                i.phone || '',
+                i.plate || '',
+                i.serialOrOrderNo || '',
+                i.amount?.toString() || '0',
+                i.branch,
+                i.company,
+                i.policyNo,
+                i.description || '',
                 i.createdAt?.toISOString(),
                 i.updatedAt?.toISOString(),
             ];
@@ -265,9 +263,9 @@ async function createPgDump(dir: string): Promise<string> {
 
     const filePath = path.join(dir, `backup_${getDateString()}.sql`);
 
-// Use global pg_dump (Linux/macOS compatible)
-await execAsync(`pg_dump "${cleanDbUrl}" --no-owner --no-privileges -f "${filePath}"`);
-Logger.info(`[Backup] PostgreSQL dump successful with global command.`);
+    // Use global pg_dump (Linux/macOS compatible)
+    await execAsync(`pg_dump "${cleanDbUrl}" --no-owner --no-privileges -f "${filePath}"`);
+    Logger.info(`[Backup] PostgreSQL dump successful with global command.`);
     return filePath;
 }
 
@@ -340,34 +338,12 @@ export interface BackupHistoryEntry {
 async function getLastChangeTimestamp(): Promise<number> {
     const tables = [
         'carBrand', 'branch', 'car', 'user', 'booking',
-        'franchiseApplication', 'franchiseAuditLog', 'userInsurance', 'actionLog'
+        'franchiseApplication', 'franchiseAuditLog', 'insurance', 'actionLog'
     ];
     let maxTs = 0;
-for (const table of tables) {
-    // These tables do NOT have updatedAt
-    if (table === 'franchiseAuditLog' || table === 'actionLog') {
-        const foundCreate = await (prisma as any)[table].findFirst({
-            orderBy: { createdAt: 'desc' },
-            select: { createdAt: true },
-        });
-        if (foundCreate?.createdAt) {
-            maxTs = Math.max(maxTs, foundCreate.createdAt.getTime());
-        }
-        continue;
-    }
-
-    try {
-        // Try updatedAt first
-        const foundUpdate = await (prisma as any)[table].findFirst({
-            orderBy: { updatedAt: 'desc' },
-            select: { updatedAt: true },
-        });
-        if (foundUpdate?.updatedAt) {
-            maxTs = Math.max(maxTs, foundUpdate.updatedAt.getTime());
-        }
-    } catch (e) {
-        // Fallback to createdAt if updatedAt doesn't exist (common in log tables)
-        try {
+    for (const table of tables) {
+        // These tables do NOT have updatedAt
+        if (table === 'franchiseAuditLog' || table === 'actionLog') {
             const foundCreate = await (prisma as any)[table].findFirst({
                 orderBy: { createdAt: 'desc' },
                 select: { createdAt: true },
@@ -375,16 +351,38 @@ for (const table of tables) {
             if (foundCreate?.createdAt) {
                 maxTs = Math.max(maxTs, foundCreate.createdAt.getTime());
             }
-        } catch (innerE) {
-            // Ignore if neither field exists
+            continue;
+        }
+
+        try {
+            // Try updatedAt first
+            const foundUpdate = await (prisma as any)[table].findFirst({
+                orderBy: { updatedAt: 'desc' },
+                select: { updatedAt: true },
+            });
+            if (foundUpdate?.updatedAt) {
+                maxTs = Math.max(maxTs, foundUpdate.updatedAt.getTime());
+            }
+        } catch (e) {
+            // Fallback to createdAt if updatedAt doesn't exist (common in log tables)
+            try {
+                const foundCreate = await (prisma as any)[table].findFirst({
+                    orderBy: { createdAt: 'desc' },
+                    select: { createdAt: true },
+                });
+                if (foundCreate?.createdAt) {
+                    maxTs = Math.max(maxTs, foundCreate.createdAt.getTime());
+                }
+            } catch (innerE) {
+                // Ignore if neither field exists
+            }
         }
     }
-}
     return maxTs;
 }
 
 async function getDatabaseRecordCount(): Promise<number> {
-    const tables = ['car', 'user', 'booking', 'userInsurance'];
+    const tables = ['car', 'user', 'booking', 'insurance'];
     let totalCount = 0;
     for (const table of tables) {
         const count = await (prisma as any)[table].count();

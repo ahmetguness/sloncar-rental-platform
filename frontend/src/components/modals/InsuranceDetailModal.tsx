@@ -3,7 +3,7 @@ import { adminService } from '../../services/api';
 import { useToast } from '../ui/Toast';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { Loader2, Calendar, Users, Shield, Download, AlertCircle, Trash2 } from 'lucide-react';
+import { Loader2, Calendar, Users, Shield, AlertCircle, Trash2 } from 'lucide-react';
 import type { UserInsurance } from '../../services/types';
 
 interface InsuranceDetailModalProps {
@@ -31,18 +31,16 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
         }
     };
 
+    const endDate = new Date(insurance.startDate);
+    endDate.setFullYear(endDate.getFullYear() + 1);
+
     return (
         <Modal isOpen={!!insurance} onClose={onClose} title="Sigorta Detayı" size="lg">
             <div className="space-y-8">
                 {/* Header Info */}
                 <div className="-mt-2 mb-6 flex items-center justify-between pb-4 border-b border-white/10 text-sm">
-                    <span className="text-gray-400">Poliçe No: <span className="text-blue-400 font-mono font-bold">{insurance.policyNumber}</span></span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${insurance.isActive
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-red-500/20 text-red-400'
-                        }`}>
-                        {insurance.isActive ? 'Aktif' : 'Pasif'}
-                    </span>
+                    <span className="text-gray-400">Poliçe No: <span className="text-blue-400 font-mono font-bold">{insurance.policyNo}</span></span>
+                    <span className="text-gray-400">Poliçe Ayı: <span className="text-white font-bold">{insurance.month}</span></span>
                 </div>
 
                 <div className="-mt-4 mb-6 text-xs text-gray-500 text-right">
@@ -59,17 +57,35 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 mb-2">
                             <Users className="w-5 h-5 text-blue-500" />
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Sigortalı Bilgileri</h3>
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Müşteri Bilgileri</h3>
                         </div>
                         <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
                             <div>
                                 <label className="text-xs text-gray-500 block mb-1">Ad Soyad</label>
-                                <p className="text-white font-medium">{insurance.user?.name}</p>
+                                <p className="text-white font-medium">{insurance.fullName}</p>
                             </div>
                             <div>
-                                <label className="text-xs text-gray-500 block mb-1">E-posta</label>
-                                <p className="text-white break-all">{insurance.user?.email}</p>
+                                <label className="text-xs text-gray-500 block mb-1">TC Kimlik No</label>
+                                <p className="text-white">{insurance.tcNo}</p>
                             </div>
+                            {insurance.phone && (
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Telefon</label>
+                                    <p className="text-white">{insurance.phone}</p>
+                                </div>
+                            )}
+                            {insurance.profession && (
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Meslek</label>
+                                    <p className="text-white">{insurance.profession}</p>
+                                </div>
+                            )}
+                            {insurance.user?.email && (
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Kayıtlı E-posta (Sistem)</label>
+                                    <p className="text-gray-400">{insurance.user.email}</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -82,82 +98,54 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                         <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
                             <div>
                                 <label className="text-xs text-gray-500 block mb-1">Sigorta Şirketi</label>
-                                <p className="text-white font-bold text-lg">{insurance.companyName}</p>
+                                <p className="text-white font-bold text-lg">{insurance.company}</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Poliçe Türü</label>
-                                    <span className="text-xs bg-white/10 px-2 py-1 rounded text-white">{insurance.policyType || '-'}</span>
+                                    <label className="text-xs text-gray-500 block mb-1">Branş</label>
+                                    <span className="text-xs bg-white/10 px-2 py-1 rounded text-white">{insurance.branch}</span>
                                 </div>
                                 <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Kapsam Türü</label>
-                                    <span className="text-xs text-gray-400">{insurance.coverageType || '-'}</span>
+                                    <label className="text-xs text-gray-500 block mb-1">Tutar</label>
+                                    <span className="text-sm font-bold text-blue-400">{Number(insurance.amount).toLocaleString()} ₺</span>
                                 </div>
                             </div>
-                            {(insurance.premiumAmount || insurance.coverageLimit) && (
-                                <div className="pt-2 border-t border-white/5 mt-2 grid grid-cols-2 gap-4">
+                            <div className="pt-2 border-t border-white/5 mt-2 grid grid-cols-2 gap-4">
+                                {insurance.plate && (
                                     <div>
-                                        <label className="text-xs text-gray-500">Prim Tutarı</label>
-                                        <p className="text-lg font-bold text-blue-400">{insurance.premiumAmount ? `${Number(insurance.premiumAmount).toLocaleString()} ₺` : '-'}</p>
+                                        <label className="text-xs text-gray-500 block mb-1">Plaka</label>
+                                        <p className="text-white font-mono">{insurance.plate}</p>
                                     </div>
+                                )}
+                                {insurance.serialOrOrderNo && (
                                     <div>
-                                        <label className="text-xs text-gray-500">Teminat Limiti</label>
-                                        <p className="text-sm font-medium text-white">{insurance.coverageLimit ? `${Number(insurance.coverageLimit).toLocaleString()} ₺` : '-'}</p>
+                                        <label className="text-xs text-gray-500 block mb-1">Seri No / Sıra No</label>
+                                        <p className="text-white">{insurance.serialOrOrderNo}</p>
                                     </div>
-                                </div>
-                            )}
-                            {insurance.deductibleAmount && (
-                                <div>
-                                    <label className="text-xs text-gray-500">Muafiyet Bedeli</label>
-                                    <p className="text-sm text-gray-300">{Number(insurance.deductibleAmount).toLocaleString()} ₺</p>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Dates & Agent */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-5 h-5 text-blue-500" />
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Geçerlilik süresi</h3>
-                            </div>
-                        </div>
-
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 flex justify-between items-center text-center">
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Başlangıç</label>
-                                <p className="text-white font-medium">{new Date(insurance.startDate).toLocaleDateString('tr-TR')}</p>
-                            </div>
-                            <div className="text-gray-600">➝</div>
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Bitiş</label>
-                                <p className="text-white font-medium">{new Date(insurance.endDate).toLocaleDateString('tr-TR')}</p>
-                            </div>
-                        </div>
-                        {insurance.renewalDate && (
-                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex items-center gap-3">
-                                <Calendar className="w-4 h-4 text-blue-400" />
-                                <span className="text-sm text-blue-200">Yenileme Tarihi: <span className="font-bold">{new Date(insurance.renewalDate).toLocaleDateString('tr-TR')}</span></span>
-                            </div>
-                        )}
+                {/* Dates */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="w-5 h-5 text-blue-500" />
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Geçerlilik süresi (1 Yıl)</h3>
                     </div>
 
-                    {(insurance.agentName || insurance.agentPhone || insurance.agentEmail) && (
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Users className="w-5 h-5 text-blue-500" />
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Acente İletişim</h3>
-                            </div>
-                            <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-2">
-                                {insurance.agentName && <div><span className="text-xs text-gray-500">Yetkili:</span> <span className="text-white text-sm ml-2">{insurance.agentName}</span></div>}
-                                {insurance.agentPhone && <div><span className="text-xs text-gray-500">Tel:</span> <span className="text-white text-sm ml-2">{insurance.agentPhone}</span></div>}
-                                {insurance.agentEmail && <div><span className="text-xs text-gray-500">Email:</span> <span className="text-white text-sm ml-2">{insurance.agentEmail}</span></div>}
-                            </div>
+                    <div className="bg-dark-bg p-4 rounded-xl border border-white/5 flex justify-between items-center text-center">
+                        <div>
+                            <label className="text-xs text-gray-500 block mb-1">Başlangıç</label>
+                            <p className="text-white font-medium">{new Date(insurance.startDate).toLocaleDateString('tr-TR')}</p>
                         </div>
-                    )}
+                        <div className="text-gray-600">➝</div>
+                        <div>
+                            <label className="text-xs text-gray-500 block mb-1">Bitiş</label>
+                            <p className="text-white font-medium">{endDate.toLocaleDateString('tr-TR')}</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Description/Notes */}
@@ -167,16 +155,6 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                         <div className="bg-dark-bg p-4 rounded-xl border border-white/5 text-sm text-gray-300">
                             {insurance.description}
                         </div>
-                    </div>
-                )}
-
-                {/* Document Link */}
-                {insurance.documentUrl && (
-                    <div className="flex justify-end">
-                        <a href={insurance.documentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm font-bold">
-                            <Download className="w-4 h-4" />
-                            Poliçe Dokümanını İndir
-                        </a>
                     </div>
                 )}
 

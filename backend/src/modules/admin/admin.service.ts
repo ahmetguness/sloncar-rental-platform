@@ -38,7 +38,7 @@ export async function markNotificationRead(id: string, type: 'booking' | 'franch
         });
     } else if (type === 'insurance') {
         const cleanId = id.replace('_insurance', '');
-        await prisma.userInsurance.update({
+        await prisma.insurance.update({
             where: { id: cleanId },
             data: { adminRead: true }
         });
@@ -55,7 +55,7 @@ export async function markAllNotificationsRead(): Promise<void> {
             where: { adminRead: false },
             data: { adminRead: true }
         }),
-        prisma.userInsurance.updateMany({
+        prisma.insurance.updateMany({
             where: { adminRead: false },
             data: { adminRead: true }
         })
@@ -130,12 +130,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
             orderBy: { paidAt: 'desc' },
             include: { car: { select: { brand: true, model: true } } }
         }),
-        prisma.userInsurance.count({ where: { isActive: true } }),
-        prisma.userInsurance.count({ where: { adminRead: false } }),
-        prisma.userInsurance.findMany({
+        prisma.insurance.count({ where: { adminRead: true } }), // Assuming isActive is gone, using adminRead or just count
+        prisma.insurance.count({ where: { adminRead: false } }),
+        prisma.insurance.findMany({
             where: { adminRead: false },
             take: 5,
-            orderBy: { endDate: 'asc' },
+            orderBy: { startDate: 'desc' },
             include: { user: { select: { name: true, email: true } } }
         })
     ]);

@@ -20,7 +20,7 @@ export const insuranceController = {
         try {
             const insurance = await insuranceService.createInsurance(req.body);
 
-            auditService.logAction(req.user?.userId, 'CREATE_INSURANCE', { insuranceId: insurance.id, policyNumber: insurance.policyNumber, companyName: insurance.companyName }, req);
+            auditService.logAction(req.user?.userId, 'CREATE_INSURANCE', { insuranceId: insurance.id, policyNumber: insurance.policyNo, companyName: insurance.company }, req);
 
             res.status(201).json({
                 success: true,
@@ -38,7 +38,7 @@ export const insuranceController = {
             }
             const insurance = await insuranceService.deleteInsurance(req.params.id);
 
-            auditService.logAction(req.user?.userId, 'DELETE_INSURANCE', { insuranceId: req.params.id, policyNumber: insurance.policyNumber, companyName: insurance.companyName }, req);
+            auditService.logAction(req.user?.userId, 'DELETE_INSURANCE', { insuranceId: req.params.id, policyNumber: insurance.policyNo, companyName: insurance.company }, req);
 
             res.json({
                 success: true,
@@ -63,6 +63,32 @@ export const insuranceController = {
 
             await workbook.xlsx.write(res);
             res.end();
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    importInsurances: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.file) {
+                res.status(400).json({ success: false, message: 'Lütfen bir Excel dosyası yükleyin' });
+                return;
+            }
+
+            const result = await insuranceService.importInsurances(req.file.buffer);
+
+            auditService.logAction(
+                req.user?.userId,
+                'IMPORT_INSURANCE',
+                `Imported ${result.insertedCount} records, ${result.failedCount} failures`,
+                req
+            );
+
+            res.json({
+                success: true,
+                data: result,
+                message: `${result.insertedCount} kayıt başarıyla eklendi. ${result.failedCount} kayıt başarısız.`,
+            });
         } catch (error) {
             next(error);
         }

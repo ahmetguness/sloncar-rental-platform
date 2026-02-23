@@ -10,7 +10,8 @@ import { adminService } from '../services/api';
 import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Info, Clock, Database, Bell, Settings, ChevronDown } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Info, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight } from 'lucide-react';
+
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { storage } from '../utils/storage';
 
@@ -423,6 +424,7 @@ export const AdminDashboard = () => {
     const [isCreateInsuranceModalOpen, setIsCreateInsuranceModalOpen] = useState(false);
     const [insurancePage, setInsurancePage] = useState(1);
     const [insuranceSearchTerm, setInsuranceSearchTerm] = useState('');
+    const [insuranceStatusFilter, setInsuranceStatusFilter] = useState<string>('');
 
     // User Management States
     const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -536,15 +538,49 @@ export const AdminDashboard = () => {
     });
 
     const { data: insuranceData, isLoading: insurancesQueryLoading } = useQuery({
-        queryKey: ['admin-insurances', insurancePage, insuranceSearchTerm],
+        queryKey: ['admin-insurances', insurancePage, insuranceSearchTerm, insuranceStatusFilter],
         queryFn: () => adminService.getInsurances({
             page: insurancePage,
             limit: ITEMS_PER_PAGE,
-            searchTerm: insuranceSearchTerm || undefined
+            searchTerm: insuranceSearchTerm || undefined,
+            status: insuranceStatusFilter || undefined
         }),
         enabled: activeTab === 'insurance',
         staleTime: 60000,
     });
+
+    const sortedInsurances = useMemo(() => {
+        if (!insuranceData?.data) return [];
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return [...insuranceData.data].sort((a: any, b: any) => {
+            const getPriority = (insurance: any) => {
+                const expiryDate = new Date(insurance.startDate);
+                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                expiryDate.setHours(0, 0, 0, 0);
+
+                const diff = expiryDate.getTime() - today.getTime();
+                const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+                if (days >= 0 && days <= 10) return 1; // Critical (0-10 days)
+                if (days < 0) return 2;                // Expired
+                if (days > 10 && days <= 30) return 3; // Upcoming (10-30 days)
+                return 4;                             // Safe
+            };
+
+            const pA = getPriority(a);
+            const pB = getPriority(b);
+
+            if (pA !== pB) return pA - pB;
+
+            // Secondary sort: closest expiration date
+            const dateA = new Date(a.startDate).getTime();
+            const dateB = new Date(b.startDate).getTime();
+            return dateA - dateB;
+        });
+    }, [insuranceData?.data]);
 
     // Mutations
     const actionMutation = useMutation({
@@ -1241,8 +1277,8 @@ export const AdminDashboard = () => {
                                             </div>
                                         </div>
                                         <div className="p-6">
-                                            <div className="h-80" id="main-revenue-chart">
-                                                <ResponsiveContainer width="100%" height="100%">
+                                            <div className="h-80 w-full" id="main-revenue-chart">
+                                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                                     <ComposedChart data={getChartData}>
                                                         <defs>
                                                             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -1322,8 +1358,8 @@ export const AdminDashboard = () => {
                                             <p className="text-xs text-gray-500 mt-1">Hasilatin araç türüne göre dagilimi</p>
                                         </div>
                                         <div className="p-6">
-                                            <div className="h-[200px] relative" id="category-pie-chart">
-                                                <ResponsiveContainer width="100%" height="100%">
+                                            <div className="h-[200px] w-full relative" id="category-pie-chart">
+                                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                                     <PieChart>
                                                         <Pie
                                                             data={[
@@ -1766,6 +1802,49 @@ export const AdminDashboard = () => {
                                         Yeni Sigorta Ekle
                                     </Button>
 
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="file"
+                                            id="insurance-import-upload"
+                                            className="hidden"
+                                            accept=".xlsx, .xls"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+                                                const formData = new FormData();
+                                                formData.append('file', file);
+                                                try {
+                                                    const response = await adminService.importInsurances(formData);
+                                                    const result = response.data;
+                                                    const msg = `${result.insertedCount} yeni kayıt eklendi. ${result.duplicateCount} kayıt zaten vardı. ${result.failedCount} satırda hata oluştu.`;
+
+                                                    if (result.failedCount > 0) {
+                                                        toast(msg, 'error');
+                                                        console.log('Import Failures:', result.failedRows);
+                                                    } else if (result.duplicateCount > 0) {
+                                                        toast(msg, 'success');
+                                                    } else {
+                                                        toast(`${result.insertedCount} yeni kayıt başarıyla eklendi!`, 'success');
+                                                    }
+
+                                                    queryClient.invalidateQueries({ queryKey: ['admin-insurances'] });
+                                                } catch (err: any) {
+
+                                                    toast(err.response?.data?.message || 'Yükleme başarısız', 'error');
+                                                }
+
+                                                e.target.value = '';
+                                            }}
+                                        />
+                                        <Button
+                                            onClick={() => document.getElementById('insurance-import-upload')?.click()}
+                                            className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 flex items-center gap-2 transition-all hover:scale-105 whitespace-nowrap px-6"
+                                        >
+                                            <Upload className="w-4 h-4" />
+                                            <span className="font-semibold">Excel Yükle</span>
+                                        </Button>
+                                    </div>
+
                                     <Button
                                         onClick={async () => {
                                             try {
@@ -1787,21 +1866,49 @@ export const AdminDashboard = () => {
                                     <DebouncedInput
                                         value={insuranceSearchTerm}
                                         onChange={handleInsuranceSearch}
-                                        placeholder="Poliçe, Sirket veya Kullanici Ara..."
-                                        className="w-full max-w-md"
+                                        placeholder="Poliçe, Sirket, İsim Ara..."
+                                        className="w-full max-w-sm"
                                     />
                                 </div>
+                            </div>
+
+                            {/* Status Filter Tabs */}
+                            <div className="px-6 py-4 border-b border-white/5 bg-white/[0.02] flex items-center gap-3">
+                                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mr-2">Filtrele:</span>
+                                {[
+                                    { key: '', label: 'Hepsi', color: 'gray' },
+                                    { key: 'CRITICAL', label: 'Son 10 Gün', color: 'orange' },
+                                    { key: 'EXPIRED', label: 'Süresi Doldu', color: 'red' },
+                                    { key: 'ACTIVE', label: 'Aktif', color: 'green' }
+                                ].map((filter) => {
+                                    const isActive = insuranceStatusFilter === filter.key;
+                                    return (
+                                        <button
+                                            key={filter.key}
+                                            onClick={() => {
+                                                setInsuranceStatusFilter(filter.key);
+                                                setInsurancePage(1);
+                                            }}
+                                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border ${isActive
+                                                    ? `bg-${filter.color}-500/20 text-${filter.color}-400 border-${filter.color}-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.2)]`
+                                                    : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10'
+                                                }`}
+                                        >
+                                            {filter.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             <div className="overflow-x-auto custom-scrollbar">
                                 <table className="w-full text-left">
                                     <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                         <tr>
-                                            <th className="p-4">Kullanici</th>
-                                            <th className="p-4">Sigorta Sirketi</th>
-                                            <th className="p-4">Poliçe No</th>
-                                            <th className="p-4">Detaylar</th>
-                                            <th className="p-4">Erisim</th>
+                                            <th className="p-4">Müşteri</th>
+                                            <th className="p-4">Şirket / Poliçe No</th>
+                                            <th className="p-4">Araç & Ek Bilgi</th>
+                                            <th className="p-4">Tarih & Durum</th>
+                                            <th className="p-4">İşlem</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
@@ -1819,63 +1926,97 @@ export const AdminDashboard = () => {
                                                 </td>
                                             </tr>
                                         ) : (
-                                            (insuranceData?.data || []).map((insurance: any) => {
+                                            (sortedInsurances || []).map((insurance: any) => {
                                                 const today = new Date();
-                                                today.setHours(0, 0, 0, 0); // Normalize today
-                                                const endDate = new Date(insurance.endDate);
-                                                endDate.setHours(0, 0, 0, 0); // Normalize end date
+                                                today.setHours(0, 0, 0, 0);
 
-                                                // Calculate difference in days
+                                                const endDate = new Date(insurance.startDate);
+                                                endDate.setFullYear(endDate.getFullYear() + 1);
+                                                endDate.setHours(0, 0, 0, 0);
+
                                                 const diffTime = endDate.getTime() - today.getTime();
                                                 const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                                                // Determine styles based on expiration
                                                 let rowStyle = "hover:bg-white/5 transition-colors border-b border-white/5";
                                                 let badge = null;
 
                                                 if (daysRemaining < 0) {
-                                                    rowStyle = "bg-red-500/10 hover:bg-red-500/20 transition-colors border-b border-red-500/30";
-                                                    badge = <span className="mt-1 inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Süresi Doldu ({-daysRemaining} gün geçti)</span>;
-                                                } else if (daysRemaining === 0) {
-                                                    rowStyle = "bg-red-500/10 hover:bg-red-500/20 transition-colors border-b border-red-500/30";
-                                                    badge = <span className="mt-1 inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">Bugün Sona Eriyor</span>;
+                                                    rowStyle = "bg-red-500/10 hover:bg-red-500/20";
+                                                    badge = (
+                                                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 text-red-500 border border-red-500/20 text-[10px] font-bold uppercase tracking-wider">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                                            Süresi Doldu ({-daysRemaining} gün)
+                                                        </div>
+                                                    );
                                                 } else if (daysRemaining <= 10) {
-                                                    rowStyle = "bg-yellow-500/10 hover:bg-yellow-500/20 transition-colors border-b border-yellow-500/30";
-                                                    badge = <span className="mt-1 inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500/20 text-yellow-500 border border-yellow-500/30">{daysRemaining} Gün Kaldı</span>;
+                                                    rowStyle = "bg-orange-500/10 hover:bg-orange-500/20 shadow-[inset_4px_0_0_#f97316]";
+                                                    badge = (
+                                                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-500 border border-orange-500/20 text-[10px] font-black uppercase tracking-wider">
+                                                            <AlertCircle className="w-3 h-3" />
+                                                            KRİTİK ({daysRemaining} GÜN)
+                                                        </div>
+                                                    );
+                                                } else if (daysRemaining <= 30) {
+                                                    rowStyle = "bg-yellow-500/5 hover:bg-yellow-500/10";
+                                                    badge = (
+                                                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 text-[10px] font-bold uppercase tracking-wider">
+                                                            <Clock className="w-3 h-3" />
+                                                            Yaklaşıyor ({daysRemaining} gün)
+                                                        </div>
+                                                    );
                                                 } else {
-                                                    badge = <span className="mt-1 inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-white/5 text-gray-400">{daysRemaining} Gün Kaldı</span>;
+                                                    badge = (
+                                                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-500 border border-green-500/10 text-[10px] font-medium uppercase tracking-wider">
+                                                            <ShieldCheck className="w-3 h-3" />
+                                                            Aktif ({daysRemaining} gün)
+                                                        </div>
+                                                    );
                                                 }
 
                                                 return (
-                                                    <tr key={insurance.id} className={rowStyle}>
+                                                    <tr key={insurance.id} className={`${rowStyle} transition-all duration-300`}>
                                                         <td className="p-4">
-                                                            <div className="font-medium text-white">{insurance.user?.name || insurance.fullName}</div>
-                                                            <div className="text-xs text-gray-500">{insurance.user?.email || insurance.email}</div>
-                                                        </td>
-                                                        <td className="p-4 text-gray-300 font-bold">{insurance.insuranceCompany}</td>
-                                                        <td className="p-4">
-                                                            <span className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg border border-blue-500/20 font-mono text-sm">
-                                                                {insurance.policyNumber}
-                                                            </span>
-                                                        </td>
-                                                        <td className="p-4 text-sm text-gray-400 max-w-xs truncate flex flex-col items-start gap-1" title={insurance.description}>
-                                                            {insurance.description || '-'}
-                                                            {badge}
+                                                            <div className="font-bold text-white tracking-tight">{insurance.fullName}</div>
+                                                            <div className="text-[11px] text-gray-500 font-medium flex items-center gap-2 mt-1">
+                                                                <span className="bg-white/5 px-1.5 py-0.5 rounded text-gray-400 border border-white/5">{insurance.tcNo}</span>
+                                                                <span>•</span>
+                                                                <span className="text-gray-400">{insurance.phone || '-'}</span>
+                                                            </div>
                                                         </td>
                                                         <td className="p-4">
-                                                            {insurance.fileUrl ? (
-                                                                <a
-                                                                    href={insurance.fileUrl}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-bold"
-                                                                >
-                                                                    <Info className="w-4 h-4" />
-                                                                    Belge Görüntüle
-                                                                </a>
-                                                            ) : (
-                                                                <span className="text-gray-600 italic text-xs">Dosya Yok</span>
-                                                            )}
+                                                            <div className="text-sm font-bold text-gray-300">{insurance.company}</div>
+                                                            <div className="text-[11px] font-mono text-primary-400 mt-1.5 bg-primary-500/5 inline-block px-1.5 py-0.5 rounded border border-primary-500/10">{insurance.policyNo}</div>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <div className="flex items-center gap-2 text-sm text-gray-300">
+                                                                <span className="font-semibold text-blue-400">{insurance.branch}</span>
+                                                                <span className="w-1 h-1 rounded-full bg-gray-600" />
+                                                                <span className="font-black text-white">{parseFloat(insurance.amount).toLocaleString()} TL</span>
+                                                            </div>
+                                                            <div className="text-[11px] text-gray-500 mt-1.5 italic flex items-center gap-1">
+                                                                <CarIcon className="w-3 h-3" />
+                                                                {insurance.plate || 'Plaka Belirtilmedi'}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <div className="flex flex-col gap-2 items-start">
+                                                                {badge}
+                                                                <div className="text-[11px] text-gray-400 flex items-center gap-1 bg-white/5 px-2 py-1 rounded">
+                                                                    <Calendar className="w-3 h-3" />
+                                                                    Bitiş: {endDate.toLocaleDateString('tr-TR')}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="text-xs px-4 py-2 border-white/10 text-gray-300 hover:bg-white/5 hover:text-white transition-all group"
+                                                                onClick={() => setSelectedInsurance(insurance)}
+                                                            >
+                                                                İncele
+                                                                <ArrowRight className="w-3 h-3 ml-2 transform group-hover:translate-x-1 transition-transform" />
+                                                            </Button>
                                                         </td>
                                                     </tr>
                                                 );
