@@ -111,28 +111,64 @@ export const insuranceService = {
             }
         }
 
-        const [total, insurances] = await Promise.all([
-            prisma.insurance.count({ where }),
-            prisma.insurance.findMany({
-                where,
-                include: {
-                    user: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true,
-                            phone: true,
-                        },
+        // 1. Get all unique TC numbers that match the filtered criteria
+        // This ensures the pagination is based on unique customers, not individual policies.
+        const uniqueTCGroups = await prisma.insurance.groupBy({
+            by: ['tcNo'],
+            where,
+            _min: {
+                startDate: true
+            },
+            orderBy: {
+                _min: {
+                    startDate: 'asc'
+                }
+            }
+        });
+
+        const total = uniqueTCGroups.length;
+        const pagedTCs = uniqueTCGroups.slice(skip, skip + limit).map(g => g.tcNo);
+
+        // 2. Fetch all insurances for these specific paged customers
+        const allInsurances = await prisma.insurance.findMany({
+            where: {
+                tcNo: { in: pagedTCs }
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
                     },
                 },
-                skip,
-                take: limit,
-                orderBy: { startDate: 'asc' },
-            }),
-        ]);
+            },
+            orderBy: { startDate: 'asc' },
+        });
+
+        // 3. Reconstruct client-centric objects
+        // We preserve the order from uniqueTCGroups
+        const groupedData = pagedTCs.map(tc => {
+            const clientInsurances = allInsurances.filter(i => i.tcNo === tc);
+            if (clientInsurances.length === 0) return null;
+
+            const primary = clientInsurances[0]!;
+
+            return {
+                tcNo: tc,
+                fullName: primary.fullName,
+                phone: primary.phone,
+                profession: primary.profession,
+                plate: primary.plate,
+                insuranceCount: clientInsurances.length,
+                insurances: clientInsurances,
+                representativeInsurance: primary
+            };
+        }).filter(Boolean);
 
         return {
-            data: insurances,
+            data: groupedData,
             pagination: {
                 total,
                 page,
@@ -248,7 +284,7 @@ export const insuranceService = {
 
         const parseNumber = (val: any): number => {
             if (val === null || val === undefined) return 0;
-            if (typeof val === 'number') return val;
+            if (typeof val === 'number') return Math.round(val * 100) / 100;
             let str = val.toString().trim();
             if (!str) return 0;
             // Handle Turkish format: 1.234,56
@@ -261,43 +297,48 @@ export const insuranceService = {
             } else if (str.includes(',')) {
                 str = str.replace(',', '.');
             }
-            // Remove non-numeric except dot
-            str = str.replace(/[^0-9.]/g, '');
+            // Remove non-numeric except dot and minus
+            str = str.replace(/[^0-9.-]/g, '');
             const parsed = parseFloat(str);
-            return isNaN(parsed) ? 0 : parsed;
+            return isNaN(parsed) ? 0 : Math.round(parsed * 100) / 100;
         };
 
         const parseDate = (val: any): Date | null => {
             if (!val) return null;
-            if (val instanceof Date) return val;
+            let date: Date | null = null;
 
-            if (typeof val === 'number') {
-                return new Date((val - 25569) * 86400 * 1000);
+            if (val instanceof Date) {
+                date = val;
+            } else if (typeof val === 'number') {
+                date = new Date((val - 25569) * 86400 * 1000);
+            } else {
+                const str = val.toString().trim();
+                if (!str) return null;
+
+                const dotParts = str.split('.');
+                if (dotParts.length === 3) {
+                    const day = parseInt(dotParts[0], 10);
+                    const month = parseInt(dotParts[1], 10) - 1;
+                    const year = parseInt(dotParts[2], 10);
+                    date = new Date(year, month, day);
+                } else {
+                    const slashParts = str.split('/');
+                    if (slashParts.length === 3) {
+                        const day = parseInt(slashParts[0], 10);
+                        const month = parseInt(slashParts[1], 10) - 1;
+                        const year = parseInt(slashParts[2], 10);
+                        date = new Date(year, month, day);
+                    } else {
+                        const parsed = new Date(str);
+                        if (!isNaN(parsed.getTime())) date = parsed;
+                    }
+                }
             }
 
-            const str = val.toString().trim();
-            if (!str) return null;
-
-            const dotParts = str.split('.');
-            if (dotParts.length === 3) {
-                const day = parseInt(dotParts[0], 10);
-                const month = parseInt(dotParts[1], 10) - 1;
-                const year = parseInt(dotParts[2], 10);
-                const date = new Date(year, month, day);
-                if (!isNaN(date.getTime())) return date;
+            if (date && !isNaN(date.getTime())) {
+                date.setHours(0, 0, 0, 0); // Normalize to start of day
+                return date;
             }
-
-            const slashParts = str.split('/');
-            if (slashParts.length === 3) {
-                const day = parseInt(slashParts[0], 10);
-                const month = parseInt(slashParts[1], 10) - 1;
-                const year = parseInt(slashParts[2], 10);
-                const date = new Date(year, month, day);
-                if (!isNaN(date.getTime())) return date;
-            }
-
-            const parsed = new Date(str);
-            if (!isNaN(parsed.getTime())) return parsed;
             return null;
         };
 
@@ -378,7 +419,14 @@ export const insuranceService = {
                     rowData.company = 'BELİRTİLMEDİ';
                 }
 
-                // 4. Policy Number Harvesting & Placeholder
+                // 5. Date Placeholder (Use today if missing or invalid)
+                let startDate = parseDate(rowData.startDate);
+                if (!startDate) {
+                    startDate = new Date();
+                    startDate.setHours(0, 0, 0, 0);
+                }
+
+                // 4. Policy Number Harvesting & Placeholder (Refined for uniqueness)
                 if (!rowData.policyNo) {
                     const searchableText = `${rowData.description || ''} ${rowData.profession || ''} ${rowData.fullName || ''} ${rowText}`;
                     const daskMatch = searchableText.match(/(?:DASK\s+)?POLİÇE\s+NO[:\s]+([A-Z0-9.\-/]{5,})/i);
@@ -392,16 +440,12 @@ export const insuranceService = {
                     }
                 }
 
-                // If STILL missing policy number, generate a temporary one (Deterministic: TC + Name part)
+                // If STILL missing policy number, generate a temporary one (STRONGER Uniqueness: TC + Name + Amount + Date)
                 if (!rowData.policyNo) {
-                    const namePart = rowData.fullName.replace(/\s/g, '').slice(0, 10).toUpperCase();
-                    rowData.policyNo = `OTOMATİK-${rowData.tcNo}-${namePart}`;
-                }
-
-                // 5. Date Placeholder (Use today if missing or invalid)
-                let startDate = parseDate(rowData.startDate);
-                if (!startDate) {
-                    startDate = new Date();
+                    const namePart = rowData.fullName.replace(/\u0020/g, '').slice(0, 10).toUpperCase();
+                    const amountPart = Math.abs(parseNumber(rowData.amount)).toString().replace('.', '_');
+                    const datePart = startDate.getTime();
+                    rowData.policyNo = `AUTO-${rowData.tcNo}-${namePart}-${amountPart}-${datePart}`;
                 }
 
                 // Final required field check
@@ -447,11 +491,58 @@ export const insuranceService = {
             for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
                 const batch = validRows.slice(i, i + BATCH_SIZE);
                 await prisma.$transaction(async (tx) => {
-                    const result = await tx.insurance.createMany({
-                        data: batch,
-                        skipDuplicates: true,
+                    // Pre-check for exact duplicates to handle rows that might not trigger unique constraint
+                    // but are considered duplicates by the user (Same person, same amount, same date, same plate)
+                    const existing = await tx.insurance.findMany({
+                        where: {
+                            tcNo: { in: batch.map(b => b.tcNo) }
+                        },
+                        select: {
+                            tcNo: true,
+                            fullName: true,
+                            amount: true,
+                            startDate: true,
+                            plate: true,
+                            policyNo: true,
+                            branch: true,
+                            company: true,
+                            month: true,
+                            profession: true,
+                            phone: true,
+                            serialOrOrderNo: true,
+                            description: true
+                        }
                     });
-                    insertedCount += result.count;
+
+                    const trulyNew = batch.filter(row => {
+                        const isMatch = existing.some(ext =>
+                            ext.tcNo === row.tcNo &&
+                            ext.fullName === row.fullName &&
+                            Number(ext.amount) === row.amount &&
+                            ext.startDate.getTime() === row.startDate.getTime() &&
+                            (ext.plate || null) === (row.plate || null) &&
+                            ext.policyNo === row.policyNo &&
+                            ext.branch === row.branch &&
+                            ext.company === row.company &&
+                            ext.month === row.month &&
+                            (ext.profession || null) === (row.profession || null) &&
+                            (ext.phone || null) === (row.phone || null) &&
+                            (ext.serialOrOrderNo || null) === (row.serialOrOrderNo || null) &&
+                            (ext.description || null) === (row.description || null)
+                        );
+                        if (isMatch) {
+                            console.log(`[IMPORT] Skipping Exact Duplicate: Row with TC ${row.tcNo}, Name ${row.fullName}, Amount ${row.amount}`);
+                        }
+                        return !isMatch;
+                    });
+
+                    if (trulyNew.length > 0) {
+                        const result = await tx.insurance.createMany({
+                            data: trulyNew,
+                            skipDuplicates: true,
+                        });
+                        insertedCount += result.count;
+                    }
                 });
             }
         }
@@ -510,5 +601,102 @@ export const insuranceService = {
         });
 
         return workbook;
+    },
+
+    searchClients: async (query: string) => {
+        if (!query || query.length < 2) return [];
+
+        // Generate Turkish variations for robust searching (i/İ, ı/I)
+        const getVariations = (str: string) => {
+            const variations = new Set<string>([str]);
+
+            // Standard lowercase/uppercase
+            variations.add(str.toLowerCase());
+            variations.add(str.toUpperCase());
+
+            // Turkish specific normalization
+            const trLower = str.replace(/İ/g, 'i').replace(/I/g, 'ı').toLowerCase();
+            const trUpper = str.replace(/i/g, 'İ').replace(/ı/g, 'I').toUpperCase();
+
+            variations.add(trLower);
+            variations.add(trUpper);
+
+            // Mixed variations (common typos)
+            variations.add(str.replace(/i/g, 'İ'));
+            variations.add(str.replace(/İ/g, 'i'));
+            variations.add(str.replace(/ı/g, 'I'));
+            variations.add(str.replace(/I/g, 'ı'));
+
+            return Array.from(variations);
+        };
+
+        const queryVariations = getVariations(query);
+
+        const groups = await prisma.insurance.groupBy({
+            by: ['tcNo'],
+            where: {
+                OR: [
+                    ...queryVariations.map(v => ({ fullName: { contains: v, mode: 'insensitive' as const } })),
+                    { tcNo: { contains: query, mode: 'insensitive' } },
+                ],
+            },
+            take: 10,
+            orderBy: {
+                tcNo: 'asc'
+            }
+        });
+
+        const tcs = groups.map((g: any) => g.tcNo);
+        if (tcs.length === 0) return [];
+
+        return await prisma.insurance.findMany({
+            where: { tcNo: { in: tcs } },
+            orderBy: { createdAt: 'desc' },
+            distinct: ['tcNo'],
+            select: {
+                tcNo: true,
+                fullName: true,
+                phone: true,
+                profession: true,
+                plate: true,
+                userId: true,
+            },
+        });
+    },
+
+    renewInsurance: async (id: string, customStartDate?: Date | string) => {
+        const source = await prisma.insurance.findUnique({
+            where: { id }
+        });
+
+        if (!source) throw new Error('Yenilenecek poliçe bulunamadı.');
+
+        let startDate = new Date();
+        if (customStartDate) {
+            startDate = new Date(customStartDate);
+        }
+        startDate.setHours(0, 0, 0, 0);
+
+        const currentMonth = TURKISH_MONTHS[startDate.getMonth()] || '';
+
+        return await prisma.insurance.create({
+            data: {
+                tcNo: source.tcNo,
+                fullName: source.fullName,
+                profession: source.profession,
+                phone: source.phone,
+                plate: source.plate,
+                serialOrOrderNo: source.serialOrOrderNo,
+                amount: source.amount,
+                branch: source.branch,
+                company: source.company,
+                policyNo: `${source.policyNo}-YENI`,
+                description: `[YENİLEME] Eski poliçe: ${source.policyNo}`,
+                month: currentMonth,
+                startDate: startDate,
+                userId: source.userId,
+                adminRead: true,
+            }
+        });
     },
 };

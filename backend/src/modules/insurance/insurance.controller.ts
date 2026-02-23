@@ -93,4 +93,26 @@ export const insuranceController = {
             next(error);
         }
     },
+
+    searchClients: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { query } = req.query;
+            const result = await insuranceService.searchClients(query as string);
+            res.json({
+                success: true,
+                data: result,
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+    renew: async (req: Request, res: Response) => {
+        try {
+            const { startDate } = req.body;
+            const result = await (insuranceService as any).renewInsurance(req.params.id as string, startDate);
+            res.json(result);
+        } catch (error: any) {
+            res.status(500).json({ message: error.message });
+        }
+    },
 };

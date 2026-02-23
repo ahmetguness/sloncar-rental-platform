@@ -50,4 +50,20 @@ router.post(
     insuranceController.importInsurances
 );
 
+// Search clients (for autocomplete)
+router.get(
+    '/clients/search',
+    authMiddleware,
+    adminGuard,
+    insuranceController.searchClients
+);
+
+// Renew insurance
+router.post(
+    '/:id/renew',
+    authMiddleware,
+    adminGuard,
+    insuranceController.renew
+);
+
 export const adminInsuranceRouter = router;

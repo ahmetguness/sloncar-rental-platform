@@ -10,7 +10,7 @@ import { adminService } from '../services/api';
 import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Info, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Info, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw } from 'lucide-react';
 
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { storage } from '../utils/storage';
@@ -425,6 +425,9 @@ export const AdminDashboard = () => {
     const [insurancePage, setInsurancePage] = useState(1);
     const [insuranceSearchTerm, setInsuranceSearchTerm] = useState('');
     const [insuranceStatusFilter, setInsuranceStatusFilter] = useState<string>('');
+    const [expandedTCs, setExpandedTCs] = useState<Set<string>>(new Set());
+    const [renewingId, setRenewingId] = useState<string | null>(null);
+
 
     // User Management States
     const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -537,7 +540,7 @@ export const AdminDashboard = () => {
         staleTime: 60000,
     });
 
-    const { data: insuranceData, isLoading: insurancesQueryLoading } = useQuery({
+    const { data: insuranceData, isLoading: insurancesQueryLoading, refetch: refetchInsurances } = useQuery({
         queryKey: ['admin-insurances', insurancePage, insuranceSearchTerm, insuranceStatusFilter],
         queryFn: () => adminService.getInsurances({
             page: insurancePage,
@@ -549,38 +552,40 @@ export const AdminDashboard = () => {
         staleTime: 60000,
     });
 
+    const getInsuranceStatus = useCallback((insurance: any) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const endDate = new Date(insurance.startDate);
+        endDate.setFullYear(endDate.getFullYear() + 1);
+        endDate.setHours(0, 0, 0, 0);
+        const diffTime = endDate.getTime() - today.getTime();
+        const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (days < 0) return { type: 'EXPIRED', days, priority: 2, color: 'red' };
+        if (days >= 0 && days <= 10) return { type: 'CRITICAL', days, priority: 1, color: 'orange' };
+        if (days > 10 && days <= 30) return { type: 'UPCOMING', days, priority: 3, color: 'yellow' };
+        return { type: 'ACTIVE', days, priority: 4, color: 'green' };
+    }, []);
+
     const sortedInsurances = useMemo(() => {
         if (!insuranceData?.data) return [];
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
         return [...insuranceData.data].sort((a: any, b: any) => {
-            const getPriority = (insurance: any) => {
-                const expiryDate = new Date(insurance.startDate);
-                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-                expiryDate.setHours(0, 0, 0, 0);
-
-                const diff = expiryDate.getTime() - today.getTime();
-                const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-
-                if (days >= 0 && days <= 10) return 1; // Critical (0-10 days)
-                if (days < 0) return 2;                // Expired
-                if (days > 10 && days <= 30) return 3; // Upcoming (10-30 days)
-                return 4;                             // Safe
+            const getGroupPriority = (group: any) => {
+                const priorities = group.insurances.map((i: any) => getInsuranceStatus(i).priority);
+                return Math.min(...priorities);
             };
 
-            const pA = getPriority(a);
-            const pB = getPriority(b);
+            const pA = getGroupPriority(a);
+            const pB = getGroupPriority(b);
 
             if (pA !== pB) return pA - pB;
 
-            // Secondary sort: closest expiration date
-            const dateA = new Date(a.startDate).getTime();
-            const dateB = new Date(b.startDate).getTime();
+            const dateA = new Date(a.representativeInsurance.startDate).getTime();
+            const dateB = new Date(b.representativeInsurance.startDate).getTime();
             return dateA - dateB;
         });
-    }, [insuranceData?.data]);
+    }, [insuranceData?.data, getInsuranceStatus]);
 
     // Mutations
     const actionMutation = useMutation({
@@ -637,6 +642,22 @@ export const AdminDashboard = () => {
         } finally {
             setCancelingId(null);
             setBookingAction(null);
+        }
+    };
+
+    const handleRenew = async (id: string) => {
+        if (!confirm('Bu poliçeyi bugün itibarıyla yenilemek istediğinize emin misiniz?')) return;
+
+        setRenewingId(id);
+        try {
+            await adminService.renewInsurance(id);
+            refetchInsurances();
+            toast('Poliçe başarıyla yenilendi!', 'success');
+        } catch (error: any) {
+            console.error('Poliçe yenileme hatası:', error);
+            toast(error.response?.data?.message || 'Yenileme işlemi sırasında bir hata oluştu.', 'error');
+        } finally {
+            setRenewingId(null);
         }
     };
 
@@ -1890,8 +1911,8 @@ export const AdminDashboard = () => {
                                                 setInsurancePage(1);
                                             }}
                                             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border ${isActive
-                                                    ? `bg-${filter.color}-500/20 text-${filter.color}-400 border-${filter.color}-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.2)]`
-                                                    : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10'
+                                                ? `bg-${filter.color}-500/20 text-${filter.color}-400 border-${filter.color}-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.2)]`
+                                                : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10'
                                                 }`}
                                         >
                                             {filter.label}
@@ -1926,99 +1947,184 @@ export const AdminDashboard = () => {
                                                 </td>
                                             </tr>
                                         ) : (
-                                            (sortedInsurances || []).map((insurance: any) => {
-                                                const today = new Date();
-                                                today.setHours(0, 0, 0, 0);
-
-                                                const endDate = new Date(insurance.startDate);
-                                                endDate.setFullYear(endDate.getFullYear() + 1);
-                                                endDate.setHours(0, 0, 0, 0);
-
-                                                const diffTime = endDate.getTime() - today.getTime();
-                                                const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                            (sortedInsurances || []).map((group: any) => {
+                                                const statuses = group.insurances.map((i: any) => getInsuranceStatus(i));
+                                                const worstStatus = statuses.sort((a: any, b: any) => a.priority - b.priority)[0];
+                                                const isExpanded = expandedTCs.has(group.tcNo);
 
                                                 let rowStyle = "hover:bg-white/5 transition-colors border-b border-white/5";
                                                 let badge = null;
 
-                                                if (daysRemaining < 0) {
+                                                if (worstStatus.type === 'EXPIRED') {
                                                     rowStyle = "bg-red-500/10 hover:bg-red-500/20";
                                                     badge = (
                                                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 text-red-500 border border-red-500/20 text-[10px] font-bold uppercase tracking-wider">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                                                            Süresi Doldu ({-daysRemaining} gün)
+                                                            Süresi Doldu
                                                         </div>
                                                     );
-                                                } else if (daysRemaining <= 10) {
+                                                } else if (worstStatus.type === 'CRITICAL') {
                                                     rowStyle = "bg-orange-500/10 hover:bg-orange-500/20 shadow-[inset_4px_0_0_#f97316]";
                                                     badge = (
                                                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-500 border border-orange-500/20 text-[10px] font-black uppercase tracking-wider">
                                                             <AlertCircle className="w-3 h-3" />
-                                                            KRİTİK ({daysRemaining} GÜN)
+                                                            KRİTİK
                                                         </div>
                                                     );
-                                                } else if (daysRemaining <= 30) {
+                                                } else if (worstStatus.type === 'UPCOMING') {
                                                     rowStyle = "bg-yellow-500/5 hover:bg-yellow-500/10";
                                                     badge = (
                                                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 text-[10px] font-bold uppercase tracking-wider">
                                                             <Clock className="w-3 h-3" />
-                                                            Yaklaşıyor ({daysRemaining} gün)
+                                                            Yaklaşıyor
                                                         </div>
                                                     );
                                                 } else {
                                                     badge = (
                                                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-500 border border-green-500/10 text-[10px] font-medium uppercase tracking-wider">
                                                             <ShieldCheck className="w-3 h-3" />
-                                                            Aktif ({daysRemaining} gün)
+                                                            Aktif
                                                         </div>
                                                     );
                                                 }
 
                                                 return (
-                                                    <tr key={insurance.id} className={`${rowStyle} transition-all duration-300`}>
-                                                        <td className="p-4">
-                                                            <div className="font-bold text-white tracking-tight">{insurance.fullName}</div>
-                                                            <div className="text-[11px] text-gray-500 font-medium flex items-center gap-2 mt-1">
-                                                                <span className="bg-white/5 px-1.5 py-0.5 rounded text-gray-400 border border-white/5">{insurance.tcNo}</span>
-                                                                <span>•</span>
-                                                                <span className="text-gray-400">{insurance.phone || '-'}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-4">
-                                                            <div className="text-sm font-bold text-gray-300">{insurance.company}</div>
-                                                            <div className="text-[11px] font-mono text-primary-400 mt-1.5 bg-primary-500/5 inline-block px-1.5 py-0.5 rounded border border-primary-500/10">{insurance.policyNo}</div>
-                                                        </td>
-                                                        <td className="p-4">
-                                                            <div className="flex items-center gap-2 text-sm text-gray-300">
-                                                                <span className="font-semibold text-blue-400">{insurance.branch}</span>
-                                                                <span className="w-1 h-1 rounded-full bg-gray-600" />
-                                                                <span className="font-black text-white">{parseFloat(insurance.amount).toLocaleString()} TL</span>
-                                                            </div>
-                                                            <div className="text-[11px] text-gray-500 mt-1.5 italic flex items-center gap-1">
-                                                                <CarIcon className="w-3 h-3" />
-                                                                {insurance.plate || 'Plaka Belirtilmedi'}
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-4">
-                                                            <div className="flex flex-col gap-2 items-start">
-                                                                {badge}
-                                                                <div className="text-[11px] text-gray-400 flex items-center gap-1 bg-white/5 px-2 py-1 rounded">
-                                                                    <Calendar className="w-3 h-3" />
-                                                                    Bitiş: {endDate.toLocaleDateString('tr-TR')}
+                                                    <React.Fragment key={group.tcNo}>
+                                                        <tr
+                                                            className={`${rowStyle} transition-all duration-300 cursor-pointer`}
+                                                            onClick={() => {
+                                                                setExpandedTCs(prev => {
+                                                                    const next = new Set(prev);
+                                                                    if (next.has(group.tcNo)) next.delete(group.tcNo);
+                                                                    else next.add(group.tcNo);
+                                                                    return next;
+                                                                });
+                                                            }}
+                                                        >
+                                                            <td className="p-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={`p-1 rounded-lg bg-white/5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                                                                        <ChevronDown className="w-4 h-4" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="font-bold text-white tracking-tight">{group.fullName}</div>
+                                                                        <div className="text-[11px] text-gray-500 font-medium flex items-center gap-2 mt-1">
+                                                                            <span className="bg-white/5 px-1.5 py-0.5 rounded text-gray-400 border border-white/5">{group.tcNo}</span>
+                                                                            <span>•</span>
+                                                                            <span className="text-gray-400">{group.phone || '-'}</span>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-4">
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="text-xs px-4 py-2 border-white/10 text-gray-300 hover:bg-white/5 hover:text-white transition-all group"
-                                                                onClick={() => setSelectedInsurance(insurance)}
-                                                            >
-                                                                İncele
-                                                                <ArrowRight className="w-3 h-3 ml-2 transform group-hover:translate-x-1 transition-transform" />
-                                                            </Button>
-                                                        </td>
-                                                    </tr>
+                                                            </td>
+                                                            <td className="p-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="px-2 py-1 rounded-lg bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">
+                                                                        {group.insuranceCount} POLİÇE
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-400 flex items-center gap-1">
+                                                                        <Building2 className="w-3 h-3" />
+                                                                        {group.representativeInsurance.company}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-4">
+                                                                <div className="text-[11px] text-gray-500 italic flex items-center gap-1">
+                                                                    <CarIcon className="w-3 h-3" />
+                                                                    {group.plate || 'Plaka Belirtilmedi'}
+                                                                </div>
+                                                                <div className="text-[10px] text-gray-600 mt-1 uppercase font-bold tracking-tighter">
+                                                                    {group.profession || 'Meslek Belirtilmedi'}
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-4">
+                                                                {badge}
+                                                            </td>
+                                                            <td className="p-4 text-right">
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    className="h-8 px-2 border-transparent text-gray-500 hover:text-white hover:bg-white/5"
+                                                                >
+                                                                    {isExpanded ? 'Kapat' : 'Detaylar'}
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                        {isExpanded && (
+                                                            <tr className="bg-white/[0.01]">
+                                                                <td colSpan={5} className="p-0 border-b border-white/5">
+                                                                    <div className="p-4 pl-12 bg-black/20 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                                                                        {group.insurances.map((ins: any) => {
+                                                                            const status = getInsuranceStatus(ins);
+                                                                            const expDate = new Date(ins.startDate);
+                                                                            expDate.setFullYear(expDate.getFullYear() + 1);
+
+                                                                            return (
+                                                                                <div
+                                                                                    key={ins.id}
+                                                                                    className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/5 transition-colors group/item"
+                                                                                >
+                                                                                    <div className="flex items-center gap-6">
+                                                                                        <div className="w-24">
+                                                                                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Branş</div>
+                                                                                            <div className="text-xs font-bold text-blue-400 uppercase">{ins.branch}</div>
+                                                                                        </div>
+                                                                                        <div className="w-32">
+                                                                                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Poliçe No</div>
+                                                                                            <div className="text-xs font-mono text-gray-300">{ins.policyNo}</div>
+                                                                                        </div>
+                                                                                        <div className="w-32">
+                                                                                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Bitiş Tarihi</div>
+                                                                                            <div className="text-xs text-gray-300 flex items-center gap-1.5">
+                                                                                                <Calendar className="w-3 h-3 text-gray-500" />
+                                                                                                {expDate.toLocaleDateString('tr-TR')}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div className="w-24">
+                                                                                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Tutar</div>
+                                                                                            <div className="text-xs font-black text-white">{parseFloat(ins.amount).toLocaleString()} TL</div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="flex items-center gap-4">
+                                                                                        <div className={`px-2 py-0.5 rounded-full bg-${status.color}-500/10 text-${status.color}-500 border border-${status.color}-500/20 text-[9px] font-bold uppercase`}>
+                                                                                            {status.type === 'EXPIRED' ? `Süresi Doldu (${-status.days} g)` : status.type === 'CRITICAL' ? `Son ${status.days} Gün` : status.type === 'UPCOMING' ? `${status.days} Gün Kaldı` : 'Aktif'}
+                                                                                        </div>
+                                                                                        <Button
+                                                                                            size="sm"
+                                                                                            variant="outline"
+                                                                                            className="h-8 w-8 p-0 border-transparent opacity-0 group-hover/item:opacity-100 transition-opacity hover:bg-blue-500/10 text-blue-400"
+                                                                                            title="Poliçeyi Yenile"
+                                                                                            disabled={renewingId === ins.id}
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                handleRenew(ins.id);
+                                                                                            }}
+                                                                                        >
+                                                                                            {renewingId === ins.id ? (
+                                                                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                                                            ) : (
+                                                                                                <RefreshCcw className="w-3.5 h-3.5" />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            size="sm"
+                                                                                            variant="outline"
+                                                                                            className="h-8 w-8 p-0 border-transparent opacity-0 group-hover/item:opacity-100 transition-opacity hover:bg-white/10"
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                setSelectedInsurance(ins);
+                                                                                            }}
+                                                                                        >
+                                                                                            <ArrowRight className="w-4 h-4" />
+                                                                                        </Button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </React.Fragment>
                                                 );
                                             })
                                         )}

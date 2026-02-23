@@ -205,6 +205,10 @@ export const adminService = {
         const response = await api.delete(`/admin/insurances/${id}`);
         return response.data;
     },
+    renewInsurance: async (id: string, startDate?: string) => {
+        const response = await api.post(`/admin/insurances/${id}/renew`, { startDate });
+        return response.data;
+    },
     exportInsurances: async () => {
         return api.get('/admin/insurances/export', {
             responseType: 'blob',
@@ -215,6 +219,10 @@ export const adminService = {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
         return response.data;
+    },
+    searchClients: async (query: string) => {
+        const response = await api.get<{ success: boolean; data: any[] }>('/admin/insurances/clients/search', { params: { query } });
+        return response.data.data;
     },
     // Users
     getUsers: async (params?: any) => {

@@ -118,10 +118,10 @@ async function exportBookingsCSV(dir: string): Promise<string> {
 
     // Headers
     const headers = [
-        'id', 'bookingCode', 'customerName', 'customerSurname', 'customerPhone',
-        'customerEmail', 'carBrand', 'carModel', 'carPlate', 'pickupBranch',
-        'dropoffBranch', 'pickupDate', 'dropoffDate', 'totalPrice', 'status',
-        'paymentStatus', 'createdAt', 'updatedAt'
+        'ID', 'REZERVASYON KODU', 'MÜŞTERİ ADI', 'MÜŞTERİ SOYADI', 'TELEFON',
+        'E-POSTA', 'ARAÇ MARKA', 'ARAÇ MODEL', 'PLAKA', 'ALIŞ OFİSİ',
+        'İADE OFİSİ', 'ALIŞ TARİHİ', 'İADE TARİHİ', 'TOPLAM TUTAR', 'DURUM',
+        'ÖDEME DURUMU', 'KAYIT TARİHİ', 'GÜNCELLEME TARİHİ'
     ];
     stream.write(headers.join(',') + '\n');
 
@@ -192,9 +192,9 @@ async function exportInsurancesCSV(dir: string): Promise<string> {
     stream.write('\uFEFF');
 
     const headers = [
-        'id', 'month', 'startDate', 'tcNo', 'fullName',
-        'profession', 'phone', 'plate', 'serialOrOrderNo',
-        'amount', 'branch', 'company', 'policyNo', 'description', 'createdAt', 'updatedAt'
+        'ID', 'AY', 'BAŞLANGIÇ TARİHİ', 'TC', 'İSİM / SOYİSİM',
+        'MESLEK', 'CEP', 'PLAKA', 'SERİ NO / SIRA NO',
+        'TL', 'BRANŞ', 'ŞİRKET', 'POLİÇE NO', 'AÇIKLAMA', 'KAYIT TARİHİ', 'GÜNCELLEME TARİHİ'
     ];
     stream.write(headers.join(',') + '\n');
 
