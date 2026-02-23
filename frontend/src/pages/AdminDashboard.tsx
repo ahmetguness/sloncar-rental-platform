@@ -10,10 +10,16 @@ import { adminService } from '../services/api';
 import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Info, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Search } from 'lucide-react';
 
-import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { tr } from 'date-fns/locale/tr';
+import "react-datepicker/dist/react-datepicker.css";
 import { storage } from '../utils/storage';
+
+// Register Turkish locale
+registerLocale('tr', tr);
 
 import { Skeleton } from '../components/ui/Skeleton';
 import DebouncedInput from '../components/ui/DebouncedInput';
@@ -427,6 +433,9 @@ export const AdminDashboard = () => {
     const [insuranceStatusFilter, setInsuranceStatusFilter] = useState<string>('');
     const [expandedTCs, setExpandedTCs] = useState<Set<string>>(new Set());
     const [renewingId, setRenewingId] = useState<string | null>(null);
+    const [showRenewModal, setShowRenewModal] = useState(false);
+    const [renewDate, setRenewDate] = useState<Date | null>(new Date());
+    const [showInsuranceCharts, setShowInsuranceCharts] = useState(false);
 
 
     // User Management States
@@ -552,6 +561,13 @@ export const AdminDashboard = () => {
         staleTime: 60000,
     });
 
+    const { data: insuranceStatsData, isLoading: insuranceStatsLoading } = useQuery({
+        queryKey: ['admin-insurance-stats'],
+        queryFn: () => adminService.getInsuranceStats(),
+        enabled: activeTab === 'insurance',
+        staleTime: 60000,
+    });
+
     const getInsuranceStatus = useCallback((insurance: any) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -645,19 +661,29 @@ export const AdminDashboard = () => {
         }
     };
 
-    const handleRenew = async (id: string) => {
-        if (!confirm('Bu poliçeyi bugün itibarıyla yenilemek istediğinize emin misiniz?')) return;
-
+    const handleRenew = (id: string) => {
         setRenewingId(id);
+        setRenewDate(new Date());
+        setShowRenewModal(true);
+    };
+
+    const closeRenewModal = () => {
+        setShowRenewModal(false);
+        setRenewingId(null);
+    };
+
+    const confirmRenew = async () => {
+        if (!renewingId || !renewDate) return;
         try {
-            await adminService.renewInsurance(id);
+            const formattedDate = renewDate.toISOString().split('T')[0];
+            await adminService.renewInsurance(renewingId, formattedDate);
             refetchInsurances();
             toast('Poliçe başarıyla yenilendi!', 'success');
         } catch (error: any) {
             console.error('Poliçe yenileme hatası:', error);
             toast(error.response?.data?.message || 'Yenileme işlemi sırasında bir hata oluştu.', 'error');
         } finally {
-            setRenewingId(null);
+            closeRenewModal();
         }
     };
 
@@ -716,6 +742,52 @@ export const AdminDashboard = () => {
                             onClick={confirmAction}
                         >
                             {bookingAction === 'start' ? 'Evet, Baslat' : bookingAction === 'complete' ? 'Evet, Teslim Al' : 'Evet, Iptal Et'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Insurance Renewal Modal */}
+            <Modal
+                isOpen={showRenewModal}
+                onClose={closeRenewModal}
+                title="Poliçeyi Yenile"
+                size="sm"
+            >
+                <div className="flex flex-col items-center justify-center space-y-6 pt-4">
+                    <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <RefreshCcw className="w-8 h-8 text-blue-500 animate-[spin_3s_linear_infinite]" />
+                    </div>
+                    <div className="space-y-4 w-full text-center">
+                        <p className="text-gray-300 text-sm leading-relaxed max-w-[280px] mx-auto">
+                            Bu poliçeyi yenilemek istediğinize emin misiniz? <br />
+                            Lütfen yeni poliçe başlangıç tarihini seçin.
+                        </p>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-400">Poliçe Başlangıç Tarihi</label>
+                            <div className="relative">
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 z-10" />
+                                <DatePicker
+                                    selected={renewDate}
+                                    onChange={(date: Date | null) => setRenewDate(date)}
+                                    dateFormat="dd/MM/yyyy"
+                                    locale="tr"
+                                    portalId="root"
+                                    popperPlacement="bottom-start"
+                                    className="w-full bg-dark-bg border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all cursor-pointer"
+                                    placeholderText="Tarih Seçiniz"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-6 w-full border-t border-white/5">
+                        <Button variant="outline" onClick={closeRenewModal} className="px-6 border-white/10 text-white hover:bg-white/10">Vazgeç</Button>
+                        <Button
+                            className="bg-primary-500 hover:bg-primary-600 text-white border-none px-8 font-bold shadow-lg shadow-primary-500/20"
+                            onClick={confirmRenew}
+                        >
+                            Yenile
                         </Button>
                     </div>
                 </div>
@@ -1814,7 +1886,24 @@ export const AdminDashboard = () => {
                                         {insuranceData?.pagination?.total || 0} kayit
                                     </span>
                                 </div>
-                                <div className="flex-1 max-w-2xl flex justify-end items-center gap-4">
+                                <div className="flex-1 flex justify-end items-center gap-4">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setShowInsuranceCharts(!showInsuranceCharts)}
+                                        className="text-gray-400 border-white/10 hover:bg-white/5 px-4 py-2"
+                                    >
+                                        {showInsuranceCharts ? (
+                                            <>
+                                                <EyeOff className="w-4 h-4 mr-2" />
+                                                Grafikleri Gizle
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Eye className="w-4 h-4 mr-2" />
+                                                Grafikleri Göster
+                                            </>
+                                        )}
+                                    </Button>
                                     <Button
                                         onClick={() => setIsCreateInsuranceModalOpen(true)}
                                         className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/30 font-medium px-4 py-2 whitespace-nowrap"
@@ -1887,11 +1976,114 @@ export const AdminDashboard = () => {
                                     <DebouncedInput
                                         value={insuranceSearchTerm}
                                         onChange={handleInsuranceSearch}
-                                        placeholder="Poliçe, Sirket, İsim Ara..."
-                                        className="w-full max-w-sm"
+                                        placeholder="İsim veya TC No ile Ara..."
+                                        className="w-full max-w-lg"
                                     />
                                 </div>
                             </div>
+
+                            {/* Insurance Analysis Charts */}
+                            {showInsuranceCharts && insuranceStatsData?.data && (
+                                <div className="p-6 bg-white/[0.02] border-b border-white/5">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* Policy Distribution (Pie Chart) */}
+                                        <div className="bg-dark-bg/40 rounded-2xl border border-white/5 p-6 h-[380px] flex flex-col">
+                                            <div className="flex items-center justify-between mb-6">
+                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                                    Poliçe Dağılımı (Adet)
+                                                </h3>
+                                            </div>
+                                            <div className="flex-1 w-full relative">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={insuranceStatsData.data}
+                                                            cx="40%"
+                                                            cy="50%"
+                                                            innerRadius={60}
+                                                            outerRadius={100}
+                                                            paddingAngle={5}
+                                                            dataKey="count"
+                                                            nameKey="branch"
+                                                            animationBegin={0}
+                                                            animationDuration={1500}
+                                                        >
+                                                            {insuranceStatsData.data.map((entry: any, index: number) => (
+                                                                <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'][index % 7]} />
+                                                            ))}
+                                                        </Pie>
+                                                        <Tooltip
+                                                            contentStyle={{ backgroundColor: '#1a1b26', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                                                            itemStyle={{ color: '#fff' }}
+                                                            labelStyle={{ color: '#9ca3af' }}
+                                                            formatter={(value: any) => [`${Number(value || 0).toLocaleString()} Adet`, 'Poliçe Sayısı']}
+                                                        />
+                                                        <Legend
+                                                            layout="vertical"
+                                                            align="right"
+                                                            verticalAlign="middle"
+                                                            iconType="circle"
+                                                            formatter={(value) => <span className="text-gray-400 text-sm font-medium">{value}</span>}
+                                                        />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
+
+                                        {/* Revenue Analysis (Bar Chart) */}
+                                        <div className="bg-dark-bg/40 rounded-2xl border border-white/5 p-6 h-[380px] flex flex-col">
+                                            <div className="flex items-center justify-between mb-6">
+                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                                                    Branş Bazlı Kazanç (TL)
+                                                </h3>
+                                            </div>
+                                            <div className="flex-1 w-full">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <BarChart data={insuranceStatsData.data} margin={{ top: 10, right: 30, left: 10, bottom: 30 }}>
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                                        <XAxis
+                                                            dataKey="branch"
+                                                            stroke="#9ca3af"
+                                                            fontSize={11}
+                                                            tickLine={false}
+                                                            axisLine={false}
+                                                            angle={-45}
+                                                            textAnchor="end"
+                                                            interval={0}
+                                                            height={60}
+                                                        />
+                                                        <YAxis
+                                                            stroke="#9ca3af"
+                                                            fontSize={11}
+                                                            tickLine={false}
+                                                            axisLine={false}
+                                                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                                        />
+                                                        <Tooltip
+                                                            contentStyle={{ backgroundColor: '#1a1b26', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                                                            itemStyle={{ color: '#fff' }}
+                                                            labelStyle={{ color: '#9ca3af' }}
+                                                            formatter={(value: any) => [`${Number(value || 0).toLocaleString()} ₺`, 'Kazanç']}
+                                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                                        />
+                                                        <Bar
+                                                            dataKey="revenue"
+                                                            radius={[6, 6, 0, 0]}
+                                                            animationDuration={1500}
+                                                        >
+                                                            {insuranceStatsData.data.map((entry: any, index: number) => (
+                                                                <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'][index % 7]} />
+                                                            ))}
+                                                        </Bar>
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Status Filter Tabs */}
                             <div className="px-6 py-4 border-b border-white/5 bg-white/[0.02] flex items-center gap-3">

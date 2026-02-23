@@ -115,4 +115,15 @@ export const insuranceController = {
             res.status(500).json({ message: error.message });
         }
     },
+    getInsuranceStats: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const stats = await insuranceService.getInsuranceStats();
+            res.json({
+                success: true,
+                data: stats
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
 };

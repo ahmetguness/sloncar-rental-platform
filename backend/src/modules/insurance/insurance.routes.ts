@@ -16,6 +16,14 @@ router.get(
     insuranceController.getInsurances
 );
 
+// Get insurance stats
+router.get(
+    '/stats',
+    authMiddleware,
+    adminGuard,
+    insuranceController.getInsuranceStats
+);
+
 // Create insurance
 router.post(
     '/',

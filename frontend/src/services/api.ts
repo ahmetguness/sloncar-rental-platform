@@ -197,6 +197,10 @@ export const adminService = {
         const response = await api.get<{ success: boolean; data: any[]; pagination: any }>('/admin/insurances', { params });
         return response.data;
     },
+    getInsuranceStats: async () => {
+        const response = await api.get<{ success: boolean; data: { branch: string; count: number; revenue: number }[] }>('/admin/insurances/stats');
+        return response.data;
+    },
     createInsurance: async (data: any) => {
         const response = await api.post<{ success: boolean; data: any }>('/admin/insurances', data);
         return response.data.data;

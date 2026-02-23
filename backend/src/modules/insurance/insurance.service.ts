@@ -23,6 +23,33 @@ const COLUMN_MAP: Record<string, keyof Prisma.InsuranceCreateInput> = {
 
 const TURKISH_MONTHS = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
 
+/**
+ * Generates Turkish-aware case variations for a search query (i/İ, ı/I).
+ */
+const getSearchVariations = (query: string): string[] => {
+    if (!query) return [];
+    const variations = new Set<string>([query]);
+
+    // Standard variations
+    variations.add(query.toLowerCase());
+    variations.add(query.toUpperCase());
+
+    // Turkish specific normalization
+    const trLower = query.replace(/İ/g, 'i').replace(/I/g, 'ı').toLowerCase();
+    const trUpper = query.replace(/i/g, 'İ').replace(/ı/g, 'I').toUpperCase();
+
+    variations.add(trLower);
+    variations.add(trUpper);
+
+    // Mix (common typos or partial case conversions)
+    variations.add(query.replace(/i/g, 'İ'));
+    variations.add(query.replace(/İ/g, 'i'));
+    variations.add(query.replace(/ı/g, 'I'));
+    variations.add(query.replace(/I/g, 'ı'));
+
+    return Array.from(variations);
+};
+
 export const insuranceService = {
     checkInsuranceExpiries: async () => {
         // Find insurances expiring in 10 days or exactly today based on 1-year policy rules
@@ -78,13 +105,10 @@ export const insuranceService = {
         const where: Prisma.InsuranceWhereInput = {};
 
         if (params.searchTerm) {
+            const queryVariations = getSearchVariations(params.searchTerm);
             where.OR = [
-                { policyNo: { contains: params.searchTerm, mode: 'insensitive' } },
-                { company: { contains: params.searchTerm, mode: 'insensitive' } },
-                { fullName: { contains: params.searchTerm, mode: 'insensitive' } },
+                ...queryVariations.map(v => ({ fullName: { contains: v, mode: 'insensitive' as const } })),
                 { tcNo: { contains: params.searchTerm, mode: 'insensitive' } },
-                { plate: { contains: params.searchTerm, mode: 'insensitive' } },
-                { user: { email: { contains: params.searchTerm, mode: 'insensitive' } } },
             ];
         }
 
@@ -606,31 +630,7 @@ export const insuranceService = {
     searchClients: async (query: string) => {
         if (!query || query.length < 2) return [];
 
-        // Generate Turkish variations for robust searching (i/İ, ı/I)
-        const getVariations = (str: string) => {
-            const variations = new Set<string>([str]);
-
-            // Standard lowercase/uppercase
-            variations.add(str.toLowerCase());
-            variations.add(str.toUpperCase());
-
-            // Turkish specific normalization
-            const trLower = str.replace(/İ/g, 'i').replace(/I/g, 'ı').toLowerCase();
-            const trUpper = str.replace(/i/g, 'İ').replace(/ı/g, 'I').toUpperCase();
-
-            variations.add(trLower);
-            variations.add(trUpper);
-
-            // Mixed variations (common typos)
-            variations.add(str.replace(/i/g, 'İ'));
-            variations.add(str.replace(/İ/g, 'i'));
-            variations.add(str.replace(/ı/g, 'I'));
-            variations.add(str.replace(/I/g, 'ı'));
-
-            return Array.from(variations);
-        };
-
-        const queryVariations = getVariations(query);
+        const queryVariations = getSearchVariations(query);
 
         const groups = await prisma.insurance.groupBy({
             by: ['tcNo'],
@@ -699,4 +699,22 @@ export const insuranceService = {
             }
         });
     },
+
+    getInsuranceStats: async () => {
+        const stats = await prisma.insurance.groupBy({
+            by: ['branch'],
+            _count: {
+                id: true
+            },
+            _sum: {
+                amount: true
+            }
+        });
+
+        return stats.map(s => ({
+            branch: s.branch,
+            count: s._count.id,
+            revenue: s._sum.amount || 0
+        }));
+    }
 };
