@@ -559,7 +559,7 @@ export const AdminDashboard = () => {
         staleTime: 60000,
     });
 
-    const { data: insuranceStatsData, isLoading: insuranceStatsLoading } = useQuery({
+    const { data: insuranceStatsData } = useQuery({
         queryKey: ['admin-insurance-stats'],
         queryFn: () => adminService.getInsuranceStats(),
         enabled: activeTab === 'insurance',
@@ -2014,7 +2014,7 @@ export const AdminDashboard = () => {
                                                             animationBegin={0}
                                                             animationDuration={1500}
                                                         >
-                                                            {insuranceStatsData.data.map((entry: any, index: number) => (
+                                                            {insuranceStatsData.data.map((_: any, index: number) => (
                                                                 <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'][index % 7]} />
                                                             ))}
                                                         </Pie>
@@ -2078,7 +2078,7 @@ export const AdminDashboard = () => {
                                                             radius={[6, 6, 0, 0]}
                                                             animationDuration={1500}
                                                         >
-                                                            {insuranceStatsData.data.map((entry: any, index: number) => (
+                                                            {insuranceStatsData.data.map((_: any, index: number) => (
                                                                 <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'][index % 7]} />
                                                             ))}
                                                         </Bar>
