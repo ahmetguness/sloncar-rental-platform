@@ -66,11 +66,11 @@ export const CarDetail = () => {
 
                     {/* Right: Quick Buy Box (4/12) */}
                     <div className="lg:col-span-4 space-y-6">
-                        <div className="bg-dark-surface/40 backdrop-blur-md rounded-[2.5rem] p-8 border border-white/5 shadow-2xl relative overflow-hidden group">
+                        <div className="bg-dark-surface/40 backdrop-blur-md rounded-[2.5rem] p-5 sm:p-8 border border-white/5 shadow-2xl relative overflow-hidden group">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full -translate-y-16 translate-x-16 blur-3xl group-hover:bg-primary-500/20 transition-all duration-700" />
 
                             <div className="space-y-4 mb-8">
-                                <h1 className="text-4xl font-black text-white tracking-tighter">
+                                <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tighter">
                                     {car.brand} <span className="text-primary-500">{car.model}</span>
                                 </h1>
                                 <div className="flex flex-wrap items-center gap-3">
@@ -79,10 +79,10 @@ export const CarDetail = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-black/40 rounded-3xl p-6 border border-white/5 mb-8">
+                            <div className="bg-black/40 rounded-3xl p-4 sm:p-6 border border-white/5 mb-6 sm:mb-8">
                                 <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-2">Satış Fiyatı</p>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-5xl font-black text-white tracking-tighter">
+                                    <span className="text-3xl sm:text-5xl font-black text-white tracking-tighter">
                                         {Number(car.salePrice).toLocaleString()}
                                     </span>
                                     <span className="text-2xl font-bold text-primary-500">₺</span>
@@ -104,7 +104,7 @@ export const CarDetail = () => {
                 </div>
 
                 {/* 2. Horizontal Specs Band (Minimalist & Glass) */}
-                <div className="w-full bg-white/5 backdrop-blur-xl border-y border-white/5 py-6 px-8 mb-12 flex flex-wrap items-center justify-between gap-8 rounded-[1.5rem]">
+                <div className="w-full bg-white/5 backdrop-blur-xl border-y border-white/5 py-4 sm:py-6 px-4 sm:px-8 mb-8 sm:mb-12 grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-between gap-4 sm:gap-8 rounded-[1.5rem]">
                     {[
                         { icon: Cog, label: 'Şanzıman', value: car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel' },
                         { icon: Fuel, label: 'Yakıt', value: translateFuel(car.fuel) },
@@ -131,7 +131,7 @@ export const CarDetail = () => {
                             <h3 className="text-xl font-black text-white uppercase tracking-tight">Hasar <span className="text-primary-500">Durumu</span></h3>
                             <div className="h-px flex-1 bg-white/10" />
                         </div>
-                        <div className="bg-dark-surface/30 rounded-[2.5rem] p-10 border border-white/5 flex items-center justify-center relative group">
+                        <div className="bg-dark-surface/30 rounded-[2.5rem] p-6 sm:p-10 border border-white/5 flex items-center justify-center relative group">
                             <div className="absolute inset-0 bg-primary-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl rounded-full" />
                             <div className="relative z-10 w-full max-w-sm">
                                 <CarDamageMap
@@ -150,7 +150,7 @@ export const CarDetail = () => {
                             <div className="h-px flex-1 bg-white/10" />
                         </div>
 
-                        <div className="bg-dark-surface/30 rounded-[2.5rem] p-8 border border-white/5">
+                        <div className="bg-dark-surface/30 rounded-[2.5rem] p-5 sm:p-8 border border-white/5">
                             <p className="text-gray-400 italic leading-relaxed text-lg">
                                 "{car.accidentDescription || "Araç hakkında herhangi bir kaza veya tramer kaydı bilgisi not düşülmemiştir."}"
                             </p>

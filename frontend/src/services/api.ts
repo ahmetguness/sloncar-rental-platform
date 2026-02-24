@@ -112,18 +112,6 @@ export const adminService = {
     login: async (credentials: any) => {
         const response = await api.post<{ success: boolean; data: AuthResponse }>('/auth/login', credentials);
         if (response.data.data.token) {
-            console.log('Login API success. Credentials RememberMe:', credentials.rememberMe);
-
-            // Explicit user feedback for debugging
-            if (credentials.rememberMe) {
-                // alert('DEBUG: "Beni Hatırla" seçili. Oturum localStorage\'a kaydediliyor (Kalıcı).');
-                console.log('DEBUG: Saving to localStorage');
-            } else {
-                // alert('DEBUG: "Beni Hatırla" seçili değil. Oturum sessionStorage\'a kaydediliyor (Geçici).');
-                console.log('DEBUG: Saving to sessionStorage');
-            }
-
-            // credentials.rememberMe is passed from the form
             storage.setAuth(
                 response.data.data.token,
                 response.data.data.user,

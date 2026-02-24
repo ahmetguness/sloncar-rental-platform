@@ -61,7 +61,7 @@ export const SecondHand = () => {
     return (
         <div className="space-y-12 pb-20 bg-dark-bg min-h-screen">
             {/* Hero Section */}
-            <section className="relative h-[500px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[88px]">
+            <section className="relative h-[400px] sm:h-[500px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[88px]">
                 <div className="absolute inset-0 z-0">
                     <img
                         src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
@@ -93,14 +93,14 @@ export const SecondHand = () => {
             {/* Car Grid Section */}
             <section
                 id="fleet"
-                className="container mx-auto px-6 pt-12 scroll-mt-24 relative"
+                className="container mx-auto px-3 sm:px-6 pt-12 scroll-mt-24 relative"
             >
                 <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-blue-900/20 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
                 <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-900/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
 
                 <div className="flex items-center justify-between mb-10">
                     <div>
-                        <h2 className="text-4xl font-black text-white tracking-tight">SATILIK <span className="text-blue-500">ARAÇLAR</span></h2>
+                        <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">SATILIK <span className="text-blue-500">ARAÇLAR</span></h2>
                         <div className="h-1 w-20 bg-gradient-to-r from-blue-500 to-transparent mt-2 rounded-full" />
                     </div>
                 </div>
@@ -138,7 +138,7 @@ export const SecondHand = () => {
                                             document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' });
                                         }}
                                         disabled={loading}
-                                        className="bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-white/20 px-8 py-4 rounded-xl font-bold transition-all flex items-center gap-2 group"
+                                        className="bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-white/20 px-4 sm:px-8 py-3 sm:py-4 rounded-xl font-bold transition-all flex items-center gap-2 group text-sm sm:text-base"
                                     >
                                         <Minus className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                         DAHA AZ GÖSTER
@@ -149,7 +149,7 @@ export const SecondHand = () => {
                                     <Button
                                         onClick={() => fetchCars(page + 1, true)}
                                         disabled={loading}
-                                        className="bg-dark-surface-lighter border border-white/10 text-white hover:bg-blue-500 hover:border-blue-500 px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center gap-2"
+                                        className="bg-dark-surface-lighter border border-white/10 text-white hover:bg-blue-500 hover:border-blue-500 px-4 sm:px-8 py-3 sm:py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center gap-2 text-sm sm:text-base"
                                     >
                                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
                                         DAHA FAZLA GÖSTER

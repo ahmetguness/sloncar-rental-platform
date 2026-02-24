@@ -9,8 +9,6 @@ export const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
     const location = useLocation();
     const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
-    console.log(`[ProtectedRoute] Auth Check: ${isAuthenticated ? 'Authenticated' : 'Not Authenticated'}, Path: ${location.pathname}`);
-
     if (!isAuthenticated) {
         // Redirect to login but save the attempted location
         return <Navigate to="/admin/login" state={{ from: location }} replace />;

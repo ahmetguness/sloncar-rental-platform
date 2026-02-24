@@ -195,16 +195,16 @@ export const AdminUsers = () => {
     if (currentUser?.role !== 'ADMIN') return null;
 
     return (
-        <div className="min-h-screen bg-dark-bg p-6 text-white pt-24">
+        <div className="min-h-screen bg-dark-bg p-3 sm:p-6 text-white pt-24">
             <div className="container mx-auto max-w-7xl">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                     <div className="flex items-center gap-4">
                         <Link to="/admin/dashboard" className="p-2 hover:bg-white/10 rounded-full transition-colors">
                             <ArrowLeft className="w-6 h-6" />
                         </Link>
                         <div>
-                            <h1 className="text-3xl font-bold flex items-center gap-3">
+                            <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-3">
                                 <Users className="w-8 h-8 text-primary-500" />
                                 Kullanıcı Yönetimi
                             </h1>
@@ -236,7 +236,7 @@ export const AdminUsers = () => {
                 {/* Content */}
                 <div className="bg-dark-surface rounded-xl border border-white/10 overflow-hidden shadow-2xl">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                        <table className="w-full text-left min-w-[600px]">
                             <thead className="bg-white/5 border-b border-white/10">
                                 <tr>
                                     <th className="p-4 text-sm font-medium text-gray-400">Kullanıcı</th>
@@ -310,7 +310,7 @@ export const AdminUsers = () => {
 
                     {/* Pagination */}
                     {userData?.pagination && userData.pagination.totalPages > 1 && (
-                        <div className="p-4 border-t border-white/10 flex items-center justify-between bg-white/5">
+                        <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/5">
                             <div className="text-sm text-gray-400">
                                 Toplam {userData.pagination.total} kullanıcı
                             </div>

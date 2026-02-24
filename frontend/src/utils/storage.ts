@@ -5,8 +5,8 @@
 // - Remember Me = false -> sessionStorage (clears when browser closes)
 
 // Standalone functions to avoid `this` context issues or circular references
-const log = (msg: string, ...args: any[]) => {
-    console.log(`[Storage ${new Date().toISOString().split('T')[1]}] ${msg}`, ...args);
+const log = (_msg: string, ..._args: any[]) => {
+    // Debug log disabled for production
 };
 
 const getToken = (): string | null => {

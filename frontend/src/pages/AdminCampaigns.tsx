@@ -154,7 +154,7 @@ export const AdminCampaigns = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg p-6 pt-24 pb-20">
+        <div className="min-h-screen bg-dark-bg p-3 sm:p-6 pt-24 pb-20">
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -163,7 +163,7 @@ export const AdminCampaigns = () => {
                             <ArrowLeft className="w-4 h-4" />
                             Dashboard'a Dön
                         </Link>
-                        <h1 className="text-3xl font-bold text-white">Kampanya Yönetimi</h1>
+                        <h1 className="text-xl sm:text-3xl font-bold text-white">Kampanya Yönetimi</h1>
                         <p className="text-gray-400 mt-1">Anasayfa banner alanını yönetin</p>
                     </div>
                     <Button onClick={handleCreate} className="bg-primary-600 hover:bg-primary-500 text-white shadow-lg shadow-primary-600/20">
@@ -180,7 +180,7 @@ export const AdminCampaigns = () => {
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full">
+                            <table className="w-full min-w-[500px]">
                                 <thead className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider text-left">
                                     <tr>
                                         <th className="p-4">Görsel</th>

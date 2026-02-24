@@ -481,8 +481,6 @@ export const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'franchise' | 'insurance'>('overview');
     const [chartView, setChartView] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
 
-
-
     // Load current user from storage
     useEffect(() => {
         const user = storage.getUser();
@@ -1378,8 +1376,8 @@ export const AdminDashboard = () => {
                                             </div>
                                         </div>
                                         <div className="p-6">
-                                            <div className="h-60 md:h-80 w-full" id="main-revenue-chart">
-                                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                                            <div className="w-full" id="main-revenue-chart">
+                                                <ResponsiveContainer width="100%" height={280}>
                                                     <ComposedChart data={getChartData}>
                                                         <defs>
                                                             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -1459,8 +1457,8 @@ export const AdminDashboard = () => {
                                             <p className="text-xs text-gray-500 mt-1">Hasilatin araç türüne göre dagilimi</p>
                                         </div>
                                         <div className="p-6">
-                                            <div className="h-[200px] w-full relative" id="category-pie-chart">
-                                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                                            <div className="w-full relative" id="category-pie-chart">
+                                                <ResponsiveContainer width="100%" height={200}>
                                                     <PieChart>
                                                         <Pie
                                                             data={[
@@ -1938,7 +1936,6 @@ export const AdminDashboard = () => {
 
                                                     if (result.failedCount > 0) {
                                                         toast(msg, 'error');
-                                                        console.log('Import Failures:', result.failedRows);
                                                     } else if (result.duplicateCount > 0) {
                                                         toast(msg, 'success');
                                                     } else {
@@ -2002,8 +1999,8 @@ export const AdminDashboard = () => {
                                                     Poliçe Dağılımı (Adet)
                                                 </h3>
                                             </div>
-                                            <div className="flex-1 w-full relative">
-                                                <ResponsiveContainer width="100%" height="100%">
+                                            <div className="w-full relative">
+                                                <ResponsiveContainer width="100%" height={250}>
                                                     <PieChart>
                                                         <Pie
                                                             data={insuranceStatsData.data}
@@ -2047,8 +2044,8 @@ export const AdminDashboard = () => {
                                                     Branş Bazlı Kazanç (TL)
                                                 </h3>
                                             </div>
-                                            <div className="flex-1 w-full">
-                                                <ResponsiveContainer width="100%" height="100%">
+                                            <div className="w-full">
+                                                <ResponsiveContainer width="100%" height={250}>
                                                     <BarChart data={insuranceStatsData.data} margin={{ top: 10, right: 30, left: 10, bottom: 30 }}>
                                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                                         <XAxis

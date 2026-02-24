@@ -77,16 +77,16 @@ export const AdminBackup = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg p-6 text-white pt-24">
+        <div className="min-h-screen bg-dark-bg p-3 sm:p-6 text-white pt-24">
             <div className="container mx-auto max-w-5xl">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                     <div className="flex items-center gap-4">
                         <Link to="/admin/dashboard" className="p-2 hover:bg-white/10 rounded-full transition-colors">
                             <ArrowLeft className="w-6 h-6" />
                         </Link>
                         <div>
-                            <h1 className="text-3xl font-bold flex items-center gap-3">
+                            <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-3">
                                 <Database className="w-8 h-8 text-primary-500" />
                                 Sistem Yedekleme
                             </h1>
@@ -97,13 +97,13 @@ export const AdminBackup = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                     {/* Status Card */}
-                    <div className="bg-dark-surface p-6 rounded-2xl border border-white/10 lg:col-span-2">
+                    <div className="bg-dark-surface p-4 sm:p-6 rounded-2xl border border-white/10 lg:col-span-2">
                         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                             <Save className="w-5 h-5 text-primary-400" />
                             Yedekleme Durumu
                         </h2>
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 gap-4">
                                 <div>
                                     <p className="text-sm text-gray-400">Son Başarılı Yedekleme</p>
                                     <p className="font-mono text-lg text-primary-500">
@@ -129,7 +129,7 @@ export const AdminBackup = () => {
                     </div>
 
                     {/* Action Card */}
-                    <div className="bg-dark-surface p-6 rounded-2xl border border-white/10 flex flex-col justify-center items-center text-center">
+                    <div className="bg-dark-surface p-4 sm:p-6 rounded-2xl border border-white/10 flex flex-col justify-center items-center text-center">
                         <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mb-4">
                             <Database className="w-8 h-8 text-primary-500" />
                         </div>
@@ -159,7 +159,7 @@ export const AdminBackup = () => {
 
                 {/* History Table */}
                 <div className="bg-dark-surface rounded-2xl border border-white/10 overflow-hidden">
-                    <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                    <div className="p-4 sm:p-6 border-b border-white/10 flex items-center justify-between">
                         <h2 className="text-xl font-bold flex items-center gap-2">
                             <Clock className="w-5 h-5 text-gray-400" />
                             İşlem Geçmişi
@@ -170,7 +170,7 @@ export const AdminBackup = () => {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                        <table className="w-full text-left min-w-[600px]">
                             <thead className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider">
                                 <tr>
                                     <th className="p-4 font-medium">Tarih</th>

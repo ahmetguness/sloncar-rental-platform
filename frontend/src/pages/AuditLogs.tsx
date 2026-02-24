@@ -49,16 +49,16 @@ export const AuditLogs = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg p-6 text-white pt-24">
+        <div className="min-h-screen bg-dark-bg p-3 sm:p-6 text-white pt-24">
             <div className="container mx-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                     <div className="flex items-center gap-4">
                         <Link to="/admin/dashboard" className="p-2 hover:bg-white/10 rounded-full transition-colors">
                             <ArrowLeft className="w-6 h-6" />
                         </Link>
                         <div>
-                            <h1 className="text-3xl font-bold">İşlem Geçmişi</h1>
+                            <h1 className="text-xl sm:text-3xl font-bold">İşlem Geçmişi</h1>
                             <p className="text-gray-400">Yönetici ve sistem aktivitelerini takip edin</p>
                         </div>
                     </div>
@@ -119,7 +119,7 @@ export const AuditLogs = () => {
                 ) : (
                     <div className="bg-dark-surface rounded-xl border border-white/10 overflow-hidden">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left">
+                            <table className="w-full text-left min-w-[700px]">
                                 <thead className="bg-white/5 border-b border-white/10">
                                     <tr>
                                         <th className="p-4 text-sm font-medium text-gray-400">Tarih</th>

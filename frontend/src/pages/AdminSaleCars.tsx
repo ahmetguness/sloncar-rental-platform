@@ -338,7 +338,7 @@ export const AdminSaleCars = () => {
     };
 
     if (loading) return (
-        <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-6">
+        <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-3 sm:px-6">
             <div className="container mx-auto max-w-7xl space-y-8">
                 <div className="flex justify-between items-center">
                     <Skeleton className="h-10 w-48" />
@@ -358,7 +358,7 @@ export const AdminSaleCars = () => {
     );
 
     return (
-        <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-6">
+        <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-3 sm:px-6">
             <Modal
                 isOpen={!!deleteId}
                 onClose={() => setDeleteId(null)}
@@ -394,7 +394,7 @@ export const AdminSaleCars = () => {
                                 <ArrowLeft className="w-5 h-5" />
                             </Link>
                             <div>
-                                <h1 className="text-4xl font-black text-white tracking-tight">
+                                <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
                                     SATILIK <span className="text-primary-500">ARAÇLAR</span>
                                 </h1>
                                 <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
@@ -769,14 +769,14 @@ export const AdminSaleCars = () => {
 
                 {/* Cars Table */}
                 <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                    <div className="p-6 border-b border-white/10 flex justify-between items-center">
+                    <div className="p-4 sm:p-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div className="flex items-center gap-4">
                             <h2 className="text-xl font-bold text-white">Araç Listesi</h2>
                             <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">{totalCars} araç</span>
                         </div>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                        <table className="w-full text-left min-w-[700px]">
                             <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                 <tr>
                                     <th className="p-4">Araç</th>
@@ -893,7 +893,7 @@ export const AdminSaleCars = () => {
 
                     {/* Pagination Controls */}
                     {totalCars > ITEMS_PER_PAGE && (
-                        <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                        <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
                             <div className="text-sm text-gray-400">
                                 Toplam {totalCars} araç, sayfa {currentPage} / {Math.ceil(totalCars / ITEMS_PER_PAGE)}
                             </div>
