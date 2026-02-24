@@ -122,3 +122,12 @@
     background-color: rgba(239, 68, 68, 0.1);
     cursor: not-allowed;
 }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

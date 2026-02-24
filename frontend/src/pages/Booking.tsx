@@ -225,12 +225,12 @@ export const Booking = () => {
 
     if (car.status !== 'ACTIVE') {
         return (
-            <div className="max-w-md mx-auto mt-10 bg-dark-surface p-8 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-yellow-500/20 text-center relative overflow-hidden">
+            <div className="max-w-md mx-auto mt-10 bg-dark-surface p-6 md:p-8 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-yellow-500/20 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-amber-400" />
                 <div className="bg-yellow-500/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-yellow-500/20 shadow-[0_0_20px_rgba(234,179,8,0.2)]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Araç Şu Anda Müsait Değil</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-white mb-2">Araç Şu Anda Müsait Değil</h2>
                 <p className="text-gray-400 mb-8 px-4">
                     <span className="text-white font-medium">{car.brand} {car.model}</span> şu anda
                     {car.status === 'MAINTENANCE' ? ' bakımda' : ' pasif durumda'} olduğu için kiralamaya uygun değildir.
@@ -244,19 +244,19 @@ export const Booking = () => {
 
     if (successCode) {
         return (
-            <div className="max-w-md mx-auto mt-10 bg-dark-surface p-8 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-green-500/20 text-center relative overflow-hidden">
+            <div className="max-w-md mx-auto mt-10 bg-dark-surface p-6 md:p-8 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-green-500/20 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-400" />
                 <div className="bg-green-500/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.2)]">
                     <CheckCircle className="w-12 h-12 text-green-500" />
                 </div>
-                <h2 className="text-3xl font-bold text-white mb-2">Rezervasyon Başarılı!</h2>
-                <p className="text-gray-400 mb-8 px-4">Rezervasyonunuzun kesinleşmesi için <span className="text-yellow-400 font-bold">10 dakika</span> içinde ödeme yapmanız gerekmektedir.</p>
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Rezervasyon Başarılı!</h2>
+                <p className="text-sm md:text-base text-gray-400 mb-6 md:mb-8 px-2 md:px-4">Rezervasyonunuzun kesinleşmesi için <span className="text-yellow-400 font-bold">10 dakika</span> içinde ödeme yapmanız gerekmektedir.</p>
 
                 <div className="bg-dark-bg p-6 rounded-2xl border border-white/5 mb-8 relative group">
                     <div className="absolute inset-0 bg-primary-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <p className="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">Rezervasyon Kodunuz</p>
                     <div className="flex items-center justify-center gap-3 mb-2">
-                        <p className="text-3xl font-mono font-bold text-primary-400 tracking-wider text-glow">{successCode}</p>
+                        <p className="text-2xl md:text-3xl font-mono font-bold text-primary-400 tracking-wider text-glow break-all">{successCode}</p>
                         <button
                             onClick={() => {
                                 navigator.clipboard.writeText(successCode);
@@ -287,7 +287,7 @@ export const Booking = () => {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-6 pt-28 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 pt-24 md:pt-28 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
             {/* Car Summary Sidebar */}
             <div className="lg:col-span-1 space-y-6">
                 <div className="bg-dark-surface rounded-3xl p-1 border border-white/5 shadow-2xl relative overflow-hidden group">
@@ -381,8 +381,8 @@ export const Booking = () => {
 
                     <div className="relative z-10">
                         <div className="mb-10">
-                            <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Güvenli Rezervasyon</h1>
-                            <p className="text-gray-400">Ödemenizi araç tesliminde güvenle yapabilirsiniz.</p>
+                            <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-3">Güvenli Rezervasyon</h1>
+                            <p className="text-sm md:text-base text-gray-400">Ödemenizi araç tesliminde güvenle yapabilirsiniz.</p>
                         </div>
 
                         {error && (
@@ -408,7 +408,7 @@ export const Booking = () => {
                                 </div>
                                 <div className="bg-dark-bg/50 p-1 rounded-2xl border border-white/5">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5 rounded-xl">
-                                        <div className="bg-dark-bg p-6 space-y-2 group focus-within:bg-dark-surface transition-colors">
+                                        <div className="bg-dark-bg p-4 md:p-6 space-y-2 group focus-within:bg-dark-surface transition-colors">
                                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wide group-focus-within:text-primary-500 transition-colors">Alış Tarihi</label>
                                             <div className="relative">
                                                 <DatePicker
@@ -428,7 +428,7 @@ export const Booking = () => {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="bg-dark-bg p-6 space-y-2 group focus-within:bg-dark-surface transition-colors">
+                                        <div className="bg-dark-bg p-4 md:p-6 space-y-2 group focus-within:bg-dark-surface transition-colors">
                                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wide group-focus-within:text-primary-500 transition-colors">Teslim Tarihi</label>
                                             <div className="relative">
                                                 <DatePicker
@@ -483,9 +483,9 @@ export const Booking = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/5 flex gap-5 items-start">
+                            <div className="bg-white/5 p-4 md:p-6 rounded-2xl border border-white/5 flex gap-3 md:gap-5 items-start">
                                 <div className="mt-0.5 w-6 h-6 rounded-full bg-primary-500/20 flex items-center justify-center text-primary-400 shrink-0 border border-primary-500/30 font-bold text-xs">i</div>
-                                <p className="text-sm text-gray-400 leading-relaxed">
+                                <p className="text-xs md:text-sm text-gray-400 leading-relaxed">
                                     <span className="text-white font-medium">Bilgilendirme:</span> Rezervasyonu tamamlayarak kiralama koşullarını kabul etmiş olursunuz.
                                     Aracınızı teslim alırken ehliyetinizi ve kimliğinizi yanınızda bulundurmayı unutmayınız.
                                 </p>
@@ -494,7 +494,7 @@ export const Booking = () => {
                             <Button
                                 type="submit"
                                 size="lg"
-                                className="w-full h-16 text-lg font-bold rounded-2xl bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 shadow-[0_10px_40px_-10px_rgba(79,70,229,0.5)] hover:shadow-[0_15px_50px_-10px_rgba(79,70,229,0.6)] transform hover:-translate-y-1 transition-all duration-300"
+                                className="w-full h-14 md:h-16 text-base md:text-lg font-bold rounded-2xl bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 shadow-[0_10px_40px_-10px_rgba(79,70,229,0.5)] hover:shadow-[0_15px_50px_-10px_rgba(79,70,229,0.6)] transform hover:-translate-y-1 transition-all duration-300"
                                 disabled={submitting}
                             >
                                 {submitting ? <Loader2 className="animate-spin inline mr-2" /> : null}

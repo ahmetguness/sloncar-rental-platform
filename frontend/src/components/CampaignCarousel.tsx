@@ -59,7 +59,7 @@ export const CampaignCarousel = () => {
 
     if (loading) {
         return (
-            <div className="w-full h-[500px] flex items-center justify-center bg-dark-surface rounded-2xl shadow-2xl border border-white/5">
+            <div className="w-full h-[300px] md:h-[500px] flex items-center justify-center bg-dark-surface rounded-2xl shadow-2xl border border-white/5">
                 <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
             </div>
         );
@@ -71,7 +71,7 @@ export const CampaignCarousel = () => {
 
     return (
         <div
-            className="relative w-full h-[450px] md:h-[550px] overflow-hidden rounded-2xl shadow-2xl group border border-white/5"
+            className="relative w-full h-[300px] md:h-[550px] overflow-hidden rounded-2xl shadow-2xl group border border-white/5"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
         >
@@ -100,11 +100,11 @@ export const CampaignCarousel = () => {
                         </div>
 
                         {/* Content */}
-                        <div className="absolute inset-0 flex flex-col justify-start items-start text-left pt-24 px-12 md:pl-32 relative z-30 max-w-4xl">
-                            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 animate-fade-in-up">
+                        <div className="absolute inset-0 flex flex-col justify-start items-start text-left pt-12 md:pt-24 px-6 md:px-12 md:pl-32 relative z-30 max-w-4xl">
+                            <h2 className="text-2xl md:text-5xl font-bold text-white mb-3 md:mb-4 animate-fade-in-up">
                                 {campaign.title}
                             </h2>
-                            <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl animate-fade-in-up delay-100">
+                            <p className="text-sm md:text-xl text-gray-200 mb-4 md:mb-8 max-w-2xl animate-fade-in-up delay-100 line-clamp-3 md:line-clamp-none">
                                 {campaign.description}
                             </p>
                             {/* CTA Removed */}
@@ -120,14 +120,14 @@ export const CampaignCarousel = () => {
                 <>
                     <button
                         onClick={prevSlide}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-x-4 group-hover:translate-x-0"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 transform md:-translate-x-4 md:group-hover:translate-x-0"
                         aria-label="Previous slide"
                     >
                         <ChevronLeft className="w-8 h-8" />
                     </button>
                     <button
                         onClick={nextSlide}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 transform md:translate-x-4 md:group-hover:translate-x-0"
                         aria-label="Next slide"
                     >
                         <ChevronRight className="w-8 h-8" />

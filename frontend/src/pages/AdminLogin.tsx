@@ -59,9 +59,9 @@ export const AdminLogin = () => {
 
             {/* Login Card */}
             <div className="relative z-10 w-full max-w-md mx-4">
-                <div className="bg-dark-surface/80 backdrop-blur-xl p-10 rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.5)] border border-white/10">
+                <div className="bg-dark-surface/80 backdrop-blur-xl p-6 md:p-10 rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.5)] border border-white/10">
                     {/* Header */}
-                    <div className="text-center mb-10">
+                    <div className="text-center mb-8 md:mb-10">
                         <div className="flex items-center justify-center gap-3 mb-6">
                             <img src={logo} alt="SlonCar" className="w-12 h-12 rounded-xl" />
                             <span className="text-2xl font-bold text-white">
@@ -73,7 +73,7 @@ export const AdminLogin = () => {
                             <Shield className="w-8 h-8 text-white" />
                         </div>
 
-                        <h1 className="text-3xl font-bold text-white mb-2">Yönetici Paneli</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Yönetici Paneli</h1>
                         <p className="text-gray-400 text-sm">Devam etmek için giriş yapın</p>
                     </div>
 

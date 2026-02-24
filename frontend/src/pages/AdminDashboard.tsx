@@ -10,7 +10,7 @@ import { adminService } from '../services/api';
 import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Search } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff } from 'lucide-react';
 
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -139,7 +139,7 @@ const StatCard = ({ title, value, icon, color, loading, trend, trendUp, data, on
     return (
         <button
             onClick={onClick}
-            className={`relative w-full text-left overflow-hidden bg-dark-surface-lighter/50 backdrop-blur-xl p-6 rounded-2xl border transition-all duration-300 group ${isActive ? `border-${color}-500` : 'border-white/10 hover:border-white/20'} ${activeClasses}`}
+            className={`relative w-full text-left overflow-hidden bg-dark-surface-lighter/50 backdrop-blur-xl p-4 md:p-6 rounded-2xl border transition-all duration-300 group ${isActive ? `border-${color}-500` : 'border-white/10 hover:border-white/20'} ${activeClasses}`}
         >
             {/* Glow Effect */}
             <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClasses[color]} rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity`} />
@@ -163,7 +163,7 @@ const StatCard = ({ title, value, icon, color, loading, trend, trendUp, data, on
                         <Skeleton className="h-8 w-24 mt-1" />
                     ) : (
                         <div className="flex items-end justify-between gap-2">
-                            <p className="text-3xl font-black text-white tracking-tight">{value}</p>
+                            <p className="text-2xl md:text-3xl font-black text-white tracking-tight">{value}</p>
 
                             {/* Sparkline SVG */}
                             {data && data.length > 0 && (
@@ -716,7 +716,7 @@ export const AdminDashboard = () => {
     );
 
     return (
-        <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-6">
+        <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-3 md:px-6">
 
             <Modal
                 isOpen={!!cancelingId}
@@ -825,7 +825,7 @@ export const AdminDashboard = () => {
                 {/* Header */}
                 <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
                     <div>
-                        <h1 className="text-4xl font-black text-white tracking-tight">
+                        <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">
                             GENEL <span className="text-primary-500">BAKIS</span>
                         </h1>
                         <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
@@ -935,9 +935,9 @@ export const AdminDashboard = () => {
 
                                 {/* Notification Dropdown */}
                                 {showNotifications && (
-                                    <div className="absolute right-0 mt-4 w-96 bg-dark-surface border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                                        <div className="p-4 border-b border-white/5 flex items-center justify-between">
-                                            <h3 className="font-bold text-white">Bildirimler</h3>
+                                    <div className="fixed inset-x-3 top-20 sm:inset-x-auto sm:top-auto sm:absolute sm:right-0 sm:mt-4 sm:w-96 bg-dark-surface border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                                        <div className="p-3 sm:p-4 border-b border-white/5 flex items-center justify-between">
+                                            <h3 className="font-bold text-white text-sm sm:text-base">Bildirimler</h3>
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={async () => {
@@ -962,7 +962,7 @@ export const AdminDashboard = () => {
                                                 </button>
                                             </div>
                                         </div>
-                                        <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                                        <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto custom-scrollbar">
                                             {(() => {
                                                 const newBookings = (stats?.latestNewBookings || []).map(b => ({
                                                     id: b.id,
@@ -1089,18 +1089,18 @@ export const AdminDashboard = () => {
                                                                     .catch(err => console.error("Failed to mark read", err));
                                                             }
                                                         }}
-                                                        className={`p-4 border-b border-white/5 last:border-0 transition-colors cursor-pointer flex gap-4 items-start ${!item.read ? 'bg-white/5 hover:bg-white/10' : 'hover:bg-white/5 opacity-60'
+                                                        className={`p-3 sm:p-4 border-b border-white/5 last:border-0 transition-colors cursor-pointer flex gap-3 sm:gap-4 items-start ${!item.read ? 'bg-white/5 hover:bg-white/10' : 'hover:bg-white/5 opacity-60'
                                                             } ${item.color === 'green' ? 'border-l-2 border-l-green-500' : item.color === 'red' ? 'border-l-2 border-l-red-500' : item.color === 'yellow' ? 'border-l-2 border-l-yellow-500' : 'border-l-2 border-l-primary-500'}`}
                                                     >
-                                                        <div className={`mt-1 p-2 rounded-lg ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : item.color === 'red' ? 'bg-red-500/20 text-red-400' : item.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-primary-500/20 text-primary-400'}`}>
+                                                        <div className={`mt-0.5 sm:mt-1 p-1.5 sm:p-2 rounded-lg shrink-0 ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : item.color === 'red' ? 'bg-red-500/20 text-red-400' : item.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-primary-500/20 text-primary-400'}`}>
                                                             {item.icon}
                                                         </div>
-                                                        <div className="flex-1">
+                                                        <div className="flex-1 min-w-0">
                                                             <div className="flex justify-between items-start">
                                                                 <div className={`text-sm font-bold ${!item.read ? 'text-white' : 'text-gray-400'}`}>{item.title}</div>
                                                                 {!item.read && <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5" />}
                                                             </div>
-                                                            <div className="text-xs text-gray-300 mt-0.5">{item.desc}</div>
+                                                            <div className="text-xs text-gray-300 mt-0.5 truncate">{item.desc}</div>
                                                             <div className="text-[10px] text-gray-500 mt-2 font-medium">
                                                                 {new Date(item.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                                                 <span className="mx-1">•</span>
@@ -1129,7 +1129,7 @@ export const AdminDashboard = () => {
 
                 {/* Stats Cards */}
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                     <StatCard
                         title="Toplam Ciro"
                         value={`${(stats?.totalRevenue || 0).toLocaleString()} ₺`}
@@ -1173,7 +1173,7 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="relative flex items-center justify-center bg-dark-surface-lighter/40 backdrop-blur-2xl rounded-2xl p-1.5 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
+                <div className="relative flex items-center bg-dark-surface-lighter/40 backdrop-blur-2xl rounded-2xl p-1.5 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.3)] overflow-x-auto no-scrollbar">
                     {([
                         { key: 'overview', label: 'Genel Bakis', icon: <TrendingUp className="w-4 h-4" />, count: null },
                         { key: 'bookings', label: 'Rezervasyonlar', icon: <Calendar className="w-4 h-4" />, count: stats?.totalBookings || null },
@@ -1185,7 +1185,7 @@ export const AdminDashboard = () => {
                             <button
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                                className={`relative flex items-center gap-2.5 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${isActive
+                                className={`relative flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 ease-out whitespace-nowrap ${isActive
                                     ? 'bg-gradient-to-r from-primary-500 to-indigo-500 text-white shadow-[0_4px_20px_rgba(99,102,241,0.4),inset_0_1px_0_rgba(255,255,255,0.15)]'
                                     : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
                                     }`}
@@ -1238,7 +1238,7 @@ export const AdminDashboard = () => {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex flex-wrap items-center gap-2 md:gap-3">
                                                     <select
                                                         value={selectedYear}
                                                         onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -1378,7 +1378,7 @@ export const AdminDashboard = () => {
                                             </div>
                                         </div>
                                         <div className="p-6">
-                                            <div className="h-80 w-full" id="main-revenue-chart">
+                                            <div className="h-60 md:h-80 w-full" id="main-revenue-chart">
                                                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                                     <ComposedChart data={getChartData}>
                                                         <defs>
@@ -1647,7 +1647,7 @@ export const AdminDashboard = () => {
                             </div>
                             {/* Pagination Controls */}
                             {bookingsData?.pagination && (bookingsData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
-                                <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
                                     <div className="text-sm text-gray-400">
                                         Sayfa {currentPage} / {bookingsData?.pagination?.totalPages || 1} ({bookingsData?.pagination?.total || 0} kayit)
                                     </div>
@@ -1733,7 +1733,7 @@ export const AdminDashboard = () => {
 
 
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left">
+                                <table className="w-full text-left min-w-[800px]">
                                     <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                         <tr>
                                             <th className="p-4">Basvuran</th>
@@ -1822,7 +1822,7 @@ export const AdminDashboard = () => {
 
                             {/* Pagination Controls */}
                             {franchiseData?.pagination && (franchiseData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
-                                <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
                                     <div className="text-sm text-gray-400">
                                         Sayfa {franchisePage} / {franchiseData?.pagination?.totalPages || 1} ({franchiseData?.pagination?.total || 0} kayit)
                                     </div>
@@ -1894,7 +1894,7 @@ export const AdminDashboard = () => {
                                         {insuranceData?.pagination?.total || 0} kayit
                                     </span>
                                 </div>
-                                <div className="flex-1 flex justify-end items-center gap-4">
+                                <div className="flex-1 flex flex-wrap justify-end items-center gap-3">
                                     <Button
                                         variant="outline"
                                         onClick={() => setShowInsuranceCharts(!showInsuranceCharts)}
@@ -1992,10 +1992,10 @@ export const AdminDashboard = () => {
 
                             {/* Insurance Analysis Charts */}
                             {showInsuranceCharts && insuranceStatsData?.data && (
-                                <div className="p-6 bg-white/[0.02] border-b border-white/5">
+                                <div className="p-4 md:p-6 bg-white/[0.02] border-b border-white/5">
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                         {/* Policy Distribution (Pie Chart) */}
-                                        <div className="bg-dark-bg/40 rounded-2xl border border-white/5 p-6 h-[380px] flex flex-col">
+                                        <div className="bg-dark-bg/40 rounded-2xl border border-white/5 p-4 md:p-6 h-[320px] md:h-[380px] flex flex-col">
                                             <div className="flex items-center justify-between mb-6">
                                                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
                                                     <div className="w-2 h-2 rounded-full bg-blue-500" />
@@ -2040,7 +2040,7 @@ export const AdminDashboard = () => {
                                         </div>
 
                                         {/* Revenue Analysis (Bar Chart) */}
-                                        <div className="bg-dark-bg/40 rounded-2xl border border-white/5 p-6 h-[380px] flex flex-col">
+                                        <div className="bg-dark-bg/40 rounded-2xl border border-white/5 p-4 md:p-6 h-[320px] md:h-[380px] flex flex-col">
                                             <div className="flex items-center justify-between mb-6">
                                                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
                                                     <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -2094,7 +2094,7 @@ export const AdminDashboard = () => {
                             )}
 
                             {/* Status Filter Tabs */}
-                            <div className="px-6 py-4 border-b border-white/5 bg-white/[0.02] flex items-center gap-3">
+                            <div className="px-4 md:px-6 py-3 md:py-4 border-b border-white/5 bg-white/[0.02] flex items-center gap-2 md:gap-3 overflow-x-auto no-scrollbar">
                                 <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mr-2">Filtrele:</span>
                                 {[
                                     { key: '', label: 'Hepsi', color: 'gray' },
@@ -2122,7 +2122,7 @@ export const AdminDashboard = () => {
                             </div>
 
                             <div className="overflow-x-auto custom-scrollbar">
-                                <table className="w-full text-left">
+                                <table className="w-full text-left min-w-[700px]">
                                     <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                         <tr>
                                             <th className="p-4">Müşteri</th>
@@ -2261,9 +2261,9 @@ export const AdminDashboard = () => {
                                                                             return (
                                                                                 <div
                                                                                     key={ins.id}
-                                                                                    className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/5 transition-colors group/item"
+                                                                                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/5 transition-colors group/item gap-3"
                                                                                 >
-                                                                                    <div className="flex items-center gap-6">
+                                                                                    <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                                                                                         <div className="w-24">
                                                                                             <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Branş</div>
                                                                                             <div className="text-xs font-bold text-blue-400 uppercase">{ins.branch}</div>
@@ -2334,7 +2334,7 @@ export const AdminDashboard = () => {
 
                             {/* Pagination Controls */}
                             {insuranceData?.pagination && (insuranceData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
-                                <div className="p-4 border-t border-white/10 flex items-center justify-between">
+                                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
                                     <div className="text-sm text-gray-400">
                                         Sayfa {insurancePage} / {insuranceData?.pagination?.totalPages || 1} ({insuranceData?.pagination?.total || 0} kayit)
                                     </div>
@@ -2452,7 +2452,7 @@ export const AdminDashboard = () => {
                                 {/* Contact Info */}
                                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                                     <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Iletisim Bilgileri</h4>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                         <div><span className="text-gray-500">Ad Soyad:</span> <span className="text-white ml-2">{selectedFranchise.contactName}</span></div>
                                         <div><span className="text-gray-500">E-posta:</span> <span className="text-white ml-2">{selectedFranchise.contactEmail}</span></div>
                                         <div><span className="text-gray-500">Telefon:</span> <span className="text-white ml-2">{selectedFranchise.contactPhone}</span></div>
@@ -2463,7 +2463,7 @@ export const AdminDashboard = () => {
                                 {/* Location & Investment */}
                                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                                     <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Lokasyon & Yatirim</h4>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                         <div><span className="text-gray-500">Sehir:</span> <span className="text-white ml-2">{selectedFranchise.city || '-'}</span></div>
                                         <div><span className="text-gray-500">Bütçe:</span> <span className="text-white ml-2">{selectedFranchise.details?.investmentBudget || '-'}</span></div>
                                     </div>

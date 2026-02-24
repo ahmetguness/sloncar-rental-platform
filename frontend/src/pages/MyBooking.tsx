@@ -128,11 +128,11 @@ export const MyBooking = () => {
                     <div className="max-w-xl mx-auto text-center space-y-8">
                         {!booking && (
                             <div className="space-y-4 animate-fade-in-up">
-                                <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-xl">
+                                <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-xl">
                                     Rezervasyon <br />
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-neon-purple">Sorgulama</span>
                                 </h1>
-                                <p className="text-gray-400 text-lg font-light max-w-sm mx-auto">
+                                <p className="text-gray-400 text-base md:text-lg font-light max-w-sm mx-auto">
                                     PNR kodunuzu girerek seyahat detaylarınıza ulaşın.
                                 </p>
                             </div>
@@ -168,29 +168,31 @@ export const MyBooking = () => {
                 {booking && (
                     <div className="w-full max-w-7xl mx-auto animate-slide-up pb-20">
                         {/* Dashboard Header */}
-                        <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 border-b border-white/10 pb-6">
-                            <div>
-                                <div className="flex items-center gap-4 mb-2">
-                                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center p-2 shadow-lg border-2 border-white/10 shrink-0">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 border-b border-white/10 pb-6">
+                            <div className="w-full md:w-auto">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-2">
+                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center p-2 shadow-lg border-2 border-white/10 shrink-0">
                                         <BrandLogo name={booking.car?.brand || ''} url={booking.car?.brandLogo} className="w-full h-full" />
                                     </div>
-                                    <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight uppercase">
-                                        {booking.car?.brand} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-neon-purple">{booking.car?.model}</span>
-                                    </h1>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${booking.status === 'ACTIVE' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-primary-500/10 border-primary-500/20 text-primary-400'}`}>
-                                        {booking.status === 'ACTIVE' ? 'AKTİF SÜRÜŞ' : 'REZERVASYON'}
-                                    </span>
+                                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                                        <h1 className="text-2xl md:text-5xl font-black text-white tracking-tight uppercase">
+                                            {booking.car?.brand} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-neon-purple">{booking.car?.model}</span>
+                                        </h1>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${booking.status === 'ACTIVE' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-primary-500/10 border-primary-500/20 text-primary-400'}`}>
+                                            {booking.status === 'ACTIVE' ? 'AKTİF SÜRÜŞ' : 'REZERVASYON'}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-4 text-gray-400 text-sm font-mono">
-                                    <span className="bg-white/5 px-2 py-1 rounded">PNR: <span className="text-white font-bold tracking-widest">{booking.bookingCode}</span></span>
-                                    <span className="hidden md:inline">•</span>
-                                    <span>{new Date(booking.createdAt).toLocaleDateString('tr-TR')} tarihinde oluşturuldu</span>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-gray-400 text-xs sm:text-sm font-mono">
+                                    <span className="bg-white/5 px-2 py-1 rounded w-fit">PNR: <span className="text-white font-bold tracking-widest">{booking.bookingCode}</span></span>
+                                    <span className="hidden sm:inline">•</span>
+                                    <span className="text-xs">{new Date(booking.createdAt).toLocaleDateString('tr-TR')} tarihinde oluşturuldu</span>
                                 </div>
                             </div>
 
-                            <div className="text-right">
-                                <div className="text-3xl font-black text-white tracking-tight">{Number(booking.totalPrice).toLocaleString()} <span className="text-primary-500">₺</span></div>
-                                <div className="flex items-center justify-end gap-2 text-xs font-bold mt-1">
+                            <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-0 w-full md:w-auto justify-between md:justify-end">
+                                <div className="text-2xl md:text-3xl font-black text-white tracking-tight">{Number(booking.totalPrice).toLocaleString()} <span className="text-primary-500">₺</span></div>
+                                <div className="flex items-center gap-2 text-xs font-bold mt-0 sm:mt-1">
                                     {booking.paymentStatus === 'PAID' ?
                                         <span className="text-green-400 flex items-center gap-1"><CheckCircle size={12} /> ÖDENDİ</span> :
                                         <span className="text-yellow-400 flex items-center gap-1"><AlertCircle size={12} /> ÖDEME BEKLENİYOR</span>
@@ -201,51 +203,51 @@ export const MyBooking = () => {
 
                         {/* Active Booking Banner */}
                         {booking.status === 'ACTIVE' && (
-                            <div className="mb-8 p-6 bg-gradient-to-r from-green-500/10 to-green-500/5 border border-green-500/20 rounded-2xl flex items-center gap-5 shadow-[0_0_30px_rgba(34,197,94,0.1)] animate-in slide-in-from-top-4 duration-500">
+                            <div className="mb-6 md:mb-8 p-4 md:p-6 bg-gradient-to-r from-green-500/10 to-green-500/5 border border-green-500/20 rounded-2xl flex items-start md:items-center gap-3 md:gap-5 shadow-[0_0_30px_rgba(34,197,94,0.1)] animate-in slide-in-from-top-4 duration-500">
                                 <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center shrink-0 shadow-lg border border-green-500/30">
                                     <CheckCircle className="w-6 h-6 text-green-400" />
                                 </div>
                                 <div>
-                                    <h3 className="text-green-400 font-bold text-xl tracking-tight">Aracı Teslim Aldınız</h3>
-                                    <p className="text-gray-400 text-sm mt-1">Keyifli sürüşler dileriz. Sorularınız için 7/24 destek hattımızı arayabilirsiniz.</p>
+                                    <h3 className="text-green-400 font-bold text-base md:text-xl tracking-tight">Aracı Teslim Aldınız</h3>
+                                    <p className="text-gray-400 text-xs md:text-sm mt-1">Keyifli sürüşler dileriz. Sorularınız için 7/24 destek hattımızı arayabilirsiniz.</p>
                                 </div>
                             </div>
                         )}
 
                         {booking.status === 'COMPLETED' && (
-                            <div className="mb-8 p-6 bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-2xl flex items-center gap-5 shadow-[0_0_30px_rgba(59,130,246,0.1)] animate-in slide-in-from-top-4 duration-500">
+                            <div className="mb-6 md:mb-8 p-4 md:p-6 bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-2xl flex items-start md:items-center gap-3 md:gap-5 shadow-[0_0_30px_rgba(59,130,246,0.1)] animate-in slide-in-from-top-4 duration-500">
                                 <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 shadow-lg border border-blue-500/30">
                                     <CheckCircle className="w-6 h-6 text-blue-400" />
                                 </div>
                                 <div>
-                                    <h3 className="text-blue-400 font-bold text-xl tracking-tight">Kiralama Tamamlandı</h3>
-                                    <p className="text-gray-400 text-sm mt-1">Aracı başarıyla teslim ettiniz. Bizi tercih ettiğiniz için teşekkür ederiz.</p>
+                                    <h3 className="text-blue-400 font-bold text-base md:text-xl tracking-tight">Kiralama Tamamlandı</h3>
+                                    <p className="text-gray-400 text-xs md:text-sm mt-1">Aracı başarıyla teslim ettiniz. Bizi tercih ettiğiniz için teşekkür ederiz.</p>
                                 </div>
                             </div>
                         )}
 
                         {/* Ready for Pickup Banner */}
                         {booking.status === 'RESERVED' && booking.paymentStatus === 'PAID' && new Date() >= new Date(booking.pickupDate) && (
-                            <div className="mb-8 p-6 bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-2xl flex items-center gap-5 shadow-[0_0_30px_rgba(59,130,246,0.1)] animate-in slide-in-from-top-4 duration-500">
+                            <div className="mb-6 md:mb-8 p-4 md:p-6 bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-2xl flex items-start md:items-center gap-3 md:gap-5 shadow-[0_0_30px_rgba(59,130,246,0.1)] animate-in slide-in-from-top-4 duration-500">
                                 <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 shadow-lg border border-blue-500/30">
                                     <CarIcon className="w-6 h-6 text-blue-400" />
                                 </div>
                                 <div>
-                                    <h3 className="text-blue-400 font-bold text-xl tracking-tight">Aracınız Hazır</h3>
-                                    <p className="text-gray-400 text-sm mt-1">Teslim alma zamanınız geldi. Aracınızı teslim almak için bayimize gelebilirsiniz.</p>
+                                    <h3 className="text-blue-400 font-bold text-base md:text-xl tracking-tight">Aracınız Hazır</h3>
+                                    <p className="text-gray-400 text-xs md:text-sm mt-1">Teslim alma zamanınız geldi. Aracınızı teslim almak için bayimize gelebilirsiniz.</p>
                                 </div>
                             </div>
                         )}
 
                         {/* Cancelled Booking Banner */}
                         {booking.status === 'CANCELLED' && (
-                            <div className="mb-8 p-6 bg-gradient-to-r from-red-500/10 to-red-500/5 border border-red-500/20 rounded-2xl flex items-center gap-5 shadow-[0_0_30px_rgba(239,68,68,0.1)] animate-in slide-in-from-top-4 duration-500">
+                            <div className="mb-6 md:mb-8 p-4 md:p-6 bg-gradient-to-r from-red-500/10 to-red-500/5 border border-red-500/20 rounded-2xl flex items-start md:items-center gap-3 md:gap-5 shadow-[0_0_30px_rgba(239,68,68,0.1)] animate-in slide-in-from-top-4 duration-500">
                                 <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 shadow-lg border border-red-500/30">
                                     <AlertCircle className="w-6 h-6 text-red-400" />
                                 </div>
                                 <div>
-                                    <h3 className="text-red-400 font-bold text-xl tracking-tight">Rezervasyon İptal Edildi</h3>
-                                    <p className="text-gray-400 text-sm mt-1">Bu rezervasyon iptal edilmiştir. Detaylı bilgi için bizimle iletişime geçebilirsiniz.</p>
+                                    <h3 className="text-red-400 font-bold text-base md:text-xl tracking-tight">Rezervasyon İptal Edildi</h3>
+                                    <p className="text-gray-400 text-xs md:text-sm mt-1">Bu rezervasyon iptal edilmiştir. Detaylı bilgi için bizimle iletişime geçebilirsiniz.</p>
                                 </div>
                             </div>
                         )}

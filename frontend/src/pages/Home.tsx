@@ -253,7 +253,7 @@ export const Home = () => {
     return (
         <div className="space-y-12 pb-20 bg-dark-bg min-h-screen">
             {/* Hero Section */}
-            <section className="relative h-[700px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[88px]">
+            <section className="relative h-[500px] md:h-[700px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[88px]">
                 <div className="absolute inset-0 z-0">
                     <img
                         src="https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
@@ -266,7 +266,7 @@ export const Home = () => {
 
                 <div className="relative z-10 max-w-5xl mx-auto space-y-8">
                     <div className="animate-fade-in-up">
-                        <span className="inline-block py-1.5 px-4 rounded-full bg-primary-500/10 border border-primary-500/50 text-primary-300 text-sm font-bold tracking-[0.2em] uppercase backdrop-blur-md shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+                        <span className="inline-block py-1.5 px-3 md:px-4 rounded-full bg-primary-500/10 border border-primary-500/50 text-primary-300 text-[10px] md:text-sm font-bold tracking-wider md:tracking-[0.2em] uppercase backdrop-blur-md shadow-[0_0_20px_rgba(99,102,241,0.3)]">
                             Premium Kiralama Deneyimi
                         </span>
                     </div>
@@ -281,7 +281,7 @@ export const Home = () => {
                     <div className="animate-fade-in-up delay-300 pt-4">
                         <Button
                             onClick={() => document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' })}
-                            className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:shadow-[0_0_50px_rgba(99,102,241,0.7)] transition-all transform hover:scale-105 flex items-center gap-2 mx-auto"
+                            className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 md:px-8 md:py-4 rounded-full font-bold text-base md:text-lg shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:shadow-[0_0_50px_rgba(99,102,241,0.7)] transition-all transform hover:scale-105 flex items-center gap-2 mx-auto"
                         >
                             <Sparkles className="w-5 h-5" />
                             ARAÇLARI İNCELE
@@ -572,7 +572,7 @@ export const Home = () => {
             )}
 
             {/* Campaign Carousel */}
-            <div className="container mx-auto px-4 mt-12 md:mt-24">
+            <div className="container mx-auto px-4 mt-6 md:mt-24">
                 <CampaignCarousel />
             </div>
 
@@ -590,14 +590,14 @@ export const Home = () => {
                                 <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/90 to-transparent" />
                             </div>
                         )}
-                        <div className="relative z-10 p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="relative z-10 p-6 md:p-16 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
                             <div className="max-w-2xl space-y-6">
                                 {secondaryCampaign.tag && (
                                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-widest">
                                         <Sparkles className="w-3 h-3" /> {secondaryCampaign.tag}
                                     </div>
                                 )}
-                                <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight whitespace-pre-line">
+                                <h2 className="text-2xl md:text-5xl font-black text-white tracking-tight whitespace-pre-line">
                                     {secondaryCampaign.title}
                                 </h2>
                                 <p className="text-gray-400 text-lg leading-relaxed">
@@ -606,7 +606,7 @@ export const Home = () => {
                                 {secondaryCampaign.ctaLink && (
                                     <Button
                                         onClick={() => window.location.href = secondaryCampaign.ctaLink!}
-                                        className="bg-white text-gray-900 hover:bg-blue-50 text-base px-8 py-4 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 w-fit"
+                                        className="bg-white text-gray-900 hover:bg-blue-50 text-base px-8 py-4 rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 w-full md:w-fit"
                                     >
                                         {secondaryCampaign.ctaText || 'İNCELE'} <ChevronRight className="w-5 h-5" />
                                     </Button>
@@ -618,7 +618,7 @@ export const Home = () => {
             )}
 
             {/* Brand Carousel */}
-            <div className="container mx-auto px-6 mt-16 mb-0 relative group/carousel">
+            <div className="container mx-auto px-4 md:px-6 mt-10 md:mt-16 mb-0 relative group/carousel">
                 <div
                     className="relative flex items-center justify-center"
                     onMouseEnter={() => setIsPaused(true)}
@@ -689,7 +689,7 @@ export const Home = () => {
 
                 <div className="flex items-center justify-between mb-10">
                     <div>
-                        <h2 className="text-4xl font-black text-white tracking-tight">ARAÇ <span className="text-primary-500">FİLOSU</span></h2>
+                        <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight">ARAÇ <span className="text-primary-500">FİLOSU</span></h2>
                         <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
                     </div>
                 </div>
@@ -719,7 +719,7 @@ export const Home = () => {
                         </div>
 
                         {(page < pagination.totalPages || page > 1) && (
-                            <div className="mt-12 flex justify-center gap-4">
+                            <div className="mt-12 flex flex-col sm:flex-row justify-center gap-4">
                                 {page > 1 && (
                                     <Button
                                         onClick={() => {
