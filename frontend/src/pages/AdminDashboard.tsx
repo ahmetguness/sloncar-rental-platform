@@ -1003,7 +1003,10 @@ export const AdminDashboard = () => {
                                                 const expiringList = (stats?.latestExpiringInsurances || []).map(i => {
                                                     const today = new Date();
                                                     today.setHours(0, 0, 0, 0);
-                                                    const endDate = new Date(i.endDate);
+                                                    // Insurance policies are 1-year: endDate = startDate + 1 year
+                                                    const startDate = new Date(i.startDate);
+                                                    const endDate = new Date(startDate);
+                                                    endDate.setFullYear(endDate.getFullYear() + 1);
                                                     endDate.setHours(0, 0, 0, 0);
                                                     const diffTime = endDate.getTime() - today.getTime();
                                                     const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -1014,11 +1017,12 @@ export const AdminDashboard = () => {
                                                         originalId: i.id,
                                                         type: 'insurance',
                                                         title: 'Sigorta Süresi Uyarısı',
-                                                        desc: `${i.policyNumber} - ${statusText} - ${i.user?.name || i.fullName || ''}`,
-                                                        date: i.endDate,
+                                                        desc: `${i.fullName || i.user?.name || ''} - ${i.policyNo || ''} - ${statusText}`,
+                                                        date: endDate.toISOString(),
                                                         icon: <Shield size={16} />,
                                                         color: daysRemaining <= 0 ? 'red' : 'yellow',
-                                                        read: !!i.adminRead
+                                                        read: !!i.adminRead,
+                                                        insuranceData: i
                                                     };
                                                 });
 
@@ -1063,6 +1067,10 @@ export const AdminDashboard = () => {
                                                                 setActiveTab('insurance');
                                                                 setInsuranceSearchTerm('');
                                                                 setInsurancePage(1);
+                                                                // Open the insurance detail modal if data is available
+                                                                if ((item as any).insuranceData) {
+                                                                    setSelectedInsurance((item as any).insuranceData);
+                                                                }
                                                                 setTimeout(() => {
                                                                     const element = document.getElementById('insurance-section') || document.querySelector('.overflow-x-auto.custom-scrollbar table');
                                                                     if (element) element.scrollIntoView({ behavior: 'smooth' });
