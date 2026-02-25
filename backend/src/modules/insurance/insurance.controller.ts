@@ -31,6 +31,22 @@ export const insuranceController = {
         }
     },
 
+    updateInsurance: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.params.id) {
+                throw new Error('ID is required');
+            }
+            const insurance = await insuranceService.updateInsurance(req.params.id, req.body);
+            auditService.logAction(req.user?.userId, 'UPDATE_INSURANCE', { insuranceId: req.params.id, policyNumber: insurance.policyNo }, req);
+            res.json({
+                success: true,
+                data: insurance,
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+
     deleteInsurance: async (req: Request, res: Response, next: NextFunction) => {
         try {
             if (!req.params.id) {

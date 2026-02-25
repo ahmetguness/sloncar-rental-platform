@@ -117,9 +117,9 @@ export const AuditLogs = () => {
                         </Button>
                     </div>
                 ) : (
-                    <div className="bg-dark-surface rounded-xl border border-white/10 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left min-w-[700px]">
+                    <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)] w-full">
+                        <div className="overflow-x-auto w-full custom-scrollbar pb-4">
+                            <table className="w-full text-left min-w-[700px] md:min-w-full">
                                 <thead className="bg-white/5 border-b border-white/10">
                                     <tr>
                                         <th className="p-4 text-sm font-medium text-gray-400">Tarih</th>

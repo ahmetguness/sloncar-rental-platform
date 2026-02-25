@@ -724,29 +724,33 @@ export const AdminSaleCars = () => {
                                         <label className={labelClass}>Ekspertiz / Tramer Açıklaması</label>
                                         <textarea rows={2} className={inputClass} value={formData.accidentDescription} onChange={e => setFormData({ ...formData, accidentDescription: e.target.value })} placeholder="Hasar kaydı ve ekspertiz detayları..." />
                                     </div>
-                                    <div className="md:col-span-2">
+                                    <div className="md:col-span-2 bg-dark-bg p-4 rounded-xl border border-white/10">
                                         <label className={labelClass}>Görsel Hasar Kaydı (Parçalara Tıklayın)</label>
-                                        <CarDamageMap
-                                            changedParts={formData.changedParts.split(',').map(s => s.trim()).filter(Boolean)}
-                                            paintedParts={formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean)}
-                                            onChange={(partName, newState) => {
-                                                const changedArray = formData.changedParts.split(',').map(s => s.trim()).filter(Boolean);
-                                                const paintedArray = formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean);
+                                        <div className="w-full flex justify-center">
+                                            <div className="w-full max-w-2xl">
+                                                <CarDamageMap
+                                                    changedParts={formData.changedParts.split(',').map(s => s.trim()).filter(Boolean)}
+                                                    paintedParts={formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean)}
+                                                    onChange={(partName, newState) => {
+                                                        const changedArray = formData.changedParts.split(',').map(s => s.trim()).filter(Boolean);
+                                                        const paintedArray = formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean);
 
-                                                // Remove from both first
-                                                const newChanged = changedArray.filter(p => p !== partName);
-                                                const newPainted = paintedArray.filter(p => p !== partName);
+                                                        // Remove from both first
+                                                        const newChanged = changedArray.filter(p => p !== partName);
+                                                        const newPainted = paintedArray.filter(p => p !== partName);
 
-                                                if (newState === 'CHANGED') newChanged.push(partName);
-                                                if (newState === 'PAINTED') newPainted.push(partName);
+                                                        if (newState === 'CHANGED') newChanged.push(partName);
+                                                        if (newState === 'PAINTED') newPainted.push(partName);
 
-                                                setFormData({
-                                                    ...formData,
-                                                    changedParts: newChanged.join(', '),
-                                                    paintedParts: newPainted.join(', ')
-                                                });
-                                            }}
-                                        />
+                                                        setFormData({
+                                                            ...formData,
+                                                            changedParts: newChanged.join(', '),
+                                                            paintedParts: newPainted.join(', ')
+                                                        });
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="md:col-span-2">
                                         <label className={labelClass}>Ekstra Özellikler (Virgülle ayırın)</label>
@@ -768,182 +772,184 @@ export const AdminSaleCars = () => {
                 )}
 
                 {/* Cars Table */}
-                <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)] w-full">
                     <div className="p-4 sm:p-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div className="flex items-center gap-4">
                             <h2 className="text-xl font-bold text-white">Araç Listesi</h2>
                             <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">{totalCars} araç</span>
                         </div>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left min-w-[700px]">
-                            <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
-                                <tr>
-                                    <th className="p-4">Araç</th>
-                                    <th className="p-4">Plaka</th>
-                                    <th className="p-4">Kategori</th>
-                                    <th className="p-4">Vites / Yakıt</th>
-                                    <th className="p-4">Satış Fiyatı</th>
-                                    <th className="p-4">Durum</th>
-                                    <th className="p-4">İşlem</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {tableLoading ? (
-                                    Array.from({ length: 5 }).map((_, i) => (
-                                        <tr key={i}>
-                                            <td className="p-4"><Skeleton className="h-10 w-48" /></td>
-                                            <td className="p-4"><Skeleton className="h-8 w-24" /></td>
-                                            <td className="p-4"><Skeleton className="h-6 w-32" /></td>
-                                            <td className="p-4"><Skeleton className="h-6 w-32" /></td>
-                                            <td className="p-4"><Skeleton className="h-8 w-24" /></td>
-                                            <td className="p-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
-                                            <td className="p-4"><Skeleton className="h-8 w-16" /></td>
-                                        </tr>
-                                    ))
-                                ) : cars.length === 0 ? (
+                    <div className="overflow-x-auto w-full custom-scrollbar pb-4">
+                        <div className="overflow-x-auto custom-scrollbar w-full pb-4">
+                            <table className="w-full text-left min-w-[700px] md:min-w-full">
+                                <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                     <tr>
-                                        <td colSpan={7} className="p-12 text-center bg-dark-surface-lighter/50">
-                                            <div className="flex flex-col items-center justify-center p-8 rounded-3xl border border-white/5 bg-dark-bg/50 max-w-md mx-auto">
-                                                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10 shadow-inner">
-                                                    <CarIcon className="w-10 h-10 text-gray-500" />
-                                                </div>
-                                                <h3 className="text-xl font-bold text-white mb-2">Araç Bulunamadı</h3>
-                                                <p className="text-gray-400 text-sm mb-6">Aradığınız kriterlere uygun araç bulunamadı veya henüz araç eklenmemiş.</p>
-                                                <Button
-                                                    onClick={() => {
-                                                        setEditingCar(null);
-                                                        setFormData({ ...initialFormData, branchId: branches[0]?.id || '' });
-                                                        setShowForm(true);
-                                                    }}
-                                                    className="bg-primary-500/20 text-primary-400 hover:bg-primary-500 hover:text-white border border-primary-500/30 transition-all font-bold px-6"
-                                                >
-                                                    <Plus className="w-4 h-4 mr-2" />
-                                                    Yeni Araç Ekle
-                                                </Button>
-                                            </div>
-                                        </td>
+                                        <th className="p-4">Araç</th>
+                                        <th className="p-4">Plaka</th>
+                                        <th className="p-4">Kategori</th>
+                                        <th className="p-4">Vites / Yakıt</th>
+                                        <th className="p-4">Satış Fiyatı</th>
+                                        <th className="p-4">Durum</th>
+                                        <th className="p-4">İşlem</th>
                                     </tr>
-                                ) : (
-                                    cars.map(car => (
-                                        <tr key={car.id} className="hover:bg-white/5 transition-colors">
-                                            <td className="p-4">
-                                                <div className="flex items-center gap-3">
-                                                    <BrandLogo
-                                                        name={car.brand}
-                                                        url={car.brandLogo || brands.find(b => b.name === car.brand)?.logoUrl}
-                                                    />
-                                                    <div>
-                                                        <div className="font-medium text-white">{car.brand} {car.model}</div>
-                                                        <div className="text-xs text-gray-500">{car.year} • {car.color}</div>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    {tableLoading ? (
+                                        Array.from({ length: 5 }).map((_, i) => (
+                                            <tr key={i}>
+                                                <td className="p-4"><Skeleton className="h-10 w-48" /></td>
+                                                <td className="p-4"><Skeleton className="h-8 w-24" /></td>
+                                                <td className="p-4"><Skeleton className="h-6 w-32" /></td>
+                                                <td className="p-4"><Skeleton className="h-6 w-32" /></td>
+                                                <td className="p-4"><Skeleton className="h-8 w-24" /></td>
+                                                <td className="p-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                                                <td className="p-4"><Skeleton className="h-8 w-16" /></td>
+                                            </tr>
+                                        ))
+                                    ) : cars.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="p-12 text-center bg-dark-surface-lighter/50">
+                                                <div className="flex flex-col items-center justify-center p-8 rounded-3xl border border-white/5 bg-dark-bg/50 max-w-md mx-auto">
+                                                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10 shadow-inner">
+                                                        <CarIcon className="w-10 h-10 text-gray-500" />
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="p-4 font-mono text-primary-400">{car.plateNumber}</td>
-                                            <td className="p-4 text-gray-300">{translateCategory(car.category)}</td>
-                                            <td className="p-4 text-sm text-gray-400">
-                                                {car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'} / {translateFuel(car.fuel)}
-                                            </td>
-                                            <td className="p-4">
-                                                <div className="flex flex-col">
-                                                    <span className="font-bold text-green-400">{Number(car.salePrice).toLocaleString()} ₺</span>
-                                                    {car.isFeatured && (
-                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary-400 bg-primary-500/10 px-2 py-0.5 rounded-full w-fit mt-1 border border-primary-500/20">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
-                                                            ÖNE ÇIKAN
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="p-4">
-                                                <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${car.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                                    car.status === 'MAINTENANCE' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                                                        'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-                                                    }`}>
-                                                    {car.status === 'ACTIVE' ? 'Aktif' : car.status === 'MAINTENANCE' ? 'Bakımda' : 'Pasif'}
-                                                </span>
-                                            </td>
-                                            <td className="p-4">
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => handleEdit(car)}
-                                                        className="p-2 rounded-lg bg-primary-500/20 text-primary-400 border border-primary-500/30 hover:bg-primary-500/30 transition-all"
-                                                        title="Düzenle"
+                                                    <h3 className="text-xl font-bold text-white mb-2">Araç Bulunamadı</h3>
+                                                    <p className="text-gray-400 text-sm mb-6">Aradığınız kriterlere uygun araç bulunamadı veya henüz araç eklenmemiş.</p>
+                                                    <Button
+                                                        onClick={() => {
+                                                            setEditingCar(null);
+                                                            setFormData({ ...initialFormData, branchId: branches[0]?.id || '' });
+                                                            setShowForm(true);
+                                                        }}
+                                                        className="bg-primary-500/20 text-primary-400 hover:bg-primary-500 hover:text-white border border-primary-500/30 transition-all font-bold px-6"
                                                     >
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </button>
-                                                    {currentUser?.role === 'ADMIN' && (
-                                                        <button
-                                                            onClick={() => setDeleteId(car.id)}
-                                                            disabled={submitting}
-                                                            className="p-2 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
-                                                            title="Sil"
-                                                        >
-                                                            <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                                        </button>
-                                                    )}
+                                                        <Plus className="w-4 h-4 mr-2" />
+                                                        Yeni Araç Ekle
+                                                    </Button>
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Pagination Controls */}
-                    {totalCars > ITEMS_PER_PAGE && (
-                        <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-                            <div className="text-sm text-gray-400">
-                                Toplam {totalCars} araç, sayfa {currentPage} / {Math.ceil(totalCars / ITEMS_PER_PAGE)}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => handlePageChange(currentPage - 1)}
-                                    disabled={currentPage === 1 || tableLoading}
-                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
-                                    <ChevronLeft className="w-5 h-5" />
-                                </button>
-                                {/* Page Numbers */}
-                                <div className="flex gap-1">
-                                    {Array.from({ length: Math.min(5, Math.ceil(totalCars / ITEMS_PER_PAGE)) }, (_, i) => {
-                                        const totalPages = Math.ceil(totalCars / ITEMS_PER_PAGE);
-                                        let pageNum: number;
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage <= 3) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i;
-                                        } else {
-                                            pageNum = currentPage - 2 + i;
-                                        }
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => handlePageChange(pageNum)}
-                                                disabled={tableLoading}
-                                                className={`w-10 h-10 rounded-lg font-bold transition-all ${currentPage === pageNum
-                                                    ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
-                                                    : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50'
-                                                    }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <button
-                                    onClick={() => handlePageChange(currentPage + 1)}
-                                    disabled={currentPage >= Math.ceil(totalCars / ITEMS_PER_PAGE) || tableLoading}
-                                    className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
-                                    <ChevronRight className="w-5 h-5" />
-                                </button>
-                            </div>
+                                    ) : (
+                                        cars.map(car => (
+                                            <tr key={car.id} className="hover:bg-white/5 transition-colors">
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <BrandLogo
+                                                            name={car.brand}
+                                                            url={car.brandLogo || brands.find(b => b.name === car.brand)?.logoUrl}
+                                                        />
+                                                        <div>
+                                                            <div className="font-medium text-white">{car.brand} {car.model}</div>
+                                                            <div className="text-xs text-gray-500">{car.year} • {car.color}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 font-mono text-primary-400">{car.plateNumber}</td>
+                                                <td className="p-4 text-gray-300">{translateCategory(car.category)}</td>
+                                                <td className="p-4 text-sm text-gray-400">
+                                                    {car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'} / {translateFuel(car.fuel)}
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-green-400">{Number(car.salePrice).toLocaleString()} ₺</span>
+                                                        {car.isFeatured && (
+                                                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary-400 bg-primary-500/10 px-2 py-0.5 rounded-full w-fit mt-1 border border-primary-500/20">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+                                                                ÖNE ÇIKAN
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${car.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                                                        car.status === 'MAINTENANCE' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                                                            'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                                                        }`}>
+                                                        {car.status === 'ACTIVE' ? 'Aktif' : car.status === 'MAINTENANCE' ? 'Bakımda' : 'Pasif'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleEdit(car)}
+                                                            className="p-2 rounded-lg bg-primary-500/20 text-primary-400 border border-primary-500/30 hover:bg-primary-500/30 transition-all"
+                                                            title="Düzenle"
+                                                        >
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                        {currentUser?.role === 'ADMIN' && (
+                                                            <button
+                                                                onClick={() => setDeleteId(car.id)}
+                                                                disabled={submitting}
+                                                                className="p-2 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                                                                title="Sil"
+                                                            >
+                                                                <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
-                    )}
+
+                        {/* Pagination Controls */}
+                        {totalCars > ITEMS_PER_PAGE && (
+                            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <div className="text-sm text-gray-400">
+                                    Toplam {totalCars} araç, sayfa {currentPage} / {Math.ceil(totalCars / ITEMS_PER_PAGE)}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage === 1 || tableLoading}
+                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                    {/* Page Numbers */}
+                                    <div className="flex gap-1">
+                                        {Array.from({ length: Math.min(5, Math.ceil(totalCars / ITEMS_PER_PAGE)) }, (_, i) => {
+                                            const totalPages = Math.ceil(totalCars / ITEMS_PER_PAGE);
+                                            let pageNum: number;
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i;
+                                            } else {
+                                                pageNum = currentPage - 2 + i;
+                                            }
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => handlePageChange(pageNum)}
+                                                    disabled={tableLoading}
+                                                    className={`w-10 h-10 rounded-lg font-bold transition-all ${currentPage === pageNum
+                                                        ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
+                                                        : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50'
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage >= Math.ceil(totalCars / ITEMS_PER_PAGE) || tableLoading}
+                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

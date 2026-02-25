@@ -32,6 +32,14 @@ router.post(
     insuranceController.createInsurance
 );
 
+// Update insurance
+router.put(
+    '/:id',
+    authMiddleware,
+    adminGuard,
+    insuranceController.updateInsurance
+);
+
 // Delete insurance
 router.delete(
     '/:id',

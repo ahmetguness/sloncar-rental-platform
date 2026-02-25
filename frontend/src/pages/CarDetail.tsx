@@ -131,9 +131,9 @@ export const CarDetail = () => {
                             <h3 className="text-xl font-black text-white uppercase tracking-tight">Hasar <span className="text-primary-500">Durumu</span></h3>
                             <div className="h-px flex-1 bg-white/10" />
                         </div>
-                        <div className="bg-dark-surface/30 rounded-[2.5rem] p-6 sm:p-10 border border-white/5 flex items-center justify-center relative group">
+                        <div className="bg-dark-surface/30 rounded-[2.5rem] p-4 sm:p-10 border border-white/5 flex items-center justify-center relative group min-h-[400px] sm:min-h-[500px]">
                             <div className="absolute inset-0 bg-primary-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl rounded-full" />
-                            <div className="relative z-10 w-full max-w-sm">
+                            <div className="relative z-10 w-full max-w-[100vw] sm:max-w-2xl overflow-visible">
                                 <CarDamageMap
                                     changedParts={car.changedParts || []}
                                     paintedParts={car.paintedParts || []}

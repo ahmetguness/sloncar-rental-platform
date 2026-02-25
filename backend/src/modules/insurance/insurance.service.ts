@@ -1,6 +1,7 @@
 import { PrismaClient, Prisma, InsuranceBranch } from '@prisma/client';
 import ExcelJS from 'exceljs';
 import stream from 'stream';
+import { ApiError } from '../../middlewares/errorHandler.js';
 
 const prisma = new PrismaClient();
 
@@ -203,22 +204,53 @@ export const insuranceService = {
     },
 
     createInsurance: async (data: Prisma.InsuranceCreateInput) => {
-        return prisma.insurance.create({
-            data: {
-                ...data,
-                adminRead: true,
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        phone: true,
+        try {
+            return await prisma.insurance.create({
+                data: {
+                    ...data,
+                    adminRead: true,
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            phone: true,
+                        },
                     },
                 },
-            },
-        });
+            });
+        } catch (error: any) {
+            if (error.code === 'P2002' && error.meta?.target?.includes('policyNo')) {
+                throw ApiError.conflict('Bu poliçe numarasıyla zaten bir kayıt mevcut. Lütfen farklı bir poliçe numarası girin.');
+            }
+            throw error;
+        }
+    },
+
+    updateInsurance: async (id: string, data: Partial<Prisma.InsuranceUpdateInput>) => {
+        try {
+            return await prisma.insurance.update({
+                where: { id },
+                data,
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            phone: true,
+                        },
+                    },
+                },
+            });
+        } catch (error: any) {
+            if (error.code === 'P2002' && error.meta?.target?.includes('policyNo')) {
+                throw ApiError.conflict('Bu poliçe numarasıyla zaten bir kayıt mevcut. Lütfen farklı bir poliçe numarası girin.');
+            }
+            throw error;
+        }
     },
 
     deleteInsurance: async (id: string) => {

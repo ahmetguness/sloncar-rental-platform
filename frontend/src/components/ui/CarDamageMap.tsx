@@ -74,21 +74,21 @@ export const CarDamageMap: React.FC<CarDamageMapProps> = ({
             {/* Header Legend */}
             <div className="flex justify-center gap-6 items-center border-b border-white/5 pb-4">
                 <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-gray-800 border border-white/10" />
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Orijinal</span>
+                    <div className="w-5 h-5 rounded bg-gray-800 border border-white/10" />
+                    <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Orijinal</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-[#fbbf24] shadow-sm" />
-                    <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Boyalı</span>
+                    <div className="w-5 h-5 rounded bg-[#fbbf24] shadow-sm" />
+                    <span className="text-sm font-bold text-[#fbbf24] uppercase tracking-widest">Boyalı</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-[#ef4444] shadow-sm" />
-                    <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Değişen</span>
+                    <div className="w-5 h-5 rounded bg-[#ef4444] shadow-sm" />
+                    <span className="text-sm font-bold text-[#ef4444] uppercase tracking-widest">Değişen</span>
                 </div>
             </div>
 
-            <div className="relative aspect-[4/3] w-full max-w-[500px] mx-auto scale-90 sm:scale-100">
-                <svg viewBox="0 0 600 500" className="w-full h-full">
+            <div className="relative w-full max-w-[500px] mx-auto scale-125 sm:scale-100 my-12 sm:my-4 px-2 sm:px-0">
+                <svg viewBox="0 0 600 500" className="w-full h-full drop-shadow-lg">
                     {CAR_PARTS.map((part) => {
                         const styleInfo = getPartStyles(part.name);
                         const coords = part.path.match(/\d+/g)?.map(Number) || [0, 0, 0, 0];
@@ -117,11 +117,11 @@ export const CarDamageMap: React.FC<CarDamageMapProps> = ({
                                     textAnchor="middle"
                                     dominantBaseline="middle"
                                     fill={styleInfo.textFill}
-                                    className="font-black uppercase pointer-events-none select-none tracking-tighter"
-                                    style={{ fontSize: '11px' }}
+                                    className="font-black uppercase pointer-events-none select-none tracking-tight"
+                                    style={{ fontSize: '13px' }}
                                 >
                                     {part.name.split(' ').map((word, i) => (
-                                        <tspan x={x + w / 2} dy={i === 0 ? (part.name.includes(' ') ? -5 : 0) : 12} key={i}>{word}</tspan>
+                                        <tspan x={x + w / 2} dy={i === 0 ? (part.name.includes(' ') ? -6 : 0) : 15} key={i}>{word}</tspan>
                                     ))}
                                 </text>
                             </g>
@@ -129,9 +129,9 @@ export const CarDamageMap: React.FC<CarDamageMapProps> = ({
                     })}
 
                     {/* Decorative Arrows for orientation */}
-                    <g transform="translate(0, 10)">
-                        <path d="M 300 10 L 295 15 M 300 10 L 305 15" stroke="#4b5563" fill="none" />
-                        <text x="300" y="25" textAnchor="middle" className="text-[10px] fill-gray-500 font-bold uppercase tracking-widest">Aracın Önü</text>
+                    <g transform="translate(0, 5)">
+                        <path d="M 300 5 L 290 15 M 300 5 L 310 15" stroke="#6b7280" strokeWidth="2" fill="none" />
+                        <text x="300" y="30" textAnchor="middle" className="text-xs fill-gray-400 font-bold uppercase tracking-widest">Aracın Önü</text>
                     </g>
                 </svg>
             </div>

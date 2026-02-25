@@ -684,8 +684,8 @@ export const Home = () => {
 
             {/* Car Grid */}
             <section id="fleet" className="container mx-auto px-6 pt-12 scroll-mt-24 relative">
-                <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-primary-900/20 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
-                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-neon-purple/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
+                <div className="absolute top-1/2 left-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-primary-900/20 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-neon-purple/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
 
                 <div className="flex items-center justify-between mb-10">
                     <div>

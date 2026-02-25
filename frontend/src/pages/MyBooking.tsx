@@ -119,8 +119,8 @@ export const MyBooking = () => {
     return (
         <div className="min-h-screen pt-24 pb-20 relative overflow-hidden bg-dark-bg font-sans selection:bg-primary-500/30">
             {/* Dynamic Background Mesh Gradients */}
-            <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary-900/20 rounded-full blur-[128px] animate-pulse pointer-events-none duration-[4000ms]" />
-            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-neon-purple/10 rounded-full blur-[128px] animate-pulse pointer-events-none delay-1000 duration-[5000ms]" />
+            <div className="absolute top-0 left-1/4 w-64 h-64 md:w-[600px] md:h-[600px] bg-primary-900/20 rounded-full blur-[128px] animate-pulse pointer-events-none duration-[4000ms]" />
+            <div className="absolute bottom-0 right-1/4 w-64 h-64 md:w-[500px] md:h-[500px] bg-neon-purple/10 rounded-full blur-[128px] animate-pulse pointer-events-none delay-1000 duration-[5000ms]" />
 
             <div className="container mx-auto px-4 relative z-10">
                 {/* Search Section (Hero) */}

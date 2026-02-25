@@ -193,6 +193,10 @@ export const adminService = {
         const response = await api.post<{ success: boolean; data: any }>('/admin/insurances', data);
         return response.data.data;
     },
+    updateInsurance: async (id: string, data: any) => {
+        const response = await api.put<{ success: boolean; data: any }>(`/admin/insurances/${id}`, data);
+        return response.data.data;
+    },
     deleteInsurance: async (id: string) => {
         const response = await api.delete(`/admin/insurances/${id}`);
         return response.data;

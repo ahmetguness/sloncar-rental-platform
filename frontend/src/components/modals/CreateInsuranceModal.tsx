@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { adminService } from '../../services/api';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import { useToast } from '../ui/Toast';
 import { formatPhoneNumber, cleanPhoneNumber } from '../../utils/formatters';
-import { Loader2, User, Phone, Briefcase, Car, Search, X } from 'lucide-react';
+import { Loader2, User, Phone, Briefcase, Car, Search, X, AlertCircle } from 'lucide-react';
 import type { UserInsurance } from '../../services/types';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { tr } from 'date-fns/locale/tr';
@@ -18,7 +19,9 @@ interface CreateInsuranceModalProps {
 }
 
 const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, onSuccess }) => {
+    const { addToast } = useToast();
     const [loading, setLoading] = useState(false);
+    const [localError, setLocalError] = useState<string | null>(null);
     const [searchLoading, setSearchLoading] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -88,6 +91,7 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setLocalError(null);
         try {
             const dataToSubmit = {
                 ...formData,
@@ -95,10 +99,12 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                 amount: Number(formData.amount)
             };
             await adminService.createInsurance(dataToSubmit);
+            addToast('Sigorta başarıyla eklendi', 'success');
             onSuccess();
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
+            setLocalError(error.response?.data?.message || 'Sigorta eklenirken bir hata oluştu');
         } finally {
             setLoading(false);
         }
@@ -134,12 +140,18 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
     return (
         <Modal isOpen={true} onClose={onClose} title="Yeni Sigorta Ekle" size="lg">
             <form onSubmit={handleSubmit} className="space-y-6">
+                {localError && (
+                    <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-lg flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-red-500 text-sm font-medium">{localError}</p>
+                    </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Basic Info with Autocomplete */}
                     <div className="col-span-2 relative">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="relative">
-                                <label className="block text-sm font-medium text-gray-400 mb-1">İsim Soyisim</label>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">İsim Soyisim <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <input
                                         type="text"
@@ -155,12 +167,11 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-1">TC Kimlik No</label>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">TC Kimlik / VKN <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     name="tcNo"
                                     required
-                                    maxLength={11}
                                     autoComplete="off"
                                     className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500"
                                     onChange={handleChange}
@@ -215,19 +226,19 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
 
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">Sigorta Şirketi</label>
-                        <input type="text" name="company" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.company || ''} />
+                        <input type="text" name="company" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.company || ''} />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Poliçe No</label>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Poliçe No <span className="text-red-500">*</span></label>
                         <input type="text" name="policyNo" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.policyNo || ''} />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Poliçe Ayı (Örn: OCAK)</label>
-                        <input type="text" name="month" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white uppercase focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.month || ''} />
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Poliçe Ayı</label>
+                        <input type="text" name="month" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white uppercase focus:ring-2 focus:ring-blue-500" placeholder="Örn: OCAK" onChange={handleChange} value={formData.month || ''} />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Başlangıç Tarihi</label>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Başlangıç Tarihi <span className="text-red-500">*</span></label>
                         <DatePicker
                             selected={formData.startDate ? new Date(formData.startDate as string) : null}
                             onChange={(date: Date | null) => {
@@ -261,7 +272,7 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">Tutar (TL)</label>
-                        <input type="number" name="amount" required step="0.01" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.amount} />
+                        <input type="number" name="amount" step="0.01" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.amount} />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-2 p-4 bg-white/5 rounded-xl border border-white/5">

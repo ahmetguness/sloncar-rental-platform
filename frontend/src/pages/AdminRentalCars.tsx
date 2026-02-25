@@ -766,8 +766,8 @@ export const AdminRentalCars = () => {
                             <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">{totalCars} araç</span>
                         </div>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left min-w-[700px]">
+                    <div className="overflow-x-auto custom-scrollbar w-full pb-4">
+                        <table className="w-full text-left min-w-[700px] md:min-w-full">
                             <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                 <tr>
                                     <th className="p-4">Araç</th>

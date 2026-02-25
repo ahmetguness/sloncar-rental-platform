@@ -1014,8 +1014,8 @@ export const AdminDashboard = () => {
                                                         id: i.id + '_insurance',
                                                         originalId: i.id,
                                                         type: 'insurance',
-                                                        title: 'Sigorta Süresi Uyarısı',
-                                                        desc: `${i.fullName || i.user?.name || ''} - ${i.policyNo || ''} - ${statusText}`,
+                                                        title: `Sigorta Süresi Uyarısı (${statusText})`,
+                                                        desc: `${i.fullName || i.user?.name || ''} - Poliçe: ${i.policyNo || ''}`,
                                                         date: endDate.toISOString(),
                                                         icon: <Shield size={16} />,
                                                         color: daysRemaining <= 0 ? 'red' : 'yellow',
@@ -1599,8 +1599,8 @@ export const AdminDashboard = () => {
                             )}
 
 
-                            <div className="overflow-x-auto custom-scrollbar pb-4">
-                                <table className="w-full text-left min-w-[1200px]">
+                            <div className="overflow-x-auto w-full custom-scrollbar pb-4">
+                                <table className="w-full text-left min-w-[1000px] md:min-w-full">
                                     <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                         <tr>
                                             <th className="p-4 text-center">Kod</th>
@@ -1730,8 +1730,8 @@ export const AdminDashboard = () => {
                             </div>
 
 
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left min-w-[800px]">
+                            <div className="overflow-x-auto w-full custom-scrollbar pb-4">
+                                <table className="w-full text-left min-w-[800px] md:min-w-full">
                                     <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                         <tr>
                                             <th className="p-4">Basvuran</th>
@@ -2118,8 +2118,8 @@ export const AdminDashboard = () => {
                                 })}
                             </div>
 
-                            <div className="overflow-x-auto custom-scrollbar">
-                                <table className="w-full text-left min-w-[700px]">
+                            <div className="overflow-x-auto w-full custom-scrollbar">
+                                <table className="w-full text-left min-w-[700px] md:min-w-full">
                                     <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
                                         <tr>
                                             <th className="p-4">Müşteri</th>
@@ -2305,13 +2305,14 @@ export const AdminDashboard = () => {
                                                                                         <Button
                                                                                             size="sm"
                                                                                             variant="outline"
-                                                                                            className="h-8 w-8 p-0 border-transparent opacity-0 group-hover/item:opacity-100 transition-opacity hover:bg-white/10"
+                                                                                            className="h-8 px-3 border-transparent opacity-0 group-hover/item:opacity-100 transition-opacity bg-white/5 hover:bg-white/10 text-white text-xs font-semibold flex items-center gap-1.5"
                                                                                             onClick={(e) => {
                                                                                                 e.stopPropagation();
                                                                                                 setSelectedInsurance(ins);
                                                                                             }}
                                                                                         >
-                                                                                            <ArrowRight className="w-4 h-4" />
+                                                                                            <span>Detaylar</span>
+                                                                                            <ArrowRight className="w-3.5 h-3.5" />
                                                                                         </Button>
                                                                                     </div>
                                                                                 </div>

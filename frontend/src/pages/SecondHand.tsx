@@ -95,8 +95,8 @@ export const SecondHand = () => {
                 id="fleet"
                 className="container mx-auto px-3 sm:px-6 pt-12 scroll-mt-24 relative"
             >
-                <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-blue-900/20 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
-                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-900/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
+                <div className="absolute top-1/2 left-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-blue-900/20 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-cyan-900/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
 
                 <div className="flex items-center justify-between mb-10">
                     <div>
