@@ -49,7 +49,7 @@ export const AuditLogs = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg p-3 sm:p-6 text-white pt-24">
+        <div className="min-h-screen bg-dark-bg px-3 sm:px-6 text-white pt-24 pb-12">
             <div className="container mx-auto">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">

@@ -154,7 +154,7 @@ export const AdminCampaigns = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg p-3 sm:p-6 pt-24 pb-20">
+        <div className="min-h-screen bg-dark-bg px-3 sm:px-6 pt-24 pb-20">
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

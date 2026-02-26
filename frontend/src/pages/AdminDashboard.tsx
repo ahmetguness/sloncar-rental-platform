@@ -10,7 +10,7 @@ import { adminService } from '../services/api';
 import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Banknote } from 'lucide-react';
 
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -858,7 +858,7 @@ export const AdminDashboard = () => {
                             </button>
 
                             {isSystemMenuOpen && (
-                                <div className="absolute top-full mt-2 right-0 w-48 bg-[#1a1b26] border border-white/10 rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute top-full mt-2 right-0 w-48 bg-[#1a1b26] border border-white/10 rounded-xl shadow-xl overflow-hidden z-[70] animate-in fade-in zoom-in-95 duration-200">
                                     <div className="p-1">
                                         {currentUser?.role === 'ADMIN' && (
                                             <>
@@ -933,7 +933,7 @@ export const AdminDashboard = () => {
 
                                 {/* Notification Dropdown */}
                                 {showNotifications && (
-                                    <div className="fixed inset-x-3 top-20 sm:inset-x-auto sm:top-auto sm:absolute sm:right-0 sm:mt-4 sm:w-96 bg-dark-surface border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                                    <div className="fixed inset-x-3 top-20 sm:inset-x-auto sm:top-auto sm:absolute sm:right-0 sm:mt-4 sm:w-96 bg-dark-surface border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[70] animate-in fade-in slide-in-from-top-2">
                                         <div className="p-3 sm:p-4 border-b border-white/5 flex items-center justify-between">
                                             <h3 className="font-bold text-white text-sm sm:text-base">Bildirimler</h3>
                                             <div className="flex items-center gap-2">
@@ -1131,7 +1131,7 @@ export const AdminDashboard = () => {
                     <StatCard
                         title="Toplam Ciro"
                         value={`${(stats?.totalRevenue || 0).toLocaleString()} ₺`}
-                        icon={<span className="text-2xl font-bold">?</span>}
+                        icon={<Banknote className="w-6 h-6" />}
                         color="green"
                         trend="%12.5"
                         trendUp={true}
@@ -1171,41 +1171,49 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="relative flex items-center bg-dark-surface-lighter/40 backdrop-blur-2xl rounded-2xl p-1.5 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.3)] overflow-x-auto no-scrollbar">
-                    {([
-                        { key: 'overview', label: 'Genel Bakis', icon: <TrendingUp className="w-4 h-4" />, count: null },
-                        { key: 'bookings', label: 'Rezervasyonlar', icon: <Calendar className="w-4 h-4" />, count: stats?.totalBookings || null },
-                        { key: 'franchise', label: 'Franchise', icon: <Building2 className="w-4 h-4" />, count: stats?.pendingFranchiseApplications || null },
-                        { key: 'insurance', label: 'Sigorta', icon: <Shield className="w-4 h-4" />, count: stats?.totalInsurances || null },
-                    ] as const).map((tab) => {
-                        const isActive = activeTab === tab.key;
-                        return (
-                            <button
-                                key={tab.key}
-                                onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                                className={`relative flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 ease-out whitespace-nowrap ${isActive
-                                    ? 'bg-gradient-to-r from-primary-500 to-indigo-500 text-white shadow-[0_4px_20px_rgba(99,102,241,0.4),inset_0_1px_0_rgba(255,255,255,0.15)]'
-                                    : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
-                                    }`}
-                            >
-                                <span className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'scale-100'}`}>
-                                    {tab.icon}
-                                </span>
-                                <span>{tab.label}</span>
-                                {tab.count !== null && tab.count > 0 && (
-                                    <span className={`ml-0.5 min-w-[20px] h-5 flex items-center justify-center text-[11px] font-bold rounded-full px-1.5 transition-all duration-300 ${isActive
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-white/[0.08] text-gray-400'
-                                        }`}>
-                                        {tab.count}
+                <div className="sticky top-4 md:top-6 z-[60] w-full flex justify-center mb-6 px-1 sm:px-4 transform-gpu">
+                    {/* Background mask for smooth scrolling effect hiding elements under */}
+                    <div className="absolute -top-6 -inset-x-10 h-32 bg-gradient-to-b from-dark-bg via-dark-bg/95 to-transparent pointer-events-none -z-10" />
+
+                    <div className="relative flex items-center bg-[#1a1b26]/80 backdrop-blur-2xl rounded-2xl md:rounded-[1.25rem] p-1.5 md:p-2 border border-white/[0.08] shadow-[0_8px_30px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-x-auto no-scrollbar w-full md:w-auto justify-start md:justify-center ring-1 ring-black/20">
+                        {([
+                            { key: 'overview', label: 'Genel Bakis', icon: <TrendingUp className="w-4 h-4" />, count: null },
+                            { key: 'bookings', label: 'Rezervasyonlar', icon: <Calendar className="w-4 h-4" />, count: stats?.totalBookings || null },
+                            { key: 'franchise', label: 'Franchise', icon: <Building2 className="w-4 h-4" />, count: stats?.pendingFranchiseApplications || null },
+                            { key: 'insurance', label: 'Sigorta', icon: <Shield className="w-4 h-4" />, count: stats?.totalInsurances || null },
+                        ] as const).map((tab) => {
+                            const isActive = activeTab === tab.key;
+                            return (
+                                <button
+                                    key={tab.key}
+                                    onClick={() => {
+                                        setActiveTab(tab.key as typeof activeTab);
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    className={`relative flex items-center gap-2 px-4 md:px-7 py-2.5 md:py-3.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 ease-out whitespace-nowrap overflow-hidden ${isActive
+                                        ? 'bg-gradient-to-r from-primary-500 to-indigo-500 text-white shadow-[0_4px_20px_rgba(99,102,241,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] scale-[1.02]'
+                                        : 'text-gray-400 hover:text-white hover:bg-white/[0.06] hover:scale-[1.02]'
+                                        }`}
+                                >
+                                    <span className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'scale-100'}`}>
+                                        {tab.icon}
                                     </span>
-                                )}
-                                {isActive && (
-                                    <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary-400 rounded-full blur-[2px]" />
-                                )}
-                            </button>
-                        );
-                    })}
+                                    <span>{tab.label}</span>
+                                    {tab.count !== null && tab.count > 0 && (
+                                        <span className={`ml-0.5 min-w-[20px] h-5 flex items-center justify-center text-[11px] font-bold rounded-full px-1.5 transition-all duration-300 ${isActive
+                                            ? 'bg-white/20 text-white'
+                                            : 'bg-white/[0.08] text-gray-400'
+                                            }`}>
+                                            {tab.count}
+                                        </span>
+                                    )}
+                                    {isActive && (
+                                        <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary-400 rounded-full blur-[2px]" />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* Revenue Analytics Section */}
