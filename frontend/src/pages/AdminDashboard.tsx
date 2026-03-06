@@ -1284,7 +1284,7 @@ export const AdminDashboard = () => {
                                                             // 1. Add Title
                                                             worksheet.mergeCells('A1:E1');
                                                             const titleCell = worksheet.getCell('A1');
-                                                            titleCell.value = `SlonCar Gelir Raporu (${selectedYear}) - ${chartView === 'weekly' ? 'Haftalik' : chartView === 'monthly' ? 'Aylik' : 'Yillik'}`;
+                                                            titleCell.value = `Yaman Filo Gelir Raporu (${selectedYear}) - ${chartView === 'weekly' ? 'Haftalik' : chartView === 'monthly' ? 'Aylik' : 'Yillik'}`;
                                                             titleCell.font = { name: 'Arial', family: 4, size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
                                                             titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } };
                                                             titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -1373,7 +1373,7 @@ export const AdminDashboard = () => {
 
                                                             // Generate Buffer
                                                             const buffer = await workbook.xlsx.writeBuffer();
-                                                            saveAs(new Blob([buffer]), `SlonCar_Gelir_Raporu_${selectedYear}.xlsx`);
+                                                            saveAs(new Blob([buffer]), `Yaman_Filo_Gelir_Raporu_${selectedYear}.xlsx`);
                                                         }}
                                                         className="p-2.5 rounded-xl bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all"
                                                         title="Excel Indir (Grafikli)"

@@ -253,35 +253,34 @@ export const Home = () => {
     return (
         <div className="space-y-12 pb-20 bg-dark-bg min-h-screen">
             {/* Hero Section */}
-            <section className="relative h-[500px] md:h-[700px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[88px]">
-                <div className="absolute inset-0 z-0">
+            <section className="relative min-h-[600px] md:min-h-[800px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[88px]">
+                <div className="absolute inset-0 z-0 bg-dark-bg">
                     <img
-                        src="https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
-                        alt="Luxury Car Dark"
-                        className="w-full h-full object-cover"
+                        src="/hero-car.png"
+                        alt="Cinematic Premium Car"
+                        className="w-full h-full object-cover md:object-[60%_center] opacity-100"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/80 to-primary-900/40 mix-blend-multiply" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-dark-bg/90 via-transparent to-dark-bg/90" />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.85) 100%)' }} />
                 </div>
 
-                <div className="relative z-10 max-w-5xl mx-auto space-y-8">
+                <div className="relative z-10 max-w-5xl mx-auto space-y-8 mt-12">
                     <div className="animate-fade-in-up">
-                        <span className="inline-block py-1.5 px-3 md:px-4 rounded-full bg-primary-500/10 border border-primary-500/50 text-primary-300 text-[10px] md:text-sm font-bold tracking-wider md:tracking-[0.2em] uppercase backdrop-blur-md shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+                        <span className="inline-block py-1.5 px-3 md:px-4 rounded-full bg-black/30 border border-white/20 text-white text-[10px] md:text-sm font-bold tracking-wider md:tracking-[0.2em] uppercase backdrop-blur-md">
                             Premium Kiralama Deneyimi
                         </span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl lg:text-8xl font-black text-white tracking-tighter leading-none animate-fade-in-up delay-100 drop-shadow-2xl">
+                    <h1 className="text-4xl md:text-6xl lg:text-8xl font-black text-white tracking-tighter leading-none animate-fade-in-up delay-100 drop-shadow-[0_4px_24px_rgba(0,0,0,1)]">
                         YOLCULUĞUN <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-neon-purple text-glow">GELECEĞİNİ</span> SÜR
+                        <span className="text-primary-500">GELECEĞİNİ</span> SÜR
                     </h1>
-                    <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed font-light animate-fade-in-up delay-200">
-                        Sıradan olanı reddet. SlonCar ile en prestijli araçları, en zahmetsiz deneyimle keşfet.
+                    <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto leading-relaxed font-light animate-fade-in-up delay-200 drop-shadow-md">
+                        Sıradan olanı reddet. Yaman Filo ile prestijli araçları en zahmetsiz deneyimle keşfet.
                     </p>
 
-                    <div className="animate-fade-in-up delay-300 pt-4">
+                    <div className="animate-fade-in-up delay-300 pt-4 mb-[80px] md:mb-[120px]">
                         <Button
                             onClick={() => document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' })}
-                            className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 md:px-8 md:py-4 rounded-full font-bold text-base md:text-lg shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:shadow-[0_0_50px_rgba(99,102,241,0.7)] transition-all transform hover:scale-105 flex items-center gap-2 mx-auto"
+                            className="bg-gradient-to-r from-primary-500 to-neon-purple text-white px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-[0_0_24px_rgba(193,18,31,0.45)] hover:shadow-[0_0_36px_rgba(193,18,31,0.65)] hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 mx-auto"
                         >
                             <Sparkles className="w-5 h-5" />
                             ARAÇLARI İNCELE
@@ -292,7 +291,15 @@ export const Home = () => {
 
             {/* Floating Search Bar (Desktop) */}
             <div className="relative z-20 container mx-auto px-4 -mt-24 hidden md:block">
-                <div className="max-w-6xl mx-auto bg-dark-surface-lighter/80 backdrop-blur-xl rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] p-8 border border-white/10">
+                <div
+                    className="max-w-6xl mx-auto p-8 rounded-[16px]"
+                    style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        backdropFilter: 'blur(12px)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        boxShadow: '0 24px 64px rgba(0,0,0,0.7)'
+                    }}
+                >
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div className="flex flex-col group">
@@ -307,7 +314,7 @@ export const Home = () => {
                                     dateFormat="dd/MM/yyyy"
                                     locale="tr"
                                     placeholderText="Seçiniz"
-                                    className="w-full px-4 py-3 bg-dark-bg border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-white placeholder-gray-600 font-medium"
+                                    className="w-full px-4 py-3 bg-dark-bg/60 border border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-white placeholder-gray-500 font-medium"
                                     minDate={new Date()}
                                     wrapperClassName="w-full"
                                 />
@@ -326,7 +333,7 @@ export const Home = () => {
                                     dateFormat="dd/MM/yyyy"
                                     locale="tr"
                                     placeholderText="Seçiniz"
-                                    className="w-full px-4 py-3 bg-dark-bg border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-white placeholder-gray-600 font-medium"
+                                    className="w-full px-4 py-3 bg-dark-bg/60 border border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-white placeholder-gray-500 font-medium"
                                     minDate={parseDateString(filters.pickupDate) || new Date()}
                                     wrapperClassName="w-full"
                                 />
@@ -334,7 +341,7 @@ export const Home = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end border-t border-white/5 pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-end border-t border-white/5 pt-6">
                         <div className="md:col-span-3">
                             <Input
                                 label="Marka / Model"
@@ -342,7 +349,7 @@ export const Home = () => {
                                 placeholder="Örn: BMW"
                                 value={filters.brand}
                                 onChange={handleFilterChange}
-                                className="bg-dark-bg border-white/10 text-white placeholder-gray-600 focus:border-primary-500"
+                                className="bg-dark-bg/60 border-white/10 text-white placeholder-gray-500 focus:border-primary-500 rounded-2xl h-[46px]"
                             />
                         </div>
 
@@ -350,7 +357,7 @@ export const Home = () => {
                             <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">Kategori</label>
                             <select
                                 name="category"
-                                className="w-full px-4 py-3 bg-dark-bg border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow text-white appearance-none"
+                                className="w-full px-4 py-3 bg-dark-bg/60 border border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow text-white appearance-none h-[46px]"
                                 value={filters.category}
                                 onChange={handleFilterChange}
                             >
@@ -373,7 +380,7 @@ export const Home = () => {
                                 placeholder="0"
                                 value={filters.minPrice}
                                 onChange={handleFilterChange}
-                                className="bg-dark-bg border-white/10 text-white placeholder-gray-600 focus:border-primary-500"
+                                className="bg-dark-bg/60 border-white/10 text-white placeholder-gray-500 focus:border-primary-500 rounded-2xl h-[46px]"
                                 step="100"
                             />
                         </div>
@@ -386,13 +393,13 @@ export const Home = () => {
                                 placeholder="Max"
                                 value={filters.maxPrice}
                                 onChange={handleFilterChange}
-                                className="bg-dark-bg border-white/10 text-white placeholder-gray-600 focus:border-primary-500"
+                                className="bg-dark-bg/60 border-white/10 text-white placeholder-gray-500 focus:border-primary-500 rounded-2xl h-[46px]"
                                 step="100"
                             />
                         </div>
 
                         <div className="md:col-span-2 flex gap-2">
-                            <Button onClick={() => fetchCars(1, false)} className="flex-1 h-[46px] text-base font-bold bg-white text-dark-bg hover:bg-primary-500 hover:text-white hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] transition-all">
+                            <Button onClick={() => fetchCars(1, false)} className="flex-1 h-[46px] text-base font-bold bg-white text-dark-bg hover:bg-gray-200 hover:shadow-lg transition-all rounded-2xl hover:-translate-y-0.5">
                                 <Search className="w-5 h-5 mr-2" /> BUL
                             </Button>
                             {Object.values(filters).some(x => x !== '') && (
@@ -407,7 +414,7 @@ export const Home = () => {
                                             });
                                         }, 0);
                                     }}
-                                    className="h-[46px] px-4 bg-dark-bg text-gray-400 border border-white/10 hover:border-red-500/50 hover:text-red-500 hover:bg-red-500/10 transition-all group"
+                                    className="h-[46px] px-4 bg-dark-bg/60 text-gray-400 border border-white/10 hover:border-primary-500 hover:text-primary-500 hover:bg-primary-500/10 transition-all group rounded-2xl hover:-translate-y-0.5"
                                     title="Filtreleri Temizle"
                                 >
                                     <RotateCcw className="w-5 h-5 group-hover:-rotate-180 transition-transform duration-500" />
@@ -464,7 +471,7 @@ export const Home = () => {
                                     dateFormat="dd/MM/yyyy"
                                     locale="tr"
                                     placeholderText="Seçiniz"
-                                    className="w-full px-4 py-4 bg-dark-surface border border-white/10 rounded-xl text-white font-medium text-lg"
+                                    className="w-full px-4 py-4 bg-dark-surface border border-white/10 rounded-2xl text-white font-medium text-lg"
                                     minDate={new Date()}
                                     withPortal
                                 />
@@ -480,7 +487,7 @@ export const Home = () => {
                                     dateFormat="dd/MM/yyyy"
                                     locale="tr"
                                     placeholderText="Seçiniz"
-                                    className="w-full px-4 py-4 bg-dark-surface border border-white/10 rounded-xl text-white font-medium text-lg"
+                                    className="w-full px-4 py-4 bg-dark-surface border border-white/10 rounded-2xl text-white font-medium text-lg"
                                     minDate={parseDateString(filters.pickupDate) || new Date()}
                                     withPortal
                                 />
@@ -501,7 +508,7 @@ export const Home = () => {
                                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wide">Kategori</label>
                                 <select
                                     name="category"
-                                    className="w-full px-4 py-3 bg-dark-surface border border-white/10 rounded-xl text-white appearance-none h-12"
+                                    className="w-full px-4 py-3 bg-dark-surface border border-white/10 rounded-2xl text-white appearance-none h-12"
                                     value={filters.category}
                                     onChange={handleFilterChange}
                                 >
@@ -545,7 +552,7 @@ export const Home = () => {
                                 fetchCars(1, false);
                                 setIsMobileSearchOpen(false);
                             }}
-                            className="w-full h-14 text-lg font-bold bg-primary-600 text-white hover:bg-primary-500 shadow-lg shadow-primary-500/30 rounded-xl flex items-center justify-center gap-2"
+                            className="w-full h-14 text-lg font-bold bg-primary-600 text-white hover:bg-primary-500 shadow-lg shadow-primary-500/30 rounded-2xl flex items-center justify-center gap-2"
                         >
                             <Search className="w-5 h-5" /> SONUÇLARI GÖSTER
                         </Button>
@@ -606,7 +613,7 @@ export const Home = () => {
                                 {secondaryCampaign.ctaLink && (
                                     <Button
                                         onClick={() => window.location.href = secondaryCampaign.ctaLink!}
-                                        className="bg-white text-gray-900 hover:bg-blue-50 text-base px-8 py-4 rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 w-full md:w-fit"
+                                        className="bg-white text-gray-900 hover:bg-blue-50 text-base px-8 py-4 rounded-2xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 w-full md:w-fit"
                                     >
                                         {secondaryCampaign.ctaText || 'İNCELE'} <ChevronRight className="w-5 h-5" />
                                     </Button>
@@ -659,7 +666,7 @@ export const Home = () => {
                                         ? 'bg-primary-500/10 border-primary-500 shadow-[0_0_20px_rgba(99,102,241,0.3)] scale-110'
                                         : 'bg-dark-surface-lighter border-white/5 hover:border-primary-500/50 hover:bg-dark-surface-lighter/80 hover:scale-105'}`}
                             >
-                                <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl flex items-center justify-center mb-3 p-2 shadow-inner transition-transform group-hover:scale-110">
+                                <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center mb-3 p-2 shadow-inner transition-transform group-hover:scale-110">
                                     <img
                                         src={brand.logoUrl}
                                         alt={brand.name}
@@ -727,7 +734,7 @@ export const Home = () => {
                                             document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' });
                                         }}
                                         disabled={loading}
-                                        className="bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white px-8 py-4 rounded-xl font-bold transition-all flex items-center gap-2"
+                                        className="bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white px-8 py-4 rounded-2xl font-bold transition-all flex items-center gap-2"
                                     >
                                         <Minus className="w-5 h-5" /> DAHA AZ GÖSTER
                                     </Button>
@@ -737,7 +744,7 @@ export const Home = () => {
                                     <Button
                                         onClick={() => fetchCars(page + 1, true)}
                                         disabled={loading}
-                                        className="bg-dark-surface-lighter border border-white/10 text-white hover:bg-primary-500 px-8 py-4 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2"
+                                        className="bg-dark-surface-lighter border border-white/10 text-white hover:bg-primary-500 px-8 py-4 rounded-2xl font-bold transition-all shadow-lg flex items-center gap-2"
                                     >
                                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
                                         DAHA FAZLA GÖSTER

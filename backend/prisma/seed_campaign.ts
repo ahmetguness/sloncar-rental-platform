@@ -8,7 +8,7 @@ async function main() {
     const campaign = await prisma.campaign.create({
         data: {
             title: 'SADECE KİRALAMA,\nSAHİP OL.',
-            description: 'SlonCar güvencesiyle, bakımlı ve ekspertiz garantili 2. el lüks araçlarımız satışta. Hayalinizdeki araca hemen ulaşın.',
+            description: 'Yaman Filo güvencesiyle, bakımlı ve ekspertiz garantili 2. el lüks araçlarımız satışta. Hayalinizdeki araca hemen ulaşın.',
             imageUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
             tag: 'YENİ HİZMET',
             requiredCondition: 'HAS_SALE_CARS',

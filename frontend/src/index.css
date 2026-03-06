@@ -7,47 +7,63 @@
     --animate-slide-up: slide-up 0.3s ease-out forwards;
     --animate-zoom-in: zoom-in 0.2s ease-out forwards;
     --animate-fade-in: fade-in 0.2s ease-out forwards;
-    
+
     @keyframes slide-up {
-        from { transform: translateY(100%); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
-    
+
     @keyframes zoom-in {
-        from { transform: scale(0.95); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
+        from {
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
     }
 
     @keyframes fade-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
     }
 
-    /* SlonCar Neon Blue/Purple Palette */
-    --color-primary-50: #eef2ff;
-    --color-primary-100: #e0e7ff;
-    --color-primary-200: #c7d2fe;
-    --color-primary-300: #a5b4fc;
-    --color-primary-400: #818cf8;
-    --color-primary-500: #6366f1;
-    /* Indigo-500 */
-    --color-primary-600: #4f46e5;
-    --color-primary-700: #4338ca;
-    --color-primary-800: #3730a3;
-    --color-primary-900: #312e81;
-    --color-primary-950: #1e1b4b;
+    /* Yaman Filo Red/Grey Palette */
+    --color-primary-50: #fdf2f3;
+    --color-primary-100: #fbe5e6;
+    --color-primary-200: #f6caca;
+    --color-primary-300: #f1afb0;
+    --color-primary-400: #eb9496;
+    --color-primary-500: #c1121f;
+    /* Brand Red */
+    --color-primary-600: #a50f1a;
+    --color-primary-700: #8a0d16;
+    --color-primary-800: #6e0a11;
+    --color-primary-900: #53080d;
+    --color-primary-950: #370508;
 
-    /* Secondary Neon Accents */
-    --color-neon-blue: #00f0ff;
-    --color-neon-purple: #bc13fe;
+    /* Secondary Accents */
+    --color-neon-blue: #e5e5e5;
+    --color-neon-purple: #e5383b;
 
     /* Dark Surface Colors */
-    --color-dark-bg: #020617;
-    /* Slate 950 */
-    --color-dark-surface: #0f172a;
-    /* Slate 900 */
-    --color-dark-surface-lighter: #1e293b;
-    /* Slate 800 */
+    --color-dark-bg: #0d0d0d;
+    --color-dark-surface: #1e1e1e;
+    --color-dark-surface-lighter: #2a2a2a;
 }
 
 @layer base {
@@ -73,15 +89,15 @@
 /* React DatePicker Dark Theme Overrides */
 .react-datepicker {
     font-family: 'Outfit', sans-serif !important;
-    background-color: #1e293b !important;
-    /* Slate 800 */
+    background-color: #1e1e1e !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: white !important;
+    border-radius: 16px !important;
+    overflow: hidden;
 }
 
 .react-datepicker__header {
-    background-color: #0f172a !important;
-    /* Slate 900 */
+    background-color: #0d0d0d !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
@@ -92,18 +108,20 @@
 }
 
 .react-datepicker__day:hover {
-    background-color: #6366f1 !important;
-    /* Primary 500 */
+    background-color: #c1121f !important;
     color: white !important;
+    border-radius: 8px !important;
 }
 
 .react-datepicker__day--selected {
-    background-color: #4f46e5 !important;
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+    background-color: #c1121f !important;
+    box-shadow: 0 0 10px rgba(193, 18, 31, 0.5);
+    border-radius: 8px !important;
 }
 
 .react-datepicker__day--keyboard-selected {
-    background-color: #4338ca !important;
+    background-color: #8a0d16 !important;
+    border-radius: 8px !important;
 }
 
 .react-datepicker__triangle {
@@ -115,11 +133,10 @@
 }
 
 .react-datepicker__day--disabled {
-    color: #ef4444 !important;
-    /* Red-500 */
+    color: #8a0d16 !important;
     text-decoration: line-through;
     opacity: 0.5;
-    background-color: rgba(239, 68, 68, 0.1);
+    background-color: rgba(193, 18, 31, 0.1);
     cursor: not-allowed;
 }
 
@@ -127,6 +144,7 @@
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
+
 .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;

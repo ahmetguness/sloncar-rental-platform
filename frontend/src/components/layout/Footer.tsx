@@ -17,8 +17,8 @@ export const Footer = () => {
                 {/* Brand Section - Takes 4 cols on large */}
                 <div className="col-span-1 lg:col-span-4 space-y-6">
                     <Link to="/" className="flex items-center gap-3 text-white font-bold text-2xl group w-fit">
-                        <img src={logo} alt="SlonCar" className="w-10 h-10 rounded-xl object-cover ring-2 ring-white/10 group-hover:ring-primary-500/50 transition-all" />
-                        <span className="group-hover:text-glow transition-all">Slon<span className="text-primary-500">Car</span></span>
+                        <img src={logo} alt="Yaman Filo" className="w-10 h-10 rounded-xl object-cover ring-2 ring-white/10 group-hover:ring-primary-500/50 transition-all" />
+                        <span className="group-hover:text-glow transition-all">Yaman<span className="text-primary-500"> Filo</span></span>
                     </Link>
                     <p className="text-gray-500 leading-relaxed font-light pr-4">
                         Premium araç kiralama deneyimini yeniden tanımlıyoruz.
@@ -29,7 +29,7 @@ export const Footer = () => {
                     <div className="flex gap-3 pt-2">
                         {[
                             { icon: Instagram, href: "https://www.instagram.com/kiralamakguzeldir" },
-                            { icon: Facebook, href: "https://www.facebook.com/sloncartr/" },
+                            { icon: Facebook, href: "https://www.facebook.com/yamanfilotr/" },
                         ].map((social, idx) => (
                             <a key={idx} href={social.href} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-white/5 rounded-xl hover:bg-primary-500 hover:text-white transition-all hover:-translate-y-1 border border-white/5 group">
                                 <social.icon className="w-4 h-4 opacity-70 group-hover:opacity-100" />
@@ -113,7 +113,7 @@ export const Footer = () => {
             </div>
 
             <div className="container mx-auto px-6 mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
-                <p>&copy; {new Date().getFullYear()} SlonCar. Tüm hakları saklıdır.</p>
+                <p>&copy; {new Date().getFullYear()} Yaman Filo. Tüm hakları saklıdır.</p>
                 <div className="flex gap-6">
                     <Link to="#" className="hover:text-white transition-colors">Gizlilik Politikası</Link>
                     <Link to="#" className="hover:text-white transition-colors">Kullanım Şartları</Link>

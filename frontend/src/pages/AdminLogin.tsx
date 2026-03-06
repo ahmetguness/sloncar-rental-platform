@@ -63,9 +63,9 @@ export const AdminLogin = () => {
                     {/* Header */}
                     <div className="text-center mb-8 md:mb-10">
                         <div className="flex items-center justify-center gap-3 mb-6">
-                            <img src={logo} alt="SlonCar" className="w-12 h-12 rounded-xl" />
+                            <img src={logo} alt="Yaman Filo" className="w-12 h-12 rounded-xl" />
                             <span className="text-2xl font-bold text-white">
-                                Slon<span className="text-primary-500">Car</span>
+                                Yaman<span className="text-primary-500"> Filo</span>
                             </span>
                         </div>
 
@@ -163,7 +163,7 @@ export const AdminLogin = () => {
 
                 {/* Footer */}
                 <p className="text-center text-gray-600 text-xs mt-6">
-                    © 2024 SlonCar. Tüm hakları saklıdır.
+                    © 2024 Yaman Filo. Tüm hakları saklıdır.
                 </p>
             </div>
         </div>

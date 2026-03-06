@@ -54,11 +54,11 @@ export const Layout = () => {
                     <Link to="/" className="flex items-center gap-3 group">
                         <img
                             src={logo}
-                            alt="SlonCar Logo"
+                            alt="Yaman Filo Logo"
                             className={`w-10 h-10 rounded-xl object-cover transition-opacity ${scrolled || isMenuOpen ? 'opacity-100' : 'opacity-90'}`}
                         />
                         <span className={`font-bold text-2xl tracking-tight transition-colors ${scrolled || isMenuOpen ? 'text-gray-900' : 'text-white'
-                            }`}>Slon<span className="text-primary-600">Car</span></span>
+                            }`}>Yaman<span className="text-primary-600"> Filo</span></span>
                     </Link>
 
                     {/* Desktop Utility Nav */}
