@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Car } from '../services/types';
-import { Fuel, Cog, ArrowRight, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Fuel, Cog, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { translateCategory, translateFuel } from '../utils/translate';
 
@@ -138,10 +138,6 @@ export const CarCard = ({ car }: CarCardProps) => {
 
                 {/* Top Badges */}
                 <div className="absolute top-5 left-5 z-20 flex flex-col gap-2">
-                    <div className="bg-primary-500 text-white px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.15em] shadow-lg flex items-center gap-1.5">
-                        <ShieldCheck className="w-3 h-3" />
-                        Onaylı Filo
-                    </div>
                 </div>
 
                 <div className="absolute top-5 right-5 z-20">

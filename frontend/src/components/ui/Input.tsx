@@ -17,11 +17,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         return (
             <div className="w-full">
                 {label && (
-                    <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                    <label 
+                        htmlFor={props.id}
+                        className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide"
+                    >
                         {label}
                     </label>
                 )}
                 <input
+                    id={props.id}
                     ref={ref}
                     className={cn(
                         'w-full px-4 py-3 bg-dark-bg border rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all text-white placeholder-gray-600 disabled:bg-gray-800 disabled:text-gray-500',

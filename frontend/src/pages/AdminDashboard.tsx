@@ -29,365 +29,9 @@ import ManualBookingModal from '../components/modals/ManualBookingModal';
 import InsuranceDetailModal from '../components/modals/InsuranceDetailModal';
 import CreateInsuranceModal from '../components/modals/CreateInsuranceModal';
 
-// Internal BrandLogo Component
-// Load all brand logos from assets
-const BRAND_LOGOS = import.meta.glob('/src/assets/logo/brand_logos/*.png', { eager: true, query: '?url', import: 'default' });
-
-// Internal BrandLogo Component
-const BrandLogo = ({ name, url, className = "w-8 h-8" }: { name: string, url?: string, className?: string }) => {
-    const [imageSrc, setImageSrc] = useState<string | null>(url || null);
-    const [hasError, setHasError] = useState(false);
-
-    useEffect(() => {
-        if (url) {
-            setImageSrc(url);
-            setHasError(false);
-        } else {
-            // Try to find local logo
-            // Normalize name to Title Case to match filenames (e.g. "BMW" -> "BMW", "toyota" -> "Toyota")
-            // Actually filenames are mixed case: Audi.png, BMW.png, Mercedes-Benz.png
-            // Best strategy: Try exact match first, then case-insensitive match
-            const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-            const localLogoKey = Object.keys(BRAND_LOGOS).find(key => {
-                const fileName = key.split('/').pop()?.replace('.png', '') || '';
-                return normalize(fileName) === normalize(name);
-            });
-
-            if (localLogoKey) {
-                setImageSrc(BRAND_LOGOS[localLogoKey] as string);
-                setHasError(false);
-            } else {
-                setHasError(true);
-            }
-        }
-    }, [url, name]);
-
-    // Handle image load error
-    const handleError = () => {
-        if (imageSrc === url && url) {
-            // If remote URL failed, try local
-            const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-            const localLogoKey = Object.keys(BRAND_LOGOS).find(key => {
-                const fileName = key.split('/').pop()?.replace('.png', '') || '';
-                return normalize(fileName) === normalize(name);
-            });
-
-            if (localLogoKey) {
-                setImageSrc(BRAND_LOGOS[localLogoKey] as string);
-                setHasError(false); // Reset error because we have a new candidate
-            } else {
-                setHasError(true);
-            }
-        } else {
-            setHasError(true);
-        }
-    };
-
-    if (hasError || !imageSrc) {
-        return (
-            <div className={`${className} rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white uppercase flex-shrink-0 border border-white/10`}>
-                {name?.substring(0, 2)}
-            </div>
-        );
-    }
-
-    return (
-        <img
-            src={imageSrc}
-            alt={name}
-            className={`${className} object-contain bg-white/5 rounded-full p-0.5`}
-            onError={handleError}
-        />
-    );
-};
-
-
-
-
-
-const StatCard = ({ title, value, icon, color, loading, trend, trendUp, data, onClick, isActive }: {
-    title: string;
-    value?: string | number;
-    icon: React.ReactNode;
-    color: 'green' | 'blue' | 'purple' | 'orange';
-    loading?: boolean;
-    trend?: string;
-    trendUp?: boolean;
-    data?: number[];
-    onClick?: () => void;
-    isActive?: boolean;
-}) => {
-    const colorClasses = {
-        green: 'from-green-500/20 to-transparent border-green-500/30 text-green-400',
-        blue: 'from-blue-500/20 to-transparent border-blue-500/30 text-blue-400',
-        purple: 'from-purple-500/20 to-transparent border-purple-500/30 text-purple-400',
-        orange: 'from-orange-500/20 to-transparent border-orange-500/30 text-orange-400',
-    };
-
-    const iconBgClasses = {
-        green: 'bg-green-500/20 text-green-400',
-        blue: 'bg-blue-500/20 text-blue-400',
-        purple: 'bg-purple-500/20 text-purple-400',
-        orange: 'bg-orange-500/20 text-orange-400',
-    };
-
-    const activeClasses = isActive
-        ? `ring-2 ring-${color}-500 shadow-[0_0_30px_rgba(var(--${color}-500-rgb),0.3)] bg-dark-surface-lighter`
-        : 'hover:bg-dark-surface-lighter/90';
-
-    return (
-        <button
-            onClick={onClick}
-            className={`relative w-full text-left overflow-hidden bg-dark-surface-lighter/50 backdrop-blur-xl p-4 md:p-6 rounded-2xl border transition-all duration-300 group ${isActive ? `border-${color}-500` : 'border-white/10 hover:border-white/20'} ${activeClasses}`}
-        >
-            {/* Glow Effect */}
-            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClasses[color]} rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity`} />
-
-            <div className="relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${iconBgClasses[color]} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                        {icon}
-                    </div>
-                    {trend && (
-                        <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${trendUp ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                            {trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                            {trend}
-                        </div>
-                    )}
-                </div>
-
-                <div className="space-y-1">
-                    <p className="text-gray-400 text-sm font-medium tracking-wide">{title}</p>
-                    {loading ? (
-                        <Skeleton className="h-8 w-24 mt-1" />
-                    ) : (
-                        <div className="flex items-end justify-between gap-2">
-                            <p className="text-2xl md:text-3xl font-black text-white tracking-tight">{value}</p>
-
-                            {/* Sparkline SVG */}
-                            {data && data.length > 0 && (
-                                <svg width="60" height="30" className={`stroke-${color}-500 opacity-50 group-hover:opacity-100 transition-opacity`} fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d={`M0 ${30 - (data[0] / 100) * 30} L10 ${30 - (data[1] / 100) * 30} L20 ${30 - (data[2] / 100) * 30} L30 ${30 - (data[3] / 100) * 30} L40 ${30 - (data[4] / 100) * 30} L50 ${30 - (data[5] / 100) * 30} L60 ${30 - (data[6] / 100) * 30}`} />
-                                </svg>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Active Indicator */}
-            {isActive && (
-                <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-${color}-500 rounded-t-full shadow-[0_-2px_10px_rgba(var(--${color}-500-rgb),0.5)]`} />
-            )}
-        </button>
-    );
-};
-
-
-
-
-
-// Helper component for table rows to allow hooks usage
-const BookingRow = React.memo(({
-    booking,
-    onView,
-    onAction,
-    isHighlighted
-}: {
-    booking: Booking;
-    onView: (b: Booking) => void;
-    onAction: (action: 'cancel' | 'start' | 'complete', id: string) => void;
-    isHighlighted?: boolean;
-}) => {
-    const [copiedId, setCopiedId] = useState<string | null>(null);
-    const { addToast } = useToast();
-
-    const handleCopyCode = (code: string, id: string) => {
-        navigator.clipboard.writeText(code);
-        setCopiedId(id);
-        addToast('Kod kopyalandi', 'success');
-        setTimeout(() => setCopiedId(null), 2000);
-    };
-
-    const name = booking.customerName || '';
-    const surname = booking.customerSurname || '';
-    // Safe initials generation
-    const initials = ((name.charAt(0) || '') + (surname.charAt(0) || '')).toUpperCase() || '?';
-    const days = Math.ceil((new Date(booking.dropoffDate).getTime() - new Date(booking.pickupDate).getTime()) / (1000 * 60 * 60 * 24));
-
-    return (
-        <tr className={`transition-all group border-b border-white/5 last:border-0 ${isHighlighted
-            ? 'bg-primary-500/20 hover:bg-primary-500/30 shadow-[inset_0_0_20px_rgba(99,102,241,0.2)]'
-            : 'hover:bg-white/5'
-            }`}>
-            <td className="p-4 text-center">
-                <button
-                    onClick={() => handleCopyCode(booking.bookingCode, booking.id)}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-bg border border-white/5 hover:border-primary-500/50 hover:bg-primary-500/10 transition-all group/btn"
-                    title="Kodu Kopyala"
-                >
-                    <span className="font-mono font-bold text-primary-400">{booking.bookingCode}</span>
-                    {copiedId === booking.id ? (
-                        <Check className="w-3 h-3 text-green-500" />
-                    ) : (
-                        <Copy className="w-3 h-3 text-gray-500 group-hover/btn:text-primary-400 opacity-0 group-hover/btn:opacity-100 transition-all" />
-                    )}
-                </button>
-            </td>
-            <td className="p-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                        {initials}
-                    </div>
-                    <div>
-                        <div className="font-medium text-white truncate max-w-[150px]" title={`${name} ${surname}`}>{name} {surname}</div>
-                        <div className="text-xs text-gray-500 truncate max-w-[150px]" title={booking.customerPhone}>{booking.customerPhone}</div>
-                        <div className="text-[10px] text-gray-600 truncate max-w-[150px]" title={booking.customerEmail}>{booking.customerEmail}</div>
-                    </div>
-                </div>
-            </td>
-            <td className="p-4">
-                <div className="flex items-center gap-3">
-                    <BrandLogo
-                        name={booking.car?.brand || ''}
-                        url={booking.car?.brandLogo}
-                        className="w-8 h-8"
-                    />
-                    <div>
-                        <div className="font-medium text-white truncate max-w-[150px]" title={`${booking.car?.brand} ${booking.car?.model}`}>{booking.car?.brand} {booking.car?.model}</div>
-                        <div className="text-xs text-gray-500">{booking.car?.plateNumber}</div>
-                    </div>
-                </div>
-            </td>
-            <td className="p-4 text-center">
-                <div className="flex flex-col items-center gap-2">
-                    <div className="flex flex-col gap-1 text-sm">
-                        <div className="flex items-center justify-center gap-2 text-gray-400">
-                            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                            <span>{new Date(booking.pickupDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
-                        </div>
-                        <div className="flex items-center justify-center gap-2 text-gray-400">
-                            <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                            <span>{new Date(booking.dropoffDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
-                        </div>
-                    </div>
-                    <div className="text-xs font-medium text-gray-500 bg-white/5 px-2 py-1 rounded w-fit mx-auto">
-                        {days} Gün
-                    </div>
-                </div>
-            </td>
-            <td className="p-4 text-center">
-                <div className="flex flex-col items-center gap-1.5">
-                    <div className="text-primary-400 font-bold whitespace-nowrap">{Number(booking.totalPrice).toLocaleString()} ₺</div>
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border w-fit ${booking.paymentStatus === 'PAID'
-                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                        : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                        } whitespace-nowrap`}>
-                        <span className={`w-1 h-1 rounded-full ${booking.paymentStatus === 'PAID' ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                        {booking.paymentStatus === 'PAID' ? 'Ödendi' : 'Ödenmedi'}
-                    </span>
-                </div>
-            </td>
-            <td className="p-4 text-center">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
-                    ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
-                    : booking.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                        : booking.status === 'CANCELLED' ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                            : booking.status === 'COMPLETED' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20'
-                                : 'bg-primary-500/10 text-primary-400 border-primary-500/20'
-                    } whitespace-nowrap`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
-                        ? 'bg-orange-500'
-                        : booking.status === 'ACTIVE' ? 'bg-green-500'
-                            : booking.status === 'CANCELLED' ? 'bg-red-500'
-                                : booking.status === 'COMPLETED' ? 'bg-gray-500'
-                                    : 'bg-primary-500'
-                        }`} />
-                    {(booking.status === 'RESERVED' && booking.paymentStatus === 'UNPAID' && booking.expiresAt && new Date() > new Date(booking.expiresAt))
-                        ? 'Süre Doldu'
-                        : booking.status === 'ACTIVE' ? 'Aktif'
-                            : booking.status === 'CANCELLED' ? 'Iptal'
-                                : booking.status === 'COMPLETED' ? 'Tamamlandi'
-                                    : 'Rezerve'}
-                </span>
-            </td>
-            <td className="p-4 text-center">
-                <Button
-                    size="sm"
-                    variant="outline"
-                    className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-white/10 text-white hover:bg-white/10 whitespace-nowrap mx-auto"
-                    onClick={() => onView(booking)}
-                >
-                    Detaylar
-                </Button>
-            </td>
-            <td className="p-4 text-center">
-                <div className="flex items-center justify-center gap-2 whitespace-nowrap">
-                    {booking.status === 'RESERVED' && booking.paymentStatus === 'PAID' && (
-                        (() => {
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            const pickup = new Date(booking.pickupDate);
-                            pickup.setHours(0, 0, 0, 0);
-                            const isArrived = today >= pickup;
-
-                            if (isArrived) {
-                                return (
-                                    <Button
-                                        size="sm"
-                                        className="bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 hover:border-green-500/30 transition-all font-medium rounded-lg whitespace-nowrap"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onAction('start', booking.id);
-                                        }}
-                                    >
-                                        <Key className="w-4 h-4 mr-1.5" />
-                                        Teslim Et
-                                    </Button>
-                                );
-                            } else {
-                                return (
-                                    <span className="text-xs text-gray-500 italic px-2 py-1.5 border border-white/5 rounded-lg bg-white/5 select-none whitespace-nowrap">
-                                        Teslim Bekleniyor
-                                    </span>
-                                );
-                            }
-                        })()
-                    )}
-
-                    {
-                        booking.status === 'ACTIVE' && (
-                            <Button
-                                size="sm"
-                                className="bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/30 transition-all font-medium rounded-lg whitespace-nowrap"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onAction('complete', booking.id);
-                                }}
-                            >
-                                <CheckCircle className="w-4 h-4 mr-1.5" />
-                                Teslim Al
-                            </Button>
-                        )
-                    }{booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
-                        <Button
-                            size="sm"
-                            className="bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 transition-all font-medium rounded-lg whitespace-nowrap"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onAction('cancel', booking.id);
-                            }}
-                        >
-                            Iptal
-                        </Button>
-                    )}
-                </div>
-            </td>
-        </tr>
-    );
-}); // End of React.memo
-
+import { BrandLogo } from '../components/admin/BrandLogo';
+import { StatCard } from '../components/admin/StatCard';
+import { BookingRow } from '../components/admin/BookingRow';
 
 
 export const AdminDashboard = () => {
@@ -1116,7 +760,7 @@ export const AdminDashboard = () => {
                             {/* Primary Action */}
                             <button
                                 onClick={() => setShowManualModal(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-400 hover:to-indigo-400 shadow-[0_4px_20px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_25px_rgba(99,102,241,0.5)] transition-all duration-300"
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 shadow-[0_4px_20px_rgba(204,31,38,0.3)] hover:shadow-[0_4px_25px_rgba(204,31,38,0.5)] transition-all duration-300"
                             >
                                 <Plus className="w-5 h-5" />
                                 <span className="hidden sm:inline">Yeni Rezervasyon</span>
@@ -1191,7 +835,7 @@ export const AdminDashboard = () => {
                                         window.scrollTo({ top: 0, behavior: 'smooth' });
                                     }}
                                     className={`relative flex items-center gap-2 px-4 md:px-7 py-2.5 md:py-3.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 ease-out whitespace-nowrap overflow-hidden ${isActive
-                                        ? 'bg-gradient-to-r from-primary-500 to-indigo-500 text-white shadow-[0_4px_20px_rgba(99,102,241,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] scale-[1.02]'
+                                        ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-[0_4px_20px_rgba(204,31,38,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] scale-[1.02]'
                                         : 'text-gray-400 hover:text-white hover:bg-white/[0.06] hover:scale-[1.02]'
                                         }`}
                                 >
@@ -1260,7 +904,7 @@ export const AdminDashboard = () => {
                                                                 key={view}
                                                                 onClick={() => setChartView(view)}
                                                                 className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${chartView === view
-                                                                    ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
+                                                                    ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(204,31,38,0.4)]'
                                                                     : 'text-gray-400 hover:text-white'
                                                                     }`}
                                                             >
@@ -1389,8 +1033,8 @@ export const AdminDashboard = () => {
                                                     <ComposedChart data={getChartData}>
                                                         <defs>
                                                             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                                                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                                                <stop offset="5%" stopColor="#CC1F26" stopOpacity={0.4} />
+                                                                <stop offset="95%" stopColor="#CC1F26" stopOpacity={0} />
                                                             </linearGradient>
                                                         </defs>
                                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
@@ -1419,7 +1063,7 @@ export const AdminDashboard = () => {
                                                         />
                                                         <Tooltip
                                                             contentStyle={{
-                                                                backgroundColor: '#1e293b',
+                                                                backgroundColor: '#1a1a1a',
                                                                 border: '1px solid rgba(255,255,255,0.1)',
                                                                 borderRadius: '12px',
                                                                 color: 'white',
@@ -1438,7 +1082,7 @@ export const AdminDashboard = () => {
                                                             yAxisId="left"
                                                             type="monotone"
                                                             dataKey="revenue"
-                                                            stroke="#6366f1"
+                                                            stroke="#CC1F26"
                                                             strokeWidth={3}
                                                             fillOpacity={1}
                                                             fill="url(#colorRevenue)"
@@ -1481,7 +1125,7 @@ export const AdminDashboard = () => {
                                                             {(revenueData?.byCategory || []).map((_: any, index: number) => (
                                                                 <Cell
                                                                     key={`cell-${index}`}
-                                                                    fill={['#6366f1', '#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#3b82f6', '#f43f5e', '#14b8a6'][index % 9]}
+                                                                    fill={['#CC1F26', '#99171C', '#801318', '#660F13', '#4D0B0E', '#B31B21', '#3c3c3b', '#1a1a1a', '#262626'][index % 9]}
                                                                 />
                                                             ))}
                                                         </Pie>

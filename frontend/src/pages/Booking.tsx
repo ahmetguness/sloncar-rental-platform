@@ -49,7 +49,10 @@ export const Booking = () => {
     });
 
     useEffect(() => {
-        if (!carId) return;
+        if (!carId) {
+            setLoading(false);
+            return;
+        }
 
         const loadCar = async () => {
             try {
@@ -462,13 +465,13 @@ export const Booking = () => {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Input label="Ad" name="customerName" value={formData.customerName} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
-                                    <Input label="Soyad" name="customerSurname" value={formData.customerSurname} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
+                                    <Input id="customerName" label="Ad" name="customerName" value={formData.customerName} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
+                                    <Input id="customerSurname" label="Soyad" name="customerSurname" value={formData.customerSurname} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Input label="Telefon" type="tel" name="customerPhone" placeholder="+90 5XX..." value={formData.customerPhone} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
-                                    <Input label="E-posta" type="email" name="customerEmail" value={formData.customerEmail} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
+                                    <Input id="customerPhone" label="Telefon" type="tel" name="customerPhone" placeholder="+90 5XX..." value={formData.customerPhone} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
+                                    <Input id="customerEmail" label="E-posta" type="email" name="customerEmail" value={formData.customerEmail} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
                                 </div>
 
 
