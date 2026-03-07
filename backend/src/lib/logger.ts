@@ -10,6 +10,7 @@ const levels = {
 };
 
 const level = () => {
+    if (env.NODE_ENV === 'test') return 'error';
     const isDevelopment = env.NODE_ENV === 'development';
     return isDevelopment ? 'debug' : 'warn';
 };
@@ -53,4 +54,5 @@ export const Logger = winston.createLogger({
     level: level(),
     levels,
     transports,
+    silent: env.NODE_ENV === 'test',
 });

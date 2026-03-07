@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import { Request } from 'express';
-
-const prisma = new PrismaClient();
+import prisma from '../../lib/prisma.js';
+import { Logger } from '../../lib/logger.js';
 
 export const auditService = {
     /**
@@ -15,7 +14,7 @@ export const auditService = {
     ) => {
         try {
             if (!userId) {
-                console.warn('Audit: No userId provided for action:', action);
+                Logger.warn('Audit: No userId provided for action:', { action });
                 return;
             }
 
@@ -43,7 +42,7 @@ export const auditService = {
                 }
             });
         } catch (error) {
-            console.error('Failed to create audit log:', error);
+            Logger.error('Failed to create audit log:', error);
             // Don't throw, we don't want to break the main flow if logging fails
         }
     },

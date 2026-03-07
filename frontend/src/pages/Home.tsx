@@ -9,7 +9,7 @@ import type { Car } from '../services/types';
 import { CarCard } from '../components/CarCard';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Loader2, Search, RotateCcw, Plus, Minus, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Loader2, Search, Plus, Minus, ChevronLeft, ChevronRight, Sparkles, Clock, Tag, ShieldCheck, MapPin, RotateCcw } from 'lucide-react';
 import { CampaignCarousel } from '../components/CampaignCarousel';
 import { campaignService } from '../services/campaign.service';
 import type { Campaign } from '../services/campaign.service';
@@ -21,6 +21,7 @@ export const Home = () => {
     const location = useLocation();
     const [cars, setCars] = useState<Car[]>([]);
     const [brands, setBrands] = useState<{ id: string; name: string; logoUrl: string }[]>([]);
+    const [categories, setCategories] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
         brand: '',
@@ -183,9 +184,10 @@ export const Home = () => {
 
     const fetchBrands = async () => {
         try {
-            const [allBrands, usedBrandNames] = await Promise.all([
+            const [allBrands, usedBrandNames, usedCategories] = await Promise.all([
                 brandService.getAllAdmin(),
-                carService.getUsedBrands('RENTAL')
+                carService.getUsedBrands('RENTAL'),
+                carService.getUsedCategories('RENTAL')
             ]);
 
             const filteredBrands = allBrands.filter(b =>
@@ -193,8 +195,9 @@ export const Home = () => {
             );
 
             setBrands(filteredBrands);
+            setCategories(usedCategories);
         } catch (error) {
-            console.error('Failed to fetch brands', error);
+            console.error('Failed to fetch filter data', error);
         }
     };
 
@@ -228,14 +231,36 @@ export const Home = () => {
         }
     }, [location]);
 
-    const getBrandLogoUrl = (brandName: string) => {
-        const brand = brands.find(b => b.name.toLowerCase() === brandName.toLowerCase());
-        return brand?.logoUrl;
-    };
-
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
+    };
+
+    const resetFilters = async () => {
+        const emptyFilters = {
+            brand: '',
+            category: '',
+            minPrice: '',
+            maxPrice: '',
+            pickupDate: '',
+            dropoffDate: ''
+        };
+        setFilters(emptyFilters);
+        setLoading(true);
+        try {
+            const res = await carService.getAll({
+                limit: 12,
+                page: 1,
+                type: 'RENTAL'
+            });
+            setCars(res.data);
+            setPagination(res.pagination);
+            setPage(1);
+        } catch (error) {
+            console.error('Failed to reset filters', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const formatDateForAPI = (date: Date) => {
@@ -252,178 +277,166 @@ export const Home = () => {
 
     return (
         <div className="space-y-12 pb-20 bg-dark-bg min-h-screen">
-            {/* Hero Section */}
-            <section className="relative min-h-[600px] md:min-h-[800px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[88px]">
-                <div className="absolute inset-0 z-0 bg-dark-bg">
-                    <img
-                        src="/hero-car.png"
-                        alt="Cinematic Premium Car"
-                        className="w-full h-full object-cover md:object-[60%_center] opacity-100"
-                    />
-                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.85) 100%)' }} />
+            {/* Hero Section: Panoramic Luxury Restoration */}
+            <section className="relative min-h-[900px] lg:min-h-screen flex items-center justify-center px-4 overflow-hidden -mt-[88px] pt-[88px] pb-40 bg-[#111111]">
+                {/* Layer 1 (Deepest): Background texture */}
+                <div className="absolute bottom-[12%] left-0 w-full flex justify-center pointer-events-none z-0">
+                    <h1 className="text-[25vw] font-black text-white/[0.08] tracking-tighter leading-none select-none uppercase">
+                        YAMAN
+                    </h1>
                 </div>
 
-                <div className="relative z-10 max-w-5xl mx-auto space-y-8 mt-12">
-                    <div className="animate-fade-in-up">
-                        <span className="inline-block py-1.5 px-3 md:px-4 rounded-full bg-black/30 border border-white/20 text-white text-[10px] md:text-sm font-bold tracking-wider md:tracking-[0.2em] uppercase backdrop-blur-md">
-                            Premium Kiralama Deneyimi
-                        </span>
-                    </div>
-                    <h1 className="text-4xl md:text-6xl lg:text-8xl font-black text-white tracking-tighter leading-none animate-fade-in-up delay-100 drop-shadow-[0_4px_24px_rgba(0,0,0,1)]">
-                        YOLCULUĞUN <br />
-                        <span className="text-primary-500">GELECEĞİNİ</span> SÜR
-                    </h1>
-                    <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto leading-relaxed font-light animate-fade-in-up delay-200 drop-shadow-md">
-                        Sıradan olanı reddet. Yaman Filo ile prestijli araçları en zahmetsiz deneyimle keşfet.
-                    </p>
+                {/* Abstract Ambient Lights */}
+                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-1/4 -right-1/4 w-[800px] h-[800px] bg-primary-900/10 rounded-full blur-[160px] mix-blend-screen" />
+                    <div className="absolute bottom-0 -left-1/4 w-[600px] h-[600px] bg-primary-800/5 rounded-full blur-[120px] mix-blend-screen" />
+                </div>
 
-                    <div className="animate-fade-in-up delay-300 pt-4 mb-[80px] md:mb-[120px]">
-                        <Button
-                            onClick={() => document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' })}
-                            className="bg-gradient-to-r from-primary-500 to-neon-purple text-white px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold text-base md:text-lg shadow-[0_0_24px_rgba(193,18,31,0.45)] hover:shadow-[0_0_36px_rgba(193,18,31,0.65)] hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 mx-auto"
-                        >
-                            <Sparkles className="w-5 h-5" />
-                            ARAÇLARI İNCELE
-                        </Button>
+                <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-16 py-20">
+
+                    {/* Left Column: Center-Left Headline Block */}
+                    <div className="w-full lg:w-1/2 space-y-10 text-center lg:text-left animate-fade-in-up">
+                        <div className="space-y-4">
+
+                            <h2 className="text-5xl md:text-7xl xl:text-8xl font-black text-white tracking-tighter leading-[0.9] flex flex-col">
+                                <span>YOLCULUĞUN</span>
+                                <span className="text-primary-500">GELECEĞİNİ</span>
+                                <span>SÜR</span>
+                            </h2>
+                        </div>
+
+                        <div className="space-y-8">
+                            <p className="text-lg md:text-xl text-gray-500 max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium">
+                                Prestij ve konforun buluştuğu nokta. Yaman Filo ile premium araç kiralama deneyimini kişiye özel hizmet anlayışıyla yeniden tanımlayın.
+                            </p>
+
+                            <div className="flex justify-center lg:justify-start">
+                                <Button
+                                    onClick={() => document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' })}
+                                    className="bg-transparent text-white border-2 border-primary-500 px-10 py-5 rounded-2xl font-black text-base shadow-[0_10px_40px_rgba(204,31,38,0.1)] hover:bg-primary-500 hover:shadow-[0_15px_50px_rgba(204,31,38,0.4)] transition-all duration-500 tracking-widest"
+                                >
+                                    ARAÇLARI İNCELE
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Luxury Service Pillars */}
+                    <div className="w-full lg:w-[40%] space-y-6 relative z-20">
+                        {[
+                            {
+                                icon: <MapPin className="w-6 h-6" />,
+                                title: "VIP Teslimat",
+                                desc: "Havalimanı & Adrese Hızlı Teslimat",
+                                delay: "400ms"
+                            },
+                            {
+                                icon: <Clock className="w-6 h-6" />,
+                                title: "7/24 VIP Destek",
+                                desc: "Kesintisiz VIP Canlı Destek Hattı",
+                                delay: "500ms"
+                            },
+                            {
+                                icon: <ShieldCheck className="w-6 h-6" />,
+                                title: "Elite Güvence",
+                                desc: "Kapsamlı Premium Kasko Güvencesi",
+                                delay: "600ms"
+                            }
+                        ].map((pillar, i) => (
+                            <div
+                                key={i}
+                                className="group p-6 rounded-3xl bg-white/[0.03] border border-white/5 backdrop-blur-xl hover:bg-white/[0.06] hover:border-primary-500/30 transition-all duration-500 animate-fade-in-up"
+                                style={{ animationDelay: pillar.delay }}
+                            >
+                                <div className="flex items-center gap-6">
+                                    <div className="w-14 h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all duration-500 shadow-xl shadow-primary-500/5">
+                                        {pillar.icon}
+                                    </div>
+                                    <div>
+                                        <h4 className="text-white font-black text-lg tracking-tight uppercase">{pillar.title}</h4>
+                                        <p className="text-gray-500 text-sm font-medium">{pillar.desc}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Layer 4: Standardized Filter Panel (Bottom-Center, Z-30 to clear background text) */}
+                <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-full max-w-6xl px-4 z-30 hidden md:block">
+                    <div className="p-8 rounded-[38px] bg-[#1a1a1a]/60 backdrop-blur-[32px] border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.9)] scale-105 lg:scale-100 relative group/filter">
+                        {Object.values(filters).some(x => x !== '') && (
+                            <button
+                                onClick={resetFilters}
+                                className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-primary-500 text-white flex items-center justify-center shadow-lg shadow-primary-500/30 hover:scale-110 transition-all z-10 animate-fade-in"
+                                title="Filtreleri Sıfırla"
+                            >
+                                <RotateCcw className="w-5 h-5" />
+                            </button>
+                        )}
+                        <div className="grid grid-cols-12 gap-4 items-end">
+                            <div className="col-span-2 space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Alış Tarihi</label>
+                                <DatePicker
+                                    selected={parseDateString(filters.pickupDate)}
+                                    onChange={(date: Date | null) => setFilters(prev => ({ ...prev, pickupDate: date ? formatDateForAPI(date) : '' }))}
+                                    dateFormat="dd/MM/yyyy"
+                                    locale="tr"
+                                    placeholderText="Seçiniz"
+                                    className="w-full h-14 px-4 bg-white/[0.03] border border-white/5 rounded-2xl text-white focus:border-primary-500/50 transition-all outline-none text-sm"
+                                    minDate={new Date()}
+                                />
+                            </div>
+                            <div className="col-span-2 space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">İade Tarihi</label>
+                                <DatePicker
+                                    selected={parseDateString(filters.dropoffDate)}
+                                    onChange={(date: Date | null) => setFilters(prev => ({ ...prev, dropoffDate: date ? formatDateForAPI(date) : '' }))}
+                                    dateFormat="dd/MM/yyyy"
+                                    locale="tr"
+                                    placeholderText="Seçiniz"
+                                    className="w-full h-14 px-4 bg-white/[0.03] border border-white/5 rounded-2xl text-white focus:border-primary-500/50 transition-all outline-none text-sm"
+                                    minDate={parseDateString(filters.pickupDate) || new Date()}
+                                />
+                            </div>
+                            <div className="col-span-3 space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Marka / Model</label>
+                                <Input
+                                    name="brand"
+                                    placeholder="Örn: Mercedes"
+                                    value={filters.brand}
+                                    onChange={handleFilterChange}
+                                    className="bg-white/[0.03] border-white/5 text-white h-14 rounded-2xl focus:border-primary-500/50 transition-all text-sm"
+                                />
+                            </div>
+                            <div className="col-span-3 space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Kategori</label>
+                                <select
+                                    name="category"
+                                    className="w-full h-14 px-4 bg-white/[0.03] border border-white/5 rounded-2xl text-white focus:border-primary-500/50 transition-all outline-none appearance-none text-sm"
+                                    value={filters.category}
+                                    onChange={handleFilterChange}
+                                >
+                                    <option value="" className="bg-[#1a1a1a]">Tüm Segmentler</option>
+                                    {categories.map(cat => (
+                                        <option key={cat} value={cat} className="bg-[#1a1a1a]">
+                                            {translateCategory(cat)}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-span-2">
+                                <button
+                                    onClick={() => fetchCars(1, false)}
+                                    className="w-full h-14 bg-primary-500 text-white font-black tracking-[0.1em] rounded-2xl shadow-[0_10px_30px_rgba(204,31,38,0.3)] hover:shadow-[0_15px_50px_rgba(204,31,38,0.5)] transition-all flex items-center justify-center text-sm"
+                                >
+                                    FİLTRELE
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
-
-            {/* Floating Search Bar (Desktop) */}
-            <div className="relative z-20 container mx-auto px-4 -mt-24 hidden md:block">
-                <div
-                    className="max-w-6xl mx-auto p-8 rounded-[16px]"
-                    style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        backdropFilter: 'blur(12px)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        boxShadow: '0 24px 64px rgba(0,0,0,0.7)'
-                    }}
-                >
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div className="flex flex-col group">
-                            <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide group-hover:text-primary-400 transition-colors">Alış Tarihi</label>
-                            <div className="relative">
-                                <DatePicker
-                                    selected={parseDateString(filters.pickupDate)}
-                                    onChange={(date: Date | null) => {
-                                        const val = date ? formatDateForAPI(date) : '';
-                                        setFilters(prev => ({ ...prev, pickupDate: val }));
-                                    }}
-                                    dateFormat="dd/MM/yyyy"
-                                    locale="tr"
-                                    placeholderText="Seçiniz"
-                                    className="w-full px-4 py-3 bg-dark-bg/60 border border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-white placeholder-gray-500 font-medium"
-                                    minDate={new Date()}
-                                    wrapperClassName="w-full"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col group">
-                            <label className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide group-hover:text-primary-400 transition-colors">Teslim Tarihi</label>
-                            <div className="relative">
-                                <DatePicker
-                                    selected={parseDateString(filters.dropoffDate)}
-                                    onChange={(date: Date | null) => {
-                                        const val = date ? formatDateForAPI(date) : '';
-                                        setFilters(prev => ({ ...prev, dropoffDate: val }));
-                                    }}
-                                    dateFormat="dd/MM/yyyy"
-                                    locale="tr"
-                                    placeholderText="Seçiniz"
-                                    className="w-full px-4 py-3 bg-dark-bg/60 border border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-white placeholder-gray-500 font-medium"
-                                    minDate={parseDateString(filters.pickupDate) || new Date()}
-                                    wrapperClassName="w-full"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-end border-t border-white/5 pt-6">
-                        <div className="md:col-span-3">
-                            <Input
-                                label="Marka / Model"
-                                name="brand"
-                                placeholder="Örn: BMW"
-                                value={filters.brand}
-                                onChange={handleFilterChange}
-                                className="bg-dark-bg/60 border-white/10 text-white placeholder-gray-500 focus:border-primary-500 rounded-2xl h-[46px]"
-                            />
-                        </div>
-
-                        <div className="md:col-span-3">
-                            <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">Kategori</label>
-                            <select
-                                name="category"
-                                className="w-full px-4 py-3 bg-dark-bg/60 border border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow text-white appearance-none h-[46px]"
-                                value={filters.category}
-                                onChange={handleFilterChange}
-                            >
-                                <option value="" className="bg-dark-bg">Tüm Kategoriler</option>
-                                <option value="ECONOMY" className="bg-dark-bg">{translateCategory('ECONOMY')}</option>
-                                <option value="COMPACT" className="bg-dark-bg">{translateCategory('COMPACT')}</option>
-                                <option value="MIDSIZE" className="bg-dark-bg">{translateCategory('MIDSIZE')}</option>
-                                <option value="FULLSIZE" className="bg-dark-bg">{translateCategory('FULLSIZE')}</option>
-                                <option value="SUV" className="bg-dark-bg">{translateCategory('SUV')}</option>
-                                <option value="VAN" className="bg-dark-bg">{translateCategory('VAN')}</option>
-                                <option value="LUXURY" className="bg-dark-bg">{translateCategory('LUXURY')}</option>
-                            </select>
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <Input
-                                label="Min (₺)"
-                                name="minPrice"
-                                type="number"
-                                placeholder="0"
-                                value={filters.minPrice}
-                                onChange={handleFilterChange}
-                                className="bg-dark-bg/60 border-white/10 text-white placeholder-gray-500 focus:border-primary-500 rounded-2xl h-[46px]"
-                                step="100"
-                            />
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <Input
-                                label="Max (₺)"
-                                name="maxPrice"
-                                type="number"
-                                placeholder="Max"
-                                value={filters.maxPrice}
-                                onChange={handleFilterChange}
-                                className="bg-dark-bg/60 border-white/10 text-white placeholder-gray-500 focus:border-primary-500 rounded-2xl h-[46px]"
-                                step="100"
-                            />
-                        </div>
-
-                        <div className="md:col-span-2 flex gap-2">
-                            <Button onClick={() => fetchCars(1, false)} className="flex-1 h-[46px] text-base font-bold bg-white text-dark-bg hover:bg-gray-200 hover:shadow-lg transition-all rounded-2xl hover:-translate-y-0.5">
-                                <Search className="w-5 h-5 mr-2" /> BUL
-                            </Button>
-                            {Object.values(filters).some(x => x !== '') && (
-                                <Button
-                                    onClick={() => {
-                                        setFilters({ brand: '', category: '', minPrice: '', maxPrice: '', pickupDate: '', dropoffDate: '' });
-                                        setTimeout(() => {
-                                            carService.getAll({ limit: 12, page: 1, type: 'RENTAL' }).then(res => {
-                                                setCars(res.data);
-                                                setPagination(res.pagination);
-                                                setPage(1);
-                                            });
-                                        }, 0);
-                                    }}
-                                    className="h-[46px] px-4 bg-dark-bg/60 text-gray-400 border border-white/10 hover:border-primary-500 hover:text-primary-500 hover:bg-primary-500/10 transition-all group rounded-2xl hover:-translate-y-0.5"
-                                    title="Filtreleri Temizle"
-                                >
-                                    <RotateCcw className="w-5 h-5 group-hover:-rotate-180 transition-transform duration-500" />
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Mobile Search Trigger */}
             <div className="md:hidden relative z-20 px-4 -mt-10">
@@ -513,13 +526,11 @@ export const Home = () => {
                                     onChange={handleFilterChange}
                                 >
                                     <option value="" className="bg-dark-bg">Tüm Kategoriler</option>
-                                    <option value="ECONOMY" className="bg-dark-bg">{translateCategory('ECONOMY')}</option>
-                                    <option value="COMPACT" className="bg-dark-bg">{translateCategory('COMPACT')}</option>
-                                    <option value="MIDSIZE" className="bg-dark-bg">{translateCategory('MIDSIZE')}</option>
-                                    <option value="FULLSIZE" className="bg-dark-bg">{translateCategory('FULLSIZE')}</option>
-                                    <option value="SUV" className="bg-dark-bg">{translateCategory('SUV')}</option>
-                                    <option value="VAN" className="bg-dark-bg">{translateCategory('VAN')}</option>
-                                    <option value="LUXURY" className="bg-dark-bg">{translateCategory('LUXURY')}</option>
+                                    {categories.map(cat => (
+                                        <option key={cat} value={cat} className="bg-dark-bg">
+                                            {translateCategory(cat)}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -559,14 +570,7 @@ export const Home = () => {
                         {Object.values(filters).some(x => x !== '') && (
                             <button
                                 onClick={() => {
-                                    setFilters({ brand: '', category: '', minPrice: '', maxPrice: '', pickupDate: '', dropoffDate: '' });
-                                    setTimeout(() => {
-                                        carService.getAll({ limit: 12, page: 1, type: 'RENTAL' }).then(res => {
-                                            setCars(res.data);
-                                            setPagination(res.pagination);
-                                            setPage(1);
-                                        });
-                                    }, 0);
+                                    resetFilters();
                                     setIsMobileSearchOpen(false);
                                 }}
                                 className="w-full mt-3 py-3 text-sm font-medium text-gray-400 hover:text-white"
@@ -670,7 +674,10 @@ export const Home = () => {
                                     <img
                                         src={brand.logoUrl}
                                         alt={brand.name}
-                                        className="w-full h-full object-contain"
+                                        className={`w-full h-full object-contain filter transition-all duration-300 ${filters.brand.toLowerCase() === brand.name.toLowerCase()
+                                            ? 'grayscale-0 opacity-100'
+                                            : 'grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100'
+                                            }`}
                                     />
                                 </div>
                                 <span className={`text-xs font-bold tracking-widest uppercase truncate w-full px-1 ${filters.brand.toLowerCase() === brand.name.toLowerCase() ? 'text-primary-400' : 'text-gray-400 group-hover:text-white'}`}>{brand.name}</span>
@@ -720,7 +727,6 @@ export const Home = () => {
                                 <CarCard
                                     key={car.id}
                                     car={car}
-                                    brandLogoUrl={getBrandLogoUrl(car.brand)}
                                 />
                             ))}
                         </div>
@@ -755,6 +761,47 @@ export const Home = () => {
                     </>
                 )}
             </section>
+
+            {/* Bento Features Section: Trust & Performance */}
+            <section className="container mx-auto px-6 py-20 md:py-32 border-t border-white/5">
+                <div className="text-center mb-16 md:mb-24">
+                    <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
+                        NEDEN <span className="text-primary-500">YAMAN FİLO?</span>
+                    </h2>
+                    <p className="text-gray-500 mt-4 font-medium tracking-widest uppercase text-xs">Premium Hizmet Standartları</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                    {/* Bento Card 1 */}
+                    <div className="group bg-[#1a1a1a] border border-white/5 p-10 rounded-[32px] flex flex-col items-start hover:border-primary-500/30 transition-all duration-500 hover:-translate-y-2">
+                        <div className="w-14 h-14 rounded-full bg-primary-500 flex items-center justify-center mb-8 shadow-[0_0_20px_rgba(204,31,38,0.3)]">
+                            <Sparkles className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-black text-white mb-4 tracking-tight">Yeni Model Araçlar</h3>
+                        <p className="text-gray-500 text-base leading-relaxed font-medium">Sadece en son model, mükemmel kondisyondaki premium araçlarla hizmet veriyoruz. Asset güvenliği ve konfor önceliğimizdir.</p>
+                    </div>
+
+                    {/* Bento Card 2 */}
+                    <div className="group bg-[#1a1a1a] border border-white/5 p-10 rounded-[32px] flex flex-col items-start hover:border-primary-500/30 transition-all duration-500 hover:-translate-y-2">
+                        <div className="w-14 h-14 rounded-full bg-primary-500 flex items-center justify-center mb-8 shadow-[0_0_20px_rgba(204,31,38,0.3)]">
+                            <Clock className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-black text-white mb-4 tracking-tight">7/24 VIP Destek</h3>
+                        <p className="text-gray-500 text-base leading-relaxed font-medium">Yolculuğunuzun her anında yanınızdayız. Profesyonel ekibimizle kesintisiz, VIP müşteri desteği sunuyoruz.</p>
+                    </div>
+
+                    {/* Bento Card 3 */}
+                    <div className="group bg-[#1a1a1a] border border-white/5 p-10 rounded-[32px] flex flex-col items-start hover:border-primary-500/30 transition-all duration-500 hover:-translate-y-2">
+                        <div className="w-14 h-14 rounded-full bg-primary-500 flex items-center justify-center mb-8 shadow-[0_0_20px_rgba(204,31,38,0.3)]">
+                            <Tag className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-black text-white mb-4 tracking-tight">Şeffaf Fiyatlandırma</h3>
+                        <p className="text-gray-500 text-base leading-relaxed font-medium">Lüks segment kiralama hizmetini her zaman en rekabetçi, şeffaf ve sürprizsiz fiyatlarla alın.</p>
+                    </div>
+                </div>
+            </section>
+
+
         </div>
     );
 };

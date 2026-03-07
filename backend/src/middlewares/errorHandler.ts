@@ -54,11 +54,11 @@ export function errorHandler(
     _next: NextFunction
 ): void {
     // Handle Zod validation errors
-    if (err instanceof ZodError) {
-        const details = err.errors.map((e) => ({
+    if (err instanceof ZodError || err.name === 'ZodError') {
+        const details = (err as any).errors?.map((e: any) => ({
             path: e.path.join('.'),
             message: e.message,
-        }));
+        })) || [];
         Logger.warn(`Validation Error: ${JSON.stringify(details)}`);
 
         ApiResponse.error(res, 'Invalid request data', 'VALIDATION_ERROR', 400, details);
@@ -66,9 +66,9 @@ export function errorHandler(
     }
 
     // Handle known API errors
-    if (err instanceof ApiError) {
-        Logger.warn(`API Error [${err.code}]: ${err.message}`);
-        ApiResponse.error(res, err.message, err.code, err.statusCode, err.details);
+    if (err instanceof ApiError || err.name === 'ApiError') {
+        Logger.warn(`API Error [${err.code || 'UNKNOWN'}]: ${err.message}`);
+        ApiResponse.error(res, err.message, err.code || 'API_ERROR', err.statusCode || 500, err.details);
         return;
     }
 

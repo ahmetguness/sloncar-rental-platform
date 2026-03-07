@@ -167,7 +167,7 @@ export const Franchise = () => {
                         <Globe size={16} /> BÜYÜYEN AİLEMİZE KATILIN
                     </div>
                     <h1 className="text-3xl md:text-6xl font-black text-white mb-4 md:mb-6 tracking-tight drop-shadow-2xl">
-                        Slon<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-neon-purple">Car</span> Franchise
+                        Yaman<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-neon-purple">Filo</span> Franchise
                     </h1>
                     <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
                         Türkiye'nin en hızlı büyüyen premium araç kiralama ağına katılın.

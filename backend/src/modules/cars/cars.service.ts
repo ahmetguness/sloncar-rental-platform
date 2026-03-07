@@ -313,3 +313,23 @@ export async function getUsedBrands(type?: 'RENTAL' | 'SALE'): Promise<{ name: s
         logoUrl: car.brandLogo
     }));
 }
+
+export async function getUsedCategories(type?: 'RENTAL' | 'SALE'): Promise<string[]> {
+    const where: Prisma.CarWhereInput = {
+        status: { not: 'INACTIVE' }
+    };
+
+    if (type) {
+        where.type = type;
+    }
+
+    const cars = await prisma.car.findMany({
+        where,
+        select: {
+            category: true,
+        },
+        distinct: ['category']
+    });
+
+    return cars.map(car => car.category);
+}

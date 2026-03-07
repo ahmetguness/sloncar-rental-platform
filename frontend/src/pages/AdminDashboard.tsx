@@ -1466,32 +1466,23 @@ export const AdminDashboard = () => {
                                         </div>
                                         <div className="p-6">
                                             <div className="w-full relative" id="category-pie-chart">
-                                                <ResponsiveContainer width="100%" height={200}>
+                                                <ResponsiveContainer width="100%" height={240}>
                                                     <PieChart>
                                                         <Pie
-                                                            data={[
-                                                                { name: 'SUV', value: 35, color: '#6366f1' },       // Indigo
-                                                                { name: 'Sedan', value: 25, color: '#8b5cf6' },     // Violet
-                                                                { name: 'Lüks', value: 20, color: '#ec4899' },      // Pink
-                                                                { name: 'Hatchback', value: 15, color: '#06b6d4' }, // Cyan
-                                                                { name: 'Van', value: 5, color: '#10b981' }         // Emerald
-                                                            ]}
+                                                            data={revenueData?.byCategory || []}
                                                             cx="50%"
                                                             cy="50%"
-                                                            innerRadius={60}
-                                                            outerRadius={80}
+                                                            innerRadius={65}
+                                                            outerRadius={85}
                                                             paddingAngle={5}
                                                             dataKey="value"
                                                             stroke="none"
                                                         >
-                                                            {[
-                                                                { name: 'SUV', value: 35, color: '#6366f1' },
-                                                                { name: 'Sedan', value: 25, color: '#8b5cf6' },
-                                                                { name: 'Lüks', value: 20, color: '#ec4899' },
-                                                                { name: 'Hatchback', value: 15, color: '#06b6d4' },
-                                                                { name: 'Van', value: 5, color: '#10b981' }
-                                                            ].map((entry, index) => (
-                                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                                            {(revenueData?.byCategory || []).map((_: any, index: number) => (
+                                                                <Cell
+                                                                    key={`cell-${index}`}
+                                                                    fill={['#6366f1', '#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#3b82f6', '#f43f5e', '#14b8a6'][index % 9]}
+                                                                />
                                                             ))}
                                                         </Pie>
                                                         <Tooltip
@@ -1499,33 +1490,39 @@ export const AdminDashboard = () => {
                                                                 backgroundColor: '#1e293b',
                                                                 border: '1px solid rgba(255,255,255,0.1)',
                                                                 borderRadius: '12px',
-                                                                color: 'white'
+                                                                color: 'white',
+                                                                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)'
                                                             }}
-                                                            formatter={(value: any) => [`%${value}`, 'Pay']}
+                                                            formatter={(value: any) => [`${Number(value).toLocaleString()} ₺`, 'Hasilat']}
                                                         />
                                                     </PieChart>
                                                 </ResponsiveContainer>
                                                 {/* Center Text */}
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                                    <span className="text-3xl font-black text-white">5</span>
-                                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Kategori</span>
+                                                    <span className="text-3xl font-black text-white">{revenueData?.byCategory?.length || 0}</span>
+                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Kategori</span>
                                                 </div>
                                             </div>
                                             {/* Legend */}
-                                            <div className="grid grid-cols-2 gap-3 mt-4">
-                                                {[
-                                                    { name: 'SUV', value: 35, color: 'bg-primary-500' },
-                                                    { name: 'Sedan', value: 25, color: 'bg-violet-500' },
-                                                    { name: 'Lüks', value: 20, color: 'bg-pink-500' },
-                                                    { name: 'Hatchback', value: 15, color: 'bg-cyan-500' },
-                                                    { name: 'Van', value: 5, color: 'bg-emerald-500' }
-                                                ].map((item, i) => (
-                                                    <div key={i} className="flex items-center gap-2">
-                                                        <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                                                        <span className="text-sm text-gray-400">{item.name}</span>
-                                                        <span className="text-sm font-bold text-white ml-auto">%{item.value}</span>
-                                                    </div>
-                                                ))}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-6">
+                                                {(revenueData?.byCategory || []).slice(0, 6).map((item: any, i: number) => {
+                                                    const total = (revenueData?.byCategory || []).reduce((acc: number, curr: any) => acc + curr.value, 0);
+                                                    const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
+                                                    const colors = ['bg-[#6366f1]', 'bg-[#8b5cf6]', 'bg-[#ec4899]', 'bg-[#06b6d4]', 'bg-[#10b981]', 'bg-[#f59e0b]', 'bg-[#3b82f6]'];
+
+                                                    return (
+                                                        <div key={i} className="flex items-center gap-3 bg-white/[0.02] p-2 rounded-lg border border-white/[0.05]">
+                                                            <div className={`w-2.5 h-2.5 rounded-full ${colors[i % colors.length]}`} />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex justify-between items-center gap-2">
+                                                                    <span className="text-sm font-medium text-gray-300 truncate">{item.name}</span>
+                                                                    <span className="text-xs font-black text-white">%{percentage}</span>
+                                                                </div>
+                                                                <div className="text-[10px] text-gray-500 font-mono mt-0.5">{Number(item.value).toLocaleString()} ₺</div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     </div>

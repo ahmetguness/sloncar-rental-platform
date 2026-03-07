@@ -4,7 +4,7 @@ import { carService, bookingService } from '../services/api';
 import type { Car, CreateBookingRequest } from '../services/types';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Loader2, CheckCircle, MapPin, Users, Fuel, Cog, Gauge } from 'lucide-react';
+import { Loader2, CheckCircle, MapPin, Users, Fuel, Cog, Gauge, Copy, Check } from 'lucide-react';
 import { ImageCarousel } from '../components/ui/ImageCarousel';
 import { Link } from 'react-router-dom';
 import { translateFuel } from '../utils/translate';
@@ -28,6 +28,7 @@ export const Booking = () => {
     const [totalDays, setTotalDays] = useState(0);
     const [totalPrice, setTotalPrice] = useState(0);
     const [bookedDates, setBookedDates] = useState<Date[]>([]);
+    const [copied, setCopied] = useState(false);
 
     // Form State
     const [startDate, setStartDate] = useState<Date | null>(null);
@@ -253,19 +254,20 @@ export const Booking = () => {
                 <p className="text-sm md:text-base text-gray-400 mb-6 md:mb-8 px-2 md:px-4">Rezervasyonunuzun kesinleşmesi için <span className="text-yellow-400 font-bold">10 dakika</span> içinde ödeme yapmanız gerekmektedir.</p>
 
                 <div className="bg-dark-bg p-6 rounded-2xl border border-white/5 mb-8 relative group">
-                    <div className="absolute inset-0 bg-primary-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-primary-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                     <p className="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">Rezervasyon Kodunuz</p>
-                    <div className="flex items-center justify-center gap-3 mb-2">
+                    <div className="flex items-center justify-center gap-3 mb-2 relative z-10">
                         <p className="text-2xl md:text-3xl font-mono font-bold text-primary-400 tracking-wider text-glow break-all">{successCode}</p>
                         <button
                             onClick={() => {
                                 navigator.clipboard.writeText(successCode);
-                                // Optional toast or feedback could go here
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
                             }}
-                            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                            className={`p-2 rounded-lg transition-all ${copied ? 'bg-green-500/20 text-green-500' : 'hover:bg-white/10 text-gray-400 hover:text-white'}`}
                             title="Kodu Kopyala"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                            {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                         </button>
                     </div>
                     <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500 bg-white/5 py-2 rounded-lg">

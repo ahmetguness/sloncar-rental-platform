@@ -25,6 +25,18 @@ router.get('/brands', carsController.getUsedBrands);
 
 /**
  * @swagger
+ * /cars/categories:
+ *   get:
+ *     tags: [Cars]
+ *     summary: Get unique categories currently in the fleet
+ *     responses:
+ *       200:
+ *         description: List of category names
+ */
+router.get('/categories', carsController.getUsedCategories);
+
+/**
+ * @swagger
  * /cars:
  *   get:
  *     tags: [Cars]

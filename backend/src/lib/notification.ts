@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { whatsAppService } from './whatsapp.js';
 import prisma from './prisma.js';
+import { Logger } from './logger.js';
 
 // Log directory
 const LOG_DIR = path.join(process.cwd(), 'logs');
@@ -25,9 +26,9 @@ class NotificationService {
 
         try {
             await fs.promises.appendFile(NOTIFICATION_LOG, logEntry);
-            console.log(`[Notification] ${type} sent to ${data.to} (logged to file)`);
+            Logger.info(`[Notification] ${type} sent to ${data.to} (logged to file)`);
         } catch (error) {
-            console.error('Failed to log notification:', error);
+            Logger.error('Failed to log notification:', error);
         }
     }
 
@@ -61,7 +62,7 @@ class NotificationService {
             }
         ];
 
-        console.log(`[Notification] Sending 'booking_confirmation' template to Customer: ${booking.customerPhone}`);
+        Logger.info(`[Notification] Sending 'booking_confirmation' template to Customer: ${booking.customerPhone}`);
         const templateSent = await whatsAppService.sendTemplateMessage(booking.customerPhone, 'booking_confirmation', 'tr', components);
 
         await this.logNotification('WHATSAPP', {
@@ -105,12 +106,12 @@ class NotificationService {
                         }
                     ];
 
-                    console.log(`[Notification] Sending 'new_booking_alert' template to Admin: ${admin.phone}`);
+                    Logger.info(`[Notification] Sending 'new_booking_alert' template to Admin: ${admin.phone}`);
                     let sent = await whatsAppService.sendTemplateMessage(admin.phone, 'new_booking_alert', 'tr', adminComponents);
 
                     // Fallback to plain text if template fails
                     if (!sent) {
-                        console.log(`[Notification] Template failed. Falling back to text message for Admin: ${admin.phone}`);
+                        Logger.warn(`[Notification] Template failed. Falling back to text message for Admin: ${admin.phone}`);
                         const textBody = `🏠 Yeni Rezervasyon!\n\nKod: ${booking.bookingCode}\nMüşteri: ${booking.customerName} ${booking.customerSurname}\nTelefon: ${booking.customerPhone}\nAraç: ${booking.car?.brand} ${booking.car?.model}\nTarih: ${new Date(booking.pickupDate).toLocaleDateString('tr-TR')} - ${new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}\nTutar: ${booking.totalPrice} TL`;
                         sent = await whatsAppService.sendTextMessage(admin.phone, textBody);
                     }
@@ -123,7 +124,7 @@ class NotificationService {
                 }
             }
         } catch (error) {
-            console.error('[Notification] Failed to send admin WhatsApp notifications:', error);
+            Logger.error('[Notification] Failed to send admin WhatsApp notifications:', error);
         }
     }
 

@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react'; // Reusing Home.tsx logic but simplified
+import { useEffect, useState } from 'react';
 import { carService, brandService } from '../services/api';
 import type { Car } from '../services/types';
 import { CarCard } from '../components/CarCard';
 import { Button } from '../components/ui/Button';
-import { Loader2, Plus, Minus, Tag } from 'lucide-react';
+import { Loader2, Plus, Minus, Tag, ShieldCheck } from 'lucide-react';
 
 export const SecondHand = () => {
     const [cars, setCars] = useState<Car[]>([]);
     const [brands, setBrands] = useState<{ id: string; name: string; logoUrl: string }[]>([]);
     const [loading, setLoading] = useState(true);
-    // Removed filters state
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
+
     const fetchCars = async (pageToFetch = 1, append = false) => {
         setLoading(true);
         try {
@@ -60,62 +60,71 @@ export const SecondHand = () => {
 
     return (
         <div className="space-y-12 pb-20 bg-dark-bg min-h-screen">
-            {/* Hero Section */}
-            <section className="relative h-[400px] sm:h-[500px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[88px]">
+            {/* Hero Section: Luxury Sales Edition */}
+            <section className="relative min-h-[500px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[120px]">
+                {/* Background Watermark */}
+                <div className="absolute bottom-[10%] left-0 w-full flex justify-center pointer-events-none z-0 opacity-[0.05]">
+                    <h1 className="text-[20vw] font-black text-white tracking-tighter leading-none select-none uppercase">
+                        İKİNCİ EL
+                    </h1>
+                </div>
+
                 <div className="absolute inset-0 z-0">
                     <img
                         src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
                         alt="Luxury Car Showroom"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover opacity-40 grayscale"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/80 to-primary-900/40 mix-blend-multiply" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-dark-bg/90 via-transparent to-dark-bg/90" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/90 to-transparent" />
                 </div>
 
                 <div className="relative z-10 max-w-5xl mx-auto space-y-8">
                     <div className="animate-fade-in-up">
-                        <span className="inline-block py-1.5 px-4 rounded-full bg-blue-500/10 border border-blue-500/50 text-blue-300 text-sm font-bold tracking-[0.2em] uppercase backdrop-blur-md shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                            2. El Satış Platformu
+                        <span className="inline-block py-1.5 px-4 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-500 text-xs font-black tracking-[0.3em] uppercase backdrop-blur-md">
+                            ÖZEL SEÇİM
                         </span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-none animate-fade-in-up delay-100 drop-shadow-2xl">
+                    <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-none animate-fade-in-up delay-100">
                         HAYALİNDEKİ ARACA <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 text-glow">SAHİP OL</span>
+                        <span className="text-primary-500">GÜVENLE</span> SAHİP OL
                     </h1>
-                    <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed font-light animate-fade-in-up delay-200">
-                        Güvenilir, ekspertiz garantili ve size özel ödeme seçenekleriyle ikinci el lüks araçlarımız sizi bekliyor.
+                    <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed font-medium animate-fade-in-up delay-200">
+                        Ekspertiz garantili ve size özel ödeme seçenekleriyle, Yaman Filo güvencesi altındaki ikinci el lüks araçlarımız yeni sahiplerini bekliyor.
                     </p>
                 </div>
             </section>
 
-            {/* Search Bar Removed as per request */}
-
             {/* Car Grid Section */}
             <section
                 id="fleet"
-                className="container mx-auto px-3 sm:px-6 pt-12 scroll-mt-24 relative"
+                className="container mx-auto px-6 pt-12 scroll-mt-24 relative"
             >
-                <div className="absolute top-1/2 left-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-blue-900/20 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
-                <div className="absolute bottom-0 right-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-cyan-900/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
+                <div className="absolute top-1/2 left-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-primary-900/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
 
-                <div className="flex items-center justify-between mb-10">
-                    <div>
-                        <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">SATILIK <span className="text-blue-500">ARAÇLAR</span></h2>
-                        <div className="h-1 w-20 bg-gradient-to-r from-blue-500 to-transparent mt-2 rounded-full" />
+                <div className="flex items-center justify-between mb-12">
+                    <div className="space-y-2">
+                        <h2 className="text-3xl font-black text-white tracking-tight uppercase italic">
+                            2. EL <span className="text-primary-500">ENVANTER</span>
+                        </h2>
+                        <div className="h-1 w-24 bg-primary-500 rounded-full" />
+                    </div>
+                    <div className="hidden md:flex items-center gap-3 text-[10px] font-black text-gray-500 tracking-widest uppercase bg-white/[0.03] px-4 py-2 rounded-xl border border-white/5">
+                        <ShieldCheck className="w-4 h-4 text-primary-500" />
+                        Ekspertiz Garantili
                     </div>
                 </div>
 
                 {loading && cars.length === 0 ? (
                     <div className="flex justify-center items-center py-32">
-                        <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+                        <Loader2 className="w-12 h-12 animate-spin text-primary-500" />
                     </div>
                 ) : cars.length === 0 ? (
-                    <div className="text-center py-32 bg-dark-surface-lighter/50 rounded-3xl border border-white/5">
-                        <div className="bg-dark-surface w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5 shadow-inner">
-                            <Tag className="w-10 h-10 text-gray-600" />
+                    <div className="text-center py-32 bg-[#1a1a1a]/40 backdrop-blur-xl rounded-[40px] border border-white/5 shadow-2xl">
+                        <div className="bg-primary-500/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary-500/20 shadow-inner">
+                            <Tag className="w-10 h-10 text-primary-500" />
                         </div>
-                        <h3 className="text-2xl font-bold text-white mb-3">Sonuç Bulunamadı</h3>
-                        <p className="text-gray-400 max-w-md mx-auto">Aradığınız kriterlere uygun satılık araç şu an portföyümüzde görünmüyor.</p>
+                        <h3 className="text-2xl font-black text-white mb-3 uppercase tracking-tight">Portföy Güncelleniyor</h3>
+                        <p className="text-gray-500 max-w-sm mx-auto font-medium">Şu an kriterlerinize uygun satılık araç bulunmamaktadır. Yeni araçlar için takipte kalın.</p>
                     </div>
                 ) : (
                     <>
@@ -130,7 +139,7 @@ export const SecondHand = () => {
                         </div>
 
                         {(page < pagination.totalPages || page > 1) && (
-                            <div className="mt-12 flex justify-center gap-4">
+                            <div className="mt-20 flex justify-center gap-6">
                                 {page > 1 && (
                                     <Button
                                         onClick={() => {
@@ -138,9 +147,9 @@ export const SecondHand = () => {
                                             document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' });
                                         }}
                                         disabled={loading}
-                                        className="bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-white/20 px-4 sm:px-8 py-3 sm:py-4 rounded-xl font-bold transition-all flex items-center gap-2 group text-sm sm:text-base"
+                                        className="bg-transparent border-2 border-primary-500/20 text-gray-400 hover:text-white hover:border-primary-500 px-10 py-4 rounded-2xl font-black text-xs tracking-[0.2em] transition-all flex items-center gap-3"
                                     >
-                                        <Minus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                        <Minus className="w-5 h-5" />
                                         DAHA AZ GÖSTER
                                     </Button>
                                 )}
@@ -149,7 +158,7 @@ export const SecondHand = () => {
                                     <Button
                                         onClick={() => fetchCars(page + 1, true)}
                                         disabled={loading}
-                                        className="bg-dark-surface-lighter border border-white/10 text-white hover:bg-blue-500 hover:border-blue-500 px-4 sm:px-8 py-3 sm:py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 flex items-center gap-2 text-sm sm:text-base"
+                                        className="bg-primary-500 text-white shadow-[0_10px_30px_rgba(204,31,38,0.3)] hover:shadow-[0_15px_50px_rgba(204,31,38,0.5)] px-10 py-4 rounded-2xl font-black text-xs tracking-[0.2em] transition-all flex items-center gap-3"
                                     >
                                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
                                         DAHA FAZLA GÖSTER

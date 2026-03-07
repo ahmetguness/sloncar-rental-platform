@@ -58,6 +58,10 @@ export const carService = {
     getUsedBrands: async (type?: 'RENTAL' | 'SALE') => {
         const response = await api.get<{ success: boolean, data: { name: string, logoUrl: string }[] }>('/cars/brands', { params: { type } });
         return response.data.data;
+    },
+    getUsedCategories: async (type?: 'RENTAL' | 'SALE') => {
+        const response = await api.get<{ success: boolean, data: string[] }>('/cars/categories', { params: { type } });
+        return response.data.data;
     }
 };
 

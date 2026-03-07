@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { Car } from '../services/types';
-import { Fuel, Cog, Car as CarIcon, ArrowRight, Gauge, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Fuel, Cog, ArrowRight, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { translateCategory, translateFuel } from '../utils/translate';
-import { getBrandLogo } from '../utils/brandLogos';
 
 interface CarCardProps {
     car: Car;
@@ -49,9 +48,16 @@ const CarImageCarousel = ({ images, alt, autoPlay }: { images: string[], alt: st
 
     if (!images || images.length === 0) {
         return (
-            <div className="w-full h-full flex items-center justify-center text-gray-700 flex-col bg-dark-bg">
-                <CarIcon className="w-16 h-16 mb-2 opacity-30" />
-                <span className="text-sm font-medium opacity-50">Görsel Bekleniyor</span>
+            <div className="w-full h-full flex items-center justify-center text-gray-700 flex-col bg-dark-bg relative">
+                {/* Minimalist vector silhouette placeholder */}
+                <svg width="200" height="80" viewBox="0 0 200 80" fill="none" className="opacity-10 absolute">
+                    <path d="M20 70 L40 30 L80 20 L150 20 L180 30 L190 70 Z" stroke="currentColor" strokeWidth="2" />
+                    <circle cx="50" cy="70" r="10" stroke="currentColor" strokeWidth="2" />
+                    <circle cx="160" cy="70" r="10" stroke="currentColor" strokeWidth="2" />
+                </svg>
+                <div className="z-10 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full border border-white/5">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Görsel Bekleniyor</span>
+                </div>
             </div>
         );
     }
@@ -111,11 +117,8 @@ const CarImageCarousel = ({ images, alt, autoPlay }: { images: string[], alt: st
     );
 };
 
-export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
+export const CarCard = ({ car }: CarCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
-
-    // Fallback to helper if prop not provided, prioritizing car.brandLogo
-    const logoUrl = car.brandLogo || brandLogoUrl || getBrandLogo(car.brand);
 
     const targetLink = car.type === 'SALE' ? `/car/${car.id}` : `/book/${car.id}`;
 
@@ -129,80 +132,68 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
             {/* Glow Effect behind card */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-            {/* Image Area */}
-            <div className="aspect-video bg-dark-bg relative overflow-hidden">
+            {/* Image Area: Standardized Studio Environment */}
+            <div className="aspect-[16/10] bg-[#090909] relative overflow-hidden">
                 <CarImageCarousel images={car.images} alt={`${car.brand} ${car.model}`} autoPlay={isHovered} />
 
                 {/* Top Badges */}
-                <div className="absolute top-4 left-4 z-20 flex gap-2">
-                    <span className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-lg uppercase tracking-wider border border-white/10 flex items-center gap-1.5">
-                        {translateCategory(car.category)}
-                    </span>
-                    {car.isFeatured && (
-                        <span className="bg-primary-500/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-lg border border-primary-400/20 flex items-center gap-1 animate-pulse">
-                            <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                            Fırsat
-                        </span>
-                    )}
+                <div className="absolute top-5 left-5 z-20 flex flex-col gap-2">
+                    <div className="bg-primary-500 text-white px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.15em] shadow-lg flex items-center gap-1.5">
+                        <ShieldCheck className="w-3 h-3" />
+                        Onaylı Filo
+                    </div>
                 </div>
 
-                {/* Bottom Badge (Status or Mileage) */}
-                <div className="absolute bottom-4 left-4 z-20">
-                    {car.type === 'SALE' && (
-                        <div className="bg-dark-surface/80 backdrop-blur px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-lg flex items-center gap-1.5 border border-white/10">
-                            <Gauge className="w-3.5 h-3.5 text-primary-500" />
-                            {car.mileage.toLocaleString()} KM
-                        </div>
-                    )}
+                <div className="absolute top-5 right-5 z-20">
+                    <span className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-black text-white/80 uppercase tracking-widest border border-white/10">
+                        {translateCategory(car.category)}
+                    </span>
                 </div>
+
+                {/* Overlay Gradient for asset consistency */}
+                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#1a1a1a] via-transparent to-transparent z-10 pointer-events-none opacity-60" />
             </div>
 
             {/* Content Area */}
-            <div className="p-5 flex flex-col relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 className="text-xl font-black text-white group-hover/card:text-primary-400 transition-colors leading-tight mb-1 truncate" title={`${car.brand} ${car.model}`}>
-                            {car.brand} <span className="font-medium text-gray-300">{car.model}</span>
-                        </h3>
-                        <div className="text-sm text-gray-500 font-medium flex items-center gap-2">
-                            {car.year}
-                            <span className="w-1 h-1 rounded-full bg-gray-600" />
-                            <span className="capitalize">{car.color}</span>
-                        </div>
+            <div className="p-6 flex flex-col relative z-10">
+                <div className="mb-4">
+                    <h3 className="text-2xl font-black text-white group-hover/card:text-primary-500 transition-colors leading-tight tracking-tighter truncate">
+                        {car.brand} <span className="text-gray-500 font-medium">{car.model}</span>
+                    </h3>
+                    <div className="flex items-center gap-3 mt-2 text-[10px] font-black uppercase tracking-widest text-[#3c3c3b]">
+                        <span>{car.year}</span>
+                        <span className="w-1 h-1 rounded-full bg-primary-500/30" />
+                        <span className="text-gray-500">{car.color}</span>
                     </div>
-                    {logoUrl && (
-                        <div className="p-1.5 bg-white/5 rounded-lg border border-white/10">
-                            <img src={logoUrl} alt={car.brand} className="w-6 h-6 object-contain opacity-80 group-hover/card:opacity-100 transition-opacity" />
-                        </div>
-                    )}
                 </div>
 
-                {/* Specs Grid - Simplified */}
-                <div className="grid grid-cols-2 gap-2 mb-5">
-                    <div className="flex items-center gap-2 text-xs text-gray-400 bg-dark-bg/50 px-3 py-2 rounded-lg border border-white/5">
+                {/* Specs: Minimal Line Icons */}
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
                         <Cog className="w-3.5 h-3.5 text-primary-500" />
                         {car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-400 bg-dark-bg/50 px-3 py-2 rounded-lg border border-white/5">
+                    <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
                         <Fuel className="w-3.5 h-3.5 text-primary-500" />
-                        <span className="capitalize">{translateFuel(car.fuel)}</span>
+                        {translateFuel(car.fuel)}
                     </div>
                 </div>
 
                 {/* Footer with Price */}
-                <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                <div className="mt-auto pt-5 border-t border-white/5 flex items-center justify-between">
                     <div>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">
+                        <p className="text-[9px] text-[#3c3c3b] font-black uppercase tracking-[0.2em] mb-1">
                             {car.type === 'SALE' ? 'Satış Fiyatı' : 'Günlük Kiralama'}
                         </p>
                         <div className="text-2xl font-black text-white flex items-baseline gap-1">
                             {Number(car.type === 'SALE' ? car.salePrice : car.dailyPrice).toLocaleString()}
-                            <span className="text-sm font-bold text-primary-500">₺</span>
+                            <span className="text-xs font-black text-primary-500 tracking-widest ml-0.5">TL</span>
                         </div>
                     </div>
 
-                    <div className="w-10 h-10 rounded-full bg-white text-dark-bg flex items-center justify-center group-hover/card:bg-primary-500 group-hover/card:text-white transition-all transform group-hover/card:scale-110 shadow-lg">
-                        <ArrowRight className="w-5 h-5" />
+                    <div className="group/btn relative overflow-hidden bg-primary-500 text-white px-5 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase shadow-[0_4px_15px_rgba(204,31,38,0.2)] hover:shadow-[0_8px_25px_rgba(204,31,38,0.4)] transition-all flex items-center gap-2 hover:-translate-y-1">
+                        ŞİMDİ KİRALA
+                        <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                     </div>
                 </div>
             </div>

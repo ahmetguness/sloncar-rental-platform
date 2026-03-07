@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as adminService from './admin.service.js';
 import { auditService } from '../audit/audit.service.js';
+import { Logger } from '../../lib/logger.js';
 
 export async function getDashboardStats(
     _req: Request,
@@ -49,7 +50,7 @@ export async function markNotificationRead(
         await adminService.markNotificationRead(id, type);
         res.json({ success: true });
     } catch (error) {
-        console.error('Error marking notification read:', error);
+        Logger.error('Error marking notification read:', error);
         next(error);
     }
 }
@@ -66,7 +67,7 @@ export async function markAllNotificationsRead(
 
         res.json({ success: true });
     } catch (error) {
-        console.error('Error marking all notifications read:', error);
+        Logger.error('Error marking all notifications read:', error);
         next(error);
     }
 }

@@ -114,3 +114,20 @@ export async function getUsedBrands(
         next(error);
     }
 }
+
+export async function getUsedCategories(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const { type } = req.query;
+        const categories = await carsService.getUsedCategories(type as any);
+        res.json({
+            success: true,
+            data: categories,
+        });
+    } catch (error) {
+        next(error);
+    }
+}

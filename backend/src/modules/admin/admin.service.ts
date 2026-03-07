@@ -379,7 +379,8 @@ export async function createUser(data: any) {
     }
 
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
 
     return prisma.user.create({
         data: {

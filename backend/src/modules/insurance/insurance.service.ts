@@ -1,9 +1,9 @@
-import { PrismaClient, Prisma, InsuranceBranch } from '@prisma/client';
+import { Prisma, InsuranceBranch } from '@prisma/client';
+import prisma from '../../lib/prisma.js';
 import ExcelJS from 'exceljs';
 import stream from 'stream';
 import { ApiError } from '../../middlewares/errorHandler.js';
-
-const prisma = new PrismaClient();
+import { Logger } from '../../lib/logger.js';
 
 // A helper dictionary to map Turkish headers to our DTO/prisma model
 const COLUMN_MAP: Record<string, keyof Prisma.InsuranceCreateInput> = {
@@ -90,7 +90,7 @@ export const insuranceService = {
         });
 
         if (expiringIn10Days.count > 0 || expiredToday.count > 0) {
-            console.log(`[CRON] Detected ${expiringIn10Days.count} insurances expiring in 10 days, ${expiredToday.count} expiring today.`);
+            Logger.info(`[CRON] Detected ${expiringIn10Days.count} insurances expiring in 10 days, ${expiredToday.count} expiring today.`);
         }
     },
     getAllInsurances: async (params: {
@@ -260,7 +260,7 @@ export const insuranceService = {
     },
 
     importInsurances: async (buffer: Buffer | any) => {
-        console.log('[IMPORT] Starting import process...');
+        Logger.info('[IMPORT] Starting import process...');
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(buffer);
         const worksheet = workbook.worksheets[0]; // first sheet
@@ -268,8 +268,7 @@ export const insuranceService = {
         if (!worksheet) {
             throw new Error('Excel is empty or missing worksheet');
         }
-
-        console.log(`[IMPORT] Worksheet found. Total rows: ${worksheet.rowCount}`);
+        Logger.info(`[IMPORT] Worksheet found. Total rows: ${worksheet.rowCount}`);
 
         const headers: Record<number, string> = {};
         let headerRowIdx = 1;
@@ -280,8 +279,7 @@ export const insuranceService = {
                 headers[colNumber] = cell.value.toString().trim().toUpperCase();
             }
         });
-
-        console.log('[IMPORT] Detected headers:', JSON.stringify(headers));
+        Logger.info('[IMPORT] Detected headers:', { headers: JSON.stringify(headers) });
 
         // Ensure we matched required headers (case-insensitive)
         const requiredHeaders = ['BAŞLANGIÇ TARİHİ', 'TC', 'İSİM / SOYİSİM', 'ŞİRKET'];
@@ -290,7 +288,7 @@ export const insuranceService = {
         );
 
         if (missingHeaders.length > 0) {
-            console.error('[IMPORT] Missing required columns:', missingHeaders);
+            Logger.error('[IMPORT] Missing required columns:', { missingHeaders });
             throw new Error(`Gerekli sütunlar eksik: ${missingHeaders.join(', ')}`);
         }
 
@@ -537,8 +535,7 @@ export const insuranceService = {
                 });
             }
         });
-
-        console.log(`[IMPORT] Parsing complete. Valid rows: ${validRows.length}, Failed rows: ${failedRows.length}`);
+        Logger.info(`[IMPORT] Parsing complete. Valid rows: ${validRows.length}, Failed rows: ${failedRows.length}`);
 
         const BATCH_SIZE = 500;
         let insertedCount = 0;
@@ -587,7 +584,7 @@ export const insuranceService = {
                             (ext.description || null) === (row.description || null)
                         );
                         if (isMatch) {
-                            console.log(`[IMPORT] Skipping Exact Duplicate: Row with TC ${row.tcNo}, Name ${row.fullName}, Amount ${row.amount}`);
+                            Logger.debug(`[IMPORT] Skipping Exact Duplicate: Row with TC ${row.tcNo}, Name ${row.fullName}, Amount ${row.amount}`);
                         }
                         return !isMatch;
                     });
@@ -604,7 +601,7 @@ export const insuranceService = {
         }
 
         const duplicateCount = validRows.length - insertedCount;
-        console.log(`[IMPORT] DB insert complete. Newly inserted: ${insertedCount}. Skipped as duplicates: ${duplicateCount}`);
+        Logger.info(`[IMPORT] DB insert complete. Newly inserted: ${insertedCount}. Skipped as duplicates: ${duplicateCount}`);
 
         return {
             insertedCount,

@@ -2,6 +2,7 @@
 import cloudinary from '../../lib/cloudinary.js';
 import fs from 'fs';
 import { ApiError } from '../../middlewares/errorHandler.js';
+import { Logger } from '../../lib/logger.js';
 
 export const uploadImage = async (filePath: string): Promise<string> => {
     try {
@@ -23,7 +24,7 @@ export const uploadImage = async (filePath: string): Promise<string> => {
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
-        console.error('Cloudinary Upload Error:', error);
+        Logger.error('Cloudinary Upload Error:', error);
         throw ApiError.internal(`Image upload failed: ${(error as any).message || error}`);
     }
 };

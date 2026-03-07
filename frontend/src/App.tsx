@@ -63,7 +63,7 @@ function App() {
             </Route>
 
             {/* Fallback */}
-            <Route path="*" element={<div>Page Not Found: {window.location.pathname}</div>} />
+            <Route path="*" element={<div className="min-h-[60vh] flex items-center justify-center text-white text-xl">Sayfa Bulunamadı: {window.location.pathname}</div>} />
           </Route>
         </Routes>
       </Suspense>

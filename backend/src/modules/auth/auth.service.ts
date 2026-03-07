@@ -5,7 +5,7 @@ import { ApiError } from '../../middlewares/errorHandler.js';
 import { RegisterInput, LoginInput } from './auth.validators.js';
 import { AuthResponse } from './auth.types.js';
 
-const SALT_ROUNDS = 12;
+const SALT_ROUNDS = process.env.NODE_ENV === 'test' ? 1 : 12;
 
 export async function register(input: RegisterInput): Promise<AuthResponse> {
     // Check if user already exists

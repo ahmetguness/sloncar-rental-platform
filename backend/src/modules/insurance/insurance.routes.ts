@@ -1,9 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { insuranceController } from './insurance.controller.js';
-import { authMiddleware } from '../../middlewares/auth.js';
-import { adminGuard } from '../../middlewares/adminGuard.js';
-import { deleteGuard } from '../../middlewares/deleteGuard.js';
+import { authMiddleware, adminGuard, validate, deleteGuard } from '../../middlewares/index.js';
+import { createInsuranceSchema, updateInsuranceSchema } from './insurance.dto.js';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -29,6 +28,7 @@ router.post(
     '/',
     authMiddleware,
     adminGuard,
+    validate(createInsuranceSchema),
     insuranceController.createInsurance
 );
 
@@ -37,6 +37,7 @@ router.put(
     '/:id',
     authMiddleware,
     adminGuard,
+    validate(updateInsuranceSchema),
     insuranceController.updateInsurance
 );
 

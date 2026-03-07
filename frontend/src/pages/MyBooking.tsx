@@ -6,6 +6,7 @@ import { Button } from '../components/ui/Button';
 import { Search, AlertCircle, Loader2, Users, CheckCircle, Car as CarIcon } from 'lucide-react';
 import { BrandLogo } from '../components/ui/BrandLogo';
 import { ImageCarousel } from '../components/ui/ImageCarousel';
+import { translateFuel } from '../utils/translate';
 
 export const MyBooking = () => {
     const [searchCode, setSearchCode] = useState('');
@@ -344,11 +345,11 @@ export const MyBooking = () => {
                                         </div>
                                         <div className="bg-white/5 border border-white/10 px-3 py-3 rounded-2xl text-white text-sm font-bold capitalize flex flex-col items-center justify-center gap-1.5 shadow-sm group hover:bg-white/10 transition-colors text-center text-base">
                                             <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">YAKIT</span>
-                                            {booking.car?.fuel}
+                                            {translateFuel(booking.car?.fuel || '')}
                                         </div>
                                         <div className="bg-white/5 border border-white/10 px-3 py-3 rounded-2xl text-white text-sm font-bold capitalize flex flex-col items-center justify-center gap-1.5 shadow-sm group hover:bg-white/10 transition-colors text-center text-base">
                                             <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">VİTES</span>
-                                            {booking.car?.transmission === 'AUTO' ? 'Oto.' : 'Manuel'}
+                                            {booking.car?.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'}
                                         </div>
                                         <div className="bg-white/5 border border-white/10 px-3 py-3 rounded-2xl text-white text-sm font-bold capitalize flex flex-col items-center justify-center gap-1.5 shadow-sm group hover:bg-white/10 transition-colors text-center text-base">
                                             <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">RENK</span>

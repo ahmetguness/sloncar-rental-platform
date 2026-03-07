@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-    --font-sans: 'Outfit', sans-serif;
+    --font-sans: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
     /* Animations */
     --animate-slide-up: slide-up 0.3s ease-out forwards;
@@ -42,28 +42,77 @@
         }
     }
 
-    /* Yaman Filo Red/Grey Palette */
-    --color-primary-50: #fdf2f3;
-    --color-primary-100: #fbe5e6;
-    --color-primary-200: #f6caca;
-    --color-primary-300: #f1afb0;
-    --color-primary-400: #eb9496;
-    --color-primary-500: #c1121f;
-    /* Brand Red */
-    --color-primary-600: #a50f1a;
-    --color-primary-700: #8a0d16;
-    --color-primary-800: #6e0a11;
-    --color-primary-900: #53080d;
-    --color-primary-950: #370508;
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0) rotate(-2deg);
+        }
+
+        50% {
+            transform: translateY(-10px) rotate(-1deg);
+        }
+    }
+
+    @keyframes float-reverse {
+
+        0%,
+        100% {
+            transform: translateY(0) rotate(3deg);
+        }
+
+        50% {
+            transform: translateY(-15px) rotate(4deg);
+        }
+    }
+
+    @keyframes blob-pulse {
+
+        0%,
+        100% {
+            transform: scale(1) translate(0px, 0px);
+            opacity: 0.2;
+        }
+
+        33% {
+            transform: scale(1.1) translate(30px, -50px);
+            opacity: 0.3;
+        }
+
+        66% {
+            transform: scale(0.9) translate(-20px, 20px);
+            opacity: 0.15;
+        }
+    }
+
+    --animate-float: float 6s ease-in-out infinite;
+    --animate-float-reverse: float-reverse 7s ease-in-out infinite;
+    --animate-blob: blob-pulse 10s infinite;
+
+    /* Yaman Filo Strict Brand Identity */
+    --color-primary-500: #CC1F26;
+    /* Exact Logo Red */
+    --color-primary-600: #B31B21;
+    --color-primary-700: #99171C;
+    --color-primary-800: #801318;
+    --color-primary-900: #660F13;
+    --color-primary-950: #4D0B0E;
+
+    --color-brand-grey: #3c3c3b;
+    /* Exact Logo Dark Grey */
+    --color-anthracite: #111111;
+    /* Cinematic Background */
+    --color-charcoal: #1a1a1a;
+    /* Surface Elements */
 
     /* Secondary Accents */
     --color-neon-blue: #e5e5e5;
-    --color-neon-purple: #e5383b;
+    --color-neon-purple: #cc1f26;
 
-    /* Dark Surface Colors */
-    --color-dark-bg: #0d0d0d;
-    --color-dark-surface: #1e1e1e;
-    --color-dark-surface-lighter: #2a2a2a;
+    /* Dark Surface Colors mapped to Brand */
+    --color-dark-bg: var(--color-anthracite);
+    --color-dark-surface: var(--color-charcoal);
+    --color-dark-surface-lighter: #262626;
 }
 
 @layer base {
@@ -108,19 +157,19 @@
 }
 
 .react-datepicker__day:hover {
-    background-color: #c1121f !important;
+    background-color: #CC1F26 !important;
     color: white !important;
     border-radius: 8px !important;
 }
 
 .react-datepicker__day--selected {
-    background-color: #c1121f !important;
-    box-shadow: 0 0 10px rgba(193, 18, 31, 0.5);
+    background-color: #CC1F26 !important;
+    box-shadow: 0 0 10px rgba(204, 31, 38, 0.5);
     border-radius: 8px !important;
 }
 
 .react-datepicker__day--keyboard-selected {
-    background-color: #8a0d16 !important;
+    background-color: #99171C !important;
     border-radius: 8px !important;
 }
 
