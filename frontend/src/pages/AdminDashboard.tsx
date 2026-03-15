@@ -10,7 +10,7 @@ import { adminService } from '../services/api';
 import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Copy, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Banknote } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Banknote } from 'lucide-react';
 
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -21,7 +21,6 @@ import { storage } from '../utils/storage';
 // Register Turkish locale
 registerLocale('tr', tr);
 
-import { Skeleton } from '../components/ui/Skeleton';
 import DebouncedInput from '../components/ui/DebouncedInput';
 import SettingsModal from '../components/modals/SettingsModal';
 import BookingDetailModal from '../components/modals/BookingDetailModal';
@@ -29,7 +28,6 @@ import ManualBookingModal from '../components/modals/ManualBookingModal';
 import InsuranceDetailModal from '../components/modals/InsuranceDetailModal';
 import CreateInsuranceModal from '../components/modals/CreateInsuranceModal';
 
-import { BrandLogo } from '../components/admin/BrandLogo';
 import { StatCard } from '../components/admin/StatCard';
 import { BookingRow } from '../components/admin/BookingRow';
 
