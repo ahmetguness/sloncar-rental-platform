@@ -3,6 +3,7 @@ import path from 'path';
 import { whatsAppService } from './whatsapp.js';
 import prisma from './prisma.js';
 import { Logger } from './logger.js';
+import { sendBookingConfirmationToCustomer, sendBookingAlertToAdmin } from './mail.js';
 
 // Log directory
 const LOG_DIR = path.join(process.cwd(), 'logs');
@@ -33,14 +34,32 @@ class NotificationService {
     }
 
     async sendBookingConfirmation(booking: any): Promise<void> {
-        // 1. Send Email (Mocked)
+        // 1. Send Email to Customer
+        sendBookingConfirmationToCustomer(booking).catch(err => Logger.error('[Notification] Customer email failed:', err));
+
+        // 2. Send Email to Admins
+        try {
+            const admins = await prisma.user.findMany({
+                where: { role: 'ADMIN', emailBookingEnabled: true },
+                select: { email: true }
+            });
+            for (const admin of admins) {
+                if (admin.email) {
+                    sendBookingAlertToAdmin(admin.email, booking).catch(err => Logger.error('[Notification] Admin email failed:', err));
+                }
+            }
+        } catch (err) {
+            Logger.error('[Notification] Failed to fetch admins for email:', err);
+        }
+
+        // 3. Log notification
         await this.logNotification('EMAIL', {
             to: booking.customerEmail || 'no-email',
             subject: `Rezervasyon Onayı - ${booking.bookingCode}`,
-            body: `Sayın ${booking.customerName},\n\nAracınız başarıyla ayırtıldı.\nKodunuz: ${booking.bookingCode}\nAlış: ${booking.pickupDate}\nTeslim: ${booking.dropoffDate}\nTutar: ${booking.totalPrice} TL\n\nİyi yolculuklar!`,
+            body: `${booking.customerName} - ${booking.car?.brand} ${booking.car?.model} - ${booking.totalPrice} TL`,
         });
 
-        // 2. Send SMS (Mocked)
+        // 4. Send SMS (Mocked)
         await this.logNotification('SMS', {
             to: booking.customerPhone,
             subject: 'Rezervasyon',

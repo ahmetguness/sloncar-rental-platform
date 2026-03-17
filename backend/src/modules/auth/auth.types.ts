@@ -7,6 +7,9 @@ export interface AuthResponse {
         name: string;
         role: UserRole;
         whatsappEnabled?: boolean;
+        emailEnabled?: boolean;
+        emailBookingEnabled?: boolean;
+        emailInsuranceEnabled?: boolean;
     };
     token: string;
 }

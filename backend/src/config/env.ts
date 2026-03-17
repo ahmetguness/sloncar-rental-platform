@@ -19,6 +19,15 @@ const envSchema = z.object({
     CLOUDINARY_API_KEY: z.string().trim(),
     CLOUDINARY_API_SECRET: z.string().trim(),
 
+    // SMTP (Gmail)
+    SMTP_HOST: z.string().default('smtp-relay.brevo.com'),
+    SMTP_PORT: z.coerce.number().default(587),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASS: z.string().optional(),
+    SMTP_FROM: z.string().optional(),
+    SMTP_FROM_NAME: z.string().default('Rent a Car'),
+    SITE_URL: z.string().default('http://localhost:5173'),
+
     // Logging
     LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
 });

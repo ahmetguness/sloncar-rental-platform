@@ -130,7 +130,7 @@ export const adminService = {
     isAuthenticated: () => {
         return storage.isAuthenticated();
     },
-    updateProfile: async (data: { whatsappEnabled: boolean }) => {
+    updateProfile: async (data: { whatsappEnabled?: boolean; emailEnabled?: boolean; emailBookingEnabled?: boolean; emailInsuranceEnabled?: boolean }) => {
         const response = await api.patch<{ success: true; data: { user: User } }>('/auth/profile', data);
         return response.data;
     },

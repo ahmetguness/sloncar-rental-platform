@@ -337,8 +337,9 @@ export interface BackupHistoryEntry {
 
 async function getLastChangeTimestamp(): Promise<number> {
     const tables = [
-        'carBrand', 'branch', 'car', 'user', 'booking',
-        'franchiseApplication', 'franchiseAuditLog', 'insurance', 'actionLog'
+        'branch', 'car', 'user', 'booking',
+        'franchiseApplication', 'franchiseAuditLog', 'insurance', 'actionLog',
+        'campaign', 'globalSetting'
     ];
     let maxTs = 0;
     for (const table of tables) {
@@ -382,7 +383,7 @@ async function getLastChangeTimestamp(): Promise<number> {
 }
 
 async function getDatabaseRecordCount(): Promise<number> {
-    const tables = ['car', 'user', 'booking', 'insurance'];
+    const tables = ['car', 'user', 'booking', 'insurance', 'campaign'];
     let totalCount = 0;
     for (const table of tables) {
         const count = await (prisma as any)[table].count();

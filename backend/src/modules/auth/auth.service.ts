@@ -98,15 +98,21 @@ export async function getProfile(userId: string): Promise<AuthResponse['user']> 
         email: user.email,
         name: user.name,
         role: user.role,
-        whatsappEnabled: user.whatsappEnabled
+        whatsappEnabled: user.whatsappEnabled,
+        emailEnabled: user.emailEnabled,
+        emailBookingEnabled: user.emailBookingEnabled,
+        emailInsuranceEnabled: user.emailInsuranceEnabled,
     };
 }
 
-export async function updateProfile(userId: string, data: { whatsappEnabled?: boolean }): Promise<AuthResponse['user']> {
+export async function updateProfile(userId: string, data: { whatsappEnabled?: boolean; emailEnabled?: boolean; emailBookingEnabled?: boolean; emailInsuranceEnabled?: boolean }): Promise<AuthResponse['user']> {
     const user = await prisma.user.update({
         where: { id: userId },
         data: {
-            whatsappEnabled: data.whatsappEnabled
+            whatsappEnabled: data.whatsappEnabled,
+            emailEnabled: data.emailEnabled,
+            emailBookingEnabled: data.emailBookingEnabled,
+            emailInsuranceEnabled: data.emailInsuranceEnabled,
         }
     });
 
@@ -115,6 +121,9 @@ export async function updateProfile(userId: string, data: { whatsappEnabled?: bo
         email: user.email,
         name: user.name,
         role: user.role,
-        whatsappEnabled: user.whatsappEnabled
+        whatsappEnabled: user.whatsappEnabled,
+        emailEnabled: user.emailEnabled,
+        emailBookingEnabled: user.emailBookingEnabled,
+        emailInsuranceEnabled: user.emailInsuranceEnabled,
     };
 }

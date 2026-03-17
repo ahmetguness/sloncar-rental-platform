@@ -88,6 +88,9 @@ export interface User {
     role: UserRole;
     phone?: string;
     whatsappEnabled?: boolean;
+    emailEnabled?: boolean;
+    emailBookingEnabled?: boolean;
+    emailInsuranceEnabled?: boolean;
     createdAt?: string;
 }
 

@@ -708,24 +708,32 @@ export const insuranceService = {
 
         const currentMonth = TURKISH_MONTHS[startDate.getMonth()] || '';
 
-        return await prisma.insurance.create({
-            data: {
-                tcNo: source.tcNo,
-                fullName: source.fullName,
-                profession: source.profession,
-                phone: source.phone,
-                plate: source.plate,
-                serialOrOrderNo: source.serialOrOrderNo,
-                amount: source.amount,
-                branch: source.branch,
-                company: source.company,
-                policyNo: `${source.policyNo}-YENI`,
-                description: `[YENİLEME] Eski poliçe: ${source.policyNo}`,
-                month: currentMonth,
-                startDate: startDate,
-                userId: source.userId,
-                adminRead: true,
-            }
+        return await prisma.$transaction(async (tx) => {
+            // Mark old policy as renewed
+            await tx.insurance.update({
+                where: { id },
+                data: { renewed: true },
+            });
+
+            return await tx.insurance.create({
+                data: {
+                    tcNo: source.tcNo,
+                    fullName: source.fullName,
+                    profession: source.profession,
+                    phone: source.phone,
+                    plate: source.plate,
+                    serialOrOrderNo: source.serialOrOrderNo,
+                    amount: source.amount,
+                    branch: source.branch,
+                    company: source.company,
+                    policyNo: `${source.policyNo}-YENI`,
+                    description: `[YENİLEME] Eski poliçe: ${source.policyNo}`,
+                    month: currentMonth,
+                    startDate: startDate,
+                    userId: source.userId,
+                    adminRead: true,
+                }
+            });
         });
     },
 

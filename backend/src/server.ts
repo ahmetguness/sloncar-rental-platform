@@ -2,6 +2,7 @@ import app from './app.js';
 import { env } from './config/env.js';
 import prisma from './lib/prisma.js';
 import { initBackupScheduler } from './modules/backup/backup.scheduler.js';
+import { initInsuranceReminderScheduler } from './modules/insurance/insurance.scheduler.js';
 import { cronService } from './services/cron.service.js';
 
 const PORT = env.APP_PORT;
@@ -14,6 +15,9 @@ async function main() {
 
         // Initialize Backup Scheduler
         initBackupScheduler();
+
+        // Initialize Insurance Reminder Scheduler
+        initInsuranceReminderScheduler();
 
         // Initialize Cron Service (Booking Expiration)
         cronService.init();
