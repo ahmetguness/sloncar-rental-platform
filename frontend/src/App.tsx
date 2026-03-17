@@ -10,6 +10,7 @@ const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })))
 const Booking = lazy(() => import('./pages/Booking').then(m => ({ default: m.Booking })));
 const MyBooking = lazy(() => import('./pages/MyBooking').then(m => ({ default: m.MyBooking })));
 const Franchise = lazy(() => import('./pages/Franchise').then(m => ({ default: m.Franchise })));
+const About = lazy(() => import('./pages/About').then(m => ({ default: m.About })));
 const SecondHand = lazy(() => import('./pages/SecondHand').then(m => ({ default: m.SecondHand })));
 const AdminLogin = lazy(() => import('./pages/AdminLogin').then(m => ({ default: m.AdminLogin })));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
@@ -21,6 +22,10 @@ const AdminUsers = lazy(() => import('./pages/AdminUsers').then(m => ({ default:
 const AdminBackup = lazy(() => import('./pages/AdminBackup').then(m => ({ default: m.AdminBackup })));
 const CarDetail = lazy(() => import('./pages/CarDetail').then(m => ({ default: m.CarDetail })));
 
+import { useEffect } from 'react';
+import { useAppDispatch } from './store/hooks';
+import { fetchSettings } from './features/settings/settingsSlice';
+
 const PageLoader = () => (
   <div className="min-h-[60vh] flex items-center justify-center">
     <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
@@ -28,6 +33,12 @@ const PageLoader = () => (
 );
 
 function App() {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
   return (
     <BrowserRouter>
       <ScrollToTop />
@@ -40,6 +51,7 @@ function App() {
             <Route path="book/:carId" element={<Booking />} />
             <Route path="my-booking" element={<MyBooking />} />
             <Route path="franchise" element={<Franchise />} />
+            <Route path="about" element={<About />} />
 
             {/* Admin Routes */}
             <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />

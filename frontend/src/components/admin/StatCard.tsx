@@ -33,20 +33,20 @@ export const StatCard = ({ title, value, icon, color, loading, trend, trendUp, d
     // Use string manipulation instead of template literals for dynamic ring/shadow classes if needed, 
     // but here we just use the fixed mapping.
     const activeRingClasses = {
-        green: 'ring-green-500 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)]',
-        blue: 'ring-blue-500 border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.3)]',
-        purple: 'ring-purple-500 border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.3)]',
-        orange: 'ring-orange-500 border-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.3)]',
+        green: 'ring-green-500 border-green-500',
+        blue: 'ring-blue-500 border-blue-500',
+        purple: 'ring-purple-500 border-purple-500',
+        orange: 'ring-orange-500 border-orange-500',
     };
 
     const activeClasses = isActive
-        ? `ring-2 ${activeRingClasses[color]} bg-dark-surface-lighter`
-        : 'hover:bg-dark-surface-lighter/90 border-white/10 hover:border-white/20';
+        ? `ring-2 ${activeRingClasses[color]} bg-white/[0.08]`
+        : 'hover:bg-black/[0.02] border-gray-200 hover:border-gray-300';
 
     return (
         <button
             onClick={onClick}
-            className={`relative w-full text-left overflow-hidden bg-dark-surface-lighter/50 backdrop-blur-xl p-4 md:p-6 rounded-2xl border transition-all duration-300 group ${activeClasses}`}
+            className={`relative w-full text-left overflow-hidden bg-white p-4 md:p-6 rounded-2xl border transition-all duration-300 group ${activeClasses}`}
         >
             {/* Glow Effect */}
             <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClasses[color]} rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity`} />
@@ -57,7 +57,7 @@ export const StatCard = ({ title, value, icon, color, loading, trend, trendUp, d
                         {icon}
                     </div>
                     {trend && (
-                        <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${trendUp ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                        <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${trendUp ? 'bg-green-500/20 text-green-600' : 'bg-red-500/20 text-red-600'}`}>
                             {trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                             {trend}
                         </div>
@@ -65,12 +65,12 @@ export const StatCard = ({ title, value, icon, color, loading, trend, trendUp, d
                 </div>
 
                 <div className="space-y-1">
-                    <p className="text-gray-400 text-sm font-medium tracking-wide">{title}</p>
+                    <p className="text-gray-600 text-sm font-medium tracking-wide">{title}</p>
                     {loading ? (
                         <Skeleton className="h-8 w-24 mt-1" />
                     ) : (
                         <div className="flex items-end justify-between gap-2">
-                            <p className="text-2xl md:text-3xl font-black text-white tracking-tight">{value}</p>
+                            <p className="text-2xl md:text-3xl font-black text-[#111111] tracking-tight">{value}</p>
 
                             {/* Sparkline SVG */}
                             {data && data.length > 0 && (

@@ -10,7 +10,7 @@ import { adminService } from '../services/api';
 import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Banknote } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Banknote, Globe } from 'lucide-react';
 
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -23,6 +23,7 @@ registerLocale('tr', tr);
 
 import DebouncedInput from '../components/ui/DebouncedInput';
 import SettingsModal from '../components/modals/SettingsModal';
+import SiteSettingsModal from '../components/modals/SiteSettingsModal';
 import BookingDetailModal from '../components/modals/BookingDetailModal';
 import ManualBookingModal from '../components/modals/ManualBookingModal';
 import InsuranceDetailModal from '../components/modals/InsuranceDetailModal';
@@ -83,6 +84,7 @@ export const AdminDashboard = () => {
     // User Management States
     const [currentUser, setCurrentUser] = useState<any | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isSiteSettingsOpen, setIsSiteSettingsOpen] = useState(false);
     const [isSystemMenuOpen, setIsSystemMenuOpen] = useState(false);
     const systemMenuRef = useRef<HTMLDivElement>(null);
 
@@ -340,13 +342,13 @@ export const AdminDashboard = () => {
     const getDataKey = useCallback(() => chartView === 'yearly' ? 'month' : (chartView === 'weekly' ? 'week' : 'month'), [chartView]);
 
     if (dashboardLoading || (!stats && !error)) return (
-        <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center">
+        <div className="min-h-screen pt-24 flex justify-center items-center">
             <Loader2 className="animate-spin w-10 h-10 text-primary-500" />
         </div>
     );
 
     if (error) return (
-        <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center flex-col gap-4">
+        <div className="min-h-screen pt-24 flex justify-center items-center flex-col gap-4">
             <AlertCircle className="w-12 h-12 text-red-500" />
             <div className="text-white text-lg font-bold">Veri yükleme hatasi</div>
             <Button onClick={() => dispatch(fetchDashboardStats())} variant="outline">
@@ -356,7 +358,7 @@ export const AdminDashboard = () => {
     );
 
     return (
-        <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-3 md:px-6">
+        <div className="min-h-screen pt-24 pb-12 px-3 md:px-6">
 
             <Modal
                 isOpen={!!cancelingId}
@@ -368,7 +370,7 @@ export const AdminDashboard = () => {
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto ${bookingAction === 'start' ? 'bg-green-500/20' : bookingAction === 'complete' ? 'bg-blue-500/20' : 'bg-red-500/20'}`}>
                         {bookingAction === 'start' ? <Key className="w-6 h-6 text-green-500" /> : bookingAction === 'complete' ? <CheckCircle className="w-6 h-6 text-blue-500" /> : <AlertCircle className="w-6 h-6 text-red-500" />}
                     </div>
-                    <p className="text-gray-300 text-center">
+                    <p className="text-gray-600 text-center">
                         {bookingAction === 'start'
                             ? 'Araci teslim etmek ve kiralamayi baslatmak istediginize emin misiniz?'
                             : bookingAction === 'complete'
@@ -405,7 +407,7 @@ export const AdminDashboard = () => {
                         </p>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Poliçe Başlangıç Tarihi</label>
+                            <label className="text-sm font-medium text-gray-600">Poliçe Başlangıç Tarihi</label>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 z-10" />
                                 <DatePicker
@@ -415,14 +417,14 @@ export const AdminDashboard = () => {
                                     locale="tr"
                                     portalId="root"
                                     popperPlacement="bottom-start"
-                                    className="w-full bg-dark-bg border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all cursor-pointer"
+                                    className="w-full bg-black/[0.03] border border-black/10 rounded-xl py-3 pl-10 pr-4 text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all cursor-pointer"
                                     placeholderText="Tarih Seçiniz"
                                 />
                             </div>
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3 pt-6 w-full border-t border-white/5">
-                        <Button variant="outline" onClick={closeRenewModal} className="px-6 border-white/10 text-white hover:bg-white/10">Vazgeç</Button>
+                    <div className="flex justify-end gap-3 pt-6 w-full border-t border-black/10">
+                        <Button variant="outline" onClick={closeRenewModal} className="px-6 border-black/10 text-gray-700 hover:bg-black/5">Vazgeç</Button>
                         <Button
                             className="bg-primary-500 hover:bg-primary-600 text-white border-none px-8 font-bold shadow-lg shadow-primary-500/20"
                             onClick={confirmRenew}
@@ -439,6 +441,12 @@ export const AdminDashboard = () => {
                 onClose={() => setIsSettingsOpen(false)}
                 user={currentUser}
                 onUpdate={handleUpdateUser}
+            />
+
+            {/* Site Settings Modal */}
+            <SiteSettingsModal
+                isOpen={isSiteSettingsOpen}
+                onClose={() => setIsSiteSettingsOpen(false)}
             />
 
             {/* Manual Booking Modal */}
@@ -465,7 +473,7 @@ export const AdminDashboard = () => {
                 {/* Header */}
                 <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
                     <div>
-                        <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">
+                        <h1 className="text-2xl md:text-4xl font-black text-[#111111] tracking-tight">
                             GENEL <span className="text-primary-500">BAKIS</span>
                         </h1>
                         <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
@@ -473,14 +481,14 @@ export const AdminDashboard = () => {
 
                     <div className="flex flex-wrap items-center gap-3">
                         {/* Business Modules Group */}
-                        <div className="flex items-center bg-white/[0.04] backdrop-blur-xl rounded-xl p-1 border border-white/[0.06]">
+                        <div className="flex items-center bg-black/[0.03] rounded-xl p-1 border border-black/10">
                             {[
                                 { to: '/admin/campaigns', icon: <Megaphone className="w-4 h-4" />, label: 'Kampanya' },
                                 { to: '/admin/cars/rental', icon: <Key className="w-4 h-4" />, label: 'Kiralik' },
                                 { to: '/admin/cars/sale', icon: <DollarSign className="w-4 h-4" />, label: 'Satilik' },
                             ].map((item) => (
                                 <Link key={item.to} to={item.to}>
-                                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all duration-200">
+                                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-[#111111] hover:bg-black/[0.05] transition-all duration-200">
                                         {item.icon}
                                         <span className="hidden sm:inline">{item.label}</span>
                                     </button>
@@ -492,7 +500,7 @@ export const AdminDashboard = () => {
                         <div className="relative" ref={systemMenuRef}>
                             <button
                                 onClick={() => setIsSystemMenuOpen(!isSystemMenuOpen)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border ${isSystemMenuOpen ? 'bg-white/[0.1] text-white border-white/20' : 'bg-white/[0.04] text-gray-400 border-white/[0.06] hover:bg-white/[0.08] hover:text-white'}`}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border ${isSystemMenuOpen ? 'bg-black/[0.08] text-[#111111] border-black/20' : 'bg-black/[0.03] text-gray-600 border-black/10 hover:bg-black/[0.08] hover:text-[#111111]'}`}
                             >
                                 <Settings className="w-4 h-4" />
                                 <span className="hidden sm:inline">Sistem</span>
@@ -500,29 +508,39 @@ export const AdminDashboard = () => {
                             </button>
 
                             {isSystemMenuOpen && (
-                                <div className="absolute top-full mt-2 right-0 w-48 bg-[#1a1b26] border border-white/10 rounded-xl shadow-xl overflow-hidden z-[70] animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute top-full mt-2 right-0 w-48 bg-white border border-black/10 rounded-xl shadow-xl overflow-hidden z-[70] animate-in fade-in zoom-in-95 duration-200">
                                     <div className="p-1">
                                         {currentUser?.role === 'ADMIN' && (
                                             <>
+                                                <button
+                                                    onClick={() => {
+                                                        setIsSiteSettingsOpen(true);
+                                                        setIsSystemMenuOpen(false);
+                                                    }}
+                                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-[#111111] hover:bg-black/5 rounded-lg transition-colors text-left"
+                                                >
+                                                    <Globe className="w-4 h-4 text-primary-500" />
+                                                    Site Ayarlari
+                                                </button>
                                                 <Link to="/admin/audit-logs" onClick={() => setIsSystemMenuOpen(false)}>
-                                                    <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left">
+                                                    <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-[#111111] hover:bg-black/5 rounded-lg transition-colors text-left">
                                                         <Clock className="w-4 h-4 text-amber-500" />
                                                         Islem Geçmisi
                                                     </button>
                                                 </Link>
                                                 <Link to="/admin/users" onClick={() => setIsSystemMenuOpen(false)}>
-                                                    <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left">
+                                                    <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-[#111111] hover:bg-black/5 rounded-lg transition-colors text-left">
                                                         <Users className="w-4 h-4 text-emerald-500" />
                                                         Kullanicilar
                                                     </button>
                                                 </Link>
                                                 <Link to="/admin/backup" onClick={() => setIsSystemMenuOpen(false)}>
-                                                    <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left">
+                                                    <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-[#111111] hover:bg-black/5 rounded-lg transition-colors text-left">
                                                         <Database className="w-4 h-4 text-blue-500" />
                                                         Yedekleme
                                                     </button>
                                                 </Link>
-                                                <div className="h-px bg-white/10 my-1" />
+                                                <div className="h-px bg-black/10 my-1" />
                                             </>
                                         )}
                                         <button
@@ -530,7 +548,7 @@ export const AdminDashboard = () => {
                                                 setIsSettingsOpen(true);
                                                 setIsSystemMenuOpen(false);
                                             }}
-                                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left"
+                                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-[#111111] hover:bg-black/5 rounded-lg transition-colors text-left"
                                         >
                                             <Megaphone className="w-4 h-4 text-purple-500" />
                                             Bildirim Ayarlari
@@ -540,7 +558,7 @@ export const AdminDashboard = () => {
                             )}
                         </div>
 
-                        <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block" />
+                        <div className="w-px h-8 bg-black/10 mx-1 hidden sm:block" />
 
                         {/* Quick Actions */}
                         <div className="flex items-center gap-2">
@@ -548,7 +566,7 @@ export const AdminDashboard = () => {
                             <div className="relative" ref={notificationRef}>
                                 <Button
                                     variant="secondary"
-                                    className="relative w-11 h-11 p-0 rounded-xl bg-white/[0.04] border-white/[0.06] hover:bg-white/[0.08]"
+                                    className="relative w-11 h-11 p-0 rounded-xl bg-black/[0.04] border-black/[0.06] hover:bg-black/[0.08]"
                                     onClick={() => setShowNotifications(!showNotifications)}
                                 >
                                     {(() => {
@@ -570,14 +588,14 @@ export const AdminDashboard = () => {
                                             </span>
                                         );
                                     })()}
-                                    <Bell className="w-5 h-5 text-gray-400" />
+                                    <Bell className="w-5 h-5 text-gray-600" />
                                 </Button>
 
                                 {/* Notification Dropdown */}
                                 {showNotifications && (
-                                    <div className="fixed inset-x-3 top-20 sm:inset-x-auto sm:top-auto sm:absolute sm:right-0 sm:mt-4 sm:w-96 bg-dark-surface border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[70] animate-in fade-in slide-in-from-top-2">
-                                        <div className="p-3 sm:p-4 border-b border-white/5 flex items-center justify-between">
-                                            <h3 className="font-bold text-white text-sm sm:text-base">Bildirimler</h3>
+                                    <div className="fixed inset-x-3 top-20 sm:inset-x-auto sm:top-auto sm:absolute sm:right-0 sm:mt-4 sm:w-96 bg-black/[0.02] border border-black/5 rounded-2xl shadow-2xl overflow-hidden z-[70] animate-in fade-in slide-in-from-top-2">
+                                        <div className="p-3 sm:p-4 border-b border-black/5 flex items-center justify-between">
+                                            <h3 className="font-bold text-[#111111] text-sm sm:text-base">Bildirimler</h3>
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={async () => {
@@ -672,7 +690,7 @@ export const AdminDashboard = () => {
 
                                                 if (allNotifications.length === 0) {
                                                     return (
-                                                        <div className="p-8 text-center text-gray-500 text-sm">
+                                                        <div className="p-8 text-center text-gray-600 text-sm">
                                                             <Check className="w-8 h-8 mx-auto mb-2 text-green-500/20" />
                                                             Bildirim yok.
                                                         </div>
@@ -729,7 +747,7 @@ export const AdminDashboard = () => {
                                                                     .catch(err => console.error("Failed to mark read", err));
                                                             }
                                                         }}
-                                                        className={`p-3 sm:p-4 border-b border-white/5 last:border-0 transition-colors cursor-pointer flex gap-3 sm:gap-4 items-start ${!item.read ? 'bg-white/5 hover:bg-white/10' : 'hover:bg-white/5 opacity-60'
+                                                        className={`p-3 sm:p-4 border-b border-black/5 last:border-0 transition-colors cursor-pointer flex gap-3 sm:gap-4 items-start ${!item.read ? 'bg-black/[0.03] hover:bg-black/[0.05]' : 'hover:bg-black/[0.02] opacity-60'
                                                             } ${item.color === 'green' ? 'border-l-2 border-l-green-500' : item.color === 'red' ? 'border-l-2 border-l-red-500' : item.color === 'yellow' ? 'border-l-2 border-l-yellow-500' : 'border-l-2 border-l-primary-500'}`}
                                                     >
                                                         <div className={`mt-0.5 sm:mt-1 p-1.5 sm:p-2 rounded-lg shrink-0 ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : item.color === 'red' ? 'bg-red-500/20 text-red-400' : item.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-primary-500/20 text-primary-400'}`}>
@@ -737,10 +755,10 @@ export const AdminDashboard = () => {
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex justify-between items-start">
-                                                                <div className={`text-sm font-bold ${!item.read ? 'text-white' : 'text-gray-400'}`}>{item.title}</div>
+                                                                <div className={`text-sm font-bold ${!item.read ? 'text-[#111111]' : 'text-gray-600'}`}>{item.title}</div>
                                                                 {!item.read && <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5" />}
                                                             </div>
-                                                            <div className="text-xs text-gray-300 mt-0.5 truncate">{item.desc}</div>
+                                                            <div className="text-xs text-gray-700 mt-0.5 truncate">{item.desc}</div>
                                                             <div className="text-[10px] text-gray-500 mt-2 font-medium">
                                                                 {new Date(item.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                                                 <span className="mx-1">•</span>
@@ -865,18 +883,18 @@ export const AdminDashboard = () => {
                             {revenueData && (
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                     {/* Main Revenue Chart (Dual Axis) */}
-                                    <div className="lg:col-span-2 bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                                        <div className="p-6 border-b border-white/10">
+                                    <div className="lg:col-span-2 bg-white rounded-2xl border border-black/10 overflow-hidden shadow-sm">
+                                        <div className="p-6 border-b border-black/10">
                                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                                 <div>
-                                                    <h2 className="text-xl font-bold text-white">Gelir Analizi</h2>
+                                                    <h2 className="text-xl font-bold text-[#111111]">Gelir Analizi</h2>
                                                     <div className="flex items-center gap-2 mt-2">
-                                                        <span className="text-3xl font-black text-green-400">
+                                                        <span className="text-3xl font-black text-green-600">
                                                             {(revenueData?.summary?.currentYear || 0).toLocaleString()} ₺
                                                         </span>
                                                         <span className={`flex items-center gap-1 text-sm font-bold px-2 py-1 rounded-full ${(revenueData?.summary?.growth || 0) >= 0
-                                                            ? 'bg-green-500/20 text-green-400'
-                                                            : 'bg-red-500/20 text-red-400'
+                                                            ? 'bg-green-500/20 text-green-600'
+                                                            : 'bg-red-500/20 text-red-600'
                                                             }`}>
                                                             {(revenueData?.summary?.growth || 0) >= 0
                                                                 ? <ArrowUpRight className="w-4 h-4" />
@@ -890,20 +908,20 @@ export const AdminDashboard = () => {
                                                     <select
                                                         value={selectedYear}
                                                         onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                                        className="px-4 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                        className="px-4 py-2 bg-black/[0.03] border border-black/10 rounded-xl text-[#111111] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                                                     >
                                                         {(revenueData?.availableYears || []).map((year: number) => (
                                                             <option key={year} value={year} className="bg-dark-bg">{year}</option>
                                                         ))}
                                                     </select>
-                                                    <div className="flex bg-dark-bg rounded-xl p-1 border border-white/10">
+                                                    <div className="flex bg-black/[0.03] rounded-xl p-1 border border-black/10">
                                                         {(['weekly', 'monthly', 'yearly'] as const).map((view) => (
                                                             <button
                                                                 key={view}
                                                                 onClick={() => setChartView(view)}
                                                                 className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${chartView === view
                                                                     ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(204,31,38,0.4)]'
-                                                                    : 'text-gray-400 hover:text-white'
+                                                                    : 'text-gray-600 hover:text-[#111111]'
                                                                     }`}
                                                             >
                                                                 {view === 'weekly' ? 'Haftalik' : view === 'monthly' ? 'Aylik' : 'Yillik'}
@@ -1017,7 +1035,7 @@ export const AdminDashboard = () => {
                                                             const buffer = await workbook.xlsx.writeBuffer();
                                                             saveAs(new Blob([buffer]), `Yaman_Filo_Gelir_Raporu_${selectedYear}.xlsx`);
                                                         }}
-                                                        className="p-2.5 rounded-xl bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all"
+                                                        className="p-2.5 rounded-xl bg-white border border-black/10 text-gray-600 hover:text-[#111111] hover:border-primary-500/50 transition-all"
                                                         title="Excel Indir (Grafikli)"
                                                     >
                                                         <Download className="w-5 h-5" />
@@ -1101,9 +1119,9 @@ export const AdminDashboard = () => {
                                     </div>
 
                                     {/* Category Breakdown (Mock Pie Chart) */}
-                                    <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                                        <div className="p-6 border-b border-white/10">
-                                            <h2 className="text-xl font-bold text-white">Kategori Dagilimi</h2>
+                                    <div className="bg-black/[0.02] rounded-xl p-4 border border-black/5">
+                                        <div className="p-6 border-b border-black/10">
+                                            <h2 className="text-xl font-bold text-[#111111]">Kategori Dagilimi</h2>
                                             <p className="text-xs text-gray-500 mt-1">Hasilatin araç türüne göre dagilimi</p>
                                         </div>
                                         <div className="p-6">
@@ -1141,7 +1159,7 @@ export const AdminDashboard = () => {
                                                 </ResponsiveContainer>
                                                 {/* Center Text */}
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                                    <span className="text-3xl font-black text-white">{revenueData?.byCategory?.length || 0}</span>
+                                                    <span className="text-3xl font-black text-[#111111]">{revenueData?.byCategory?.length || 0}</span>
                                                     <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Kategori</span>
                                                 </div>
                                             </div>
@@ -1157,10 +1175,10 @@ export const AdminDashboard = () => {
                                                             <div className={`w-2.5 h-2.5 rounded-full ${colors[i % colors.length]}`} />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex justify-between items-center gap-2">
-                                                                    <span className="text-sm font-medium text-gray-300 truncate">{item.name}</span>
-                                                                    <span className="text-xs font-black text-white">%{percentage}</span>
+                                                                    <span className="text-sm font-medium text-gray-700 truncate">{item.name}</span>
+                                                                    <span className="text-xs font-black text-[#111111]">%{percentage}</span>
                                                                 </div>
-                                                                <div className="text-[10px] text-gray-500 font-mono mt-0.5">{Number(item.value).toLocaleString()} ₺</div>
+                                                                <div className="text-[10px] text-gray-600 font-mono mt-0.5">{Number(item.value).toLocaleString()} ₺</div>
                                                             </div>
                                                         </div>
                                                     );
@@ -1177,11 +1195,11 @@ export const AdminDashboard = () => {
                 {/* All Bookings Table with Pagination */}
                 {
                     activeTab === 'bookings' && (
-                        <div id="bookings-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                            <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div id="bookings-section" className="bg-white rounded-2xl border border-black/10 overflow-hidden shadow-sm">
+                            <div className="p-6 border-b border-black/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-center gap-4">
-                                    <h2 className="text-xl font-bold text-white">Tüm Rezervasyonlar</h2>
-                                    <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                    <h2 className="text-xl font-bold text-[#111111]">Tüm Rezervasyonlar</h2>
+                                    <span className="text-xs font-bold text-gray-600 bg-black/[0.03] px-3 py-1.5 rounded-full border border-black/5">
                                         {bookingsData?.pagination?.total || 0} kayit
                                     </span>
                                 </div>
@@ -1192,7 +1210,7 @@ export const AdminDashboard = () => {
                                         onClick={() => setShowFilters(!showFilters)}
                                         className={`p-2 rounded-lg border transition-all flex items-center gap-2 ${showFilters || statusFilter
                                             ? 'bg-primary-500/20 border-primary-500/50 text-primary-400'
-                                            : 'bg-dark-bg border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                            : 'bg-white border-black/10 text-gray-600 hover:text-[#111111] hover:border-black/20'
                                             }`}
                                     >
                                         <Filter className="w-4 h-4" />
@@ -1211,7 +1229,7 @@ export const AdminDashboard = () => {
                             </div>
                             {/* Filter Chips Row */}
                             {showFilters && (
-                                <div className="px-6 py-4 border-b border-white/10 bg-dark-bg/30">
+                                <div className="px-6 py-4 border-b border-black/10 bg-black/[0.02]">
                                     <div className="flex flex-wrap items-center gap-3">
                                         <span className="text-xs font-bold text-gray-500 uppercase">Durum:</span>
                                         <div className="flex flex-wrap gap-2">
@@ -1224,7 +1242,7 @@ export const AdminDashboard = () => {
                                                             status.color === 'red' ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
                                                                 status.color === 'primary' ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' :
                                                                     'bg-gray-500 text-white shadow-[0_0_15px_rgba(107,114,128,0.4)]'
-                                                        : 'bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                        : 'bg-white border border-black/10 text-gray-600 hover:text-[#111111] hover:border-black/20'
                                                         }`}
                                                 >
                                                     {status.label}
@@ -1248,7 +1266,7 @@ export const AdminDashboard = () => {
 
                             <div className="overflow-x-auto w-full custom-scrollbar pb-4">
                                 <table className="w-full text-left min-w-[1000px] md:min-w-full">
-                                    <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                    <thead className="bg-black/[0.02] text-gray-600 text-xs uppercase tracking-wider">
                                         <tr>
                                             <th className="p-4 text-center">Kod</th>
                                             <th className="p-4">Müsteri</th>
@@ -1272,8 +1290,8 @@ export const AdminDashboard = () => {
                                         ) : !(bookingsData?.data?.length) ? (
                                             <tr>
                                                 <td colSpan={7} className="p-12 text-center">
-                                                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                                                    <p className="text-gray-400">Henüz rezervasyon yok</p>
+                                                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                                                    <p className="text-gray-600">Henüz rezervasyon yok</p>
                                                 </td>
                                             </tr>
                                         ) : (
@@ -1292,15 +1310,15 @@ export const AdminDashboard = () => {
                             </div>
                             {/* Pagination Controls */}
                             {bookingsData?.pagination && (bookingsData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
-                                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-                                    <div className="text-sm text-gray-400">
+                                <div className="p-4 border-t border-black/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <div className="text-sm text-gray-600">
                                         Sayfa {currentPage} / {bookingsData?.pagination?.totalPages || 1} ({bookingsData?.pagination?.total || 0} kayit)
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => setCurrentPage(prev => prev - 1)}
                                             disabled={currentPage === 1 || bookingsQueryLoading}
-                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="p-2 rounded-lg bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             <ChevronLeft className="w-5 h-5" />
                                         </button>
@@ -1325,7 +1343,7 @@ export const AdminDashboard = () => {
                                                         disabled={bookingsQueryLoading}
                                                         className={`w-10 h-10 rounded-lg font-bold transition-all ${currentPage === pageNum
                                                             ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
-                                                            : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50'
+                                                            : 'bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-primary-500/50'
                                                             }`}
                                                     >
                                                         {pageNum}
@@ -1336,7 +1354,7 @@ export const AdminDashboard = () => {
                                         <button
                                             onClick={() => setCurrentPage(prev => prev + 1)}
                                             disabled={currentPage >= (bookingsData?.pagination?.totalPages || 1) || bookingsQueryLoading}
-                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="p-2 rounded-lg bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
@@ -1351,16 +1369,16 @@ export const AdminDashboard = () => {
                 {/* Franchise Applications Section */}
                 {
                     activeTab === 'franchise' && (
-                        <div id="franchise-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                            <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div id="franchise-section" className="bg-white rounded-2xl border border-black/10 overflow-hidden shadow-sm">
+                            <div className="p-6 border-b border-black/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-center gap-4">
-                                    <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                    <h2 className="text-xl font-bold text-[#111111] flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                                            <Building2 className="w-5 h-5 text-purple-400" />
+                                            <Building2 className="w-5 h-5 text-purple-600" />
                                         </div>
                                         Franchise Basvurulari
                                     </h2>
-                                    <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                    <span className="text-xs font-bold text-gray-600 bg-black/[0.03] px-3 py-1.5 rounded-full border border-black/5">
                                         {franchiseData?.pagination?.total || 0} basvuru
                                     </span>
                                 </div>
@@ -1379,7 +1397,7 @@ export const AdminDashboard = () => {
 
                             <div className="overflow-x-auto w-full custom-scrollbar pb-4">
                                 <table className="w-full text-left min-w-[800px] md:min-w-full">
-                                    <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                    <thead className="bg-black/[0.02] text-gray-600 text-xs uppercase tracking-wider">
                                         <tr>
                                             <th className="p-4">Basvuran</th>
                                             <th className="p-4">Iletisim</th>
@@ -1402,8 +1420,8 @@ export const AdminDashboard = () => {
                                         ) : !franchiseData?.data?.length ? (
                                             <tr>
                                                 <td colSpan={7} className="p-12 text-center">
-                                                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                                                    <p className="text-gray-400">Henüz franchise basvurusu yok</p>
+                                                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                                                    <p className="text-gray-600">Henüz franchise basvurusu yok</p>
                                                 </td>
                                             </tr>
                                         ) : (
@@ -1413,21 +1431,21 @@ export const AdminDashboard = () => {
                                                 return (
                                                     <tr
                                                         key={app.id}
-                                                        className={`transition-all group border-b border-white/5 last:border-0 ${isHighlighted
+                                                        className={`transition-all group border-b border-black/5 last:border-0 ${isHighlighted
                                                             ? 'bg-purple-500/20 hover:bg-purple-500/30 shadow-[inset_0_0_20px_rgba(168,85,247,0.2)]'
                                                             : 'hover:bg-white/5'
                                                             }`}
                                                     >
                                                         <td className="p-4 max-w-[200px]">
-                                                            <div className="font-medium text-white truncate" title={app.contactName}>{app.contactName}</div>
-                                                            {app.companyName && <div className="text-xs text-gray-400 truncate" title={app.companyName}>{app.companyName}</div>}
+                                                            <div className="font-medium text-[#111111] truncate" title={app.contactName}>{app.contactName}</div>
+                                                            {app.companyName && <div className="text-xs text-gray-600 truncate" title={app.companyName}>{app.companyName}</div>}
                                                         </td>
                                                         <td className="p-4 max-w-[200px]">
-                                                            <div className="text-sm text-gray-300 truncate" title={app.contactEmail}>{app.contactEmail}</div>
-                                                            <div className="text-xs text-gray-500 truncate">{app.contactPhone}</div>
+                                                            <div className="text-sm text-gray-700 truncate" title={app.contactEmail}>{app.contactEmail}</div>
+                                                            <div className="text-xs text-gray-600 truncate">{app.contactPhone}</div>
                                                         </td>
-                                                        <td className="p-4 text-gray-300 truncate max-w-[150px]" title={app.city}>{app.city || '-'}</td>
-                                                        <td className="p-4 text-sm text-gray-400">{app.details?.investmentBudget || '-'}</td>
+                                                        <td className="p-4 text-gray-700 truncate max-w-[150px]" title={app.city}>{app.city || '-'}</td>
+                                                        <td className="p-4 text-sm text-gray-600">{app.details?.investmentBudget || '-'}</td>
                                                         <td className="p-4">
                                                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${statusInfo.color === 'green' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
                                                                 statusInfo.color === 'red' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
@@ -1444,7 +1462,7 @@ export const AdminDashboard = () => {
                                                                 {statusInfo.label}
                                                             </span>
                                                         </td>
-                                                        <td className="p-4 text-sm text-gray-400">
+                                                        <td className="p-4 text-sm text-gray-600">
                                                             {new Date(app.submittedAt || app.createdAt).toLocaleDateString('tr-TR')}
                                                         </td>
                                                         <td className="p-4">
@@ -1467,15 +1485,15 @@ export const AdminDashboard = () => {
 
                             {/* Pagination Controls */}
                             {franchiseData?.pagination && (franchiseData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
-                                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-                                    <div className="text-sm text-gray-400">
-                                        Sayfa {franchisePage} / {franchiseData?.pagination?.totalPages || 1} ({franchiseData?.pagination?.total || 0} kayit)
+                                <div className="p-4 border-t border-black/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <div className="text-sm text-gray-600">
+                                        Sayfa {franchisePage} / {franchiseData?.pagination?.totalPages || 1} ({franchiseData?.pagination?.total || 0} basvuru)
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => setFranchisePage(prev => prev - 1)}
                                             disabled={franchisePage === 1 || franchisesQueryLoading}
-                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="p-2 rounded-lg bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             <ChevronLeft className="w-5 h-5" />
                                         </button>
@@ -1499,8 +1517,8 @@ export const AdminDashboard = () => {
                                                         onClick={() => setFranchisePage(pageNum)}
                                                         disabled={franchisesQueryLoading}
                                                         className={`w-10 h-10 rounded-lg font-bold transition-all ${franchisePage === pageNum
-                                                            ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
-                                                            : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50'
+                                                            ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+                                                            : 'bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-purple-500/50'
                                                             }`}
                                                     >
                                                         {pageNum}
@@ -1511,7 +1529,7 @@ export const AdminDashboard = () => {
                                         <button
                                             onClick={() => setFranchisePage(prev => prev + 1)}
                                             disabled={franchisePage >= (franchiseData?.pagination?.totalPages || 1) || franchisesQueryLoading}
-                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="p-2 rounded-lg bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
@@ -1526,16 +1544,16 @@ export const AdminDashboard = () => {
                 {/* Insurance Section */}
                 {
                     activeTab === 'insurance' && (
-                        <div id="insurance-section" className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
-                            <div className="p-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div id="insurance-section" className="bg-white rounded-2xl border border-black/10 overflow-hidden shadow-sm">
+                            <div className="p-6 border-b border-black/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-center gap-4">
-                                    <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                    <h2 className="text-xl font-bold text-[#111111] flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                                            <Building2 className="w-5 h-5 text-blue-400" />
+                                            <Building2 className="w-5 h-5 text-blue-600" />
                                         </div>
                                         Sigortalar
                                     </h2>
-                                    <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">
+                                    <span className="text-xs font-bold text-gray-600 bg-black/[0.03] px-3 py-1.5 rounded-full border border-black/5">
                                         {insuranceData?.pagination?.total || 0} kayit
                                     </span>
                                 </div>
@@ -1543,7 +1561,7 @@ export const AdminDashboard = () => {
                                     <Button
                                         variant="outline"
                                         onClick={() => setShowInsuranceCharts(!showInsuranceCharts)}
-                                        className="text-gray-400 border-white/10 hover:bg-white/5 px-4 py-2"
+                                        className="text-gray-600 border-black/10 hover:bg-black/5 px-4 py-2"
                                     >
                                         {showInsuranceCharts ? (
                                             <>
@@ -1636,13 +1654,13 @@ export const AdminDashboard = () => {
 
                             {/* Insurance Analysis Charts */}
                             {showInsuranceCharts && insuranceStatsData?.data && (
-                                <div className="p-4 md:p-6 bg-white/[0.02] border-b border-white/5">
+                                <div className="p-4 md:p-6 bg-black/[0.02] border-b border-black/5">
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                         {/* Policy Distribution (Pie Chart) */}
-                                        <div className="bg-dark-bg/40 rounded-2xl border border-white/5 p-4 md:p-6 h-[320px] md:h-[380px] flex flex-col">
+                                        <div className="bg-black/[0.02] rounded-2xl border border-black/10 p-4 md:p-6 h-[320px] md:h-[380px] flex flex-col">
                                             <div className="flex items-center justify-between mb-6">
-                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                                                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-blue-600" />
                                                     Poliçe Dağılımı (Adet)
                                                 </h3>
                                             </div>
@@ -1676,7 +1694,7 @@ export const AdminDashboard = () => {
                                                             align="right"
                                                             verticalAlign="middle"
                                                             iconType="circle"
-                                                            formatter={(value) => <span className="text-gray-400 text-sm font-medium">{value}</span>}
+                                                            formatter={(value) => <span className="text-gray-700 text-sm font-medium">{value}</span>}
                                                         />
                                                     </PieChart>
                                                 </ResponsiveContainer>
@@ -1684,10 +1702,10 @@ export const AdminDashboard = () => {
                                         </div>
 
                                         {/* Revenue Analysis (Bar Chart) */}
-                                        <div className="bg-dark-bg/40 rounded-2xl border border-white/5 p-4 md:p-6 h-[320px] md:h-[380px] flex flex-col">
+                                        <div className="bg-black/[0.02] rounded-2xl border border-black/10 p-4 md:p-6 h-[320px] md:h-[380px] flex flex-col">
                                             <div className="flex items-center justify-between mb-6">
-                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                                                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                                                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-green-600" />
                                                     Branş Bazlı Kazanç (TL)
                                                 </h3>
                                             </div>
@@ -1738,7 +1756,7 @@ export const AdminDashboard = () => {
                             )}
 
                             {/* Status Filter Tabs */}
-                            <div className="px-4 md:px-6 py-3 md:py-4 border-b border-white/5 bg-white/[0.02] flex items-center gap-2 md:gap-3 overflow-x-auto no-scrollbar">
+                            <div className="px-4 md:px-6 py-3 md:py-4 border-b border-black/5 bg-black/[0.02] flex items-center gap-2 md:gap-3 overflow-x-auto no-scrollbar">
                                 <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mr-2">Filtrele:</span>
                                 {[
                                     { key: '', label: 'Hepsi', color: 'gray' },
@@ -1756,7 +1774,7 @@ export const AdminDashboard = () => {
                                             }}
                                             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border ${isActive
                                                 ? `bg-${filter.color}-500/20 text-${filter.color}-400 border-${filter.color}-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.2)]`
-                                                : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10'
+                                                : 'bg-black/[0.03] text-gray-600 border-black/5 hover:bg-black/[0.05]'
                                                 }`}
                                         >
                                             {filter.label}
@@ -1767,7 +1785,7 @@ export const AdminDashboard = () => {
 
                             <div className="overflow-x-auto w-full custom-scrollbar">
                                 <table className="w-full text-left min-w-[700px] md:min-w-full">
-                                    <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                    <thead className="bg-black/[0.02] text-gray-600 text-xs uppercase tracking-wider">
                                         <tr>
                                             <th className="p-4">Müşteri</th>
                                             <th className="p-4">Şirket / Poliçe No</th>
@@ -1796,7 +1814,7 @@ export const AdminDashboard = () => {
                                                 const worstStatus = statuses.sort((a: any, b: any) => a.priority - b.priority)[0];
                                                 const isExpanded = expandedTCs.has(group.tcNo);
 
-                                                let rowStyle = "hover:bg-white/5 transition-colors border-b border-white/5";
+                                                let rowStyle = "hover:bg-black/[0.02] transition-colors border-b border-black/5";
                                                 let badge = null;
 
                                                 if (worstStatus.type === 'EXPIRED') {
@@ -1851,11 +1869,11 @@ export const AdminDashboard = () => {
                                                                         <ChevronDown className="w-4 h-4" />
                                                                     </div>
                                                                     <div>
-                                                                        <div className="font-bold text-white tracking-tight">{group.fullName}</div>
-                                                                        <div className="text-[11px] text-gray-500 font-medium flex items-center gap-2 mt-1">
-                                                                            <span className="bg-white/5 px-1.5 py-0.5 rounded text-gray-400 border border-white/5">{group.tcNo}</span>
+                                                                        <div className="font-bold text-[#111111] tracking-tight">{group.fullName}</div>
+                                                                        <div className="text-[11px] text-gray-600 font-medium flex items-center gap-2 mt-1">
+                                                                            <span className="bg-black/5 px-1.5 py-0.5 rounded text-gray-700 border border-black/5">{group.tcNo}</span>
                                                                             <span>•</span>
-                                                                            <span className="text-gray-400">{group.phone || '-'}</span>
+                                                                            <span className="text-gray-600">{group.phone || '-'}</span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1895,7 +1913,7 @@ export const AdminDashboard = () => {
                                                         </tr>
                                                         {isExpanded && (
                                                             <tr className="bg-white/[0.01]">
-                                                                <td colSpan={5} className="p-0 border-b border-white/5">
+                                                                <td colSpan={5} className="p-0 border-b border-black/5">
                                                                     <div className="p-4 pl-12 bg-black/20 space-y-2 animate-in slide-in-from-top-2 duration-200">
                                                                         {group.insurances.map((ins: any) => {
                                                                             const status = getInsuranceStatus(ins);
@@ -1905,27 +1923,27 @@ export const AdminDashboard = () => {
                                                                             return (
                                                                                 <div
                                                                                     key={ins.id}
-                                                                                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/5 transition-colors group/item gap-3"
+                                                                                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-xl bg-black/[0.02] border border-black/5 hover:bg-black/[0.05] transition-colors group/item gap-3"
                                                                                 >
                                                                                     <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                                                                                         <div className="w-24">
-                                                                                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Branş</div>
-                                                                                            <div className="text-xs font-bold text-blue-400 uppercase">{ins.branch}</div>
+                                                                                            <div className="text-[10px] text-gray-600 font-bold uppercase tracking-wider mb-0.5">Branş</div>
+                                                                                            <div className="text-xs font-bold text-blue-600 uppercase">{ins.branch}</div>
                                                                                         </div>
                                                                                         <div className="w-32">
-                                                                                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Poliçe No</div>
-                                                                                            <div className="text-xs font-mono text-gray-300">{ins.policyNo}</div>
+                                                                                            <div className="text-[10px] text-gray-600 font-bold uppercase tracking-wider mb-0.5">Poliçe No</div>
+                                                                                            <div className="text-xs font-mono text-gray-700">{ins.policyNo}</div>
                                                                                         </div>
                                                                                         <div className="w-32">
-                                                                                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Bitiş Tarihi</div>
-                                                                                            <div className="text-xs text-gray-300 flex items-center gap-1.5">
+                                                                                            <div className="text-[10px] text-gray-600 font-bold uppercase tracking-wider mb-0.5">Bitiş Tarihi</div>
+                                                                                            <div className="text-xs text-gray-700 flex items-center gap-1.5">
                                                                                                 <Calendar className="w-3 h-3 text-gray-500" />
                                                                                                 {expDate.toLocaleDateString('tr-TR')}
                                                                                             </div>
                                                                                         </div>
                                                                                         <div className="w-24">
-                                                                                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Tutar</div>
-                                                                                            <div className="text-xs font-black text-white">{parseFloat(ins.amount).toLocaleString()} TL</div>
+                                                                                            <div className="text-[10px] text-gray-600 font-bold uppercase tracking-wider mb-0.5">Tutar</div>
+                                                                                            <div className="text-xs font-black text-[#111111]">{parseFloat(ins.amount).toLocaleString()} TL</div>
                                                                                         </div>
                                                                                     </div>
                                                                                     <div className="flex items-center gap-4">
@@ -1979,15 +1997,15 @@ export const AdminDashboard = () => {
 
                             {/* Pagination Controls */}
                             {insuranceData?.pagination && (insuranceData?.pagination?.total || 0) > ITEMS_PER_PAGE && (
-                                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-                                    <div className="text-sm text-gray-400">
+                                <div className="p-4 border-t border-black/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <div className="text-sm text-gray-600">
                                         Sayfa {insurancePage} / {insuranceData?.pagination?.totalPages || 1} ({insuranceData?.pagination?.total || 0} kayit)
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => setInsurancePage(prev => prev - 1)}
                                             disabled={insurancePage === 1 || insurancesQueryLoading}
-                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="p-2 rounded-lg bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             <ChevronLeft className="w-5 h-5" />
                                         </button>
@@ -2011,7 +2029,7 @@ export const AdminDashboard = () => {
                                                         disabled={insurancesQueryLoading}
                                                         className={`w-10 h-10 rounded-lg font-bold transition-all ${insurancePage === pageNum
                                                             ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
-                                                            : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50'
+                                                            : 'bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-blue-500/50'
                                                             }`}
                                                     >
                                                         {pageNum}
@@ -2022,7 +2040,7 @@ export const AdminDashboard = () => {
                                         <button
                                             onClick={() => setInsurancePage(prev => prev + 1)}
                                             disabled={insurancePage >= (insuranceData?.pagination?.totalPages || 1) || insurancesQueryLoading}
-                                            className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="p-2 rounded-lg bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
@@ -2082,70 +2100,83 @@ export const AdminDashboard = () => {
             {/* Franchise Detail Modal */}
             {
                 selectedFranchise && (
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedFranchise(null)}>
-                        <div className="bg-dark-surface rounded-2xl border border-white/10 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-                            <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-dark-surface z-10">
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={() => setSelectedFranchise(null)}>
+                        <div className="bg-white rounded-2xl border border-black/10 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+                            <div className="p-6 border-b border-black/10 flex justify-between items-center sticky top-0 bg-white z-10">
                                 <div>
-                                    <h3 className="text-xl font-bold text-white">Franchise Basvuru Detaylari</h3>
-                                    <p className="text-sm text-gray-400 mt-1">{selectedFranchise.details?.applicationNumber || selectedFranchise.id}</p>
+                                    <h3 className="text-xl font-bold text-[#111111]">Franchise Basvuru Detaylari</h3>
+                                    <p className="text-sm text-gray-600 mt-1">{String(selectedFranchise.details?.applicationNumber || selectedFranchise.id || '')}</p>
                                 </div>
-                                <button onClick={() => setSelectedFranchise(null)} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10">
+                                <button onClick={() => setSelectedFranchise(null)} className="text-gray-600 hover:text-[#111111] p-2 rounded-lg hover:bg-black/5">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
                             <div className="p-6 space-y-6">
                                 {/* Contact Info */}
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Iletisim Bilgileri</h4>
+                                <div className="bg-black/[0.02] rounded-xl p-4 border border-black/5">
+                                    <h4 className="text-sm font-bold text-primary-500 mb-3 uppercase tracking-wider">Iletisim Bilgileri</h4>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                                        <div><span className="text-gray-500">Ad Soyad:</span> <span className="text-white ml-2">{selectedFranchise.contactName}</span></div>
-                                        <div><span className="text-gray-500">E-posta:</span> <span className="text-white ml-2">{selectedFranchise.contactEmail}</span></div>
-                                        <div><span className="text-gray-500">Telefon:</span> <span className="text-white ml-2">{selectedFranchise.contactPhone}</span></div>
-                                        {selectedFranchise.companyName && <div><span className="text-gray-500">Sirket:</span> <span className="text-white ml-2">{selectedFranchise.companyName}</span></div>}
+                                        <div><span className="text-gray-600">Ad Soyad:</span> <span className="text-[#111111] ml-2 font-medium">{selectedFranchise.contactName}</span></div>
+                                        <div><span className="text-gray-600">E-posta:</span> <span className="text-[#111111] ml-2 font-medium">{selectedFranchise.contactEmail}</span></div>
+                                        <div><span className="text-gray-600">Telefon:</span> <span className="text-[#111111] ml-2 font-medium">{selectedFranchise.contactPhone}</span></div>
+                                        {selectedFranchise.companyName && <div><span className="text-gray-600">Sirket:</span> <span className="text-[#111111] ml-2 font-medium">{selectedFranchise.companyName}</span></div>}
                                     </div>
                                 </div>
 
                                 {/* Location & Investment */}
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Lokasyon & Yatirim</h4>
+                                <div className="bg-black/[0.02] rounded-xl p-4 border border-black/5">
+                                    <h4 className="text-sm font-bold text-primary-500 mb-3 uppercase tracking-wider">Lokasyon & Yatirim</h4>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                                        <div><span className="text-gray-500">Sehir:</span> <span className="text-white ml-2">{selectedFranchise.city || '-'}</span></div>
-                                        <div><span className="text-gray-500">Bütçe:</span> <span className="text-white ml-2">{selectedFranchise.details?.investmentBudget || '-'}</span></div>
+                                        <div><span className="text-gray-600">Sehir:</span> <span className="text-[#111111] ml-2 font-medium">{String(selectedFranchise.city || '-')}</span></div>
+                                        <div><span className="text-gray-600">Bütçe:</span> <span className="text-[#111111] ml-2 font-medium">{String(selectedFranchise.details?.investmentBudget || '-')}</span></div>
                                     </div>
                                 </div>
 
                                 {/* Experience & Message */}
                                 {(selectedFranchise.details?.experience || selectedFranchise.details?.message) && (
-                                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                        <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Deneyim & Mesaj</h4>
+                                    <div className="bg-black/[0.02] rounded-xl p-4 border border-black/5">
+                                        <h4 className="text-sm font-bold text-primary-500 mb-3 uppercase tracking-wider">Deneyim & Mesaj</h4>
                                         {selectedFranchise.details?.experience && (
                                             <div className="mb-4">
-                                                <span className="text-gray-500 text-sm block mb-1">Deneyim:</span>
-                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details?.experience}</p>
+                                                <span className="text-gray-600 text-sm block mb-1 font-medium">Deneyim:</span>
+                                                <p className="text-gray-700 text-sm whitespace-pre-wrap break-words">
+                                                    {typeof selectedFranchise.details.experience === 'object' 
+                                                        ? Object.entries(selectedFranchise.details.experience)
+                                                            .filter(([_, v]) => v)
+                                                            .map(([k, v]) => `${k}: ${v}`)
+                                                            .join(' | ')
+                                                        : String(selectedFranchise.details.experience)
+                                                    }
+                                                </p>
                                             </div>
                                         )}
                                         {selectedFranchise.details?.message && (
                                             <div>
-                                                <span className="text-gray-500 text-sm block mb-1">Mesaj:</span>
-                                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">{selectedFranchise.details?.message}</p>
+                                                <span className="text-gray-600 text-sm block mb-1 font-medium">Mesaj:</span>
+                                                <p className="text-gray-700 text-sm whitespace-pre-wrap break-words">
+                                                    {typeof selectedFranchise.details.message === 'object'
+                                                        ? JSON.stringify(selectedFranchise.details.message)
+                                                        : String(selectedFranchise.details.message)
+                                                    }
+                                                </p>
                                             </div>
                                         )}
                                     </div>
                                 )}
 
                                 {/* Status */}
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-bold text-primary-400 mb-3 uppercase tracking-wider">Durum</h4>
+                                <div className="bg-black/[0.02] rounded-xl p-4 border border-black/5">
+                                    <h4 className="text-sm font-bold text-primary-500 mb-3 uppercase tracking-wider">Durum</h4>
                                     <div className="flex items-center justify-between">
-                                        <span className={`px-4 py-2 rounded-full text-sm font-bold ${selectedFranchise.status === 'APPROVED' ? 'bg-green-500/20 text-green-400' :
-                                            selectedFranchise.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
-                                                selectedFranchise.status === 'IN_REVIEW' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                    selectedFranchise.status === 'SUBMITTED' ? 'bg-blue-500/20 text-blue-400' :
-                                                        'bg-gray-500/20 text-gray-400'
+                                        <span className={`px-4 py-2 rounded-full text-sm font-bold ${selectedFranchise.status === 'APPROVED' ? 'bg-green-500/10 text-green-600 border border-green-500/20' :
+                                            selectedFranchise.status === 'REJECTED' ? 'bg-red-500/10 text-red-600 border border-red-500/20' :
+                                                selectedFranchise.status === 'IN_REVIEW' ? 'bg-yellow-500/10 text-yellow-600 border border-yellow-500/20' :
+                                                    selectedFranchise.status === 'SUBMITTED' ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' :
+                                                        'bg-gray-500/10 text-gray-600 border border-gray-500/20'
                                             }`}>
-                                            {FRANCHISE_STATUS_LABELS[selectedFranchise.status]?.label || selectedFranchise.status}
+                                            {String(FRANCHISE_STATUS_LABELS[selectedFranchise.status]?.label || selectedFranchise.status || '')}
                                         </span>
-                                        <span className="text-sm text-gray-400">
+                                        <span className="text-sm text-gray-600">
                                             {new Date(selectedFranchise.submittedAt || selectedFranchise.createdAt).toLocaleString('tr-TR')}
                                         </span>
                                     </div>

@@ -1,10 +1,14 @@
 import { Link } from 'react-router-dom';
 import { Phone, MapPin, Instagram, Facebook } from 'lucide-react';
 import logo from '../../assets/logo/logo.jpg';
+import { useAppSelector } from '../../store/hooks';
 
 export const Footer = () => {
+    const { data: settingsData } = useAppSelector((state) => state.settings);
+    const franchiseEnabled = settingsData.franchiseEnabled !== 'false';
+
     return (
-        <footer className="bg-[#0B0B0B] border-t border-white/5 text-gray-500 py-20 relative overflow-hidden font-sans">
+        <footer className="bg-[#222222] border-t border-[#333333] text-gray-500 py-20 relative overflow-hidden font-sans">
             <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-16 lg:gap-8 relative z-10">
 
                 {/* Brand Identity Section */}
@@ -13,7 +17,7 @@ export const Footer = () => {
                         <img src={logo} alt="Yaman Filo" className="w-12 h-12 rounded-2xl object-cover ring-1 ring-white/10 group-hover:ring-primary-500 transition-all shadow-2xl" />
                         <span>YAMAN<span className="text-primary-500"> FİLO</span></span>
                     </Link>
-                    <p className="text-gray-400 leading-relaxed font-medium text-base max-w-sm">
+                    <p className="text-[#AAAAAA] leading-relaxed font-medium text-base max-w-sm">
                         Seçkinliğin ve güvenin buluştuğu nokta. Yaman Filo, premium kiralama standartlarını üstün asset güvenliği ve şeffaf hizmet anlayışıyla birleştirir.
                     </p>
 
@@ -22,7 +26,7 @@ export const Footer = () => {
                             { icon: Instagram, href: "https://www.instagram.com/kiralamakguzeldir" },
                             { icon: Facebook, href: "https://www.facebook.com/yamanfilotr/" },
                         ].map((social, idx) => (
-                            <a key={idx} href={social.href} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/[0.03] rounded-xl hover:bg-primary-500 text-gray-400 hover:text-white transition-all border border-white/5 group">
+                            <a key={idx} href={social.href} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/[0.08] rounded-xl hover:bg-primary-500 text-gray-400 hover:text-white transition-all border border-white/10 group">
                                 <social.icon className="w-5 h-5 transition-transform group-hover:scale-110" />
                             </a>
                         ))}
@@ -37,11 +41,11 @@ export const Footer = () => {
                     <ul className="space-y-4">
                         {[
                             { label: 'Araç Filosu', to: '/#fleet' },
-                            { label: 'Franchise', to: '/franchise' },
+                            ...(franchiseEnabled ? [{ label: 'Franchise', to: '/franchise' }] : []),
                             { label: 'Hakkımızda', to: '/about' },
                         ].map((link, idx) => (
                             <li key={idx}>
-                                <Link to={link.to} className="text-gray-400 hover:text-white transition-all text-sm font-bold flex items-center gap-2 group">
+                                <Link to={link.to} className="text-[#AAAAAA] hover:text-white transition-all text-sm font-bold flex items-center gap-2 group">
                                     <span className="w-1.5 h-1.5 rounded-full bg-primary-500/0 group-hover:bg-primary-500 transition-all" />
                                     {link.label}
                                 </Link>
@@ -57,7 +61,7 @@ export const Footer = () => {
                     </h4>
                     <ul className="space-y-6">
                         <li className="flex items-start gap-4">
-                            <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                            <div className="p-2.5 rounded-xl bg-white/[0.08] border border-white/10">
                                 <MapPin className="w-4 h-4 text-primary-500" />
                             </div>
                             <div>
@@ -66,7 +70,7 @@ export const Footer = () => {
                             </div>
                         </li>
                         <li className="flex items-start gap-4">
-                            <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                            <div className="p-2.5 rounded-xl bg-white/[0.08] border border-white/10">
                                 <Phone className="w-4 h-4 text-primary-500" />
                             </div>
                             <div>
@@ -82,7 +86,7 @@ export const Footer = () => {
                     <h4 className="text-white font-black uppercase tracking-widest text-[10px] mb-8 flex items-center gap-2">
                         <span className="w-4 h-px bg-primary-500" /> KONUM
                     </h4>
-                    <div className="aspect-video lg:aspect-square rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative group bg-[#111111]">
+                    <div className="aspect-video lg:aspect-square rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative group bg-[#222222]">
                         <iframe
                             width="100%"
                             height="100%"
@@ -97,9 +101,9 @@ export const Footer = () => {
             </div>
 
             {/* Compliance Strip */}
-            <div className="container mx-auto px-6 mt-20 pt-10 border-t border-white/5">
+            <div className="container mx-auto px-6 mt-20 pt-10 border-t border-white/10">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
-                    <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-4 text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
+                    <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
                         <span>MERSİS: 0123-4567-8901-2345</span>
                         <span>Vergi No: 9876543210</span>
                         <span>Yönetmelik Uyumluluğu: KVKK 6698</span>

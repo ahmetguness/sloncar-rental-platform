@@ -313,4 +313,15 @@ export const franchiseService = {
     }
 };
 
+export const settingsService = {
+    getAll: async () => {
+        const response = await api.get<{ success: boolean; data: Record<string, string> }>('/settings');
+        return response.data.data;
+    },
+    update: async (settings: Record<string, string>) => {
+        const response = await api.post<{ success: boolean; data: Record<string, string> }>('/settings', settings);
+        return response.data.data;
+    }
+};
+
 export default api;

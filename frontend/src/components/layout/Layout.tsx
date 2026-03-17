@@ -5,6 +5,7 @@ import logo from '../../assets/logo/logo.jpg';
 import { Footer } from './Footer';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutUser } from '../../features/auth/authSlice';
+import { carService } from '../../services/api';
 
 export const Layout = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,16 +13,32 @@ export const Layout = () => {
 
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
+    const { data: settingsData } = useAppSelector((state) => state.settings);
+    const [hasSaleCars, setHasSaleCars] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
     const isAdmin = location.pathname.startsWith('/admin');
+
+    const franchiseEnabled = settingsData.franchiseEnabled !== 'false';
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
 
+        // Fetch sale car availability once on mount
+        const checkSaleCars = async () => {
+            try {
+                const response = await carService.getAll({ limit: 1, page: 1, type: 'SALE' });
+                setHasSaleCars(response.data.length > 0);
+            } catch (error) {
+                console.error('Failed to check sale cars', error);
+                setHasSaleCars(false);
+            }
+        };
+        checkSaleCars();
+
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);  // Run only once on mount — sale car availability rarely changes mid-session
+    }, []);
 
     const handleLogout = async () => {
         await dispatch(logoutUser());
@@ -31,15 +48,15 @@ export const Layout = () => {
     return (
         <div className="min-h-screen bg-dark-bg flex flex-col font-sans overflow-x-hidden">
             {/* Header: Pure Luxury Dark Navigation */}
-            <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || isMenuOpen ? 'bg-[#111111]/80 backdrop-blur-2xl border-b border-white/5 shadow-2xl' : 'bg-transparent'}`}>
+            <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || isMenuOpen ? 'bg-[#222222]/90 backdrop-blur-xl border-b border-[#E5E5E5] shadow-2xl' : 'bg-transparent'}`}>
                 <div className="container mx-auto px-6 py-5 flex items-center justify-between transition-all duration-300">
                     <Link to="/" className="flex items-center gap-4 group">
                         <img
                             src={logo}
                             alt="Yaman Filo"
-                            className="w-12 h-12 rounded-2xl object-cover ring-1 ring-white/10 group-hover:ring-primary-500 transition-all shadow-2xl"
+                            className="w-12 h-12 rounded-2xl object-cover ring-1 ring-[#E5E5E5] group-hover:ring-primary-500 transition-all shadow-2xl"
                         />
-                        <span className="font-black text-2xl tracking-tighter text-white uppercase">
+                        <span className="font-black text-2xl tracking-tighter text-[#111111] uppercase">
                             YAMAN<span className="text-primary-500"> FİLO</span>
                         </span>
                     </Link>
@@ -50,14 +67,15 @@ export const Layout = () => {
                             <>
                                 {[
                                     { label: 'Araçlar', to: '/#fleet' },
-                                    { label: '2. El Satış', to: '/second-hand' },
+                                    ...(hasSaleCars ? [{ label: '2. El Satış', to: '/second-hand' }] : []),
                                     { label: 'Rezervasyonum', to: '/my-booking' },
-                                    { label: 'Franchise', to: '/franchise' },
+                                    ...(franchiseEnabled ? [{ label: 'Franchise', to: '/franchise' }] : []),
+                                    { label: 'Hakkımızda', to: '/about' },
                                 ].map((link, idx) => (
                                     <Link
                                         key={idx}
                                         to={link.to}
-                                        className="text-gray-400 hover:text-white text-sm font-black uppercase tracking-widest transition-all hover:translate-y-[-2px] active:scale-95"
+                                        className="text-[#777777] hover:text-[#111111] text-sm font-black uppercase tracking-widest transition-all hover:translate-y-[-2px] active:scale-95"
                                     >
                                         {link.label}
                                     </Link>
@@ -78,7 +96,7 @@ export const Layout = () => {
 
                     {/* Mobile Menu Button */}
                     <button
-                        className="md:hidden p-3 rounded-2xl bg-white/5 border border-white/10 text-white transition-all active:scale-90"
+                        className="md:hidden p-3 rounded-2xl bg-[#F5F5F5] border border-[#E5E5E5] text-white transition-all active:scale-90"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                         {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -87,19 +105,20 @@ export const Layout = () => {
 
                 {/* Mobile Menu: Luxury Dark Overlay */}
                 {isMenuOpen && (
-                    <div className="md:hidden fixed top-0 left-0 w-full h-screen bg-[#111111]/98 backdrop-blur-3xl px-8 py-24 flex flex-col gap-8 z-[-1] animate-fade-in">
+                    <div className="md:hidden fixed top-0 left-0 w-full h-screen bg-[#222222]/98 backdrop-blur-xl px-8 py-24 flex flex-col gap-8 z-[-1] animate-fade-in">
                         {!isAdmin ? (
                             <>
                                 {[
                                     { label: 'Araç Filosu', to: '/#fleet' },
-                                    { label: '2. El Satış', to: '/second-hand' },
+                                    ...(hasSaleCars ? [{ label: '2. El Satış', to: '/second-hand' }] : []),
                                     { label: 'Rezervasyon Sorgula', to: '/my-booking' },
-                                    { label: 'Franchise', to: '/franchise' },
+                                    ...(franchiseEnabled ? [{ label: 'Franchise', to: '/franchise' }] : []),
+                                    { label: 'Hakkımızda', to: '/about' },
                                 ].map((link, idx) => (
                                     <Link
                                         key={idx}
                                         to={link.to}
-                                        className="text-3xl font-black text-white uppercase tracking-tighter border-b border-white/5 pb-4"
+                                        className="text-3xl font-black text-white uppercase tracking-tighter border-b border-white/10 pb-4"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         {link.label}

@@ -32,15 +32,15 @@ const EditUserModal = ({ user, onClose, onSuccess }: { user: any; onClose: () =>
     return (
         <Modal isOpen={true} onClose={onClose} title="Kullanıcı Rolünü Düzenle">
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="bg-white/5 p-4 rounded-lg mb-4">
-                    <p className="text-sm text-gray-400">Kullanıcı:</p>
-                    <p className="text-white font-medium">{user.name}</p>
-                    <p className="text-gray-400 text-sm">{user.email}</p>
+                <div className="bg-[#F3F4F6] p-4 rounded-lg mb-4">
+                    <p className="text-sm text-[#6B7280]">Kullanıcı:</p>
+                    <p className="text-[#111111] font-medium">{user.name}</p>
+                    <p className="text-[#6B7280] text-sm">{user.email}</p>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Rol</label>
+                    <label className="block text-sm font-medium text-[#6B7280] mb-1">Rol</label>
                     <select
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={role}
                         onChange={e => setRole(e.target.value)}
                     >
@@ -49,7 +49,7 @@ const EditUserModal = ({ user, onClose, onSuccess }: { user: any; onClose: () =>
                     </select>
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={onClose} className="border-white/10 text-white hover:bg-white/10">İptal</Button>
+                    <Button type="button" variant="outline" onClick={onClose} className="border-[#E5E7EB] text-[#111111] hover:bg-[#F3F4F6]">İptal</Button>
                     <Button type="submit" disabled={loading} className="bg-primary-500 hover:bg-primary-600 text-white">
                         {loading ? <Loader2 className="animate-spin" /> : 'Güncelle'}
                     </Button>
@@ -89,50 +89,50 @@ const CreateUserModal = ({ onClose, onSuccess }: { onClose: () => void; onSucces
         <Modal isOpen={true} onClose={onClose} title="Yeni Kullanıcı Ekle">
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Ad Soyad</label>
+                    <label className="block text-sm font-medium text-[#6B7280] mb-1">Ad Soyad</label>
                     <input
                         type="text"
                         required
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={formData.name}
                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">E-posta</label>
+                    <label className="block text-sm font-medium text-[#6B7280] mb-1">E-posta</label>
                     <input
                         type="email"
                         required
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={formData.email}
                         onChange={e => setFormData({ ...formData, email: normalizeEmail(e.target.value) })}
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Telefon</label>
+                    <label className="block text-sm font-medium text-[#6B7280] mb-1">Telefon</label>
                     <input
                         type="tel"
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="(5XX) XXX XX XX"
                         value={formData.phone}
                         onChange={e => setFormData({ ...formData, phone: formatPhoneNumber(cleanPhoneNumber(e.target.value)) })}
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Şifre</label>
+                    <label className="block text-sm font-medium text-[#6B7280] mb-1">Şifre</label>
                     <input
                         type="password"
                         required
                         minLength={6}
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={formData.password}
                         onChange={e => setFormData({ ...formData, password: e.target.value })}
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Rol</label>
+                    <label className="block text-sm font-medium text-[#6B7280] mb-1">Rol</label>
                     <select
-                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={formData.role}
                         onChange={e => setFormData({ ...formData, role: e.target.value })}
                     >
@@ -141,7 +141,7 @@ const CreateUserModal = ({ onClose, onSuccess }: { onClose: () => void; onSucces
                     </select>
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={onClose} className="border-white/10 text-white hover:bg-white/10">İptal</Button>
+                    <Button type="button" variant="outline" onClick={onClose} className="border-[#E5E7EB] text-[#111111] hover:bg-[#F3F4F6]">İptal</Button>
                     <Button type="submit" disabled={loading} className="bg-primary-500 hover:bg-primary-600 text-white">
                         {loading ? <Loader2 className="animate-spin" /> : 'Oluştur'}
                     </Button>
@@ -195,12 +195,12 @@ export const AdminUsers = () => {
     if (currentUser?.role !== 'ADMIN') return null;
 
     return (
-        <div className="min-h-screen bg-dark-bg px-3 sm:px-6 text-white pt-24 pb-12">
+        <div className="min-h-screen bg-white px-3 sm:px-6 text-[#111111] pt-24 pb-12">
             <div className="container mx-auto max-w-7xl">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                     <div className="flex items-center gap-4">
-                        <Link to="/admin/dashboard" className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                        <Link to="/admin/dashboard" className="p-2 hover:bg-[#F3F4F6] rounded-full transition-colors">
                             <ArrowLeft className="w-6 h-6" />
                         </Link>
                         <div>
@@ -208,7 +208,7 @@ export const AdminUsers = () => {
                                 <Users className="w-8 h-8 text-primary-500" />
                                 Kullanıcı Yönetimi
                             </h1>
-                            <p className="text-gray-400">Yönetici ve personel hesaplarını yönetin</p>
+                            <p className="text-[#6B7280]">Yönetici ve personel hesaplarını yönetin</p>
                         </div>
                     </div>
                     <Button onClick={() => setShowCreateUserModal(true)} className="bg-primary-600 hover:bg-primary-700 text-white gap-2">
@@ -217,9 +217,9 @@ export const AdminUsers = () => {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-dark-surface p-4 rounded-xl border border-white/10 mb-6">
+                <div className="bg-[#F9FAFB] p-4 rounded-xl border border-[#E5E7EB] mb-6">
                     <div className="relative max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
                         <input
                             type="text"
                             value={searchTerm}
@@ -228,22 +228,22 @@ export const AdminUsers = () => {
                                 setCurrentPage(1); // Reset to first page on search
                             }}
                             placeholder="İsim, e-posta veya telefon ile ara..."
-                            className="w-full bg-dark-bg border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-primary-500"
+                            className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg pl-10 pr-4 py-2 text-[#111111] focus:outline-none focus:border-primary-500"
                         />
                     </div>
                 </div>
 
                 {/* Content */}
-                <div className="bg-dark-surface rounded-xl border border-white/10 overflow-hidden shadow-2xl">
+                <div className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] overflow-hidden shadow-2xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left min-w-[600px]">
-                            <thead className="bg-white/5 border-b border-white/10">
+                            <thead className="bg-[#F3F4F6] border-b border-[#E5E7EB]">
                                 <tr>
-                                    <th className="p-4 text-sm font-medium text-gray-400">Kullanıcı</th>
-                                    <th className="p-4 text-sm font-medium text-gray-400">İletişim</th>
-                                    <th className="p-4 text-sm font-medium text-gray-400">Rol</th>
-                                    <th className="p-4 text-sm font-medium text-gray-400">Kayıt Tarihi</th>
-                                    <th className="p-4 text-sm font-medium text-gray-400 text-center">İşlemler</th>
+                                    <th className="p-4 text-sm font-medium text-[#6B7280]">Kullanıcı</th>
+                                    <th className="p-4 text-sm font-medium text-[#6B7280]">İletişim</th>
+                                    <th className="p-4 text-sm font-medium text-[#6B7280]">Rol</th>
+                                    <th className="p-4 text-sm font-medium text-[#6B7280]">Kayıt Tarihi</th>
+                                    <th className="p-4 text-sm font-medium text-[#6B7280] text-center">İşlemler</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -257,27 +257,27 @@ export const AdminUsers = () => {
                                     </tr>
                                 ) : !userData?.data || userData.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="p-12 text-center text-gray-500">
+                                        <td colSpan={5} className="p-12 text-center text-[#6B7280]">
                                             Kullanıcı bulunamadı
                                         </td>
                                     </tr>
                                 ) : (
                                     userData.data.map((user: any) => (
-                                        <tr key={user.id} className="hover:bg-white/5 transition-colors group">
+                                        <tr key={user.id} className="hover:bg-[#F3F4F6] transition-colors group">
                                             <td className="p-4">
-                                                <div className="font-medium text-white">{user.name}</div>
-                                                <div className="text-xs text-gray-500">{user.email}</div>
+                                                <div className="font-medium text-[#111111]">{user.name}</div>
+                                                <div className="text-xs text-[#6B7280]">{user.email}</div>
                                             </td>
                                             <td className="p-4">
-                                                <div className="text-gray-300 font-mono text-sm">{user.phone || '-'}</div>
+                                                <div className="text-[#555555] font-mono text-sm">{user.phone || '-'}</div>
                                             </td>
                                             <td className="p-4">
-                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${user.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'
+                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${user.role === 'ADMIN' ? 'bg-red-500/20 text-red-600' : 'bg-blue-500/20 text-blue-600'
                                                     }`}>
                                                     {user.role === 'ADMIN' ? 'Yönetici' : 'Personel'}
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-sm text-gray-400 whitespace-nowrap">
+                                            <td className="p-4 text-sm text-[#6B7280] whitespace-nowrap">
                                                 {user.createdAt ? new Date(user.createdAt).toLocaleDateString('tr-TR') : '-'}
                                             </td>
                                             <td className="p-4">
@@ -285,7 +285,7 @@ export const AdminUsers = () => {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="text-blue-400 hover:bg-blue-500/10 border-blue-500/30"
+                                                        className="text-blue-600 hover:bg-blue-500/10 border-blue-500/30"
                                                         onClick={() => setSelectedUserToEdit(user)}
                                                     >
                                                         <Pencil className="w-4 h-4" />
@@ -293,7 +293,7 @@ export const AdminUsers = () => {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="text-red-400 hover:bg-red-500/10 border-red-500/30"
+                                                        className="text-red-600 hover:bg-red-500/10 border-red-500/30"
                                                         onClick={() => handleDeleteUser(user.id)}
                                                         disabled={user.id === currentUser?.id || deleteMutation.isPending}
                                                     >
@@ -310,8 +310,8 @@ export const AdminUsers = () => {
 
                     {/* Pagination */}
                     {userData?.pagination && userData.pagination.totalPages > 1 && (
-                        <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/5">
-                            <div className="text-sm text-gray-400">
+                        <div className="p-4 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#F3F4F6]">
+                            <div className="text-sm text-[#6B7280]">
                                 Toplam {userData.pagination.total} kullanıcı
                             </div>
                             <div className="flex items-center gap-2">
@@ -320,7 +320,7 @@ export const AdminUsers = () => {
                                     size="sm"
                                     disabled={currentPage === 1}
                                     onClick={() => setCurrentPage(prev => prev - 1)}
-                                    className="border-white/10 text-gray-400 hover:text-white"
+                                    className="border-[#E5E7EB] text-[#6B7280] hover:text-[#111111]"
                                 >
                                     <ChevronLeft className="w-4 h-4" />
                                 </Button>
@@ -331,7 +331,7 @@ export const AdminUsers = () => {
                                             variant={currentPage === page ? 'primary' : 'outline'}
                                             size="sm"
                                             onClick={() => setCurrentPage(page)}
-                                            className={`w-8 h-8 p-0 ${currentPage === page ? 'bg-primary-500' : 'border-white/10 text-gray-400'}`}
+                                            className={`w-8 h-8 p-0 ${currentPage === page ? 'bg-primary-500' : 'border-[#E5E7EB] text-[#6B7280]'}`}
                                         >
                                             {page}
                                         </Button>
@@ -342,7 +342,7 @@ export const AdminUsers = () => {
                                     size="sm"
                                     disabled={currentPage === userData.pagination.totalPages}
                                     onClick={() => setCurrentPage(prev => prev + 1)}
-                                    className="border-white/10 text-gray-400 hover:text-white"
+                                    className="border-[#E5E7EB] text-[#6B7280] hover:text-[#111111]"
                                 >
                                     <ChevronRight className="w-4 h-4" />
                                 </Button>

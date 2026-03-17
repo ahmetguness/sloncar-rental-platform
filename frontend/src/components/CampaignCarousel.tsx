@@ -59,7 +59,7 @@ export const CampaignCarousel = () => {
 
     if (loading) {
         return (
-            <div className="w-full h-[300px] md:h-[500px] flex items-center justify-center bg-dark-surface rounded-2xl shadow-2xl border border-white/5">
+            <div className="w-full h-[300px] md:h-[500px] flex items-center justify-center bg-[#F5F5F5] rounded-2xl shadow-2xl border border-[#E5E5E5]">
                 <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
             </div>
         );
@@ -71,7 +71,7 @@ export const CampaignCarousel = () => {
 
     return (
         <div
-            className="relative w-full h-[300px] md:h-[550px] overflow-hidden rounded-2xl shadow-2xl group border border-white/5"
+            className="relative w-full h-[300px] md:h-[550px] overflow-hidden rounded-2xl shadow-2xl group border border-[#E5E5E5]"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
         >
@@ -83,7 +83,7 @@ export const CampaignCarousel = () => {
                 {campaigns.map((campaign) => (
                     <div key={campaign.id} className="w-full h-full flex-shrink-0 relative" style={{ width: `${100 / campaigns.length}%` }}>
                         {/* Background Image or Gradient Overlay */}
-                        <div className={`absolute inset-0 ${!campaign.imageUrl ? 'bg-gradient-to-br from-primary-900 via-dark-surface to-dark-bg' : ''}`}>
+                        <div className={`absolute inset-0 ${!campaign.imageUrl ? 'bg-gradient-to-br from-primary-900 via-[#F5F5F5] to-white' : ''}`}>
                             {campaign.imageUrl && (
                                 <>
                                     <img

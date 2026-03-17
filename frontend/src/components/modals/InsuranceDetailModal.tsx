@@ -94,11 +94,11 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                         <>
                             <div className="flex-1 flex gap-2 items-center">
                                 <span className="text-gray-400 shrink-0">Poliçe No:</span>
-                                <input type="text" name="policyNo" value={formData.policyNo} onChange={handleChange} className="w-full bg-dark-bg border border-white/10 rounded px-2 py-1 text-blue-400 font-mono font-bold focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" name="policyNo" value={formData.policyNo} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-blue-400 font-mono font-bold focus:ring-1 focus:ring-blue-500" />
                             </div>
                             <div className="flex-1 flex gap-2 items-center">
                                 <span className="text-gray-400 shrink-0">Poliçe Ayı:</span>
-                                <input type="text" name="month" value={formData.month} onChange={handleChange} className="w-full bg-dark-bg border border-white/10 rounded px-2 py-1 text-white uppercase focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" name="month" value={formData.month} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white uppercase focus:ring-1 focus:ring-blue-500" />
                             </div>
                         </>
                     ) : (
@@ -109,7 +109,7 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                     )}
                 </div>
 
-                <div className="-mt-4 mb-6 text-xs text-gray-500 text-right">
+                <div className="-mt-4 mb-6 text-xs text-gray-400 text-right">
                     {insurance.createdAt && (
                         <>
                             Oluşturulma: <span className="text-gray-300 font-medium">{new Date(insurance.createdAt).toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
@@ -122,25 +122,25 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                     {/* User Info */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 mb-2">
-                            <Users className="w-5 h-5 text-blue-500" />
+                            <Users className="w-5 h-5 text-blue-400" />
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Müşteri Bilgileri</h3>
                         </div>
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
+                        <div className="bg-white/[0.03] p-4 rounded-xl border border-white/10 space-y-3">
                             <div>
                                 <label className="text-xs text-gray-500 block mb-1">Ad Soyad</label>
-                                {isEditing ? <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500" /> : <p className="text-white font-medium">{insurance.fullName}</p>}
+                                {isEditing ? <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500" /> : <p className="text-white font-medium">{insurance.fullName}</p>}
                             </div>
                             <div>
                                 <label className="text-xs text-gray-500 block mb-1">TC Kimlik / VKN</label>
-                                {isEditing ? <input type="text" name="tcNo" value={formData.tcNo} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500" /> : <p className="text-white">{insurance.tcNo}</p>}
+                                {isEditing ? <input type="text" name="tcNo" value={formData.tcNo} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500" /> : <p className="text-white">{insurance.tcNo}</p>}
                             </div>
                             <div>
                                 <label className="text-xs text-gray-500 block mb-1">Telefon</label>
-                                {isEditing ? <input type="text" name="phone" value={formData.phone || ''} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500" /> : <p className="text-white">{insurance.phone || '-'}</p>}
+                                {isEditing ? <input type="text" name="phone" value={formData.phone || ''} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500" /> : <p className="text-white">{insurance.phone || '-'}</p>}
                             </div>
                             <div>
                                 <label className="text-xs text-gray-500 block mb-1">Meslek</label>
-                                {isEditing ? <input type="text" name="profession" value={formData.profession || ''} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500" /> : <p className="text-white">{insurance.profession || '-'}</p>}
+                                {isEditing ? <input type="text" name="profession" value={formData.profession || ''} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500" /> : <p className="text-white">{insurance.profession || '-'}</p>}
                             </div>
                             {insurance.user?.email && (
                                 <div>
@@ -154,19 +154,19 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                     {/* Policy Info */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 mb-2">
-                            <Shield className="w-5 h-5 text-blue-500" />
+                            <Shield className="w-5 h-5 text-blue-400" />
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Poliçe Bilgileri</h3>
                         </div>
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 space-y-3">
+                        <div className="bg-white/[0.03] p-4 rounded-xl border border-white/10 space-y-3">
                             <div>
                                 <label className="text-xs text-gray-500 block mb-1">Sigorta Şirketi</label>
-                                {isEditing ? <input type="text" name="company" value={formData.company} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-lg font-bold focus:ring-1 focus:ring-blue-500" /> : <p className="text-white font-bold text-lg">{insurance.company}</p>}
+                                {isEditing ? <input type="text" name="company" value={formData.company} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white text-lg font-bold focus:ring-1 focus:ring-blue-500" /> : <p className="text-white font-bold text-lg">{insurance.company}</p>}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs text-gray-500 block mb-1">Branş</label>
                                     {isEditing ? (
-                                        <select name="branch" value={formData.branch} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded px-2 py-1.5 text-white text-xs focus:ring-1 focus:ring-blue-500">
+                                        <select name="branch" value={formData.branch} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-white text-xs focus:ring-1 focus:ring-blue-500">
                                             <option value="TRAFIK">Trafik</option>
                                             <option value="KASKO">Kasko</option>
                                             <option value="DASK">DASK</option>
@@ -180,17 +180,17 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                                 </div>
                                 <div>
                                     <label className="text-xs text-gray-500 block mb-1">Tutar</label>
-                                    {isEditing ? <input type="number" step="0.01" name="amount" value={formData.amount} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-blue-400 font-bold text-sm focus:ring-1 focus:ring-blue-500" /> : <span className="text-sm font-bold text-blue-400">{Number(insurance.amount).toLocaleString()} ₺</span>}
+                                    {isEditing ? <input type="number" step="0.01" name="amount" value={formData.amount} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-blue-400 font-bold text-sm focus:ring-1 focus:ring-blue-500" /> : <span className="text-sm font-bold text-blue-400">{Number(insurance.amount).toLocaleString()} ₺</span>}
                                 </div>
                             </div>
-                            <div className="pt-2 border-t border-white/5 mt-2 grid grid-cols-2 gap-4">
+                            <div className="pt-2 border-t border-white/10 mt-2 grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs text-gray-500 block mb-1">Plaka</label>
-                                    {isEditing ? <input type="text" name="plate" value={formData.plate || ''} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white font-mono focus:ring-1 focus:ring-blue-500" /> : <p className="text-white font-mono">{insurance.plate || '-'}</p>}
+                                    {isEditing ? <input type="text" name="plate" value={formData.plate || ''} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white font-mono focus:ring-1 focus:ring-blue-500" /> : <p className="text-white font-mono">{insurance.plate || '-'}</p>}
                                 </div>
                                 <div>
                                     <label className="text-xs text-gray-500 block mb-1">Seri No / Sıra No</label>
-                                    {isEditing ? <input type="text" name="serialOrOrderNo" value={formData.serialOrOrderNo || ''} onChange={handleChange} className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500" /> : <p className="text-white">{insurance.serialOrOrderNo || '-'}</p>}
+                                    {isEditing ? <input type="text" name="serialOrOrderNo" value={formData.serialOrOrderNo || ''} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500" /> : <p className="text-white">{insurance.serialOrOrderNo || '-'}</p>}
                                 </div>
                             </div>
                         </div>
@@ -200,11 +200,11 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                 {/* Dates */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="w-5 h-5 text-blue-500" />
+                        <Calendar className="w-5 h-5 text-blue-400" />
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Geçerlilik süresi (1 Yıl)</h3>
                     </div>
 
-                    <div className="bg-dark-bg p-4 rounded-xl border border-white/5 flex justify-between items-center text-center">
+                    <div className="bg-white/[0.03] p-4 rounded-xl border border-white/10 flex justify-between items-center text-center">
                         <div>
                             <label className="text-xs text-gray-500 block mb-1">Başlangıç</label>
                             {isEditing ? (
@@ -217,13 +217,13 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                                     }}
                                     locale="tr"
                                     dateFormat="dd.MM.yyyy"
-                                    className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500"
+                                    className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white focus:ring-1 focus:ring-blue-500"
                                 />
                             ) : (
                                 <p className="text-white font-medium">{new Date(insurance.startDate).toLocaleDateString('tr-TR')}</p>
                             )}
                         </div>
-                        <div className="text-gray-600">➝</div>
+                        <div className="text-gray-500">➝</div>
                         <div>
                             <label className="text-xs text-gray-500 block mb-1">Bitiş</label>
                             <p className="text-white font-medium">
@@ -244,14 +244,14 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                             value={formData.description || ''}
                             onChange={handleChange}
                             rows={3}
-                            className="w-full bg-dark-bg p-4 rounded-xl border border-white/10 text-sm text-white focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-white/5 p-4 rounded-xl border border-white/10 text-sm text-white focus:ring-2 focus:ring-blue-500"
                         />
                     ) : insurance.description ? (
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 text-sm text-gray-300">
+                        <div className="bg-white/[0.03] p-4 rounded-xl border border-white/10 text-sm text-gray-300">
                             {insurance.description}
                         </div>
                     ) : (
-                        <div className="bg-dark-bg p-4 rounded-xl border border-white/5 text-sm text-gray-500 italic">
+                        <div className="bg-white/[0.03] p-4 rounded-xl border border-white/10 text-sm text-gray-500 italic">
                             Açıklama bulunmuyor.
                         </div>
                     )}
@@ -267,7 +267,7 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-white">Bu sigorta kaydını silmek istediğinize emin misiniz?</p>
-                                        <p className="text-xs text-red-300">Bu işlem geri alınamaz.</p>
+                                        <p className="text-xs text-red-400">Bu işlem geri alınamaz.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                                         size="sm"
                                         variant="outline"
                                         onClick={() => setIsDeleting(false)}
-                                        className="h-8 text-xs border-white/10 text-white hover:bg-white/10"
+                                        className="h-8 text-xs border-white/10 text-white hover:bg-white/5"
                                     >
                                         İptal
                                     </Button>
@@ -291,21 +291,19 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                         ) : (
                             <>
                                 <div className="flex gap-2">
-                                    {currentUser?.role === 'ADMIN' && (
-                                        <Button
-                                            onClick={() => setIsDeleting(true)}
-                                            variant="outline"
-                                            className="bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 flex items-center gap-2"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                            Sil
-                                        </Button>
-                                    )}
+                                    <Button
+                                        onClick={() => setIsDeleting(true)}
+                                        variant="outline"
+                                        className="bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 hover:text-red-600 hover:border-red-500/30 flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Sil
+                                    </Button>
                                 </div>
                                 <div className="flex gap-2">
                                     {isEditing ? (
                                         <>
-                                            <Button onClick={() => setIsEditing(false)} variant="outline" className="border-white/10 text-white hover:bg-white/10">
+                                            <Button onClick={() => setIsEditing(false)} variant="outline" className="border-white/10 text-white hover:bg-white/5">
                                                 İptal
                                             </Button>
                                             <Button onClick={handleSave} className="bg-blue-600 text-white hover:bg-blue-700" disabled={isSaving}>
@@ -318,7 +316,7 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                                             <Button onClick={() => setIsEditing(true)} className="bg-blue-600 text-white hover:bg-blue-700">
                                                 Düzenle
                                             </Button>
-                                            <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
+                                            <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/5">
                                                 Kapat
                                             </Button>
                                         </>
@@ -328,7 +326,7 @@ const InsuranceDetailModal: React.FC<InsuranceDetailModalProps> = ({ insurance, 
                         )
                     ) : (
                         <div className="flex justify-end w-full">
-                            <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
+                            <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/5">
                                 Kapat
                             </Button>
                         </div>

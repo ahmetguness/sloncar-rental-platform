@@ -3,6 +3,7 @@ import authReducer from '../features/auth/authSlice';
 import dashboardReducer from '../features/dashboard/dashboardSlice';
 import bookingsReducer from '../features/bookings/bookingsSlice';
 import carsReducer from '../features/cars/carsSlice';
+import settingsReducer from '../features/settings/settingsSlice';
 
 export const store = configureStore({
     reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
         dashboard: dashboardReducer,
         bookings: bookingsReducer,
         cars: carsReducer,
+        settings: settingsReducer,
     },
 });
 

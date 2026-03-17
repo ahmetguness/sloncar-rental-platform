@@ -20,10 +20,10 @@ export const Button = ({
     ...props
 }: ButtonProps) => {
     const variants = {
-        primary: 'bg-primary-600 text-white hover:bg-primary-500 shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.6)] border border-primary-500/50 hover:scale-[1.02] active:scale-[0.98]',
-        secondary: 'bg-white/10 text-white border border-white/10 hover:bg-white/20 hover:border-white/30 backdrop-blur-md shadow-lg active:scale-[0.98]',
-        outline: 'border-2 border-primary-500 text-primary-400 hover:bg-primary-500/10 hover:text-primary-300 hover:border-primary-400 bg-transparent shadow-[0_0_10px_rgba(99,102,241,0.1)]',
-        danger: 'bg-red-500/80 text-white hover:bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] border border-red-500/50',
+        primary: 'bg-primary-500 text-white hover:bg-primary-600 border border-primary-500/50 shadow-sm hover:scale-[1.02] active:scale-[0.98]',
+        secondary: 'bg-[#F5F5F5] text-[#111111] border border-[#E5E5E5] hover:bg-[#EEEEEE] active:scale-[0.98]',
+        outline: 'border-2 border-primary-500 text-primary-500 hover:bg-primary-500/10 bg-transparent',
+        danger: 'bg-red-500 text-white hover:bg-red-600 border border-red-500/50',
     };
 
     const sizes = {

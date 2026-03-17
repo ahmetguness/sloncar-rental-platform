@@ -59,7 +59,7 @@ export const SecondHand = () => {
     };
 
     return (
-        <div className="space-y-12 pb-20 bg-dark-bg min-h-screen">
+        <div className="space-y-12 pb-20 min-h-screen">
             {/* Hero Section: Luxury Sales Edition */}
             <section className="relative min-h-[500px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[120px]">
                 {/* Background Watermark */}
@@ -75,16 +75,16 @@ export const SecondHand = () => {
                         alt="Luxury Car Showroom"
                         className="w-full h-full object-cover opacity-40 grayscale"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/90 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 to-transparent" />
                 </div>
 
                 <div className="relative z-10 max-w-5xl mx-auto space-y-8">
                     <div className="animate-fade-in-up">
-                        <span className="inline-block py-1.5 px-4 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-500 text-xs font-black tracking-[0.3em] uppercase backdrop-blur-md">
+                        <span className="inline-block py-1.5 px-4 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-500 text-xs font-black tracking-[0.3em] uppercase">
                             ÖZEL SEÇİM
                         </span>
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-none animate-fade-in-up delay-100">
+                    <h1 className="text-5xl md:text-7xl font-black text-[#111111] tracking-tighter leading-none animate-fade-in-up delay-100">
                         HAYALİNDEKİ ARACA <br />
                         <span className="text-primary-500">GÜVENLE</span> SAHİP OL
                     </h1>
@@ -99,16 +99,16 @@ export const SecondHand = () => {
                 id="fleet"
                 className="container mx-auto px-6 pt-12 scroll-mt-24 relative"
             >
-                <div className="absolute top-1/2 left-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-primary-900/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
+                <div className="absolute top-1/2 left-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-primary-500/5 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
 
                 <div className="flex items-center justify-between mb-12">
                     <div className="space-y-2">
-                        <h2 className="text-3xl font-black text-white tracking-tight uppercase italic">
+                        <h2 className="text-3xl font-black text-[#111111] tracking-tight uppercase italic">
                             2. EL <span className="text-primary-500">ENVANTER</span>
                         </h2>
                         <div className="h-1 w-24 bg-primary-500 rounded-full" />
                     </div>
-                    <div className="hidden md:flex items-center gap-3 text-[10px] font-black text-gray-500 tracking-widest uppercase bg-white/[0.03] px-4 py-2 rounded-xl border border-white/5">
+                    <div className="hidden md:flex items-center gap-3 text-[10px] font-black text-gray-500 tracking-widest uppercase bg-[#F5F5F5] px-4 py-2 rounded-xl border border-[#E5E5E5]">
                         <ShieldCheck className="w-4 h-4 text-primary-500" />
                         Ekspertiz Garantili
                     </div>
@@ -119,11 +119,11 @@ export const SecondHand = () => {
                         <Loader2 className="w-12 h-12 animate-spin text-primary-500" />
                     </div>
                 ) : cars.length === 0 ? (
-                    <div className="text-center py-32 bg-[#1a1a1a]/40 backdrop-blur-xl rounded-[40px] border border-white/5 shadow-2xl">
+                    <div className="text-center py-32 bg-[#F5F5F5] rounded-[40px] border border-[#E5E5E5] shadow-2xl">
                         <div className="bg-primary-500/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary-500/20 shadow-inner">
                             <Tag className="w-10 h-10 text-primary-500" />
                         </div>
-                        <h3 className="text-2xl font-black text-white mb-3 uppercase tracking-tight">Portföy Güncelleniyor</h3>
+                        <h3 className="text-2xl font-black text-[#111111] mb-3 uppercase tracking-tight">Portföy Güncelleniyor</h3>
                         <p className="text-gray-500 max-w-sm mx-auto font-medium">Şu an kriterlerinize uygun satılık araç bulunmamaktadır. Yeni araçlar için takipte kalın.</p>
                     </div>
                 ) : (

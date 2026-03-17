@@ -42,14 +42,14 @@ export const AdminLogin = () => {
     // Show loading state while checking authentication or redirecting (Matches AdminDashboard loading state)
     if (isAuthenticated) {
         return (
-            <div className="min-h-screen bg-dark-bg pt-24 flex justify-center items-center">
+            <div className="min-h-screen bg-[#111111] pt-24 flex justify-center items-center">
                 <Loader2 className="animate-spin w-10 h-10 text-primary-500" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-dark-bg relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-[#111111] relative overflow-hidden">
             {/* Background Effects */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl" />
@@ -59,7 +59,7 @@ export const AdminLogin = () => {
 
             {/* Login Card */}
             <div className="relative z-10 w-full max-w-md mx-4">
-                <div className="bg-dark-surface/80 backdrop-blur-xl p-6 md:p-10 rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.5)] border border-white/10">
+                <div className="bg-[#1a1a1a]/80 backdrop-blur-xl p-6 md:p-10 rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.5)] border border-white/10">
                     {/* Header */}
                     <div className="text-center mb-8 md:mb-10">
                         <div className="flex items-center justify-center gap-3 mb-6">
@@ -97,7 +97,7 @@ export const AdminLogin = () => {
                                     type="email"
                                     value={credentials.email}
                                     onChange={(e) => setCredentials({ ...credentials, email: normalizeEmail(e.target.value) })}
-                                    className="w-full bg-dark-bg border border-white/10 rounded-xl px-4 py-3.5 pl-12 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                    className="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3.5 pl-12 text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                                     placeholder="admin@example.com"
                                     required
                                 />
@@ -112,7 +112,7 @@ export const AdminLogin = () => {
                                     type={showPassword ? 'text' : 'password'}
                                     value={credentials.password}
                                     onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                                    className="w-full bg-dark-bg border border-white/10 rounded-xl px-4 py-3.5 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                    className="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3.5 pl-12 pr-12 text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -128,7 +128,7 @@ export const AdminLogin = () => {
 
                         <div className="flex items-center justify-between text-sm">
                             <label className="flex items-center gap-2 cursor-pointer group">
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-primary-500 border-primary-500' : 'border-white/20 bg-dark-bg group-hover:border-primary-500/50'}`}>
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-primary-500 border-primary-500' : 'border-white/20 bg-[#111111] group-hover:border-primary-500/50'}`}>
                                     {rememberMe && <Check className="w-3.5 h-3.5 text-white" />}
                                 </div>
                                 <input
@@ -162,7 +162,7 @@ export const AdminLogin = () => {
                 </div>
 
                 {/* Footer */}
-                <p className="text-center text-gray-600 text-xs mt-6">
+                <p className="text-center text-gray-500 text-xs mt-6">
                     © 2024 Yaman Filo. Tüm hakları saklıdır.
                 </p>
             </div>

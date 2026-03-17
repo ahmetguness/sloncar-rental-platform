@@ -42,14 +42,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, on
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Profil Ayarları" size="sm">
             <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-dark-bg rounded-xl border border-white/5">
+                <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-black/10">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
                             <Megaphone className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="text-white font-bold text-sm">WhatsApp Bildirimleri</h3>
-                            <p className="text-xs text-gray-400">Yeni rezervasyonlarda bildirim al</p>
+                            <h3 className="text-[#111111] font-bold text-sm">WhatsApp Bildirimleri</h3>
+                            <p className="text-xs text-gray-600">Yeni rezervasyonlarda bildirim al</p>
                         </div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">

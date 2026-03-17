@@ -46,9 +46,9 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                 {toasts.map(toast => (
                     <div
                         key={toast.id}
-                        className={`pointer-events-auto min-w-[300px] p-4 rounded-xl shadow-2xl border flex items-center gap-3 animate-slide-up backdrop-blur-md ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' :
-                            toast.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
-                                'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                        className={`pointer-events-auto min-w-[300px] p-4 rounded-xl shadow-2xl border flex items-center gap-3 animate-slide-up ${toast.type === 'success' ? 'bg-green-50 border-green-200 text-green-600' :
+                            toast.type === 'error' ? 'bg-red-50 border-red-200 text-red-600' :
+                                'bg-blue-50 border-blue-200 text-blue-600'
                             }`}
                     >
                         {toast.type === 'success' && <CheckCircle size={20} />}
@@ -57,7 +57,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                         <p className="text-sm font-medium flex-1">{toast.message}</p>
                         <button
                             onClick={() => removeToast(toast.id)}
-                            className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                            className="p-1 hover:bg-[#F5F5F5] rounded-full transition-colors"
                         >
                             <X size={16} />
                         </button>

@@ -4,7 +4,7 @@ import { carService, bookingService } from '../services/api';
 import type { Car, CreateBookingRequest } from '../services/types';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Loader2, CheckCircle, MapPin, Users, Fuel, Cog, Gauge, Copy, Check } from 'lucide-react';
+import { Loader2, CheckCircle, MapPin, Users, Fuel, Cog, Gauge, Copy, Check, Shield, Info } from 'lucide-react';
 import { ImageCarousel } from '../components/ui/ImageCarousel';
 import { Link } from 'react-router-dom';
 import { translateFuel } from '../utils/translate';
@@ -14,7 +14,21 @@ import { tr } from 'date-fns/locale/tr';
 import { formatPhoneNumber, cleanPhoneNumber, normalizeEmail } from '../utils/formatters';
 registerLocale('tr', tr);
 
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
+const AnimatedNumber = ({ value }: { value: number }) => {
+    return (
+        <motion.span
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            key={value}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
+            {value.toLocaleString()}
+        </motion.span>
+    );
+};
 
 export const Booking = () => {
     const { carId } = useParams();
@@ -184,6 +198,12 @@ export const Booking = () => {
 
             const res = await bookingService.create(payload as CreateBookingRequest);
             setSuccessCode(res.data.bookingCode);
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#E30613', '#111111', '#ffffff']
+            });
         } catch (err: any) {
             console.error('Booking Error:', err);
 
@@ -222,25 +242,25 @@ export const Booking = () => {
     if (loading) return (
         <div className="min-h-[50vh] flex flex-col items-center justify-center pt-20">
             <Loader2 className="animate-spin text-primary-600 w-12 h-12 mb-4" />
-            <p className="text-gray-400 font-medium">Araç bilgileri yükleniyor...</p>
+            <p className="text-[#777777] font-medium">Araç bilgileri yükleniyor...</p>
         </div>
     );
-    if (!car) return <div className="text-center p-20 text-white">Araç bulunamadı.</div>;
+    if (!car) return <div className="text-center p-20 text-[#111111]">Araç bulunamadı.</div>;
 
     if (car.status !== 'ACTIVE') {
         return (
-            <div className="max-w-md mx-auto mt-10 bg-dark-surface p-6 md:p-8 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-yellow-500/20 text-center relative overflow-hidden">
+            <div className="max-w-md mx-auto mt-10 bg-[#F5F5F5] p-6 md:p-8 rounded-3xl shadow-2xl border border-yellow-500/20 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-amber-400" />
-                <div className="bg-yellow-500/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-yellow-500/20 shadow-[0_0_20px_rgba(234,179,8,0.2)]">
+                <div className="bg-yellow-500/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-yellow-500/20">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
                 </div>
-                <h2 className="text-xl md:text-2xl font-bold text-white mb-2">Araç Şu Anda Müsait Değil</h2>
-                <p className="text-gray-400 mb-8 px-4">
-                    <span className="text-white font-medium">{car.brand} {car.model}</span> şu anda
+                <h2 className="text-xl md:text-2xl font-bold text-[#111111] mb-2">Araç Şu Anda Müsait Değil</h2>
+                <p className="text-[#777777] mb-8 px-4">
+                    <span className="text-[#111111] font-medium">{car.brand} {car.model}</span> şu anda
                     {car.status === 'MAINTENANCE' ? ' bakımda' : ' pasif durumda'} olduğu için kiralamaya uygun değildir.
                 </p>
                 <Link to="/">
-                    <Button variant="outline" className="w-full h-12 text-base border-white/10 text-gray-400 hover:text-white hover:border-white/30">Diğer Araçlara Göz At</Button>
+                    <Button variant="outline" className="w-full h-12 text-base border-[#E5E5E5] text-[#777777] hover:text-[#111111] hover:border-[#CCCCCC]">Diğer Araçlara Göz At</Button>
                 </Link>
             </div>
         );
@@ -248,174 +268,253 @@ export const Booking = () => {
 
     if (successCode) {
         return (
-            <div className="max-w-md mx-auto mt-10 bg-dark-surface p-6 md:p-8 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-green-500/20 text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-400" />
-                <div className="bg-green-500/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.2)]">
-                    <CheckCircle className="w-12 h-12 text-green-500" />
-                </div>
-                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Rezervasyon Başarılı!</h2>
-                <p className="text-sm md:text-base text-gray-400 mb-6 md:mb-8 px-2 md:px-4">Rezervasyonunuzun kesinleşmesi için <span className="text-yellow-400 font-bold">10 dakika</span> içinde ödeme yapmanız gerekmektedir.</p>
-
-                <div className="bg-dark-bg p-6 rounded-2xl border border-white/5 mb-8 relative group">
-                    <div className="absolute inset-0 bg-primary-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                    <p className="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">Rezervasyon Kodunuz</p>
-                    <div className="flex items-center justify-center gap-3 mb-2 relative z-10">
-                        <p className="text-2xl md:text-3xl font-mono font-bold text-primary-400 tracking-wider text-glow break-all">{successCode}</p>
-                        <button
-                            onClick={() => {
-                                navigator.clipboard.writeText(successCode);
-                                setCopied(true);
-                                setTimeout(() => setCopied(false), 2000);
-                            }}
-                            className={`p-2 rounded-lg transition-all ${copied ? 'bg-green-500/20 text-green-500' : 'hover:bg-white/10 text-gray-400 hover:text-white'}`}
-                            title="Kodu Kopyala"
+            <div className="min-h-screen pt-24 pb-16 px-4 flex items-center justify-center bg-mesh relative overflow-hidden">
+                <AnimatePresence>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="max-w-xl w-full glass-card rounded-[2rem] p-8 md:p-12 text-center relative z-10"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                            className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-green-500/20 shadow-[0_0_30px_rgba(34,197,94,0.15)]"
                         >
-                            {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                        </button>
-                    </div>
-                    <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500 bg-white/5 py-2 rounded-lg">
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        Bu kodu saklayın, sorgulama için gereklidir.
-                    </div>
-                </div>
+                            <CheckCircle className="w-10 h-10 text-green-500" />
+                        </motion.div>
 
-                <div className="flex flex-col gap-3">
-                    <Link to={`/my-booking?code=${successCode}`}>
-                        <Button className="w-full h-12 text-base shadow-[0_0_20px_rgba(99,102,241,0.4)]">Rezervasyonumu Görüntüle</Button>
-                    </Link>
-                    <Link to="/">
-                        <Button variant="outline" className="w-full h-12 text-base border-white/10 text-gray-400 hover:text-white hover:border-white/30">Ana Sayfaya Dön</Button>
-                    </Link>
-                </div>
+                        <motion.h2 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="text-3xl md:text-4xl text-luxury text-[#111111] mb-5 leading-tight"
+                        >
+                            Rezervasyon <br/> <span className="text-primary-500">Tamamlandı!</span>
+                        </motion.h2>
+
+                        <motion.p 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                            className="text-[#777777] mb-10 text-base font-medium leading-relaxed max-w-sm mx-auto"
+                        >
+                            Premium yolculuğunuz başlıyor. Kesinleşme için <span className="text-[#111111] font-black underline decoration-primary-500 decoration-4 underline-offset-8">10 dakika</span> içinde ödeme yapın.
+                        </motion.p>
+
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="glass-dark p-8 rounded-[2rem] mb-10 relative group overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary-500/20 transition-all duration-700" />
+                            <p className="text-white/40 text-[10px] uppercase tracking-[0.3em] mb-5 font-black">Referans Kodunuz</p>
+                            <div className="flex items-center justify-center gap-5">
+                                <p className="text-3xl md:text-4xl font-mono font-black text-white tracking-[0.15em] leading-none">{successCode}</p>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(successCode);
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 2000);
+                                    }}
+                                    className={`p-4 rounded-xl transition-all duration-500 ${copied ? 'bg-green-500 text-white translate-y-[-2px]' : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white'}`}
+                                >
+                                    {copied ? <Check className="w-6 h-6" /> : <Copy className="w-6 h-6" />}
+                                </button>
+                            </div>
+                        </motion.div>
+
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6 }}
+                            className="space-y-4"
+                        >
+                            <Link to={`/my-booking?code=${successCode}`}>
+                                <Button className="w-full h-16 text-base text-luxury shadow-xl shadow-primary-500/15 rounded-xl group relative overflow-hidden">
+                                    <span className="relative z-10 font-black">REZERVASYONU GÖRÜNTÜLE</span>
+                                    <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                </Button>
+                            </Link>
+                            <Link to="/">
+                                <Button variant="outline" className="w-full h-16 text-base text-luxury border-2 border-gray-100 hover:border-gray-900 text-[#777777] hover:text-white hover:bg-[#111111] bg-transparent rounded-xl transition-all duration-500">
+                                    ANA SAYFAYA DÖN
+                                </Button>
+                            </Link>
+                        </motion.div>
+                    </motion.div>
+                </AnimatePresence>
             </div>
         );
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 md:px-6 pt-24 md:pt-28 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
-            {/* Car Summary Sidebar */}
-            <div className="lg:col-span-1 space-y-6">
-                <div className="bg-dark-surface rounded-3xl p-1 border border-white/5 shadow-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-500 to-transparent opacity-50" />
-
-                    {/* Image Section */}
-                    <div className="p-3">
-                        <ImageCarousel images={car.images} alt={car.model} category={car.category} />
-                    </div>
-
-                    {/* Content */}
-                    <div className="px-5 pb-5">
-                        <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-white leading-tight mb-1 break-words">{car.brand}</h2>
-                            <p className="text-lg text-gray-400 font-medium break-words">{car.model}</p>
-                        </div>
-
-                        {/* Specs Grid */}
-                        <div className="grid grid-cols-2 gap-3 mb-6">
-                            <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col items-center justify-center text-center gap-2 group/spec hovered:bg-white/10 transition-colors">
-                                <Cog className="w-5 h-5 text-gray-400 group-hover/spec:text-primary-500 transition-colors" />
-                                <span className="text-xs font-medium text-gray-300">{car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'}</span>
-                            </div>
-                            <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col items-center justify-center text-center gap-2 group/spec hovered:bg-white/10 transition-colors">
-                                <Fuel className="w-5 h-5 text-gray-400 group-hover/spec:text-primary-500 transition-colors" />
-                                <span className="text-xs font-medium text-gray-300 capitalize">{translateFuel(car.fuel)}</span>
-                            </div>
-                            <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col items-center justify-center text-center gap-2 group/spec hovered:bg-white/10 transition-colors">
-                                <Users className="w-5 h-5 text-gray-400 group-hover/spec:text-primary-500 transition-colors" />
-                                <span className="text-xs font-medium text-gray-300">{car.seats} Kişilik</span>
-                            </div>
-                            <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col items-center justify-center text-center gap-2 group/spec hovered:bg-white/10 transition-colors">
-                                <Gauge className="w-5 h-5 text-gray-400 group-hover/spec:text-primary-500 transition-colors" />
-                                <span className="text-xs font-medium text-gray-300">2023 Model</span>
-                            </div>
-                        </div>
-
-                        {/* Price Breakdown */}
-                        <div className="space-y-3">
-                            <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Günlük Fiyat</span>
-                                <div className="text-right">
-                                    <span className="text-lg font-bold text-white">
-                                        {Number(car.dailyPrice).toLocaleString()}
-                                    </span>
-                                    <span className="text-xs font-semibold ml-1 text-gray-500">₺</span>
-                                </div>
-                            </div>
-
-                            {totalDays > 0 && (
-                                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Kiralama Süresi</span>
-                                    <span className="text-white font-bold">{totalDays} Gün</span>
-                                </div>
-                            )}
-
-                            {totalPrice > 0 && (
-                                <div className="bg-primary-500/20 rounded-2xl p-4 border border-primary-500/30 flex items-center justify-between transition-colors">
-                                    <span className="text-xs font-bold text-primary-200 uppercase tracking-widest">
-                                        Toplam Tutar
-                                    </span>
-                                    <div className="text-right">
-                                        <span className="text-2xl font-bold tracking-tight text-white text-glow">
-                                            {Number(totalPrice).toLocaleString()}
-                                        </span>
-                                        <span className="text-sm font-semibold ml-1 text-primary-400">₺</span>
+        <div className="min-h-screen bg-mesh relative font-sans selection:bg-primary-500/30 overflow-x-hidden">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 pt-24 md:pt-36 pb-16 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
+                    
+                    {/* Left: Car Details Sidebar */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                        className="lg:col-span-4 space-y-6 lg:sticky lg:top-24 h-fit"
+                    >
+                        <div className="glass-card rounded-[2rem] p-4 relative overflow-hidden group shadow-xl">
+                           <div className="p-1 rounded-[1.5rem] overflow-hidden">
+                                <ImageCarousel images={car.images} alt={car.model} category={car.category} />
+                           </div>
+                           
+                           <div className="px-5 py-8">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                    className="mb-8"
+                                >
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="w-8 h-[2px] bg-primary-500 rounded-full" />
+                                        <span className="text-[10px] font-black text-primary-500 uppercase tracking-[0.3em]">{car.category} SERİSİ</span>
                                     </div>
+                                    <h2 className="text-3xl font-black text-[#111111] tracking-tighter uppercase leading-none break-words mb-1">{car.brand}</h2>
+                                    <p className="text-lg text-[#777777] font-medium tracking-tight">{car.model}</p>
+                                </motion.div>
+
+                                <div className="grid grid-cols-2 gap-4 mb-10">
+                                    {[
+                                        { icon: <Cog className="w-5 h-5" />, label: car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel' },
+                                        { icon: <Fuel className="w-5 h-5" />, label: translateFuel(car.fuel) },
+                                        { icon: <Users className="w-5 h-5" />, label: `${car.seats} Kişilik` },
+                                        { icon: <Gauge className="w-5 h-5" />, label: '2023 Model' }
+                                    ].map((spec, i) => (
+                                        <motion.div 
+                                            key={i} 
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.4 + (i * 0.1) }}
+                                            className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 flex flex-col items-center justify-center text-center gap-2 group/spec hover:bg-[#111111] hover:text-white transition-all duration-500 hover:shadow-lg"
+                                        >
+                                            <div className="text-primary-500 group-hover/spec:scale-110 transition-transform duration-500">{spec.icon}</div>
+                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-80">{spec.label}</span>
+                                        </motion.div>
+                                    ))}
                                 </div>
-                            )}
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between px-2">
+                                        <span className="text-[10px] font-black text-[#777777] uppercase tracking-[0.2em]">Haftalık Paket</span>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-2xl font-black text-[#111111]">{Number(car.dailyPrice).toLocaleString()}</span>
+                                            <span className="text-xs font-bold text-[#777777]">₺ / Gün</span>
+                                        </div>
+                                    </div>
+                                    
+                                    {totalDays > 0 && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            className="flex items-center justify-between px-2 pb-4 border-b border-gray-100"
+                                        >
+                                            <span className="text-[10px] font-black text-[#777777] uppercase tracking-[0.2em]">Kiralama Süresi</span>
+                                            <span className="text-lg font-black text-primary-500">{totalDays} GÜN</span>
+                                        </motion.div>
+                                    )}
+
+                                    {totalPrice > 0 && (
+                                        <motion.div 
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            className="glass-dark rounded-[1.5rem] p-6 shadow-xl relative overflow-hidden"
+                                        >
+                                            <motion.div 
+                                                animate={{ 
+                                                    rotate: [0, 90, 180, 270, 360],
+                                                    scale: [1, 1.2, 1]
+                                                }}
+                                                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                                className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-[40px] -mr-16 -mt-16" 
+                                            />
+                                            <div className="relative z-10">
+                                                <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">TOPLAM TUTAR</span>
+                                                <div className="flex items-baseline gap-1 mt-1">
+                                                    <span className="text-4xl font-black text-white tracking-tighter">
+                                                        <AnimatedNumber value={totalPrice} />
+                                                    </span>
+                                                    <span className="text-xl font-black text-primary-500">₺</span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </div>
+                           </div>
                         </div>
-                    </div>
-                </div>
 
-                <div className="bg-dark-surface/50 rounded-2xl p-5 border border-white/5 flex items-start gap-4">
-                    <div className="p-2 bg-white/5 rounded-lg text-gray-400">
-                        <MapPin className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-bold text-white mb-1">Teslimat Noktası</h4>
-                        <p className="text-sm text-gray-400 leading-relaxed">Aracınızı <span className="text-white font-medium">Manisa Merkez</span> şubemizden teslim alabilirsiniz.</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Form Section */}
-            <div className="lg:col-span-2">
-                <div className="bg-dark-surface rounded-[2rem] border border-white/5 px-5 py-8 md:p-10 relative shadow-2xl">
-                    <div className="absolute inset-0 rounded-[2rem] overflow-hidden pointer-events-none">
-                        <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-primary-500/5 rounded-full blur-[128px]" />
-                    </div>
-
-                    <div className="relative z-10">
-                        <div className="mb-10">
-                            <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-3">Güvenli Rezervasyon</h1>
-                            <p className="text-sm md:text-base text-gray-400">Ödemenizi araç tesliminde güvenle yapabilirsiniz.</p>
-                        </div>
-
-                        {error && (
-                            <div className="bg-red-500/10 text-red-400 p-4 rounded-xl mb-8 border border-red-500/20 flex items-center gap-3">
-                                <div className="w-1.5 h-10 rounded-full bg-red-500" />
-                                {error}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.8 }}
+                            className="glass-card rounded-[2rem] p-6 border border-white/40 shadow-lg flex items-start gap-4 group hover:border-primary-500/30 transition-all duration-700"
+                        >
+                            <div className="p-4 bg-[#111111] rounded-2xl text-white transform group-hover:rotate-12 group-hover:bg-primary-500 transition-all duration-700 shadow-xl">
+                                <MapPin className="w-6 h-6" />
                             </div>
-                        )}
+                            <div>
+                                <h4 className="text-[10px] font-black text-[#111111] uppercase tracking-[0.2em] mb-1.5">TESLİMAT NOKTASI</h4>
+                                <p className="text-xs text-[#777777] leading-relaxed font-bold">Aracınızı <span className="text-[#111111] font-black underline decoration-primary-500 decoration-2 underline-offset-4">Manisa Merkez</span> şubemizden güvenle teslim alabilirsiniz.</p>
+                            </div>
+                        </motion.div>
+                    </motion.div>
 
-                        <form onSubmit={handleSubmit} className="space-y-10">
-                            {/* Branch Selection Hidden for Single Branch Mode */}
-                            {/* 
-                                Since there is only one branch (Manisa), we hide the selection UI.
-                                The backend still requires pickupBranchId and dropoffBranchId, 
-                                which are auto-filled in handleSubmit using car.branchId.
-                            */}
+                    {/* Right: Booking Form */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                        className="lg:col-span-8 overflow-visible"
+                    >
+                        <div className="glass-card rounded-[2.5rem] p-8 md:p-14 relative group shadow-xl overflow-hidden">
+                            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary-500/5 rounded-full blur-[120px] pointer-events-none group-hover:bg-primary-500/10 transition-colors duration-[2000ms]" />
+                            
+                            <div className="relative z-10">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="mb-12"
+                                >
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#111111] text-white text-[9px] font-black uppercase tracking-[0.3em] mb-6 shadow-xl">
+                                        <Shield className="w-4 h-4 text-primary-500" /> GÜVENLİ İŞLEM MERKEZİ
+                                    </div>
+                                    <h1 className="text-4xl md:text-5xl text-luxury text-[#111111] mb-4 leading-tight">REZERVE <br/> <span className="text-gray-200">EDİN</span></h1>
+                                    <p className="text-[#777777] text-lg font-medium tracking-tight">Yaman Filo kalitesiyle premium kiralama deneyimi.</p>
+                                </motion.div>
 
-                            {/* Date Section */}
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className="w-8 h-1 rounded-full bg-primary-500" />
-                                    <h3 className="text-sm font-bold text-white uppercase tracking-widest">Kiralama Süresi</h3>
-                                </div>
-                                <div className="bg-dark-bg/50 p-1 rounded-2xl border border-white/5">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5 rounded-xl">
-                                        <div className="bg-dark-bg p-4 md:p-6 space-y-2 group focus-within:bg-dark-surface transition-colors">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide group-focus-within:text-primary-500 transition-colors">Alış Tarihi</label>
-                                            <div className="relative">
+                                {error && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        className="bg-red-50 border-l-4 border-red-500 p-6 rounded-2xl mb-10 flex items-center gap-4"
+                                    >
+                                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-red-500 shadow-lg border border-red-50 shrink-0">
+                                            <Info className="w-6 h-6" />
+                                        </div>
+                                        <p className="text-red-900 font-extrabold text-lg tracking-tight uppercase">{error}</p>
+                                    </motion.div>
+                                )}
+
+                                <form onSubmit={handleSubmit} className="space-y-10">
+                                    <div className="space-y-8">
+                                        <div className="flex items-center gap-4">
+                                            <span className="w-12 h-[2px] bg-primary-500 rounded-full" />
+                                            <h3 className="text-[10px] font-black text-[#111111] uppercase tracking-[0.3em]">Kiralama Tarihleri</h3>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-gray-200 rounded-[2rem] overflow-hidden border-2 border-gray-100 shadow-inner">
+                                            <div className="bg-white p-8 space-y-3 focus-within:bg-gray-50 transition-all duration-500 group/input">
+                                                <label className="text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] group-focus-within/input:text-primary-500 transition-colors">ALIŞ TARİHİ</label>
                                                 <DatePicker
                                                     selected={startDate}
                                                     onChange={(date: Date | null) => setStartDate(date)}
@@ -425,17 +524,15 @@ export const Booking = () => {
                                                     minDate={new Date()}
                                                     dateFormat="dd/MM/yyyy"
                                                     locale="tr"
-                                                    placeholderText="Seçiniz"
-                                                    className="w-full bg-transparent border-none text-white font-medium focus:ring-0 p-0 text-lg placeholder-gray-600 cursor-pointer"
+                                                    placeholderText="Tarih Seçin"
+                                                    className="w-full bg-transparent border-none text-[#111111] font-black text-xl md:text-2xl focus:ring-0 p-0 placeholder-gray-400 cursor-pointer"
                                                     popperPlacement="bottom-start"
                                                     excludeDates={bookedDates}
                                                     required
                                                 />
                                             </div>
-                                        </div>
-                                        <div className="bg-dark-bg p-4 md:p-6 space-y-2 group focus-within:bg-dark-surface transition-colors">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide group-focus-within:text-primary-500 transition-colors">Teslim Tarihi</label>
-                                            <div className="relative">
+                                            <div className="bg-white p-8 space-y-3 focus-within:bg-gray-50 transition-all duration-500 group/input">
+                                                <label className="text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] group-focus-within/input:text-primary-500 transition-colors">TESLİM TARİHİ</label>
                                                 <DatePicker
                                                     selected={endDate}
                                                     onChange={(date: Date | null) => setEndDate(date)}
@@ -445,8 +542,8 @@ export const Booking = () => {
                                                     minDate={startDate || new Date()}
                                                     dateFormat="dd/MM/yyyy"
                                                     locale="tr"
-                                                    placeholderText="Seçiniz"
-                                                    className="w-full bg-transparent border-none text-white font-medium focus:ring-0 p-0 text-lg placeholder-gray-600 cursor-pointer"
+                                                    placeholderText="Tarih Seçin"
+                                                    className="w-full bg-transparent border-none text-[#111111] font-black text-xl md:text-2xl focus:ring-0 p-0 placeholder-gray-400 cursor-pointer"
                                                     popperPlacement="bottom-start"
                                                     excludeDates={bookedDates}
                                                     required
@@ -454,59 +551,71 @@ export const Booking = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+
+                                    <div className="space-y-8">
+                                        <div className="flex items-center gap-4">
+                                            <span className="w-12 h-[2px] bg-primary-500 rounded-full" />
+                                            <h3 className="text-[10px] font-black text-[#111111] uppercase tracking-[0.3em]">Müşteri Bilgileri</h3>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input id="customerName" label="ADINIZ" name="customerName" placeholder="Adınız" value={formData.customerName} onChange={handleChange} required className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2" />
+                                            </motion.div>
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input id="customerSurname" label="SOYADINIZ" name="customerSurname" placeholder="Soyadınız" value={formData.customerSurname} onChange={handleChange} required className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2" />
+                                            </motion.div>
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input id="customerPhone" label="TELEFON" type="tel" name="customerPhone" placeholder="5XX XXX XX XX" value={formData.customerPhone} onChange={handleChange} required className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2" />
+                                            </motion.div>
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input id="customerEmail" label="E-POSTA" type="email" name="customerEmail" placeholder="ornek@alanadi.com" value={formData.customerEmail} onChange={handleChange} required className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2" />
+                                            </motion.div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <label className="block text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] ml-2">EK NOTLAR (OPSİYONEL)</label>
+                                            <textarea
+                                                name="notes"
+                                                className="w-full px-6 py-5 bg-gray-50/30 border-2 border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary-500/5 focus:border-primary-500/20 focus:bg-white transition-all text-[#111111] text-lg font-bold placeholder-gray-400 min-h-[150px] resize-none"
+                                                placeholder="Varsa iletmek istediğiniz özel bir notunuz..."
+                                                value={formData.notes ?? ''}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="glass-dark p-8 md:p-10 rounded-[2rem] border border-white/10 flex gap-6 items-start relative overflow-hidden shadow-xl">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-[60px]" />
+                                        <div className="w-12 h-12 rounded-2xl bg-primary-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-primary-500/30 transform -rotate-12">
+                                            <Info className="w-6 h-6" />
+                                        </div>
+                                        <p className="text-white/60 text-sm leading-relaxed font-medium">
+                                            <span className="text-white font-black uppercase tracking-[0.3em] block mb-2 text-[10px]">Kurumsal Bilgilendirme</span>
+                                            Rezervasyonu tamamlayarak kiralama koşullarını kabul etmiş olursunuz.
+                                            Aracınızı teslim alırken <span className="text-white font-black underline decoration-primary-500">ehliyetinizi ve kimliğinizi</span> yanınızda bulundurmayı unutmayınız.
+                                        </p>
+                                    </div>
+
+                                    <motion.div 
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.99 }}
+                                    >
+                                        <Button
+                                            type="submit"
+                                            size="lg"
+                                            className="w-full h-18 text-lg text-luxury rounded-2xl bg-primary-500 hover:bg-primary-600 shadow-xl shadow-primary-500/20 transform transition-all duration-700 flex items-center justify-center gap-4 relative overflow-hidden group"
+                                            disabled={submitting}
+                                        >
+                                            <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:animate-shimmer pointer-events-none" />
+                                            {submitting ? <Loader2 className="animate-spin w-8 h-8" /> : <div className="p-3 bg-white/20 rounded-xl"><CheckCircle className="w-6 h-6" /></div>}
+                                            <span className="relative z-10 font-black tracking-[0.1em]">{submitting ? 'İŞLENİYOR...' : 'REZERVASYONU ONAYLA'}</span>
+                                        </Button>
+                                    </motion.div>
+                                </form>
                             </div>
-
-                            {/* Driver Info Section */}
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className="w-8 h-1 rounded-full bg-primary-500" />
-                                    <h3 className="text-sm font-bold text-white uppercase tracking-widest">Sürücü Bilgileri</h3>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Input id="customerName" label="Ad" name="customerName" value={formData.customerName} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
-                                    <Input id="customerSurname" label="Soyad" name="customerSurname" value={formData.customerSurname} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Input id="customerPhone" label="Telefon" type="tel" name="customerPhone" placeholder="+90 5XX..." value={formData.customerPhone} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
-                                    <Input id="customerEmail" label="E-posta" type="email" name="customerEmail" value={formData.customerEmail} onChange={handleChange} required className="bg-dark-bg border-transparent focus:border-primary-500/50" />
-                                </div>
-
-
-
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-3 uppercase tracking-wide ml-1">Notlar (Opsiyonel)</label>
-                                    <textarea
-                                        name="notes"
-                                        className="w-full px-5 py-4 bg-dark-bg border border-transparent rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 transition-all text-white placeholder-gray-600 min-h-[120px] resize-none"
-                                        placeholder="Eklemek istediğiniz notlar..."
-                                        value={formData.notes}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="bg-white/5 p-4 md:p-6 rounded-2xl border border-white/5 flex gap-3 md:gap-5 items-start">
-                                <div className="mt-0.5 w-6 h-6 rounded-full bg-primary-500/20 flex items-center justify-center text-primary-400 shrink-0 border border-primary-500/30 font-bold text-xs">i</div>
-                                <p className="text-xs md:text-sm text-gray-400 leading-relaxed">
-                                    <span className="text-white font-medium">Bilgilendirme:</span> Rezervasyonu tamamlayarak kiralama koşullarını kabul etmiş olursunuz.
-                                    Aracınızı teslim alırken ehliyetinizi ve kimliğinizi yanınızda bulundurmayı unutmayınız.
-                                </p>
-                            </div>
-
-                            <Button
-                                type="submit"
-                                size="lg"
-                                className="w-full h-14 md:h-16 text-base md:text-lg font-bold rounded-2xl bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 shadow-[0_10px_40px_-10px_rgba(79,70,229,0.5)] hover:shadow-[0_15px_50px_-10px_rgba(79,70,229,0.6)] transform hover:-translate-y-1 transition-all duration-300"
-                                disabled={submitting}
-                            >
-                                {submitting ? <Loader2 className="animate-spin inline mr-2" /> : null}
-                                {submitting ? 'İşleniyor...' : 'REZERVASYONU ONAYLA'}
-                            </Button>
-                        </form>
-                    </div>
+                        </div>
+                    </motion.div>
                 </div>
             </div>
         </div>

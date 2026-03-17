@@ -154,17 +154,17 @@ export const AdminCampaigns = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg px-3 sm:px-6 pt-24 pb-20">
+        <div className="min-h-screen bg-white px-3 sm:px-6 pt-24 pb-20">
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <Link to="/admin/dashboard" className="text-gray-400 hover:text-white flex items-center gap-2 mb-2 transition-colors">
+                        <Link to="/admin/dashboard" className="text-[#6B7280] hover:text-[#111111] flex items-center gap-2 mb-2 transition-colors">
                             <ArrowLeft className="w-4 h-4" />
                             Dashboard'a Dön
                         </Link>
-                        <h1 className="text-xl sm:text-3xl font-bold text-white">Kampanya Yönetimi</h1>
-                        <p className="text-gray-400 mt-1">Anasayfa banner alanını yönetin</p>
+                        <h1 className="text-xl sm:text-3xl font-bold text-[#111111]">Kampanya Yönetimi</h1>
+                        <p className="text-[#6B7280] mt-1">Anasayfa banner alanını yönetin</p>
                     </div>
                     <Button onClick={handleCreate} className="bg-primary-600 hover:bg-primary-500 text-white shadow-lg shadow-primary-600/20">
                         <Plus className="w-5 h-5 mr-2" />
@@ -173,7 +173,7 @@ export const AdminCampaigns = () => {
                 </div>
 
                 {/* Content */}
-                <div className="bg-dark-surface border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+                <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-xl">
                     {loading ? (
                         <div className="flex justify-center items-center h-64">
                             <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
@@ -181,7 +181,7 @@ export const AdminCampaigns = () => {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[500px]">
-                                <thead className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider text-left">
+                                <thead className="bg-[#F3F4F6] text-[#6B7280] text-xs uppercase tracking-wider text-left">
                                     <tr>
                                         <th className="p-4">Görsel</th>
                                         <th className="p-4">Başlık / Açıklama</th>
@@ -192,41 +192,41 @@ export const AdminCampaigns = () => {
                                 <tbody className="divide-y divide-white/5">
                                     {campaigns.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="p-8 text-center text-gray-500">
+                                            <td colSpan={5} className="p-8 text-center text-[#6B7280]">
                                                 Henüz kampanya eklenmemiş.
                                             </td>
                                         </tr>
                                     ) : (
                                         campaigns.map((campaign) => (
-                                            <tr key={campaign.id} className="hover:bg-white/5 transition-colors">
+                                            <tr key={campaign.id} className="hover:bg-[#F3F4F6] transition-colors">
                                                 <td className="p-4">
                                                     {campaign.imageUrl ? (
-                                                        <img src={campaign.imageUrl} alt={campaign.title} className="w-24 h-16 object-cover rounded-lg border border-white/10" />
+                                                        <img src={campaign.imageUrl} alt={campaign.title} className="w-24 h-16 object-cover rounded-lg border border-[#E5E7EB]" />
                                                     ) : (
-                                                        <div className="w-24 h-16 rounded-lg border border-white/10 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-xs text-gray-500">
+                                                        <div className="w-24 h-16 rounded-lg border border-[#E5E7EB] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-xs text-[#6B7280]">
                                                             Görsel Yok
                                                         </div>
                                                     )}
                                                 </td>
                                                 <td className="p-4">
-                                                    <div className="font-bold text-white">{campaign.title}</div>
-                                                    <div className="text-sm text-gray-400 truncate max-w-xs">{campaign.description}</div>
+                                                    <div className="font-bold text-[#111111]">{campaign.title}</div>
+                                                    <div className="text-sm text-[#6B7280] truncate max-w-xs">{campaign.description}</div>
                                                 </td>
                                                 <td className="p-4">
                                                     <button onClick={() => toggleStatus(campaign)} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${campaign.isActive
-                                                        ? 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20'
-                                                        : 'bg-gray-500/10 text-gray-400 border border-gray-500/20 hover:bg-gray-500/20'
+                                                        ? 'bg-green-500/10 text-green-600 border border-green-500/20 hover:bg-green-500/20'
+                                                        : 'bg-gray-500/10 text-[#6B7280] border border-gray-500/20 hover:bg-gray-500/20'
                                                         }`}>
                                                         {campaign.isActive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                                                         {campaign.isActive ? 'Aktif' : 'Pasif'}
                                                     </button>
                                                 </td>
                                                 <td className="p-4 text-right space-x-2">
-                                                    <button onClick={() => handleEdit(campaign)} className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors" title="Düzenle">
+                                                    <button onClick={() => handleEdit(campaign)} className="p-2 text-blue-600 hover:bg-blue-400/10 rounded-lg transition-colors" title="Düzenle">
                                                         <Edit2 className="w-5 h-5" />
                                                     </button>
                                                     {canDelete && (
-                                                        <button onClick={() => handleDeleteClick(campaign)} className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Sil">
+                                                        <button onClick={() => handleDeleteClick(campaign)} className="p-2 text-red-600 hover:bg-red-400/10 rounded-lg transition-colors" title="Sil">
                                                             <Trash2 className="w-5 h-5" />
                                                         </button>
                                                     )}
@@ -249,12 +249,12 @@ export const AdminCampaigns = () => {
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         required
-                        className="bg-dark-bg border-white/10 text-white"
+                        className="bg-[#F9FAFB] border-[#E5E7EB] text-[#111111]"
                     />
                     <div className="space-y-1">
-                        <label className="text-sm text-gray-400">Açıklama</label>
+                        <label className="text-sm text-[#6B7280]">Açıklama</label>
                         <textarea
-                            className="w-full bg-dark-bg border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 h-24"
+                            className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-3 text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500 h-24"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             required
@@ -263,8 +263,8 @@ export const AdminCampaigns = () => {
 
                     {/* Image Upload */}
                     <div className="space-y-2">
-                        <label className="text-sm text-gray-400">Kampanya Görseli (Opsiyonel)</label>
-                        <div className="border-2 border-dashed border-white/10 rounded-xl p-6 flex flex-col items-center justify-center gap-4 hover:border-primary-500/50 transition-colors bg-dark-bg/50">
+                        <label className="text-sm text-[#6B7280]">Kampanya Görseli (Opsiyonel)</label>
+                        <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl p-6 flex flex-col items-center justify-center gap-4 hover:border-primary-500/50 transition-colors bg-[#F9FAFB]">
                             {previewUrl ? (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden group">
                                     <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
@@ -282,10 +282,10 @@ export const AdminCampaigns = () => {
                                 </div>
                             ) : (
                                 <label className="flex flex-col items-center cursor-pointer">
-                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                    <span className="text-sm text-gray-300">Görsel seçmek için tıklayın</span>
-                                    <span className="text-xs text-gray-500 mt-1">PNG, JPG, BMP, WEBP</span>
-                                    <span className="text-xs text-primary-400 mt-2 font-medium">Önerilen Boyut: 1920x600px (veya 16:9)</span>
+                                    <Upload className="w-8 h-8 text-[#6B7280] mb-2" />
+                                    <span className="text-sm text-[#555555]">Görsel seçmek için tıklayın</span>
+                                    <span className="text-xs text-[#6B7280] mt-1">PNG, JPG, BMP, WEBP</span>
+                                    <span className="text-xs text-primary-500 mt-2 font-medium">Önerilen Boyut: 1920x600px (veya 16:9)</span>
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -303,12 +303,12 @@ export const AdminCampaigns = () => {
                             id="isActive"
                             checked={formData.isActive}
                             onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                            className="w-5 h-5 rounded border-gray-600 bg-dark-bg text-primary-600 focus:ring-primary-500"
+                            className="w-5 h-5 rounded border-[#E5E7EB] bg-[#F9FAFB] text-primary-600 focus:ring-primary-500"
                         />
-                        <label htmlFor="isActive" className="text-white cursor-pointer select-none">Aktif</label>
+                        <label htmlFor="isActive" className="text-[#111111] cursor-pointer select-none">Aktif</label>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+                    <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E7EB]">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>İptal</Button>
                         <Button type="submit" disabled={saving}>
                             {saving ? <Loader2 className="animate-spin w-5 h-5" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}
@@ -325,15 +325,15 @@ export const AdminCampaigns = () => {
                             <AlertTriangle className="w-6 h-6 text-red-500" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-white">Emin misiniz?</h3>
-                            <p className="text-gray-400 text-sm">Bu kampanyayı kalıcı olarak silmek üzeresiniz. Bu işlem geri alınamaz.</p>
+                            <h3 className="text-lg font-semibold text-[#111111]">Emin misiniz?</h3>
+                            <p className="text-[#6B7280] text-sm">Bu kampanyayı kalıcı olarak silmek üzeresiniz. Bu işlem geri alınamaz.</p>
                         </div>
                     </div>
 
                     {campaignToDelete && (
-                        <div className="bg-white/5 p-4 rounded-lg border border-white/10">
-                            <div className="text-sm text-gray-500 mb-1">Silinecek Kampanya:</div>
-                            <div className="font-medium text-white">{campaignToDelete.title}</div>
+                        <div className="bg-[#F3F4F6] p-4 rounded-lg border border-[#E5E7EB]">
+                            <div className="text-sm text-[#6B7280] mb-1">Silinecek Kampanya:</div>
+                            <div className="font-medium text-[#111111]">{campaignToDelete.title}</div>
                         </div>
                     )}
 

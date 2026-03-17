@@ -23,7 +23,11 @@ export const formatPhoneNumber = (value: string): string => {
  * Useful for onChange handlers before passing to formatPhoneNumber.
  */
 export const cleanPhoneNumber = (value: string): string => {
-    return value.replace(/\D/g, '').slice(0, 10);
+    let cleaned = value.replace(/\D/g, '');
+    if (cleaned.startsWith('0')) {
+        cleaned = cleaned.substring(1);
+    }
+    return cleaned.slice(0, 10);
 };
 
 /**

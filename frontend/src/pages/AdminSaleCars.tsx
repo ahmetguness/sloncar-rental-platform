@@ -59,7 +59,7 @@ const BrandLogo = ({ name, url, className = "w-8 h-8" }: { name: string, url?: s
 
     if (!url || error) {
         return (
-            <div className={`${className} rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white uppercase flex-shrink-0 border border-white/10`}>
+            <div className={`${className} rounded-full bg-[#F3F4F6] flex items-center justify-center text-xs font-bold text-[#111111] uppercase flex-shrink-0 border border-[#E5E7EB]`}>
                 {name.substring(0, 2)}
             </div>
         );
@@ -326,9 +326,9 @@ export const AdminSaleCars = () => {
         }
     };
 
-    const inputClass = "w-full px-4 py-3 bg-dark-bg border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-white placeholder-gray-600";
-    const labelClass = "block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide";
-    const selectClass = "px-4 py-2 bg-dark-bg border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500";
+    const inputClass = "w-full px-4 py-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-[#111111] placeholder-[#9CA3AF]";
+    const labelClass = "block text-xs font-bold text-[#6B7280] mb-2 uppercase tracking-wide";
+    const selectClass = "px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-[#111111] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500";
 
     const clearFilters = () => {
         setSearchTerm('');
@@ -338,13 +338,13 @@ export const AdminSaleCars = () => {
     };
 
     if (loading) return (
-        <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-3 sm:px-6">
+        <div className="min-h-screen bg-white pt-24 pb-12 px-3 sm:px-6">
             <div className="container mx-auto max-w-7xl space-y-8">
                 <div className="flex justify-between items-center">
                     <Skeleton className="h-10 w-48" />
                     <Skeleton className="h-12 w-32 rounded-xl" />
                 </div>
-                <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                <div className="bg-[#F9FAFB] backdrop-blur-xl rounded-2xl border border-[#E5E7EB] p-6">
                     <div className="space-y-4">
                         {Array.from({ length: 5 }).map((_, i) => (
                             <div key={i} className="flex gap-4">
@@ -358,7 +358,7 @@ export const AdminSaleCars = () => {
     );
 
     return (
-        <div className="min-h-screen bg-dark-bg pt-24 pb-12 px-3 sm:px-6">
+        <div className="min-h-screen bg-white pt-24 pb-12 px-3 sm:px-6">
             <Modal
                 isOpen={!!deleteId}
                 onClose={() => setDeleteId(null)}
@@ -369,7 +369,7 @@ export const AdminSaleCars = () => {
                     <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto">
                         <AlertTriangle className="w-6 h-6 text-red-500" />
                     </div>
-                    <p className="text-gray-300 text-center">
+                    <p className="text-[#555555] text-center">
                         Bu aracı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
                     </p>
                     <div className="flex justify-end gap-3 pt-4">
@@ -390,11 +390,11 @@ export const AdminSaleCars = () => {
                 <div className="flex flex-col gap-6">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-4">
-                            <Link to="/admin/dashboard" className="p-2 rounded-lg bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 transition-all">
+                            <Link to="/admin/dashboard" className="p-2 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB] text-[#6B7280] hover:text-[#111111] hover:border-primary-500/50 transition-all">
                                 <ArrowLeft className="w-5 h-5" />
                             </Link>
                             <div>
-                                <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+                                <h1 className="text-2xl sm:text-4xl font-black text-[#111111] tracking-tight">
                                     SATILIK <span className="text-primary-500">ARAÇLAR</span>
                                 </h1>
                                 <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
@@ -406,8 +406,8 @@ export const AdminSaleCars = () => {
                                     <Button
                                         onClick={() => setShowFilters(!showFilters)}
                                         className={`px-4 py-3 rounded-xl border transition-all flex items-center gap-2 ${showFilters
-                                            ? 'bg-primary-500/20 border-primary-500/50 text-white'
-                                            : 'bg-dark-surface-lighter border-white/10 text-gray-400 hover:text-white'
+                                            ? 'bg-primary-500/20 border-primary-500/50 text-[#111111]'
+                                            : 'bg-[#F9FAFB] border-[#E5E7EB] text-[#6B7280] hover:text-[#111111]'
                                             }`}
                                     >
                                         <Filter className="w-5 h-5" />
@@ -422,13 +422,13 @@ export const AdminSaleCars = () => {
                                             placeholder="Ara: Plaka, Marka..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-3 bg-dark-surface-lighter border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-500"
+                                            className="w-full pl-10 pr-4 py-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-[#9CA3AF]"
                                         />
-                                        <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" />
+                                        <Search className="w-5 h-5 text-[#6B7280] absolute left-3 top-3.5" />
                                         {searchTerm && (
                                             <button
                                                 onClick={() => setSearchTerm('')}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#111111]"
                                             >
                                                 ×
                                             </button>
@@ -446,7 +446,7 @@ export const AdminSaleCars = () => {
                             {showForm && (
                                 <Button
                                     onClick={handleCancelForm}
-                                    className="bg-dark-surface-lighter border border-white/10 text-gray-400 hover:text-white hover:border-red-500/50 px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2"
+                                    className="bg-[#F9FAFB] border border-[#E5E7EB] text-[#6B7280] hover:text-[#111111] hover:border-red-500/50 px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2"
                                 >
                                     <X className="w-5 h-5" />
                                     İptal
@@ -457,56 +457,56 @@ export const AdminSaleCars = () => {
 
                     {/* Filters Panel */}
                     {!showForm && showFilters && (
-                        <div className="bg-dark-surface-lighter/50 border border-white/10 rounded-xl p-4 animate-in slide-in-from-top-2 duration-200">
+                        <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-4 animate-in slide-in-from-top-2 duration-200">
                             <div className="flex flex-wrap items-center gap-4">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-gray-500 uppercase">Şube:</span>
+                                    <span className="text-sm font-bold text-[#6B7280] uppercase">Şube:</span>
                                     <select
                                         value={branchFilter}
                                         onChange={(e) => setBranchFilter(e.target.value)}
                                         className={selectClass}
                                     >
-                                        <option value="" className="bg-dark-bg">Tümü</option>
+                                        <option value="" className="bg-[#F9FAFB]">Tümü</option>
                                         {branches.map(b => (
-                                            <option key={b.id} value={b.id} className="bg-dark-bg">{b.name}</option>
+                                            <option key={b.id} value={b.id} className="bg-[#F9FAFB]">{b.name}</option>
                                         ))}
                                     </select>
                                 </div>
-                                <div className="h-8 w-px bg-white/10 hidden md:block" />
+                                <div className="h-8 w-px bg-[#F3F4F6] hidden md:block" />
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-gray-500 uppercase">Durum:</span>
+                                    <span className="text-sm font-bold text-[#6B7280] uppercase">Durum:</span>
                                     <select
                                         value={statusFilter}
                                         onChange={(e) => setStatusFilter(e.target.value)}
                                         className={selectClass}
                                     >
-                                        <option value="" className="bg-dark-bg">Tümü</option>
-                                        <option value="ACTIVE" className="bg-dark-bg">Aktif</option>
-                                        <option value="MAINTENANCE" className="bg-dark-bg">Bakımda</option>
-                                        <option value="INACTIVE" className="bg-dark-bg">Pasif</option>
+                                        <option value="" className="bg-[#F9FAFB]">Tümü</option>
+                                        <option value="ACTIVE" className="bg-[#F9FAFB]">Aktif</option>
+                                        <option value="MAINTENANCE" className="bg-[#F9FAFB]">Bakımda</option>
+                                        <option value="INACTIVE" className="bg-[#F9FAFB]">Pasif</option>
                                     </select>
                                 </div>
-                                <div className="h-8 w-px bg-white/10 hidden md:block" />
+                                <div className="h-8 w-px bg-[#F3F4F6] hidden md:block" />
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-gray-500 uppercase">Yakıt:</span>
+                                    <span className="text-sm font-bold text-[#6B7280] uppercase">Yakıt:</span>
                                     <select
                                         value={fuelFilter}
                                         onChange={(e) => setFuelFilter(e.target.value)}
                                         className={selectClass}
                                     >
-                                        <option value="" className="bg-dark-bg">Tümü</option>
-                                        <option value="PETROL" className="bg-dark-bg">Benzin</option>
-                                        <option value="DIESEL" className="bg-dark-bg">Dizel</option>
-                                        <option value="ELECTRIC" className="bg-dark-bg">Elektrik</option>
-                                        <option value="HYBRID" className="bg-dark-bg">Hibrit</option>
-                                        <option value="LPG" className="bg-dark-bg">LPG</option>
+                                        <option value="" className="bg-[#F9FAFB]">Tümü</option>
+                                        <option value="PETROL" className="bg-[#F9FAFB]">Benzin</option>
+                                        <option value="DIESEL" className="bg-[#F9FAFB]">Dizel</option>
+                                        <option value="ELECTRIC" className="bg-[#F9FAFB]">Elektrik</option>
+                                        <option value="HYBRID" className="bg-[#F9FAFB]">Hibrit</option>
+                                        <option value="LPG" className="bg-[#F9FAFB]">LPG</option>
                                     </select>
                                 </div>
 
                                 {(branchFilter || statusFilter || fuelFilter || searchTerm) && (
                                     <button
                                         onClick={clearFilters}
-                                        className="ml-auto text-sm text-red-400 hover:text-red-300 flex items-center gap-1"
+                                        className="ml-auto text-sm text-red-600 hover:text-red-300 flex items-center gap-1"
                                     >
                                         <X className="w-3 h-3" />
                                         Temizle
@@ -519,8 +519,8 @@ export const AdminSaleCars = () => {
 
                 {/* Add/Edit Car Form */}
                 {showForm && (
-                    <div ref={formRef} className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 p-8 shadow-[0_0_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-top-4 duration-300">
-                        <h2 className="text-2xl font-bold text-white mb-6 animate-pulse">{editingCar ? 'Satılık Araç Düzenle' : 'Yeni Satılık Araç Ekle'}</h2>
+                    <div ref={formRef} className="bg-[#F9FAFB] backdrop-blur-xl rounded-2xl border border-[#E5E7EB] p-8 shadow-[0_0_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-top-4 duration-300">
+                        <h2 className="text-2xl font-bold text-[#111111] mb-6 animate-pulse">{editingCar ? 'Satılık Araç Düzenle' : 'Yeni Satılık Araç Ekle'}</h2>
 
                         <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div className="lg:col-span-1">
@@ -543,30 +543,30 @@ export const AdminSaleCars = () => {
                             <div>
                                 <label className={labelClass}>Vites *</label>
                                 <select required className={inputClass} value={formData.transmission} onChange={e => setFormData({ ...formData, transmission: e.target.value as any })}>
-                                    <option value="AUTO" className="bg-dark-bg">Otomatik</option>
-                                    <option value="MANUAL" className="bg-dark-bg">Manuel</option>
+                                    <option value="AUTO" className="bg-[#F9FAFB]">Otomatik</option>
+                                    <option value="MANUAL" className="bg-[#F9FAFB]">Manuel</option>
                                 </select>
                             </div>
                             <div>
                                 <label className={labelClass}>Yakıt *</label>
                                 <select required className={inputClass} value={formData.fuel} onChange={e => setFormData({ ...formData, fuel: e.target.value as any })}>
-                                    <option value="PETROL" className="bg-dark-bg">Benzin</option>
-                                    <option value="DIESEL" className="bg-dark-bg">Dizel</option>
-                                    <option value="ELECTRIC" className="bg-dark-bg">Elektrik</option>
-                                    <option value="HYBRID" className="bg-dark-bg">Hibrit</option>
-                                    <option value="LPG" className="bg-dark-bg">LPG</option>
+                                    <option value="PETROL" className="bg-[#F9FAFB]">Benzin</option>
+                                    <option value="DIESEL" className="bg-[#F9FAFB]">Dizel</option>
+                                    <option value="ELECTRIC" className="bg-[#F9FAFB]">Elektrik</option>
+                                    <option value="HYBRID" className="bg-[#F9FAFB]">Hibrit</option>
+                                    <option value="LPG" className="bg-[#F9FAFB]">LPG</option>
                                 </select>
                             </div>
                             <div>
                                 <label className={labelClass}>Kategori *</label>
                                 <select required className={inputClass} value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as any })}>
-                                    <option value="ECONOMY" className="bg-dark-bg">{translateCategory('ECONOMY')}</option>
-                                    <option value="COMPACT" className="bg-dark-bg">{translateCategory('COMPACT')}</option>
-                                    <option value="MIDSIZE" className="bg-dark-bg">{translateCategory('MIDSIZE')}</option>
-                                    <option value="FULLSIZE" className="bg-dark-bg">{translateCategory('FULLSIZE')}</option>
-                                    <option value="SUV" className="bg-dark-bg">{translateCategory('SUV')}</option>
-                                    <option value="VAN" className="bg-dark-bg">{translateCategory('VAN')}</option>
-                                    <option value="LUXURY" className="bg-dark-bg">{translateCategory('LUXURY')}</option>
+                                    <option value="ECONOMY" className="bg-[#F9FAFB]">{translateCategory('ECONOMY')}</option>
+                                    <option value="COMPACT" className="bg-[#F9FAFB]">{translateCategory('COMPACT')}</option>
+                                    <option value="MIDSIZE" className="bg-[#F9FAFB]">{translateCategory('MIDSIZE')}</option>
+                                    <option value="FULLSIZE" className="bg-[#F9FAFB]">{translateCategory('FULLSIZE')}</option>
+                                    <option value="SUV" className="bg-[#F9FAFB]">{translateCategory('SUV')}</option>
+                                    <option value="VAN" className="bg-[#F9FAFB]">{translateCategory('VAN')}</option>
+                                    <option value="LUXURY" className="bg-[#F9FAFB]">{translateCategory('LUXURY')}</option>
                                 </select>
                             </div>
                             <div>
@@ -622,38 +622,38 @@ export const AdminSaleCars = () => {
                                         onChange={() => { }} // Read-only
                                     >
                                         {branches.map(b => (
-                                            <option key={b.id} value={b.id} className="bg-dark-bg">{b.name} - {b.city}</option>
+                                            <option key={b.id} value={b.id} className="bg-[#F9FAFB]">{b.name} - {b.city}</option>
                                         ))}
                                     </select>
-                                    <div className="absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 pointer-events-none">
+                                    <div className="absolute inset-y-0 right-0 flex items-center px-4 text-[#6B7280] pointer-events-none">
                                         <span className="text-xs font-bold text-primary-500">TEK ŞUBE</span>
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-1.5 ml-1">* Şu an sadece Manisa şubesi aktiftir.</p>
+                                    <p className="text-xs text-[#6B7280] mt-1.5 ml-1">* Şu an sadece Manisa şubesi aktiftir.</p>
                                 </div>
                             </div>
                             <div>
                                 <label className={labelClass}>Durum</label>
                                 <select className={inputClass} value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as any })}>
-                                    <option value="ACTIVE" className="bg-dark-bg">Aktif</option>
-                                    <option value="INACTIVE" className="bg-dark-bg">Pasif</option>
-                                    <option value="MAINTENANCE" className="bg-dark-bg">Bakımda</option>
+                                    <option value="ACTIVE" className="bg-[#F9FAFB]">Aktif</option>
+                                    <option value="INACTIVE" className="bg-[#F9FAFB]">Pasif</option>
+                                    <option value="MAINTENANCE" className="bg-[#F9FAFB]">Bakımda</option>
                                 </select>
                             </div>
                             <div className="flex items-end">
-                                <label className="flex items-center gap-3 p-3 bg-dark-bg border border-white/10 rounded-xl cursor-pointer hover:border-primary-500/50 transition-all w-full h-[50px]">
+                                <label className="flex items-center gap-3 p-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl cursor-pointer hover:border-primary-500/50 transition-all w-full h-[50px]">
                                     <input
                                         type="checkbox"
-                                        className="w-5 h-5 rounded border-white/20 text-primary-500 focus:ring-primary-500 bg-dark-surface"
+                                        className="w-5 h-5 rounded border-white/20 text-primary-500 focus:ring-primary-500 bg-[#F9FAFB]"
                                         checked={formData.isFeatured}
                                         onChange={e => setFormData({ ...formData, isFeatured: e.target.checked })}
                                     />
-                                    <span className="font-bold text-white text-sm">Öne Çıkar</span>
+                                    <span className="font-bold text-[#111111] text-sm">Öne Çıkar</span>
                                 </label>
                             </div>
                             <div className="lg:col-span-3">
                                 <label className={labelClass}>Araç Fotoğrafı</label>
                                 <div className="mt-2">
-                                    <div className="border-2 border-dashed border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-primary-500/50 hover:bg-white/5 transition-all cursor-pointer group relative bg-dark-bg/50">
+                                    <div className="border-2 border-dashed border-[#E5E7EB] rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-primary-500/50 hover:bg-[#F3F4F6] transition-all cursor-pointer group relative bg-[#F9FAFB]/50">
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -681,9 +681,9 @@ export const AdminSaleCars = () => {
                                         <div className="w-16 h-16 bg-primary-500/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 border border-primary-500/20 group-hover:border-primary-500/50">
                                             <Upload className="w-8 h-8 text-primary-500" />
                                         </div>
-                                        <p className="text-base font-bold text-white mb-2">Fotoğraf Yüklemek İçin Tıklayın</p>
-                                        <p className="text-sm text-gray-500">veya dosyayı buraya sürükleyin</p>
-                                        <p className="text-xs text-gray-600 mt-2">PNG, JPG, WEBP (Max 5MB)</p>
+                                        <p className="text-base font-bold text-[#111111] mb-2">Fotoğraf Yüklemek İçin Tıklayın</p>
+                                        <p className="text-sm text-[#6B7280]">veya dosyayı buraya sürükleyin</p>
+                                        <p className="text-xs text-[#555555] mt-2">PNG, JPG, WEBP (Max 5MB)</p>
                                     </div>
                                 </div>
 
@@ -693,7 +693,7 @@ export const AdminSaleCars = () => {
                                         <label className={labelClass}>Yüklenen Fotoğraf</label>
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-2">
                                             {formData.images.map((img, idx) => (
-                                                <div key={idx} className="relative group aspect-video bg-black rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                                                <div key={idx} className="relative group aspect-video bg-black rounded-xl overflow-hidden border border-[#E5E7EB] shadow-lg">
                                                     <img src={img} alt={`Car ${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                         <button
@@ -714,8 +714,8 @@ export const AdminSaleCars = () => {
                                 <label className={labelClass}>Açıklama</label>
                                 <textarea rows={2} className={inputClass} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Araç hakkında notlar..." />
                             </div>
-                            <div className="lg:col-span-3 border-t border-white/10 pt-6 mt-2">
-                                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <div className="lg:col-span-3 border-t border-[#E5E7EB] pt-6 mt-2">
+                                <h3 className="text-lg font-bold text-[#111111] mb-4 flex items-center gap-2">
                                     <AlertTriangle className="w-5 h-5 text-primary-500" />
                                     Ekspertiz ve Özellikler
                                 </h3>
@@ -724,7 +724,7 @@ export const AdminSaleCars = () => {
                                         <label className={labelClass}>Ekspertiz / Tramer Açıklaması</label>
                                         <textarea rows={2} className={inputClass} value={formData.accidentDescription} onChange={e => setFormData({ ...formData, accidentDescription: e.target.value })} placeholder="Hasar kaydı ve ekspertiz detayları..." />
                                     </div>
-                                    <div className="md:col-span-2 bg-dark-bg p-4 rounded-xl border border-white/10">
+                                    <div className="md:col-span-2 bg-[#F9FAFB] p-4 rounded-xl border border-[#E5E7EB]">
                                         <label className={labelClass}>Görsel Hasar Kaydı (Parçalara Tıklayın)</label>
                                         <div className="w-full flex justify-center">
                                             <div className="w-full max-w-2xl">
@@ -758,8 +758,8 @@ export const AdminSaleCars = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="lg:col-span-3 flex justify-end gap-4 pt-6 border-t border-white/10">
-                                <Button type="button" onClick={handleCancelForm} className="px-6 py-3 bg-dark-bg border border-white/10 text-gray-400 hover:text-white rounded-xl transition-all">
+                            <div className="lg:col-span-3 flex justify-end gap-4 pt-6 border-t border-[#E5E7EB]">
+                                <Button type="button" onClick={handleCancelForm} className="px-6 py-3 bg-[#F9FAFB] border border-[#E5E7EB] text-[#6B7280] hover:text-[#111111] rounded-xl transition-all">
                                     İptal
                                 </Button>
                                 <Button type="submit" disabled={submitting} className="px-8 py-3 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all flex items-center gap-2">
@@ -772,17 +772,17 @@ export const AdminSaleCars = () => {
                 )}
 
                 {/* Cars Table */}
-                <div className="bg-dark-surface-lighter/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)] w-full">
-                    <div className="p-4 sm:p-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="bg-[#F9FAFB] backdrop-blur-xl rounded-2xl border border-[#E5E7EB] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)] w-full">
+                    <div className="p-4 sm:p-6 border-b border-[#E5E7EB] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div className="flex items-center gap-4">
-                            <h2 className="text-xl font-bold text-white">Araç Listesi</h2>
-                            <span className="text-xs font-bold text-gray-400 bg-dark-bg px-3 py-1.5 rounded-full border border-white/5">{totalCars} araç</span>
+                            <h2 className="text-xl font-bold text-[#111111]">Araç Listesi</h2>
+                            <span className="text-xs font-bold text-[#6B7280] bg-[#F9FAFB] px-3 py-1.5 rounded-full border border-[#E5E7EB]">{totalCars} araç</span>
                         </div>
                     </div>
                     <div className="overflow-x-auto w-full custom-scrollbar pb-4">
                         <div className="overflow-x-auto custom-scrollbar w-full pb-4">
                             <table className="w-full text-left min-w-[700px] md:min-w-full">
-                                <thead className="bg-dark-bg/50 text-gray-400 text-xs uppercase tracking-wider">
+                                <thead className="bg-[#F9FAFB]/50 text-[#6B7280] text-xs uppercase tracking-wider">
                                     <tr>
                                         <th className="p-4">Araç</th>
                                         <th className="p-4">Plaka</th>
@@ -808,20 +808,20 @@ export const AdminSaleCars = () => {
                                         ))
                                     ) : cars.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} className="p-12 text-center bg-dark-surface-lighter/50">
-                                                <div className="flex flex-col items-center justify-center p-8 rounded-3xl border border-white/5 bg-dark-bg/50 max-w-md mx-auto">
-                                                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10 shadow-inner">
-                                                        <CarIcon className="w-10 h-10 text-gray-500" />
+                                            <td colSpan={7} className="p-12 text-center bg-[#F9FAFB]">
+                                                <div className="flex flex-col items-center justify-center p-8 rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB]/50 max-w-md mx-auto">
+                                                    <div className="w-20 h-20 bg-[#F3F4F6] rounded-full flex items-center justify-center mb-4 border border-[#E5E7EB] shadow-inner">
+                                                        <CarIcon className="w-10 h-10 text-[#6B7280]" />
                                                     </div>
-                                                    <h3 className="text-xl font-bold text-white mb-2">Araç Bulunamadı</h3>
-                                                    <p className="text-gray-400 text-sm mb-6">Aradığınız kriterlere uygun araç bulunamadı veya henüz araç eklenmemiş.</p>
+                                                    <h3 className="text-xl font-bold text-[#111111] mb-2">Araç Bulunamadı</h3>
+                                                    <p className="text-[#6B7280] text-sm mb-6">Aradığınız kriterlere uygun araç bulunamadı veya henüz araç eklenmemiş.</p>
                                                     <Button
                                                         onClick={() => {
                                                             setEditingCar(null);
                                                             setFormData({ ...initialFormData, branchId: branches[0]?.id || '' });
                                                             setShowForm(true);
                                                         }}
-                                                        className="bg-primary-500/20 text-primary-400 hover:bg-primary-500 hover:text-white border border-primary-500/30 transition-all font-bold px-6"
+                                                        className="bg-primary-500/20 text-primary-500 hover:bg-primary-500 hover:text-[#111111] border border-primary-500/30 transition-all font-bold px-6"
                                                     >
                                                         <Plus className="w-4 h-4 mr-2" />
                                                         Yeni Araç Ekle
@@ -831,7 +831,7 @@ export const AdminSaleCars = () => {
                                         </tr>
                                     ) : (
                                         cars.map(car => (
-                                            <tr key={car.id} className="hover:bg-white/5 transition-colors">
+                                            <tr key={car.id} className="hover:bg-[#F3F4F6] transition-colors">
                                                 <td className="p-4">
                                                     <div className="flex items-center gap-3">
                                                         <BrandLogo
@@ -839,21 +839,21 @@ export const AdminSaleCars = () => {
                                                             url={car.brandLogo || brands.find(b => b.name === car.brand)?.logoUrl}
                                                         />
                                                         <div>
-                                                            <div className="font-medium text-white">{car.brand} {car.model}</div>
-                                                            <div className="text-xs text-gray-500">{car.year} • {car.color}</div>
+                                                            <div className="font-medium text-[#111111]">{car.brand} {car.model}</div>
+                                                            <div className="text-xs text-[#6B7280]">{car.year} • {car.color}</div>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="p-4 font-mono text-primary-400">{car.plateNumber}</td>
-                                                <td className="p-4 text-gray-300">{translateCategory(car.category)}</td>
-                                                <td className="p-4 text-sm text-gray-400">
+                                                <td className="p-4 font-mono text-primary-500">{car.plateNumber}</td>
+                                                <td className="p-4 text-[#555555]">{translateCategory(car.category)}</td>
+                                                <td className="p-4 text-sm text-[#6B7280]">
                                                     {car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'} / {translateFuel(car.fuel)}
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="flex flex-col">
-                                                        <span className="font-bold text-green-400">{Number(car.salePrice).toLocaleString()} ₺</span>
+                                                        <span className="font-bold text-green-600">{Number(car.salePrice).toLocaleString()} ₺</span>
                                                         {car.isFeatured && (
-                                                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary-400 bg-primary-500/10 px-2 py-0.5 rounded-full w-fit mt-1 border border-primary-500/20">
+                                                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary-500 bg-primary-500/10 px-2 py-0.5 rounded-full w-fit mt-1 border border-primary-500/20">
                                                                 <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
                                                                 ÖNE ÇIKAN
                                                             </span>
@@ -861,9 +861,9 @@ export const AdminSaleCars = () => {
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
-                                                    <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${car.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                                                    <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${car.status === 'ACTIVE' ? 'bg-green-500/20 text-green-600 border border-green-500/30' :
                                                         car.status === 'MAINTENANCE' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                                                            'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                                                            'bg-gray-500/20 text-[#6B7280] border border-gray-500/30'
                                                         }`}>
                                                         {car.status === 'ACTIVE' ? 'Aktif' : car.status === 'MAINTENANCE' ? 'Bakımda' : 'Pasif'}
                                                     </span>
@@ -872,7 +872,7 @@ export const AdminSaleCars = () => {
                                                     <div className="flex gap-2">
                                                         <button
                                                             onClick={() => handleEdit(car)}
-                                                            className="p-2 rounded-lg bg-primary-500/20 text-primary-400 border border-primary-500/30 hover:bg-primary-500/30 transition-all"
+                                                            className="p-2 rounded-lg bg-primary-500/20 text-primary-500 border border-primary-500/30 hover:bg-primary-500/30 transition-all"
                                                             title="Düzenle"
                                                         >
                                                             <Edit2 className="w-4 h-4" />
@@ -881,7 +881,7 @@ export const AdminSaleCars = () => {
                                                             <button
                                                                 onClick={() => setDeleteId(car.id)}
                                                                 disabled={submitting}
-                                                                className="p-2 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                                                                className="p-2 rounded-lg bg-red-500/20 text-red-600 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                                                                 title="Sil"
                                                             >
                                                                 <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
@@ -898,15 +898,15 @@ export const AdminSaleCars = () => {
 
                         {/* Pagination Controls */}
                         {totalCars > ITEMS_PER_PAGE && (
-                            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-                                <div className="text-sm text-gray-400">
+                            <div className="p-4 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <div className="text-sm text-[#6B7280]">
                                     Toplam {totalCars} araç, sayfa {currentPage} / {Math.ceil(totalCars / ITEMS_PER_PAGE)}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => handlePageChange(currentPage - 1)}
                                         disabled={currentPage === 1 || tableLoading}
-                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        className="p-2 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB] text-[#6B7280] hover:text-[#111111] hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                     >
                                         <ChevronLeft className="w-5 h-5" />
                                     </button>
@@ -930,8 +930,8 @@ export const AdminSaleCars = () => {
                                                     onClick={() => handlePageChange(pageNum)}
                                                     disabled={tableLoading}
                                                     className={`w-10 h-10 rounded-lg font-bold transition-all ${currentPage === pageNum
-                                                        ? 'bg-primary-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
-                                                        : 'bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50'
+                                                        ? 'bg-primary-500 text-[#111111] shadow-[0_0_15px_rgba(99,102,241,0.4)]'
+                                                        : 'bg-[#F9FAFB] border border-[#E5E7EB] text-[#6B7280] hover:text-[#111111] hover:border-primary-500/50'
                                                         }`}
                                                 >
                                                     {pageNum}
@@ -942,7 +942,7 @@ export const AdminSaleCars = () => {
                                     <button
                                         onClick={() => handlePageChange(currentPage + 1)}
                                         disabled={currentPage >= Math.ceil(totalCars / ITEMS_PER_PAGE) || tableLoading}
-                                        className="p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        className="p-2 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB] text-[#6B7280] hover:text-[#111111] hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                     >
                                         <ChevronRight className="w-5 h-5" />
                                     </button>

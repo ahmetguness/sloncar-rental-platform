@@ -54,7 +54,7 @@ export const BrandLogo = ({ name, url, className = "w-8 h-8" }: BrandLogoProps) 
 
     if (hasError || !imageSrc) {
         return (
-            <div className={`${className} rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white uppercase flex-shrink-0 border border-white/10`}>
+            <div className={`${className} rounded-full bg-white/5 flex items-center justify-center text-[10px] font-bold text-gray-400 uppercase flex-shrink-0 border border-white/10`}>
                 {name?.substring(0, 2)}
             </div>
         );
@@ -64,7 +64,7 @@ export const BrandLogo = ({ name, url, className = "w-8 h-8" }: BrandLogoProps) 
         <img
             src={imageSrc}
             alt={name}
-            className={`${className} object-contain bg-white/5 rounded-full p-0.5`}
+            className={`${className} object-contain bg-white/10 rounded-full p-1 border border-white/5 shadow-inner`}
             onError={handleError}
         />
     );

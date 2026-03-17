@@ -27,6 +27,7 @@ import campaignRoutes, { adminCampaignRouter } from './modules/campaigns/campaig
 import { adminInsuranceRouter } from './modules/insurance/insurance.routes.js';
 import auditRouter from './modules/audit/audit.routes.js';
 import backupRoutes from './modules/backup/backup.routes.js';
+import settingsRoutes from './modules/settings/settings.routes.js';
 
 const app = express();
 app.set("trust proxy", true);
@@ -118,6 +119,7 @@ app.use('/api/branches', branchesRoutes);
 app.use('/api/franchise-applications', franchiseRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/settings', settingsRoutes);
 
 
 app.use('/api/admin/bookings', adminBookingsRouter);

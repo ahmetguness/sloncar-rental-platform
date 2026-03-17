@@ -64,7 +64,7 @@ const CarImageCarousel = ({ images, alt, autoPlay }: { images: string[], alt: st
 
     return (
         <div className="relative w-full h-full group/carousel overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-t from-dark-surface-lighter to-transparent z-10 opacity-60 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent z-10 opacity-60 pointer-events-none" />
 
             {/* Images */}
             <div
@@ -127,7 +127,7 @@ export const CarCard = ({ car }: CarCardProps) => {
             to={targetLink}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="group/card block h-full relative bg-dark-surface-lighter rounded-3xl shadow-lg border border-white/5 hover:border-primary-500/30 overflow-hidden hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_0_30px_rgba(30,27,75,0.5)]"
+            className="group/card block h-full relative bg-white rounded-3xl shadow-sm border border-[#E5E5E5] hover:border-primary-500/30 overflow-hidden hover:-translate-y-2 transition-all duration-500 hover:shadow-md"
         >
             {/* Glow Effect behind card */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -141,25 +141,25 @@ export const CarCard = ({ car }: CarCardProps) => {
                 </div>
 
                 <div className="absolute top-5 right-5 z-20">
-                    <span className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-black text-white/80 uppercase tracking-widest border border-white/10">
+                    <span className="bg-[#F5F5F5] px-3 py-1.5 rounded-lg text-[10px] font-black text-[#111111] uppercase tracking-widest border border-[#E5E5E5]">
                         {translateCategory(car.category)}
                     </span>
                 </div>
 
                 {/* Overlay Gradient for asset consistency */}
-                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#1a1a1a] via-transparent to-transparent z-10 pointer-events-none opacity-60" />
+                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-white via-transparent to-transparent z-10 pointer-events-none opacity-60" />
             </div>
 
             {/* Content Area */}
             <div className="p-6 flex flex-col relative z-10">
                 <div className="mb-4">
-                    <h3 className="text-2xl font-black text-white group-hover/card:text-primary-500 transition-colors leading-tight tracking-tighter truncate">
-                        {car.brand} <span className="text-gray-500 font-medium">{car.model}</span>
+                    <h3 className="text-2xl font-black text-[#111111] group-hover/card:text-primary-500 transition-colors leading-tight tracking-tighter truncate">
+                        {car.brand} <span className="text-[#777777] font-medium">{car.model}</span>
                     </h3>
                     <div className="flex items-center gap-3 mt-2 text-[10px] font-black uppercase tracking-widest text-[#3c3c3b]">
                         <span>{car.year}</span>
                         <span className="w-1 h-1 rounded-full bg-primary-500/30" />
-                        <span className="text-gray-500">{car.color}</span>
+                        <span className="text-[#777777]">{car.color}</span>
                     </div>
                 </div>
 
@@ -176,18 +176,18 @@ export const CarCard = ({ car }: CarCardProps) => {
                 </div>
 
                 {/* Footer with Price */}
-                <div className="mt-auto pt-5 border-t border-white/5 flex items-center justify-between">
+                <div className="mt-auto pt-5 border-t border-[#E5E5E5] flex items-center justify-between">
                     <div>
                         <p className="text-[9px] text-[#3c3c3b] font-black uppercase tracking-[0.2em] mb-1">
                             {car.type === 'SALE' ? 'Satış Fiyatı' : 'Günlük Kiralama'}
                         </p>
-                        <div className="text-2xl font-black text-white flex items-baseline gap-1">
+                        <div className="text-2xl font-black text-[#111111] flex items-baseline gap-1">
                             {Number(car.type === 'SALE' ? car.salePrice : car.dailyPrice).toLocaleString()}
                             <span className="text-xs font-black text-primary-500 tracking-widest ml-0.5">TL</span>
                         </div>
                     </div>
 
-                    <div className="group/btn relative overflow-hidden bg-primary-500 text-white px-5 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase shadow-[0_4px_15px_rgba(204,31,38,0.2)] hover:shadow-[0_8px_25px_rgba(204,31,38,0.4)] transition-all flex items-center gap-2 hover:-translate-y-1">
+                    <div className="group/btn relative overflow-hidden bg-primary-500 text-white px-5 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase shadow-sm transition-all flex items-center gap-2 hover:-translate-y-1">
                         ŞİMDİ KİRALA
                         <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                     </div>

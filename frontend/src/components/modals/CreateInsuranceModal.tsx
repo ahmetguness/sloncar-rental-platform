@@ -151,29 +151,29 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                     <div className="col-span-2 relative">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="relative">
-                                <label className="block text-sm font-medium text-gray-400 mb-1">İsim Soyisim <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-[#6B7280] mb-1">İsim Soyisim <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <input
                                         type="text"
                                         name="fullName"
                                         required
                                         autoComplete="off"
-                                        className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 pl-10 text-white focus:ring-2 focus:ring-blue-500 transition-all"
+                                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 pl-10 text-[#111111] focus:ring-2 focus:ring-blue-500 transition-all"
                                         onChange={handleChange}
                                         value={formData.fullName || ''}
                                     />
-                                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280]" />
                                     {searchLoading && <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-1">TC Kimlik / VKN <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-[#6B7280] mb-1">TC Kimlik / VKN <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     name="tcNo"
                                     required
                                     autoComplete="off"
-                                    className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:ring-2 focus:ring-blue-500"
                                     onChange={handleChange}
                                     value={formData.tcNo || ''}
                                 />
@@ -184,11 +184,11 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                         {showSuggestions && (
                             <div
                                 ref={suggestionsRef}
-                                className="absolute z-50 w-full mt-2 bg-dark-bg border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                                className="absolute z-50 w-full mt-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
                             >
-                                <div className="p-2 border-b border-white/5 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-white/5 flex justify-between items-center">
+                                <div className="p-2 border-b border-[#E5E7EB] text-[10px] font-bold text-[#6B7280] uppercase tracking-widest bg-[#F3F4F6] flex justify-between items-center">
                                     <span>Kayıtlı Müşteri Önerileri</span>
-                                    <button onClick={() => setShowSuggestions(false)} className="hover:text-white transition-colors">
+                                    <button onClick={() => setShowSuggestions(false)} className="hover:text-[#111111] transition-colors">
                                         <X className="w-3 h-3" />
                                     </button>
                                 </div>
@@ -197,7 +197,7 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                                         <button
                                             key={client.tcNo}
                                             type="button"
-                                            className="w-full p-3 flex items-center justify-between hover:bg-white/5 transition-colors border-b border-white/5 text-left group"
+                                            className="w-full p-3 flex items-center justify-between hover:bg-[#F3F4F6] transition-colors border-b border-[#E5E7EB] text-left group"
                                             onClick={() => handleSelectClient(client)}
                                         >
                                             <div className="flex items-center gap-3">
@@ -205,8 +205,8 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                                                     <User className="w-5 h-5" />
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-white text-sm">{client.fullName}</div>
-                                                    <div className="text-[11px] text-gray-500 flex items-center gap-2">
+                                                    <div className="font-bold text-[#111111] text-sm">{client.fullName}</div>
+                                                    <div className="text-[11px] text-[#6B7280] flex items-center gap-2">
                                                         <span>{client.tcNo}</span>
                                                         <span>•</span>
                                                         <span>{client.phone || 'Telefon Yok'}</span>
@@ -214,8 +214,8 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-[10px] text-blue-400 font-bold uppercase">{client.profession || 'Müşteri'}</div>
-                                                <div className="text-[9px] text-gray-600 mt-0.5">{client.plate || 'Plaka Yok'}</div>
+                                                <div className="text-[10px] text-blue-600 font-bold uppercase">{client.profession || 'Müşteri'}</div>
+                                                <div className="text-[9px] text-[#555555] mt-0.5">{client.plate || 'Plaka Yok'}</div>
                                             </div>
                                         </button>
                                     ))}
@@ -225,20 +225,20 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Sigorta Şirketi</label>
-                        <input type="text" name="company" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.company || ''} />
+                        <label className="block text-sm font-medium text-[#6B7280] mb-1">Sigorta Şirketi</label>
+                        <input type="text" name="company" className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.company || ''} />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Poliçe No <span className="text-red-500">*</span></label>
-                        <input type="text" name="policyNo" required className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.policyNo || ''} />
+                        <label className="block text-sm font-medium text-[#6B7280] mb-1">Poliçe No <span className="text-red-500">*</span></label>
+                        <input type="text" name="policyNo" required className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.policyNo || ''} />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Poliçe Ayı</label>
-                        <input type="text" name="month" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white uppercase focus:ring-2 focus:ring-blue-500" placeholder="Örn: OCAK" onChange={handleChange} value={formData.month || ''} />
+                        <label className="block text-sm font-medium text-[#6B7280] mb-1">Poliçe Ayı</label>
+                        <input type="text" name="month" className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] uppercase focus:ring-2 focus:ring-blue-500" placeholder="Örn: OCAK" onChange={handleChange} value={formData.month || ''} />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Başlangıç Tarihi <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-[#6B7280] mb-1">Başlangıç Tarihi <span className="text-red-500">*</span></label>
                         <DatePicker
                             selected={formData.startDate ? new Date(formData.startDate as string) : null}
                             onChange={(date: Date | null) => {
@@ -253,15 +253,15 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                             }}
                             dateFormat="dd/MM/yyyy"
                             locale="tr"
-                            className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:ring-2 focus:ring-blue-500"
                             placeholderText="Tarih Seçiniz"
                             autoComplete="off"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Branş</label>
-                        <select name="branch" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.branch}>
+                        <label className="block text-sm font-medium text-[#6B7280] mb-1">Branş</label>
+                        <select name="branch" className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.branch}>
                             <option value="TRAFIK">Trafik</option>
                             <option value="KASKO">Kasko</option>
                             <option value="DASK">DASK</option>
@@ -271,49 +271,49 @@ const CreateInsuranceModal: React.FC<CreateInsuranceModalProps> = ({ onClose, on
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Tutar (TL)</label>
-                        <input type="number" name="amount" step="0.01" className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.amount} />
+                        <label className="block text-sm font-medium text-[#6B7280] mb-1">Tutar (TL)</label>
+                        <input type="number" name="amount" step="0.01" className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.amount} />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-2 p-4 bg-white/5 rounded-xl border border-white/5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-2 p-4 bg-[#F3F4F6] rounded-xl border border-[#E5E7EB]">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-white/5 text-gray-400"><Car className="w-4 h-4" /></div>
+                            <div className="p-2 rounded-lg bg-[#F3F4F6] text-[#6B7280]"><Car className="w-4 h-4" /></div>
                             <div className="flex-1">
-                                <label className="block text-[10px] font-bold text-gray-500 uppercase">Plaka</label>
-                                <input type="text" name="plate" className="w-full bg-transparent border-none p-0 text-white focus:ring-0 placeholder:text-gray-700 h-6" placeholder="34 ABC 123" onChange={handleChange} value={formData.plate || ''} />
+                                <label className="block text-[10px] font-bold text-[#6B7280] uppercase">Plaka</label>
+                                <input type="text" name="plate" className="w-full bg-transparent border-none p-0 text-[#111111] focus:ring-0 placeholder:text-[#6B7280] h-6" placeholder="34 ABC 123" onChange={handleChange} value={formData.plate || ''} />
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-white/5 text-gray-400"><Phone className="w-4 h-4" /></div>
+                            <div className="p-2 rounded-lg bg-[#F3F4F6] text-[#6B7280]"><Phone className="w-4 h-4" /></div>
                             <div className="flex-1">
-                                <label className="block text-[10px] font-bold text-gray-500 uppercase">Telefon</label>
-                                <input type="text" name="phone" className="w-full bg-transparent border-none p-0 text-white focus:ring-0 placeholder:text-gray-700 h-6" placeholder="05xx xxx xxxx" onChange={handleChange} value={formData.phone || ''} />
+                                <label className="block text-[10px] font-bold text-[#6B7280] uppercase">Telefon</label>
+                                <input type="text" name="phone" className="w-full bg-transparent border-none p-0 text-[#111111] focus:ring-0 placeholder:text-[#6B7280] h-6" placeholder="05xx xxx xxxx" onChange={handleChange} value={formData.phone || ''} />
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-white/5 text-gray-400"><Briefcase className="w-4 h-4" /></div>
+                            <div className="p-2 rounded-lg bg-[#F3F4F6] text-[#6B7280]"><Briefcase className="w-4 h-4" /></div>
                             <div className="flex-1">
-                                <label className="block text-[10px] font-bold text-gray-500 uppercase">Meslek</label>
-                                <input type="text" name="profession" className="w-full bg-transparent border-none p-0 text-white focus:ring-0 placeholder:text-gray-700 h-6" placeholder="Meslek Giriniz" onChange={handleChange} value={formData.profession || ''} />
+                                <label className="block text-[10px] font-bold text-[#6B7280] uppercase">Meslek</label>
+                                <input type="text" name="profession" className="w-full bg-transparent border-none p-0 text-[#111111] focus:ring-0 placeholder:text-[#6B7280] h-6" placeholder="Meslek Giriniz" onChange={handleChange} value={formData.profession || ''} />
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-white/5 text-gray-400"><Search className="w-4 h-4" /></div>
+                            <div className="p-2 rounded-lg bg-[#F3F4F6] text-[#6B7280]"><Search className="w-4 h-4" /></div>
                             <div className="flex-1">
-                                <label className="block text-[10px] font-bold text-gray-500 uppercase">Seri / Sıra No</label>
-                                <input type="text" name="serialOrOrderNo" className="w-full bg-transparent border-none p-0 text-white focus:ring-0 placeholder:text-gray-700 h-6" placeholder="Poliçe Detayı" onChange={handleChange} value={formData.serialOrOrderNo || ''} />
+                                <label className="block text-[10px] font-bold text-[#6B7280] uppercase">Seri / Sıra No</label>
+                                <input type="text" name="serialOrOrderNo" className="w-full bg-transparent border-none p-0 text-[#111111] focus:ring-0 placeholder:text-[#6B7280] h-6" placeholder="Poliçe Detayı" onChange={handleChange} value={formData.serialOrOrderNo || ''} />
                             </div>
                         </div>
                     </div>
 
                     <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Açıklama / Notlar</label>
-                        <textarea name="description" rows={2} className="w-full bg-dark-bg border border-white/10 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.description || ''} />
+                        <label className="block text-sm font-medium text-[#6B7280] mb-1">Açıklama / Notlar</label>
+                        <textarea name="description" rows={2} className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-2.5 text-[#111111] focus:ring-2 focus:ring-blue-500" onChange={handleChange} value={formData.description || ''} />
                     </div>
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-white/10 gap-3">
-                    <Button type="button" onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/10">
+                <div className="flex justify-end pt-4 border-t border-[#E5E7EB] gap-3">
+                    <Button type="button" onClick={onClose} variant="outline" className="border-[#E5E7EB] text-[#111111] hover:bg-white/10">
                         İptal
                     </Button>
                     <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white px-8">

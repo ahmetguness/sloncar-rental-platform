@@ -35,20 +35,20 @@ export const BookingRow = React.memo(({
 
     return (
         <tr className={`transition-all group border-b border-white/5 last:border-0 ${isHighlighted
-            ? 'bg-primary-500/20 hover:bg-primary-500/30 shadow-[inset_0_0_20px_rgba(99,102,241,0.2)]'
-            : 'hover:bg-white/5'
+            ? 'bg-primary-500/10 hover:bg-primary-500/20'
+            : 'hover:bg-black/5'
             }`}>
             <td className="p-4 text-center">
                 <button
                     onClick={() => handleCopyCode(booking.bookingCode, booking.id)}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-bg border border-white/5 hover:border-primary-500/50 hover:bg-primary-500/10 transition-all group/btn"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/5 border border-black/10 hover:border-primary-500/50 hover:bg-primary-500/10 transition-all group/btn"
                     title="Kodu Kopyala"
                 >
-                    <span className="font-mono font-bold text-primary-400">{booking.bookingCode}</span>
+                    <span className="font-mono font-bold text-primary-500">{booking.bookingCode}</span>
                     {copiedId === booking.id ? (
                         <Check className="w-3 h-3 text-green-500" />
                     ) : (
-                        <Copy className="w-3 h-3 text-gray-500 group-hover/btn:text-primary-400 opacity-0 group-hover/btn:opacity-100 transition-all" />
+                        <Copy className="w-3 h-3 text-gray-600 group-hover/btn:text-primary-400 opacity-0 group-hover/btn:opacity-100 transition-all" />
                     )}
                 </button>
             </td>
@@ -58,9 +58,9 @@ export const BookingRow = React.memo(({
                         {initials}
                     </div>
                     <div>
-                        <div className="font-medium text-white truncate max-w-[150px]" title={`${name} ${surname}`}>{name} {surname}</div>
-                        <div className="text-xs text-gray-500 truncate max-w-[150px]" title={booking.customerPhone}>{booking.customerPhone}</div>
-                        <div className="text-[10px] text-gray-600 truncate max-w-[150px]" title={booking.customerEmail}>{booking.customerEmail}</div>
+                        <div className="font-medium text-[#111111] truncate max-w-[150px]" title={`${name} ${surname}`}>{name} {surname}</div>
+                        <div className="text-xs text-gray-600 truncate max-w-[150px]" title={booking.customerPhone}>{booking.customerPhone}</div>
+                        <div className="text-[10px] text-gray-700 truncate max-w-[150px]" title={booking.customerEmail}>{booking.customerEmail}</div>
                     </div>
                 </div>
             </td>
@@ -72,8 +72,8 @@ export const BookingRow = React.memo(({
                         className="w-8 h-8"
                     />
                     <div>
-                        <div className="font-medium text-white truncate max-w-[150px]" title={`${booking.car?.brand} ${booking.car?.model}`}>{booking.car?.brand} {booking.car?.model}</div>
-                        <div className="text-xs text-gray-500">{booking.car?.plateNumber}</div>
+                        <div className="font-medium text-[#111111] truncate max-w-[150px]" title={`${booking.car?.brand} ${booking.car?.model}`}>{booking.car?.brand} {booking.car?.model}</div>
+                        <div className="text-xs text-gray-600">{booking.car?.plateNumber}</div>
                     </div>
                 </div>
             </td>
@@ -89,14 +89,14 @@ export const BookingRow = React.memo(({
                             <span>{new Date(booking.dropoffDate).toLocaleDateString('tr-TR').replace(/\./g, '/')}</span>
                         </div>
                     </div>
-                    <div className="text-xs font-medium text-gray-500 bg-white/5 px-2 py-1 rounded w-fit mx-auto">
+                    <div className="text-xs font-medium text-gray-600 bg-black/5 px-2 py-1 rounded w-fit mx-auto border border-black/5">
                         {days} Gün
                     </div>
                 </div>
             </td>
             <td className="p-4 text-center">
                 <div className="flex flex-col items-center gap-1.5">
-                    <div className="text-primary-400 font-bold whitespace-nowrap">{Number(booking.totalPrice).toLocaleString()} ₺</div>
+                    <div className="text-primary-500 font-bold whitespace-nowrap">{Number(booking.totalPrice).toLocaleString()} ₺</div>
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border w-fit ${booking.paymentStatus === 'PAID'
                         ? 'bg-green-500/10 text-green-400 border-green-500/20'
                         : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
@@ -133,7 +133,7 @@ export const BookingRow = React.memo(({
                 <Button
                     size="sm"
                     variant="outline"
-                    className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-white/10 text-white hover:bg-white/10 whitespace-nowrap mx-auto"
+                    className="opacity-70 group-hover:opacity-100 transition-opacity text-xs px-3 py-1.5 border-black/10 text-[#111111] hover:bg-black/10 whitespace-nowrap mx-auto"
                     onClick={() => onView(booking)}
                 >
                     Detaylar
@@ -165,7 +165,7 @@ export const BookingRow = React.memo(({
                                 );
                             } else {
                                 return (
-                                    <span className="text-xs text-gray-500 italic px-2 py-1.5 border border-white/5 rounded-lg bg-white/5 select-none whitespace-nowrap">
+                                    <span className="text-xs text-gray-600 italic px-2 py-1.5 border border-black/10 rounded-lg bg-black/5 select-none whitespace-nowrap">
                                         Teslim Bekleniyor
                                     </span>
                                 );

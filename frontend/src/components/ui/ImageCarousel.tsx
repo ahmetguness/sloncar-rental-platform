@@ -30,7 +30,7 @@ export const ImageCarousel = ({
 
     if (!images || images.length === 0) {
         return (
-            <div className={`relative rounded-2xl overflow-hidden ${aspectRatio} bg-dark-bg flex items-center justify-center text-gray-700`}>
+            <div className={`relative rounded-2xl overflow-hidden ${aspectRatio} bg-[#F5F5F5] flex items-center justify-center text-gray-700`}>
                 Görsel Yok
             </div>
         );
@@ -58,7 +58,7 @@ export const ImageCarousel = ({
                 </div>
 
                 {/* Overlays & Badges */}
-                <div className="absolute inset-0 bg-gradient-to-t from-dark-surface/60 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent pointer-events-none" />
 
                 {category && (
                     <div className="absolute top-3 left-3 pointer-events-none">
@@ -103,7 +103,7 @@ export const ImageCarousel = ({
                             }}
                             className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all duration-300 w-full ${idx === currentIndex
                                 ? 'border-primary-500 scale-[1.03] shadow-lg shadow-primary-500/20'
-                                : 'border-white/5 opacity-50 hover:opacity-100 hover:scale-[1.02]'
+                                : 'border-[#E5E5E5] opacity-50 hover:opacity-100 hover:scale-[1.02]'
                                 }`}
                         >
                             <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />

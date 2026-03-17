@@ -38,12 +38,12 @@ const DebouncedInput: React.FC<DebouncedInputProps> = ({
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder={placeholder}
-                className="w-full bg-dark-bg/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
+                className="w-full bg-white border border-black/10 rounded-xl pl-10 pr-4 py-3 text-[#111111] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
             />
             {value && (
                 <button
                     onClick={() => setValue('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900"
                 >
                     <X className="w-4 h-4" />
                 </button>

@@ -377,3 +377,11 @@ model ActionLog {
   @@index([action])
   @@index([createdAt])
 }
+
+/// GlobalSetting represents site-wide configuration
+model GlobalSetting {
+  key   String @id
+  value String
+  
+  updatedAt DateTime @updatedAt
+}

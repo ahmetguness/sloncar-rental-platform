@@ -98,12 +98,12 @@ export const Franchise = () => {
 
     if (success) {
         return (
-            <div className="min-h-screen pt-24 pb-20 relative overflow-hidden bg-dark-bg font-sans flex items-center justify-center">
+            <div className="min-h-screen pt-24 pb-20 relative overflow-hidden font-sans flex items-center justify-center">
                 {/* Success Background */}
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-green-500/10 rounded-full blur-[128px] animate-pulse pointer-events-none" />
 
                 <div className="max-w-lg w-full text-center relative z-10 px-6">
-                    <div className="bg-dark-surface/60 backdrop-blur-xl p-6 md:p-10 rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(34,197,94,0.1)] relative overflow-hidden group">
+                    <div className="bg-[#F5F5F5] p-6 md:p-10 rounded-3xl border border-[#E5E5E5] relative overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-tr from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
                         <div className="w-24 h-24 mx-auto mb-8 relative">
@@ -113,34 +113,34 @@ export const Franchise = () => {
                             </div>
                         </div>
 
-                        <h1 className="text-2xl md:text-4xl font-black text-white mb-2 tracking-tight">Başvurunuz Alındı!</h1>
+                        <h1 className="text-2xl md:text-4xl font-black text-[#111111] mb-2 tracking-tight">Başvurunuz Alındı!</h1>
                         <div className="text-sm font-mono text-green-400 mb-6 bg-green-500/10 inline-block px-3 py-1 rounded-lg border border-green-500/20">
                             #APP-{success.applicationNumber.slice(0, 8).toUpperCase()}
                         </div>
 
-                        <p className="text-sm md:text-base text-gray-300 mb-6 md:mb-8 leading-relaxed">
+                        <p className="text-sm md:text-base text-[#777777] mb-6 md:mb-8 leading-relaxed">
                             Franchise başvurunuz başarıyla iletildi. Ekibimiz başvurunuzu dikkatle inceleyecek ve
-                            <span className="text-white font-bold mx-1 bg-white/10 px-2 py-0.5 rounded">48 saat</span>
+                            <span className="text-[#111111] font-bold mx-1 bg-[#F5F5F5] px-2 py-0.5 rounded">48 saat</span>
                             içinde sizinle iletişime geçecektir.
                         </p>
 
-                        <div className="bg-black/30 p-5 rounded-2xl border border-white/5 mb-8 text-left space-y-3 shadow-inner">
+                        <div className="bg-[#EEEEEE] p-5 rounded-2xl border border-[#E5E5E5] mb-8 text-left space-y-3 shadow-inner">
                             <div className="flex items-center gap-3 text-sm">
-                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
                                     <Mail size={16} className="text-primary-400" />
                                 </div>
                                 <div className='flex flex-col'>
-                                    <span className="text-xs text-gray-500 uppercase font-bold">Onay E-postası</span>
-                                    <span className="text-white font-medium">{formData.contactEmail}</span>
+                                    <span className="text-xs text-[#777777] uppercase font-bold">Onay E-postası</span>
+                                    <span className="text-[#111111] font-medium">{formData.contactEmail}</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 text-sm">
-                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-lg bg-[#F5F5F5] flex items-center justify-center">
                                     <Phone size={16} className="text-primary-400" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-xs text-gray-500 uppercase font-bold">İletişim Numarası</span>
-                                    <span className="text-white font-medium">{formData.contactPhone}</span>
+                                    <span className="text-xs text-[#777777] uppercase font-bold">İletişim Numarası</span>
+                                    <span className="text-[#111111] font-medium">{formData.contactPhone}</span>
                                 </div>
                             </div>
                         </div>
@@ -155,38 +155,38 @@ export const Franchise = () => {
     }
 
     return (
-        <div className="min-h-screen pt-24 pb-20 relative overflow-hidden bg-dark-bg font-sans selection:bg-primary-500/30">
+        <div className="min-h-screen pt-24 pb-20 relative overflow-hidden font-sans selection:bg-primary-500/30">
             {/* Background Mesh Gradients */}
-            <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-primary-900/10 rounded-full blur-[128px] animate-pulse pointer-events-none duration-[4000ms]" />
-            <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-neon-purple/5 rounded-full blur-[128px] animate-pulse pointer-events-none delay-1000 duration-[5000ms]" />
+            <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-primary-500/5 rounded-full blur-[128px] animate-pulse pointer-events-none duration-[4000ms]" />
+            <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-primary-500/5 rounded-full blur-[128px] animate-pulse pointer-events-none delay-1000 duration-[5000ms]" />
 
             <div className="max-w-4xl mx-auto px-4 md:px-6 relative z-10">
                 {/* Header */}
                 <div className="text-center mb-10 md:mb-16 animate-fade-in-up">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-primary-400 text-sm font-bold mb-6 backdrop-blur-sm">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F5F5F5] border border-[#E5E5E5] text-primary-500 text-sm font-bold mb-6">
                         <Globe size={16} /> BÜYÜYEN AİLEMİZE KATILIN
                     </div>
-                    <h1 className="text-3xl md:text-6xl font-black text-white mb-4 md:mb-6 tracking-tight drop-shadow-2xl">
+                    <h1 className="text-3xl md:text-6xl font-black text-[#111111] mb-4 md:mb-6 tracking-tight drop-shadow-2xl">
                         Yaman<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-neon-purple">Filo</span> Franchise
                     </h1>
-                    <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-[#777777] text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
                         Türkiye'nin en hızlı büyüyen premium araç kiralama ağına katılın.
                         Yüksek karlılık ve güçlü marka desteği ile geleceğinize yatırım yapın.
                     </p>
                 </div>
 
                 {/* Main Card */}
-                <div className="bg-dark-surface/60 backdrop-blur-xl rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden relative group/form animate-fade-in-up delay-100">
+                <div className="bg-[#F5F5F5] rounded-[2rem] border border-[#E5E5E5] shadow-2xl overflow-hidden relative group/form animate-fade-in-up delay-100">
                     {/* Top Decorative Line */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-500 via-neon-purple to-primary-500 opacity-50" />
 
                     <div className="flex flex-col md:flex-row min-h-[auto] md:min-h-[600px]">
                         {/* LEFT SIDE: Progress Tracker */}
-                        <div className="md:w-1/3 bg-black/20 border-b md:border-b-0 md:border-r border-white/5 p-6 md:p-8 relative overflow-hidden">
+                        <div className="md:w-1/3 bg-[#EEEEEE] border-b md:border-b-0 md:border-r border-[#E5E5E5] p-6 md:p-8 relative overflow-hidden">
                             {/* Floating Elements */}
                             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-primary-500/5 to-transparent pointer-events-none" />
 
-                            <h3 className="text-white font-bold text-lg mb-8 relative z-10">Başvuru Adımları</h3>
+                            <h3 className="text-[#111111] font-bold text-lg mb-8 relative z-10">Başvuru Adımları</h3>
                             <div className="space-y-8 relative z-10">
                                 {[
                                     { num: 1, title: 'İletişim Bilgileri', icon: User, desc: 'Sizi tanıyalım' },
@@ -197,14 +197,14 @@ export const Franchise = () => {
                                         <div className="relative flex flex-col items-center">
                                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-all duration-500 shadow-lg ${step === s.num ? 'bg-primary-500 text-white scale-110 shadow-primary-500/30' :
                                                 step > s.num ? 'bg-green-500 text-white shadow-green-500/30' :
-                                                    'bg-white/10 text-gray-400 border border-white/5'
+                                                    'bg-white/10 text-[#777777] border border-[#E5E5E5]'
                                                 }`}>
                                                 {step > s.num ? <CheckCircle size={18} /> : s.num}
                                             </div>
                                             {s.num < 3 && <div className={`w-0.5 mt-2 h-8 md:h-12 rounded-full transition-all duration-500 ${step > s.num ? 'bg-green-500/50' : 'bg-white/10'}`} />}
                                         </div>
                                         <div className={`pt-1 transition-all duration-300 ${step === s.num ? 'translate-x-2' : ''}`}>
-                                            <h4 className={`font-bold text-sm ${step === s.num ? 'text-white' : 'text-gray-300'}`}>{s.title}</h4>
+                                            <h4 className={`font-bold text-sm ${step === s.num ? 'text-[#111111]' : 'text-[#777777]'}`}>{s.title}</h4>
                                             <p className="text-xs text-gray-500 mt-1">{s.desc}</p>
                                         </div>
                                     </div>
@@ -219,8 +219,8 @@ export const Franchise = () => {
                                 {step === 1 && (
                                     <div className="space-y-8 animate-fade-in pb-8">
                                         <div>
-                                            <h2 className="text-2xl font-bold text-white mb-2">İletişim Bilgileri</h2>
-                                            <p className="text-gray-400 text-sm">Size ulaşabilmemiz için iletişim bilgilerinizi giriniz.</p>
+                                            <h2 className="text-2xl font-bold text-[#111111] mb-2">İletişim Bilgileri</h2>
+                                            <p className="text-[#777777] text-sm">Size ulaşabilmemiz için iletişim bilgilerinizi giriniz.</p>
                                         </div>
 
                                         <div className="space-y-5">
@@ -230,7 +230,7 @@ export const Franchise = () => {
                                                     value={formData.contactName}
                                                     onChange={e => updateField('contactName', e.target.value)}
                                                     placeholder="Adınız ve Soyadınız"
-                                                    className="bg-black/20 border-white/10 focus:bg-black/40 h-12 text-lg"
+                                                    className="bg-white border-[#E5E5E5] focus:bg-white h-12 text-lg"
                                                 />
                                             </div>
                                             <div className="grid grid-cols-1 gap-5">
@@ -243,7 +243,7 @@ export const Franchise = () => {
                                                             value={formData.contactEmail}
                                                             onChange={e => updateField('contactEmail', normalizeEmail(e.target.value))}
                                                             placeholder="ornek@email.com"
-                                                            className="bg-black/20 border-white/10 focus:bg-black/40 h-12 pl-12"
+                                                            className="bg-white border-[#E5E5E5] focus:bg-white h-12 pl-12"
                                                         />
                                                     </div>
                                                 </div>
@@ -256,7 +256,7 @@ export const Franchise = () => {
                                                             value={formData.contactPhone}
                                                             onChange={handlePhoneChange}
                                                             placeholder="(5XX) XXX XX XX"
-                                                            className="bg-black/20 border-white/10 focus:bg-black/40 h-12 pl-12"
+                                                            className="bg-white border-[#E5E5E5] focus:bg-white h-12 pl-12"
                                                         />
                                                     </div>
                                                 </div>
@@ -269,7 +269,7 @@ export const Franchise = () => {
                                                         value={formData.companyName}
                                                         onChange={e => updateField('companyName', e.target.value)}
                                                         placeholder="Varsa mevcut şirketinizin adı"
-                                                        className="bg-black/20 border-white/10 focus:bg-black/40 h-12 pl-12"
+                                                        className="bg-white border-[#E5E5E5] focus:bg-white h-12 pl-12"
                                                     />
                                                 </div>
                                             </div>
@@ -281,8 +281,8 @@ export const Franchise = () => {
                                 {step === 2 && (
                                     <div className="space-y-8 animate-fade-in pb-8">
                                         <div>
-                                            <h2 className="text-2xl font-bold text-white mb-2">Lokasyon ve Yatırım</h2>
-                                            <p className="text-gray-400 text-sm">Hedeflediğiniz bölge ve yatırım planınız.</p>
+                                            <h2 className="text-2xl font-bold text-[#111111] mb-2">Lokasyon ve Yatırım</h2>
+                                            <p className="text-[#777777] text-sm">Hedeflediğiniz bölge ve yatırım planınız.</p>
                                         </div>
 
                                         <div className="space-y-6">
@@ -293,11 +293,11 @@ export const Franchise = () => {
                                                     <select
                                                         value={formData.city}
                                                         onChange={e => updateField('city', e.target.value)}
-                                                        className="w-full h-12 px-4 pl-12 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-black/40 transition-all appearance-none cursor-pointer"
+                                                        className="w-full h-12 px-4 pl-12 bg-white border border-[#E5E5E5] rounded-xl text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all appearance-none cursor-pointer"
                                                     >
-                                                        <option value="" className="bg-dark-bg text-gray-400">Şehir Seçin</option>
+                                                        <option value="" className="bg-white text-[#777777]">Şehir Seçin</option>
                                                         {CITIES.map(city => (
-                                                            <option key={city} value={city} className="bg-dark-bg">{city}</option>
+                                                            <option key={city} value={city} className="bg-white">{city}</option>
                                                         ))}
                                                     </select>
                                                     <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 rotate-90 pointer-events-none" size={16} />
@@ -316,7 +316,7 @@ export const Franchise = () => {
                                                             onClick={() => updateField('investmentBudget', option)}
                                                             className={`p-4 rounded-xl text-left text-sm font-bold transition-all border relative overflow-hidden group ${formData.investmentBudget === option
                                                                 ? 'bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/20'
-                                                                : 'bg-black/20 border-white/5 text-gray-400 hover:border-white/20 hover:bg-white/5'
+                                                                : 'bg-white border-[#E5E5E5] text-[#777777] hover:border-[#CCCCCC] hover:bg-[#F5F5F5]'
                                                                 }`}
                                                         >
                                                             {formData.investmentBudget === option && (
@@ -335,8 +335,8 @@ export const Franchise = () => {
                                 {step === 3 && (
                                     <div className="space-y-8 animate-fade-in pb-8">
                                         <div>
-                                            <h2 className="text-2xl font-bold text-white mb-2">Deneyim ve Vizyon</h2>
-                                            <p className="text-gray-400 text-sm">Sizi iş ortağımız olarak daha yakından tanımak isteriz.</p>
+                                            <h2 className="text-2xl font-bold text-[#111111] mb-2">Deneyim ve Vizyon</h2>
+                                            <p className="text-[#777777] text-sm">Sizi iş ortağımız olarak daha yakından tanımak isteriz.</p>
                                         </div>
 
                                         <div className="space-y-6">
@@ -347,7 +347,7 @@ export const Franchise = () => {
                                                     onChange={e => updateField('experience', e.target.value)}
                                                     placeholder="Sektördeki tecrübelerinizden ve varsa mevcut işletmelerinizden kısaca bahsedin..."
                                                     rows={4}
-                                                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-black/40 resize-none transition-all placeholder:text-gray-600"
+                                                    className="w-full bg-white border border-[#E5E5E5] rounded-xl px-4 py-3 text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white resize-none transition-all placeholder:text-[#AAAAAA]"
                                                 />
                                             </div>
                                             <div className="group/input">
@@ -357,7 +357,7 @@ export const Franchise = () => {
                                                     onChange={e => updateField('message', e.target.value)}
                                                     placeholder="Bize iletmek istediğiniz soru, görüş veya özel notlarınız..."
                                                     rows={4}
-                                                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-black/40 resize-none transition-all placeholder:text-gray-600"
+                                                    className="w-full bg-white border border-[#E5E5E5] rounded-xl px-4 py-3 text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white resize-none transition-all placeholder:text-[#AAAAAA]"
                                                 />
                                             </div>
                                         </div>
@@ -366,11 +366,11 @@ export const Franchise = () => {
                             </div>
 
                             {/* Bottom Actions */}
-                            <div className="p-6 md:p-8 bg-dark-surface/95 backdrop-blur-md border-t border-white/5 flex justify-between items-center z-20 rounded-br-[2rem] rounded-bl-[2rem] md:rounded-bl-none">
+                            <div className="p-6 md:p-8 bg-[#F5F5F5] border-t border-[#E5E5E5] flex justify-between items-center z-20 rounded-br-[2rem] rounded-bl-[2rem] md:rounded-bl-none">
                                 <button
                                     onClick={() => setStep(s => s - 1)}
                                     disabled={step === 1}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all text-sm ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all text-sm ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-[#777777] hover:text-[#111111] hover:bg-[#F5F5F5]'}`}
                                 >
                                     <ChevronLeft size={16} /> Geri Dön
                                 </button>
@@ -399,7 +399,7 @@ export const Franchise = () => {
                             {/* Error Toast */}
                             {error && (
                                 <div className="px-4 md:px-8 pb-4 animate-slide-up">
-                                    <div className="bg-red-500/10 border border-red-500/20 backdrop-blur-md p-4 rounded-xl text-red-200 text-sm flex items-center gap-3 shadow-xl">
+                                    <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-500 text-sm flex items-center gap-3 shadow-xl">
                                         <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
                                         {error}
                                     </div>
