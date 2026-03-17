@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '../test/test-utils';
+import { render, screen, fireEvent, waitFor } from '../test/test-utils';
 import { Home } from '../pages/Home';
 import { carService, brandService } from '../services/api';
 import { campaignService } from '../services/campaign.service';
