@@ -12,25 +12,24 @@ export const auditService = {
         details?: any,
         req?: Request
     ) => {
+        // Safe details serialization
+        let detailsString: string | null = null;
+        if (details) {
+            try {
+                detailsString = typeof details === 'string' ? details : JSON.stringify(details);
+            } catch (e) {
+                detailsString = String(details);
+            }
+        }
+
+        const ipAddress = req ? (req.headers['x-forwarded-for'] || req.socket.remoteAddress) as string : undefined;
+        const userAgent = req ? req.headers['user-agent'] : undefined;
+
         try {
             if (!userId) {
                 Logger.warn('Audit: No userId provided for action:', { action });
                 return;
             }
-
-            // Safe details serialization
-            let detailsString: string | null = null;
-            if (details) {
-                try {
-                    detailsString = typeof details === 'string' ? details : JSON.stringify(details);
-                } catch (e) {
-                    detailsString = String(details);
-                }
-            }
-
-            // Extract IP and User Agent
-            const ipAddress = req ? (req.headers['x-forwarded-for'] || req.socket.remoteAddress) as string : undefined;
-            const userAgent = req ? req.headers['user-agent'] : undefined;
 
             await prisma.actionLog.create({
                 data: {
@@ -42,8 +41,27 @@ export const auditService = {
                 }
             });
         } catch (error) {
+            // If foreign key fails (user deleted), retry with first available user
+            if (String(error).includes('Foreign key constraint')) {
+                try {
+                    const fallbackUser = await prisma.user.findFirst({ select: { id: true } });
+                    if (fallbackUser) {
+                        await prisma.actionLog.create({
+                            data: {
+                                userId: fallbackUser.id,
+                                action,
+                                details: `[orphaned userId: ${userId}] ${detailsString || ''}`,
+                                ipAddress,
+                                userAgent
+                            }
+                        });
+                    }
+                } catch (innerErr) {
+                    Logger.error('Failed to create fallback audit log:', innerErr);
+                }
+                return;
+            }
             Logger.error('Failed to create audit log:', error);
-            // Don't throw, we don't want to break the main flow if logging fails
         }
     },
 

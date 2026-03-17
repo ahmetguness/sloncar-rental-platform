@@ -299,12 +299,12 @@ export const Home = () => {
                     <div className="w-full lg:w-1/2 space-y-6 sm:space-y-10 text-center lg:text-left animate-fade-in-up">
                         <div className="space-y-4">
                             <h2 className="text-4xl sm:text-5xl md:text-7xl xl:text-8xl font-black text-[#111111] tracking-tighter leading-[0.9]">
-                                <span className="block">YOLCULUĞUN</span>
+                                <span className="block">GÜVENLE</span>
                                 <span className="block text-primary-500 relative">
-                                    GELECEĞİNİ
+                                    YOLA
                                     <span className="absolute -bottom-2 left-0 w-1/3 h-1.5 bg-primary-500 rounded-full" />
                                 </span>
-                                <span className="block">SÜR</span>
+                                <span className="block">ÇIK</span>
                             </h2>
                         </div>
 

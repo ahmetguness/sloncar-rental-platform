@@ -77,12 +77,12 @@ export const AdminBackup = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg px-3 sm:px-6 text-white pt-24 pb-12">
+        <div className="min-h-screen bg-[#F5F5F5] px-3 sm:px-6 text-[#111111] pt-24 pb-12">
             <div className="container mx-auto max-w-5xl">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                     <div className="flex items-center gap-4">
-                        <Link to="/admin/dashboard" className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                        <Link to="/admin/dashboard" className="p-2 hover:bg-black/5 rounded-full transition-colors">
                             <ArrowLeft className="w-6 h-6" />
                         </Link>
                         <div>
@@ -90,7 +90,7 @@ export const AdminBackup = () => {
                                 <Database className="w-8 h-8 text-primary-500" />
                                 Sistem Yedekleme
                             </h1>
-                            <p className="text-gray-400">Veritabanı ve dosya yedeklerini yönetin</p>
+                            <p className="text-[#777777]">Veritabanı ve dosya yedeklerini yönetin</p>
                         </div>
                     </div>
                 </div>
@@ -99,29 +99,29 @@ export const AdminBackup = () => {
                     {/* Status Card */}
                     <div className="bg-white p-4 sm:p-6 rounded-2xl border border-black/10 lg:col-span-2">
                         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                            <Save className="w-5 h-5 text-primary-400" />
+                            <Save className="w-5 h-5 text-primary-500" />
                             Yedekleme Durumu
                         </h2>
                         <div className="space-y-4">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-black/[0.02] rounded-xl border border-black/5 gap-4">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-[#F5F5F5] rounded-xl border border-black/5 gap-4">
                                 <div>
-                                    <p className="text-sm text-gray-400">Son Başarılı Yedekleme</p>
+                                    <p className="text-sm text-[#777777]">Son Başarılı Yedekleme</p>
                                     <p className="font-mono text-lg text-primary-500">
                                         {history.find(h => h.status === 'SUCCESS')?.date ? formatDate(history.find(h => h.status === 'SUCCESS')!.date) : 'Henüz yok'}
                                     </p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-sm text-gray-400">Kayıtlı Yedek Sayısı</p>
+                                    <p className="text-sm text-[#777777]">Kayıtlı Yedek Sayısı</p>
                                     <p className="text-lg font-bold">3 (Maksimum)</p>
                                 </div>
                             </div>
 
                             <div className="p-4 bg-primary-500/5 rounded-xl border border-primary-500/20">
                                 <h3 className="font-bold mb-2">Nasıl Çalışır?</h3>
-                                <ul className="text-sm text-gray-400 space-y-2 list-disc list-inside">
+                                <ul className="text-sm text-[#555555] space-y-2 list-disc list-inside">
                                     <li>Sistem her gece 00:00'da otomatik yedek alır.</li>
                                     <li>Eğer son yedekten beri veri değişmemişse kota tasarrufu için yedekleme atlanır.</li>
-                                    <li>Google Drive'da her zaman en güncel 3 yedek tutulur.</li>
+                                    <li>Dropbox'ta her zaman en güncel 3 yedek tutulur.</li>
                                     <li>Manuel yedeklemeler değişiklik kontrolünü pas geçer ve anında yedek alır.</li>
                                 </ul>
                             </div>
@@ -134,13 +134,13 @@ export const AdminBackup = () => {
                             <Database className="w-8 h-8 text-primary-500" />
                         </div>
                         <h2 className="text-xl font-bold mb-2">Manuel Yedekleme</h2>
-                        <p className="text-sm text-gray-400 mb-6">
+                        <p className="text-sm text-[#777777] mb-6">
                             Sistemi şu anki haliyle anında yedeklemek için aşağıdaki butonu kullanın.
                         </p>
                         <Button
                             onClick={() => setShowConfirmModal(true)}
                             disabled={running}
-                            className="w-full bg-primary-600 hover:bg-primary-700 h-12 gap-2"
+                            className="w-full bg-primary-600 hover:bg-primary-700 text-white h-12 gap-2"
                         >
                             {running ? (
                                 <>
@@ -161,17 +161,17 @@ export const AdminBackup = () => {
                 <div className="bg-white rounded-2xl border border-black/10 overflow-hidden">
                     <div className="p-4 sm:p-6 border-b border-black/10 flex items-center justify-between">
                         <h2 className="text-xl font-bold flex items-center gap-2">
-                            <Clock className="w-5 h-5 text-gray-400" />
+                            <Clock className="w-5 h-5 text-[#777777]" />
                             İşlem Geçmişi
                         </h2>
-                        <Button onClick={fetchHistory} variant="secondary" className="p-2 h-auto text-gray-400 hover:text-white">
+                        <Button onClick={fetchHistory} variant="secondary" className="p-2 h-auto text-[#777777] hover:text-[#111111]">
                             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         </Button>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left min-w-[600px]">
-                            <thead className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider">
+                            <thead className="bg-[#F5F5F5] text-[#777777] text-xs uppercase tracking-wider">
                                 <tr>
                                     <th className="p-4 font-medium">Tarih</th>
                                     <th className="p-4 font-medium">Tür</th>
@@ -180,23 +180,23 @@ export const AdminBackup = () => {
                                     <th className="p-4 font-medium">Dosyalar</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-black/5">
                                 {loading && history.length === 0 ? (
                                     <tr>
                                         <td colSpan={5} className="p-20 text-center">
                                             <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-4" />
-                                            <p className="text-gray-500">Yedekleme geçmişi yükleniyor...</p>
+                                            <p className="text-[#777777]">Yedekleme geçmişi yükleniyor...</p>
                                         </td>
                                     </tr>
                                 ) : history.map((entry, idx) => (
-                                    <tr key={idx} className="hover:bg-white/5 transition-colors group">
-                                        <td className="p-4 text-sm font-mono text-gray-300">
+                                    <tr key={idx} className="hover:bg-[#F5F5F5] transition-colors group">
+                                        <td className="p-4 text-sm font-mono text-[#333333]">
                                             {formatDate(entry.date)}
                                         </td>
                                         <td className="p-4">
                                             <span className={`text-xs px-2 py-0.5 rounded border ${entry.type === 'MANUAL'
-                                                ? 'bg-purple-500/10 border-purple-500/20 text-purple-400'
-                                                : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                                ? 'bg-purple-50 border-purple-200 text-purple-600'
+                                                : 'bg-blue-50 border-blue-200 text-blue-600'
                                                 }`}>
                                                 {entry.type === 'MANUAL' ? 'Manuel' : 'Otomatik'}
                                             </span>
@@ -207,13 +207,13 @@ export const AdminBackup = () => {
                                                 {getStatusBadge(entry.status)}
                                             </div>
                                         </td>
-                                        <td className="p-4 text-sm text-gray-400 max-w-xs truncate" title={entry.message}>
+                                        <td className="p-4 text-sm text-[#555555] max-w-xs truncate" title={entry.message}>
                                             {entry.message || '-'}
                                         </td>
                                         <td className="p-4">
                                             {entry.files && entry.files.length > 0 ? (
                                                 <div className="flex gap-1 flex-wrap">
-                                                    <span className="text-[10px] bg-white/10 text-gray-400 px-1.5 py-0.5 rounded">
+                                                    <span className="text-[10px] bg-[#F5F5F5] text-[#555555] px-1.5 py-0.5 rounded">
                                                         {entry.files.length} Dosya
                                                     </span>
                                                 </div>
@@ -223,7 +223,7 @@ export const AdminBackup = () => {
                                 ))}
                                 {!loading && history.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="p-12 text-center text-gray-500">
+                                        <td colSpan={5} className="p-12 text-center text-[#777777]">
                                             Henüz yedekleme kaydı bulunamadı.
                                         </td>
                                     </tr>
@@ -244,9 +244,9 @@ export const AdminBackup = () => {
                     <div className="flex items-center justify-center w-16 h-16 bg-primary-500/10 rounded-full mx-auto mb-4">
                         <Database className="w-8 h-8 text-primary-500" />
                     </div>
-                    <p className="text-center text-gray-300 mb-8">
+                    <p className="text-center text-[#555555] mb-8">
                         Şu anki sistem durumunu yedeklemek istediğinize emin misiniz?
-                        Bu işlem veritabanı yedeği alacak ve Google Drive'a yükleyecektir.
+                        Bu işlem veritabanı yedeği alacak ve Dropbox'a yükleyecektir.
                     </p>
                     <div className="flex gap-4">
                         <Button
@@ -257,7 +257,7 @@ export const AdminBackup = () => {
                             İptal
                         </Button>
                         <Button
-                            className="flex-1 bg-primary-600 hover:bg-primary-700"
+                            className="flex-1 bg-primary-600 hover:bg-primary-700 text-white"
                             onClick={handleRunBackup}
                         >
                             Yedeklemeyi Başlat
