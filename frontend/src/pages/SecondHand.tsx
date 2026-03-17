@@ -104,7 +104,7 @@ export const SecondHand = () => {
                 <div className="flex items-center justify-between mb-12">
                     <div className="space-y-2">
                         <h2 className="text-3xl font-black text-[#111111] tracking-tight uppercase italic">
-                            2. EL <span className="text-primary-500">ENVANTER</span>
+                            Satılık <span className="text-primary-500">Araçlar</span>
                         </h2>
                         <div className="h-1 w-24 bg-primary-500 rounded-full" />
                     </div>

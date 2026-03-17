@@ -3,6 +3,7 @@ import type { Car } from '../services/types';
 import { Fuel, Cog, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { translateCategory, translateFuel } from '../utils/translate';
+import { BrandLogo } from './ui/BrandLogo';
 
 interface CarCardProps {
     car: Car;
@@ -138,6 +139,9 @@ export const CarCard = ({ car }: CarCardProps) => {
 
                 {/* Top Badges */}
                 <div className="absolute top-5 left-5 z-20 flex flex-col gap-2">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center p-1.5 shadow-md border border-[#E5E5E5]">
+                        <BrandLogo name={car.brand} url={car.brandLogo} className="w-full h-full" variant="light" />
+                    </div>
                 </div>
 
                 <div className="absolute top-5 right-5 z-20">
@@ -188,7 +192,7 @@ export const CarCard = ({ car }: CarCardProps) => {
                     </div>
 
                     <div className="group/btn relative overflow-hidden bg-primary-500 text-white px-5 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase shadow-sm transition-all flex items-center gap-2 hover:-translate-y-1">
-                        ŞİMDİ KİRALA
+                        {car.type === 'SALE' ? 'İNCELE' : 'KİRALA'}
                         <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                     </div>
                 </div>

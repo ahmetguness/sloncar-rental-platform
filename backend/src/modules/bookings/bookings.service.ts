@@ -395,6 +395,70 @@ export async function payBooking(
     return updatedBooking as BookingWithRelations;
 }
 
+// ADMIN - Mark as Paid manually
+export async function markAsPaid(
+    bookingId: string,
+    version?: number
+): Promise<BookingWithRelations> {
+    const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: {
+            car: true, // Needed for notification name resolution if required
+            pickupBranch: true,
+            dropoffBranch: true,
+        }
+    });
+
+    if (!booking) {
+        throw ApiError.notFound('Rezervasyon bulunamadı.');
+    }
+
+    if (booking.paymentStatus === PaymentStatus.PAID) {
+        throw ApiError.badRequest('Bu rezervasyon zaten ödenmiş.');
+    }
+
+    // If it was expired, reactivate it by resetting status to RESERVED if it was CANCELLED due to timeout
+    // Actually, check if it's already cancelled
+    if (booking.status === BookingStatus.CANCELLED) {
+        // Only reactivate if it was cancelled because of payment timeout (has expiresAt and it is past)
+        if (booking.expiresAt && new Date() > booking.expiresAt) {
+            // Restore to RESERVED or ACTIVE based on dates if necessary, 
+            // but usually RESERVED is the safe bet.
+            await prisma.booking.update({
+                where: { id: booking.id },
+                data: { status: BookingStatus.RESERVED }
+            });
+        } else {
+            throw ApiError.badRequest('İptal edilmiş bir rezervasyon ödenemez. Lütfen önce aktif hale getirin.');
+        }
+    }
+
+    const updatedBooking = await prisma.booking.update({
+        where: { 
+            id: booking.id,
+            ...(version !== undefined ? { version } : {})
+        },
+        data: {
+            paymentStatus: PaymentStatus.PAID,
+            paymentProvider: 'MANUAL_ADMIN',
+            paymentRef: `ADMIN-${Date.now()}`,
+            paidAt: new Date(),
+            adminRead: true, 
+            status: booking.status === BookingStatus.CANCELLED ? BookingStatus.RESERVED : undefined
+        },
+        include: {
+            car: { include: { branch: true } },
+            pickupBranch: true,
+            dropoffBranch: true,
+        },
+    });
+
+    // Send async Notification
+    notificationService.sendPaymentReceipt(updatedBooking, Number(updatedBooking.totalPrice)).catch(err => console.error('Notification failed', err));
+
+    return updatedBooking as BookingWithRelations;
+}
+
 // PUBLIC - Get car availability calendar
 export async function getAvailability(
     carId: string,

@@ -247,13 +247,14 @@ export const AdminDashboard = () => {
 
     // Mutations
     const actionMutation = useMutation({
-        mutationFn: ({ action, id }: { action: 'cancel' | 'start' | 'complete'; id: string }) => {
+        mutationFn: ({ action, id }: { action: 'cancel' | 'start' | 'complete' | 'pay'; id: string }) => {
             if (action === 'cancel') return adminService.cancelBooking(id);
             if (action === 'start') return adminService.startBooking(id);
+            if (action === 'pay') return adminService.markBookingAsPaid(id);
             return adminService.completeBooking(id);
         },
         onSuccess: (_, variables) => {
-            const actionText = variables.action === 'cancel' ? 'iptal edildi' : variables.action === 'start' ? 'baslatildi' : 'tamamlandi';
+            const actionText = variables.action === 'cancel' ? 'iptal edildi' : variables.action === 'start' ? 'baslatildi' : variables.action === 'pay' ? 'ödendi olarak isaretlendi' : 'tamamlandi';
             toast(`Rezervasyon basariyla ${actionText}`, 'success');
             dispatch(fetchBookings({
                 limit: ITEMS_PER_PAGE,
@@ -593,9 +594,9 @@ export const AdminDashboard = () => {
 
                                 {/* Notification Dropdown */}
                                 {showNotifications && (
-                                    <div className="fixed inset-x-3 top-20 sm:inset-x-auto sm:top-auto sm:absolute sm:right-0 sm:mt-4 sm:w-96 bg-black/[0.02] border border-black/5 rounded-2xl shadow-2xl overflow-hidden z-[70] animate-in fade-in slide-in-from-top-2">
-                                        <div className="p-3 sm:p-4 border-b border-black/5 flex items-center justify-between">
-                                            <h3 className="font-bold text-[#111111] text-sm sm:text-base">Bildirimler</h3>
+                                    <div className="fixed inset-x-3 top-20 sm:inset-x-auto sm:top-auto sm:absolute sm:right-0 sm:mt-4 sm:w-96 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden z-[70] animate-in fade-in slide-in-from-top-2 ring-1 ring-black/5">
+                                        <div className="p-3 sm:p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                                            <h3 className="font-bold text-gray-900 text-sm sm:text-base">Bildirimler</h3>
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={async () => {
@@ -608,7 +609,7 @@ export const AdminDashboard = () => {
                                                             console.error("Failed to mark all read", err);
                                                         }
                                                     }}
-                                                    className="text-xs font-bold text-primary-400 hover:text-primary-300 transition-colors mr-2"
+                                                    className="text-xs font-bold text-primary-600 hover:text-primary-700 transition-colors mr-2"
                                                 >
                                                     Tümünü Temizle
                                                 </button>
@@ -690,9 +691,12 @@ export const AdminDashboard = () => {
 
                                                 if (allNotifications.length === 0) {
                                                     return (
-                                                        <div className="p-8 text-center text-gray-600 text-sm">
-                                                            <Check className="w-8 h-8 mx-auto mb-2 text-green-500/20" />
-                                                            Bildirim yok.
+                                                        <div className="p-10 text-center">
+                                                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                                <Bell className="w-8 h-8 text-gray-300" />
+                                                            </div>
+                                                            <p className="text-gray-900 font-bold">Harika!</p>
+                                                            <p className="text-gray-500 text-sm mt-1">Okunmamış bildiriminiz bulunmuyor.</p>
                                                         </div>
                                                     );
                                                 }
@@ -708,8 +712,16 @@ export const AdminDashboard = () => {
                                                                 const bookingId = (item as any).originalId || item.id;
                                                                 setActiveTab('bookings');
                                                                 setSearchTerm('');
+                                                                setStatusFilter('');
                                                                 setHighlightedBookingId(bookingId);
                                                                 setCurrentPage(1);
+                                                                // Force refresh bookings to show the new reservation
+                                                                dispatch(fetchBookings({
+                                                                    limit: ITEMS_PER_PAGE,
+                                                                    offset: 0,
+                                                                    search: undefined,
+                                                                    status: undefined
+                                                                }));
                                                                 setTimeout(() => setHighlightedBookingId(null), 5000);
                                                                 const element = document.getElementById('bookings-section');
                                                                 if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -747,7 +759,7 @@ export const AdminDashboard = () => {
                                                                     .catch(err => console.error("Failed to mark read", err));
                                                             }
                                                         }}
-                                                        className={`p-3 sm:p-4 border-b border-black/5 last:border-0 transition-colors cursor-pointer flex gap-3 sm:gap-4 items-start ${!item.read ? 'bg-black/[0.03] hover:bg-black/[0.05]' : 'hover:bg-black/[0.02] opacity-60'
+                                                        className={`p-3 sm:p-4 border-b border-gray-50 last:border-0 transition-colors cursor-pointer flex gap-3 sm:gap-4 items-start ${!item.read ? 'bg-primary-50/30 hover:bg-primary-50/50' : 'hover:bg-gray-50 opacity-60'
                                                             } ${item.color === 'green' ? 'border-l-2 border-l-green-500' : item.color === 'red' ? 'border-l-2 border-l-red-500' : item.color === 'yellow' ? 'border-l-2 border-l-yellow-500' : 'border-l-2 border-l-primary-500'}`}
                                                     >
                                                         <div className={`mt-0.5 sm:mt-1 p-1.5 sm:p-2 rounded-lg shrink-0 ${item.color === 'green' ? 'bg-green-500/20 text-green-400' : item.color === 'red' ? 'bg-red-500/20 text-red-400' : item.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-primary-500/20 text-primary-400'}`}>
@@ -1684,9 +1696,9 @@ export const AdminDashboard = () => {
                                                             ))}
                                                         </Pie>
                                                         <Tooltip
-                                                            contentStyle={{ backgroundColor: '#1a1b26', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                                                            itemStyle={{ color: '#fff' }}
-                                                            labelStyle={{ color: '#9ca3af' }}
+                                                            contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', color: '#111' }}
+                                                            itemStyle={{ color: '#111' }}
+                                                            labelStyle={{ color: '#6b7280' }}
                                                             formatter={(value: any) => [`${Number(value || 0).toLocaleString()} Adet`, 'Poliçe Sayısı']}
                                                         />
                                                         <Legend
@@ -1712,7 +1724,7 @@ export const AdminDashboard = () => {
                                             <div className="w-full">
                                                 <ResponsiveContainer width="100%" height={250}>
                                                     <BarChart data={insuranceStatsData.data} margin={{ top: 10, right: 30, left: 10, bottom: 30 }}>
-                                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
                                                         <XAxis
                                                             dataKey="branch"
                                                             stroke="#9ca3af"
@@ -1732,11 +1744,11 @@ export const AdminDashboard = () => {
                                                             tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                                                         />
                                                         <Tooltip
-                                                            contentStyle={{ backgroundColor: '#1a1b26', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                                                            itemStyle={{ color: '#fff' }}
-                                                            labelStyle={{ color: '#9ca3af' }}
+                                                            contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', color: '#111' }}
+                                                            itemStyle={{ color: '#111' }}
+                                                            labelStyle={{ color: '#6b7280' }}
                                                             formatter={(value: any) => [`${Number(value || 0).toLocaleString()} ₺`, 'Kazanç']}
-                                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                                            cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                                                         />
                                                         <Bar
                                                             dataKey="revenue"
@@ -1759,10 +1771,10 @@ export const AdminDashboard = () => {
                             <div className="px-4 md:px-6 py-3 md:py-4 border-b border-black/5 bg-black/[0.02] flex items-center gap-2 md:gap-3 overflow-x-auto no-scrollbar">
                                 <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mr-2">Filtrele:</span>
                                 {[
-                                    { key: '', label: 'Hepsi', color: 'gray' },
-                                    { key: 'CRITICAL', label: 'Son 10 Gün', color: 'orange' },
-                                    { key: 'EXPIRED', label: 'Süresi Doldu', color: 'red' },
-                                    { key: 'ACTIVE', label: 'Aktif', color: 'green' }
+                                    { key: '', label: 'Hepsi', activeClass: 'bg-gray-200 text-gray-700 border-gray-300' },
+                                    { key: 'CRITICAL', label: 'Son 10 Gün', activeClass: 'bg-orange-100 text-orange-700 border-orange-300' },
+                                    { key: 'EXPIRED', label: 'Süresi Doldu', activeClass: 'bg-red-100 text-red-700 border-red-300' },
+                                    { key: 'ACTIVE', label: 'Aktif', activeClass: 'bg-green-100 text-green-700 border-green-300' }
                                 ].map((filter) => {
                                     const isActive = insuranceStatusFilter === filter.key;
                                     return (
@@ -1773,7 +1785,7 @@ export const AdminDashboard = () => {
                                                 setInsurancePage(1);
                                             }}
                                             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border ${isActive
-                                                ? `bg-${filter.color}-500/20 text-${filter.color}-400 border-${filter.color}-500/30 shadow-[0_4px_15px_rgba(0,0,0,0.2)]`
+                                                ? filter.activeClass
                                                 : 'bg-black/[0.03] text-gray-600 border-black/5 hover:bg-black/[0.05]'
                                                 }`}
                                         >
@@ -1794,7 +1806,7 @@ export const AdminDashboard = () => {
                                             <th className="p-4">İşlem</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-white/5">
+                                    <tbody className="divide-y divide-black/5">
                                         {insurancesQueryLoading ? (
                                             <tr>
                                                 <td colSpan={5} className="p-12 text-center text-gray-500">
@@ -1865,7 +1877,7 @@ export const AdminDashboard = () => {
                                                         >
                                                             <td className="p-4">
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className={`p-1 rounded-lg bg-white/5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                                                                    <div className={`p-1 rounded-lg bg-black/5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
                                                                         <ChevronDown className="w-4 h-4" />
                                                                     </div>
                                                                     <div>
@@ -1905,16 +1917,16 @@ export const AdminDashboard = () => {
                                                                 <Button
                                                                     size="sm"
                                                                     variant="outline"
-                                                                    className="h-8 px-2 border-transparent text-gray-500 hover:text-white hover:bg-white/5"
+                                                                    className="h-8 px-2 border-black/10 text-gray-500 hover:text-[#111111] hover:bg-black/5"
                                                                 >
                                                                     {isExpanded ? 'Kapat' : 'Detaylar'}
                                                                 </Button>
                                                             </td>
                                                         </tr>
                                                         {isExpanded && (
-                                                            <tr className="bg-white/[0.01]">
+                                                            <tr className="bg-black/[0.02]">
                                                                 <td colSpan={5} className="p-0 border-b border-black/5">
-                                                                    <div className="p-4 pl-12 bg-black/20 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                                                                    <div className="p-4 pl-12 bg-black/[0.03] space-y-2 animate-in slide-in-from-top-2 duration-200">
                                                                         {group.insurances.map((ins: any) => {
                                                                             const status = getInsuranceStatus(ins);
                                                                             const expDate = new Date(ins.startDate);
@@ -1947,13 +1959,18 @@ export const AdminDashboard = () => {
                                                                                         </div>
                                                                                     </div>
                                                                                     <div className="flex items-center gap-4">
-                                                                                        <div className={`px-2 py-0.5 rounded-full bg-${status.color}-500/10 text-${status.color}-500 border border-${status.color}-500/20 text-[9px] font-bold uppercase`}>
+                                                                                        <div className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                                                                                            status.type === 'EXPIRED' ? 'bg-red-500/10 text-red-600 border border-red-500/20' :
+                                                                                            status.type === 'CRITICAL' ? 'bg-orange-500/10 text-orange-600 border border-orange-500/20' :
+                                                                                            status.type === 'UPCOMING' ? 'bg-yellow-500/10 text-yellow-600 border border-yellow-500/20' :
+                                                                                            'bg-green-500/10 text-green-600 border border-green-500/20'
+                                                                                        }`}>
                                                                                             {status.type === 'EXPIRED' ? `Süresi Doldu (${-status.days} g)` : status.type === 'CRITICAL' ? `Son ${status.days} Gün` : status.type === 'UPCOMING' ? `${status.days} Gün Kaldı` : 'Aktif'}
                                                                                         </div>
                                                                                         <Button
                                                                                             size="sm"
                                                                                             variant="outline"
-                                                                                            className="h-8 w-8 p-0 border-transparent opacity-0 group-hover/item:opacity-100 transition-opacity hover:bg-blue-500/10 text-blue-400"
+                                                                                            className="h-8 w-8 p-0 border-black/10 opacity-0 group-hover/item:opacity-100 transition-opacity hover:bg-blue-500/10 text-blue-500"
                                                                                             title="Poliçeyi Yenile"
                                                                                             disabled={renewingId === ins.id}
                                                                                             onClick={(e) => {
@@ -1970,7 +1987,7 @@ export const AdminDashboard = () => {
                                                                                         <Button
                                                                                             size="sm"
                                                                                             variant="outline"
-                                                                                            className="h-8 px-3 border-transparent opacity-0 group-hover/item:opacity-100 transition-opacity bg-white/5 hover:bg-white/10 text-white text-xs font-semibold flex items-center gap-1.5"
+                                                                                            className="h-8 px-3 border-black/10 opacity-0 group-hover/item:opacity-100 transition-opacity bg-black/[0.03] hover:bg-black/[0.06] text-[#111111] text-xs font-semibold flex items-center gap-1.5"
                                                                                             onClick={(e) => {
                                                                                                 e.stopPropagation();
                                                                                                 setSelectedInsurance(ins);

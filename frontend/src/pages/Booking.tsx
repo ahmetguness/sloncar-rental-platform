@@ -12,6 +12,7 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { tr } from 'date-fns/locale/tr';
 import { formatPhoneNumber, cleanPhoneNumber, normalizeEmail } from '../utils/formatters';
+import { useAppSelector } from '../store/hooks';
 registerLocale('tr', tr);
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,6 +44,8 @@ export const Booking = () => {
     const [totalPrice, setTotalPrice] = useState(0);
     const [bookedDates, setBookedDates] = useState<Date[]>([]);
     const [copied, setCopied] = useState(false);
+    const { data: settings, loading: settingsLoading } = useAppSelector(state => state.settings);
+    const isPaymentEnabled = !settingsLoading && settings['paymentEnabled'] !== 'false';
 
     // Form State
     const [startDate, setStartDate] = useState<Date | null>(null);
@@ -198,6 +201,7 @@ export const Booking = () => {
 
             const res = await bookingService.create(payload as CreateBookingRequest);
             setSuccessCode(res.data.bookingCode);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             confetti({
                 particleCount: 150,
                 spread: 70,
@@ -300,7 +304,9 @@ export const Booking = () => {
                             transition={{ delay: 0.4 }}
                             className="text-[#777777] mb-10 text-base font-medium leading-relaxed max-w-sm mx-auto"
                         >
-                            Premium yolculuğunuz başlıyor. Kesinleşme için <span className="text-[#111111] font-black underline decoration-primary-500 decoration-4 underline-offset-8">10 dakika</span> içinde ödeme yapın.
+                            Premium yolculuğunuz başlıyor. {isPaymentEnabled && (
+                                <>Kesinleşme için <span className="text-[#111111] font-black underline decoration-primary-500 decoration-4 underline-offset-8">10 dakika</span> içinde ödeme yapın.</>
+                            )}
                         </motion.p>
 
                         <motion.div 

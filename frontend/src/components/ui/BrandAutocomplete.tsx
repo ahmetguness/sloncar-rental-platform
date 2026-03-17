@@ -77,7 +77,7 @@ export const BrandAutocomplete = ({ brands, value, logoUrl, onChange, label = "M
     return (
         <div className="relative" ref={containerRef}>
             {label && (
-                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                <label className="block text-xs font-bold text-[#6B7280] mb-2 uppercase tracking-wide">
                     {label} {required && '*'}
                 </label>
             )}
@@ -103,7 +103,7 @@ export const BrandAutocomplete = ({ brands, value, logoUrl, onChange, label = "M
                     }}
                     onFocus={() => setIsOpen(true)}
                     placeholder="Marka Ara veya Yaz..."
-                    className="w-full pl-11 pr-4 py-3 bg-dark-bg border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-white placeholder-gray-600 transition-all font-medium"
+                    className="w-full pl-11 pr-4 py-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-[#111111] placeholder-[#9CA3AF] transition-all font-medium"
                     required={required}
                     autoComplete="off"
                 />
@@ -115,7 +115,7 @@ export const BrandAutocomplete = ({ brands, value, logoUrl, onChange, label = "M
                             onChange('', '');
                             setIsOpen(false);
                         }}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#111111]"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -123,7 +123,7 @@ export const BrandAutocomplete = ({ brands, value, logoUrl, onChange, label = "M
             </div>
 
             {isOpen && (
-                <div className="absolute z-50 w-full mt-2 bg-dark-surface-lighter border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="absolute z-50 w-full mt-2 bg-white border border-[#E5E7EB] rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
                     <div className="max-h-60 overflow-y-auto custom-scrollbar">
                         {filteredBrands.length > 0 ? (
                             filteredBrands.map((brand) => (
@@ -131,38 +131,38 @@ export const BrandAutocomplete = ({ brands, value, logoUrl, onChange, label = "M
                                     key={`${brand.id}-${brand.name}`}
                                     type="button"
                                     onClick={() => handleSelect(brand)}
-                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-left transition-colors group"
+                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#F3F4F6] text-left transition-colors group"
                                 >
-                                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center p-1">
+                                    <div className="w-8 h-8 bg-[#F3F4F6] rounded-lg flex items-center justify-center p-1">
                                         <img src={brand.logoUrl} alt={brand.name} className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="text-white font-medium">{brand.name}</span>
+                                    <span className="text-[#111111] font-medium">{brand.name}</span>
                                     {exactMatch?.id === brand.id && (
                                         <Check className="w-4 h-4 text-primary-500 ml-auto" />
                                     )}
                                 </button>
                             ))
                         ) : query ? (
-                            <div className="px-4 py-3 text-gray-400 text-sm italic">
+                            <div className="px-4 py-3 text-[#6B7280] text-sm italic">
                                 "{query}" markası bulunamadı. Yeni olarak ekleyebilirsiniz.
                             </div>
                         ) : null}
                     </div>
 
                     {query && !exactMatch && (
-                        <div className="p-3 border-t border-white/5 bg-white/5">
+                        <div className="p-3 border-t border-[#E5E7EB] bg-[#F9FAFB]">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-3 overflow-hidden">
-                                    <div className="w-10 h-10 rounded-xl bg-dark-bg border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    <div className="w-10 h-10 rounded-xl bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center overflow-hidden flex-shrink-0">
                                         {logoUrl ? (
                                             <img src={logoUrl} alt="New logo" className="w-full h-full object-contain" />
                                         ) : (
-                                            <Plus className="w-5 h-5 text-gray-600" />
+                                            <Plus className="w-5 h-5 text-[#9CA3AF]" />
                                         )}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-sm font-bold text-white uppercase truncate">{query}</p>
-                                        <p className="text-[10px] text-gray-500 font-medium font-mono">YENİ MARKA</p>
+                                        <p className="text-sm font-bold text-[#111111] uppercase truncate">{query}</p>
+                                        <p className="text-[10px] text-[#6B7280] font-medium font-mono">YENİ MARKA</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-2 flex-shrink-0">
@@ -174,7 +174,7 @@ export const BrandAutocomplete = ({ brands, value, logoUrl, onChange, label = "M
                                             onChange={handleLogoUpload}
                                             disabled={isUploading}
                                         />
-                                        <div className={`p-2 rounded-lg bg-dark-bg border border-white/10 text-gray-400 hover:text-white hover:border-primary-500 transition-all flex items-center gap-2 text-xs font-bold ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                        <div className={`p-2 rounded-lg bg-[#F3F4F6] border border-[#E5E7EB] text-[#6B7280] hover:text-[#111111] hover:border-primary-500 transition-all flex items-center gap-2 text-xs font-bold ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                             {isUploading ? <Loader2 className="w-4 h-4 animate-spin text-primary-500" /> : <Upload className="w-4 h-4" />}
                                             {logoUrl ? 'Değiştir' : 'Logo'}
                                         </div>
@@ -195,22 +195,22 @@ export const BrandAutocomplete = ({ brands, value, logoUrl, onChange, label = "M
             )}
 
             {query && (
-                <div className="mt-2 flex items-center gap-3 p-2.5 bg-dark-bg/50 rounded-xl border border-white/5">
+                <div className="mt-2 flex items-center gap-3 p-2.5 bg-[#F3F4F6] rounded-xl border border-[#E5E7EB]">
                     <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-1 shadow-inner">
                         {logoUrl || exactMatch?.logoUrl ? (
                             <img src={logoUrl || exactMatch?.logoUrl} alt={query} className="w-full h-full object-contain" />
                         ) : (
-                            <div className="text-[10px] font-black text-dark-bg uppercase">
+                            <div className="text-[10px] font-black text-[#111111] uppercase">
                                 {query.substring(0, 2)}
                             </div>
                         )}
                     </div>
                     <div>
-                        <span className="text-sm font-bold text-white uppercase block leading-none mb-1">{query}</span>
+                        <span className="text-sm font-bold text-[#111111] uppercase block leading-none mb-1">{query}</span>
                         {exactMatch ? (
                             <span className="text-[10px] text-primary-500 font-bold uppercase tracking-tighter">Sistem Kayıtlı</span>
                         ) : (
-                            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">{logoUrl ? 'Özel Logo' : 'Logo Bekleniyor'}</span>
+                            <span className="text-[10px] text-[#6B7280] font-bold uppercase tracking-tighter">{logoUrl ? 'Özel Logo' : 'Logo Bekleniyor'}</span>
                         )}
                     </div>
                 </div>

@@ -3,7 +3,7 @@ import { adminService } from '../../services/api';
 import { useToast } from '../ui/Toast';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { Loader2, Calendar, Users, Car as CarIcon, AlertCircle } from 'lucide-react';
+import { Loader2, Calendar, Users, Car as CarIcon, AlertCircle, DollarSign } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import { translateCategory } from '../../utils/translate';
 import type { Booking } from '../../services/types';
@@ -21,6 +21,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, onClos
         pickup: booking ? new Date(booking.pickupDate) : new Date(),
         dropoff: booking ? new Date(booking.dropoffDate) : new Date()
     });
+    const [showPayConfirm, setShowPayConfirm] = useState(false);
     const [loading, setLoading] = useState(false);
     const [unavailableIntervals, setUnavailableIntervals] = useState<{ start: Date; end: Date }[]>([]);
 
@@ -89,6 +90,20 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, onClos
         }
     };
 
+    const handleConfirmPay = async () => {
+        try {
+            setLoading(true);
+            await adminService.markBookingAsPaid(booking.id);
+            addToast('Ödeme başarıyla onaylandı', 'success');
+            setShowPayConfirm(false);
+            if (onUpdate) onUpdate();
+        } catch (err: any) {
+            addToast(err.response?.data?.message || 'İşlem başarısız', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <Modal isOpen={!!booking} onClose={onClose} title="Rezervasyon Detayı" size="lg">
             <div className="space-y-8">
@@ -145,7 +160,19 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, onClos
                         <div className="bg-black/[0.02] p-4 rounded-xl border border-black/10 space-y-3">
                             <div>
                                 <label className="text-xs text-gray-500 block mb-1">Ad Soyad</label>
-                                <p className="text-[#111111] font-bold">{booking.customerName} {booking.customerSurname}</p>
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="text-[#111111] font-bold">{booking.customerName} {booking.customerSurname}</p>
+                                    {booking.paymentStatus === 'UNPAID' && booking.status !== 'CANCELLED' && (
+                                        <Button 
+                                            size="sm" 
+                                            className="h-7 text-[10px] bg-green-500 hover:bg-green-600 text-white border-none py-0 px-2 font-black"
+                                            onClick={() => setShowPayConfirm(true)}
+                                            disabled={loading}
+                                        >
+                                            {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'ÖDEMEYİ ONAYLA'}
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <label className="text-xs text-gray-500 block mb-1">Telefon</label>
@@ -198,7 +225,6 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, onClos
                         </div>
                     </div>
                 </div>
-
 
                 {/* Dates & Notes */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -287,6 +313,33 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, onClos
                     </Button>
                 </div>
             </div>
+
+            <Modal
+                isOpen={showPayConfirm}
+                onClose={() => setShowPayConfirm(false)}
+                title="Ödeme Onayı"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
+                        <DollarSign className="w-6 h-6 text-green-500" />
+                    </div>
+                    <p className="text-gray-600 text-center">
+                        Bu rezervasyonu <strong>ödendi</strong> olarak işaretlemek istediğinize emin misiniz? <br />
+                        <span className="text-xs text-gray-400 mt-2 block">Müşteriye ödeme makbuzu gönderilecektir.</span>
+                    </p>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-black/10">
+                        <Button variant="outline" onClick={() => setShowPayConfirm(false)} className="border-black/10 text-gray-600">Vazgeç</Button>
+                        <Button
+                            className="bg-green-500 hover:bg-green-600 text-white border-none font-bold"
+                            onClick={handleConfirmPay}
+                            disabled={loading}
+                        >
+                            {loading ? <Loader2 className="animate-spin w-4 h-4" /> : 'Evet, Onayla'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </Modal>
     );
 };

@@ -158,6 +158,10 @@ export const adminService = {
         const response = await api.patch(`/admin/bookings/${id}/complete`);
         return response.data;
     },
+    markBookingAsPaid: async (id: string) => {
+        const response = await api.patch(`/admin/bookings/${id}/pay`);
+        return response.data;
+    },
     createManualBooking: async (data: any) => {
         const response = await api.post('/admin/bookings', data);
         return response.data;

@@ -114,19 +114,19 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         prisma.franchiseApplication.count({ where: { status: 'SUBMITTED' } }),
         prisma.booking.count({ where: { status: 'RESERVED' } }),
         prisma.booking.findMany({
-            where: { status: 'RESERVED' },
-            take: 5,
+            where: { status: 'RESERVED', adminRead: false },
+            take: 10,
             orderBy: { createdAt: 'desc' },
             include: { car: { select: { brand: true, model: true } } }
         }),
         prisma.franchiseApplication.findMany({
-            where: { status: 'SUBMITTED' },
-            take: 5,
+            where: { status: 'SUBMITTED', adminRead: false },
+            take: 10,
             orderBy: { submittedAt: 'desc' }
         }),
         prisma.booking.findMany({
-            where: { paymentStatus: 'PAID' },
-            take: 5,
+            where: { paymentStatus: 'PAID', adminRead: false },
+            take: 10,
             orderBy: { paidAt: 'desc' },
             include: { car: { select: { brand: true, model: true } } }
         }),

@@ -202,6 +202,14 @@ adminBookingsRouter.patch(
 );
 
 adminBookingsRouter.patch(
+    '/:id/pay',
+    authMiddleware,
+    adminGuard,
+    validate(bookingIdParamSchema, 'params'),
+    bookingsController.markAsPaid
+);
+
+adminBookingsRouter.patch(
     '/:id/start',
     authMiddleware,
     adminGuard,

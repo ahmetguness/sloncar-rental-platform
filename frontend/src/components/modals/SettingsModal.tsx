@@ -3,7 +3,7 @@ import { adminService } from '../../services/api';
 import { useToast } from '../ui/Toast';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { Loader2, Megaphone } from 'lucide-react';
+import { Loader2, Megaphone, AtSign } from 'lucide-react';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -16,10 +16,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, on
     const { addToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [whatsappEnabled, setWhatsappEnabled] = useState(user?.whatsappEnabled ?? true);
+    const [emailEnabled, setEmailEnabled] = useState(user?.emailEnabled ?? false);
 
     useEffect(() => {
         if (user) {
             setWhatsappEnabled(user.whatsappEnabled ?? true);
+            setEmailEnabled(user.emailEnabled ?? false);
         }
     }, [user]);
 
@@ -61,6 +63,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, on
                         />
                         <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                     </label>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-black/10 relative">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                            <AtSign className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="text-[#111111] font-bold text-sm">E-posta Bildirimleri</h3>
+                            <p className="text-xs text-gray-600">Yeni rezervasyon ve sigorta bildirimlerini e-posta ile al</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full uppercase tracking-wider">Yakında</span>
+                        <label className="relative inline-flex items-center cursor-not-allowed opacity-50">
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={emailEnabled}
+                                disabled
+                                onChange={(e) => setEmailEnabled(e.target.checked)}
+                            />
+                            <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
                 </div>
 
                 <div className="flex justify-end gap-2">

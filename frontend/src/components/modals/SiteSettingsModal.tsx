@@ -52,10 +52,16 @@ const SiteSettingsModal: React.FC<SiteSettingsModalProps> = ({ isOpen, onClose }
     };
 
     const toggleSetting = (key: string) => {
-        setSettings(prev => ({
-            ...prev,
-            [key]: prev[key] === 'true' ? 'false' : 'true'
-        }));
+        setSettings(prev => {
+            const currentVal = prev[key];
+            // If it's undefined (not in DB yet), it defaults to true according to the UI checks.
+            // So if we toggle it, it should become 'false'.
+            const newVal = (currentVal === undefined || currentVal === 'true') ? 'false' : 'true';
+            return {
+                ...prev,
+                [key]: newVal
+            };
+        });
     };
 
     if (!isOpen) return null;
@@ -87,6 +93,27 @@ const SiteSettingsModal: React.FC<SiteSettingsModalProps> = ({ isOpen, onClose }
                                     onChange={() => toggleSetting('franchiseEnabled')}
                                 />
                                 <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 bg-black/[0.02] rounded-xl border border-black/10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                                    <div className="font-bold text-lg">₺</div>
+                                </div>
+                                <div>
+                                    <h3 className="text-[#111111] font-bold text-sm">Online Ödeme</h3>
+                                    <p className="text-xs text-gray-600">Sitede online ödeme özelliğini aktif et</p>
+                                </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={settings['paymentEnabled'] !== 'false'} // Default to true if not set
+                                    onChange={() => toggleSetting('paymentEnabled')}
+                                />
+                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                             </label>
                         </div>
                         

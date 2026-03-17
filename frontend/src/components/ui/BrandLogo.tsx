@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 // Load all brand logos from assets
 const BRAND_LOGOS = import.meta.glob('/src/assets/logo/brand_logos/*.png', { eager: true, query: '?url', import: 'default' });
 
-export const BrandLogo = ({ name, url, className = "w-8 h-8" }: { name: string, url?: string, className?: string }) => {
+export const BrandLogo = ({ name, url, className = "w-8 h-8", variant = "dark" }: { name: string, url?: string, className?: string, variant?: "dark" | "light" }) => {
     const [imageSrc, setImageSrc] = useState<string | null>(url || null);
     const [hasError, setHasError] = useState(false);
 
@@ -51,18 +51,25 @@ export const BrandLogo = ({ name, url, className = "w-8 h-8" }: { name: string, 
     };
 
     if (hasError || !imageSrc) {
+        const fallbackClasses = variant === "light"
+            ? "bg-gray-100 text-gray-500 border-gray-200"
+            : "bg-white/10 text-white border-white/10";
         return (
-            <div className={`${className} rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white uppercase flex-shrink-0 border border-white/10`}>
+            <div className={`${className} rounded-full flex items-center justify-center text-[10px] font-bold uppercase flex-shrink-0 border ${fallbackClasses}`}>
                 {name?.substring(0, 2)}
             </div>
         );
     }
 
+    const imgClasses = variant === "light"
+        ? "bg-gray-50 rounded-full p-0.5"
+        : "bg-white/5 rounded-full p-0.5";
+
     return (
         <img
             src={imageSrc}
             alt={name}
-            className={`${className} object-contain bg-white/5 rounded-full p-0.5`}
+            className={`${className} object-contain ${imgClasses}`}
             onError={handleError}
         />
     );

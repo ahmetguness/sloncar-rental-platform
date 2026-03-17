@@ -7,6 +7,7 @@ import { Search, AlertCircle, Loader2, Users, CheckCircle, Car as CarIcon } from
 import { BrandLogo } from '../components/ui/BrandLogo';
 import { ImageCarousel } from '../components/ui/ImageCarousel';
 import { translateFuel } from '../utils/translate';
+import { useAppSelector } from '../store/hooks';
 
 export const MyBooking = () => {
     const [searchCode, setSearchCode] = useState('');
@@ -15,6 +16,8 @@ export const MyBooking = () => {
     const [error, setError] = useState<string | null>(null);
     const [paying, setPaying] = useState(false);
     const [copied, setCopied] = useState(false);
+    const { data: settings, loading: settingsLoading } = useAppSelector(state => state.settings);
+    const isPaymentEnabled = !settingsLoading && settings['paymentEnabled'] !== 'false';
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -173,7 +176,7 @@ export const MyBooking = () => {
                             <div className="w-full md:w-auto">
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-2">
                                     <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center p-2 shadow-lg border-2 border-[#E5E5E5] shrink-0">
-                                        <BrandLogo name={booking.car?.brand || ''} url={booking.car?.brandLogo} className="w-full h-full" />
+                                        <BrandLogo name={booking.car?.brand || ''} url={booking.car?.brandLogo} className="w-full h-full" variant="light" />
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                                         <h1 className="text-2xl md:text-5xl font-black text-[#111111] tracking-tight uppercase">
@@ -259,14 +262,6 @@ export const MyBooking = () => {
                             {/* LEFT: Car Visuals & Driver Info */}
                             <div className="lg:col-span-8 space-y-8">
                                 {/* Hero Image Container */}
-                                <div className="relative rounded-3xl overflow-hidden border border-[#E5E5E5] shadow-2xl bg-[#F5F5F5] p-2">
-                                    {booking.car?.images && booking.car.images.length > 0 && (
-                                        <div className="relative w-full h-full rounded-2xl overflow-hidden">
-                                            <ImageCarousel images={booking.car.images} alt={booking.car.model} />
-                                        </div>
-                                    )}
-                                </div>
-
                                 {/* Driver Info Row */}
                                 <div className="bg-[#F5F5F5] border border-[#E5E5E5] rounded-3xl p-6 md:p-8 flex flex-col xl:flex-row items-center justify-between gap-6 shadow-xl">
                                     <div className="flex items-center gap-5 w-full xl:w-auto overflow-hidden">
@@ -295,7 +290,7 @@ export const MyBooking = () => {
                                         </div>
                                     </div>
 
-                                    {booking.paymentStatus !== 'PAID' && booking.status !== 'CANCELLED' && (
+                                    {isPaymentEnabled && booking.paymentStatus !== 'PAID' && booking.status !== 'CANCELLED' && (
                                         <div className="w-full xl:w-auto shrink-0 flex flex-col items-center xl:items-end gap-3 p-5 bg-[#1e1b4b]/40 rounded-2xl border border-primary-500/20 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]">
                                             {timeLeft > 0 ? (
                                                 <div className="flex flex-col items-center xl:items-end">
@@ -325,6 +320,15 @@ export const MyBooking = () => {
                                                     Onay için <strong className="text-primary-100 font-bold">10 dakika</strong> içinde ödeme işlemini tamamlamanız gerekmektedir.
                                                 </p>
                                             </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Hero Image Container */}
+                                <div className="relative rounded-3xl overflow-hidden border border-[#E5E5E5] shadow-2xl bg-[#F5F5F5] p-2">
+                                    {booking.car?.images && booking.car.images.length > 0 && (
+                                        <div className="relative w-full h-full rounded-2xl overflow-hidden">
+                                            <ImageCarousel images={booking.car.images} alt={booking.car.model} />
                                         </div>
                                     )}
                                 </div>
@@ -360,8 +364,8 @@ export const MyBooking = () => {
                                     {booking.car?.plateNumber && (
                                         <div className="mb-6 px-5 py-4 bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl flex items-center justify-between group hover:border-primary-500/30 transition-colors">
                                             <div className="text-xs font-black text-gray-500 uppercase tracking-widest">ARAÇ PLAKASI</div>
-                                            <div className="bg-white text-dark-bg px-3 md:px-4 py-1.5 rounded-lg text-base md:text-lg font-black tracking-widest uppercase shadow-[0_0_15px_rgba(255,255,255,0.2)] border-2 border-gray-300">
-                                                TR <span className="ml-1">{booking.car.plateNumber}</span>
+                                            <div className="bg-white text-[#111111] px-3 md:px-4 py-1.5 rounded-lg text-base md:text-lg font-black tracking-widest uppercase shadow-[0_0_15px_rgba(255,255,255,0.2)] border-2 border-gray-300">
+                                                {booking.car.plateNumber}
                                             </div>
                                         </div>
                                     )}

@@ -176,6 +176,27 @@ export async function cancelBooking(
     }
 }
 
+// ADMIN - Mark as Paid
+export async function markAsPaid(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const booking = await bookingsService.markAsPaid(req.params.id!, req.body?.version);
+
+        auditService.logAction(req.user?.userId, 'MARK_AS_PAID', { bookingId: booking.id, code: booking.bookingCode }, req);
+
+        res.json({
+            success: true,
+            message: 'Rezervasyon ödemesi başarıyla onaylandı.',
+            data: booking,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 // ADMIN - Start booking
 export async function startBooking(
     req: Request,
