@@ -120,9 +120,9 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
             <div className="space-y-6">
                 {/* Progress Steps */}
                 <div className="flex items-center justify-between mb-8 px-2 relative">
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-white/10 -z-10" />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 -z-10" />
                     {[1, 2, 3, 4].map((s) => (
-                        <div key={s} className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all ${step >= s ? 'bg-primary-500 text-white' : 'bg-dark-bg border border-white/20 text-gray-500'}`}>
+                        <div key={s} className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all ${step >= s ? 'bg-primary-500 text-white' : 'bg-gray-100 border border-gray-300 text-gray-500'}`}>
                             {s}
                         </div>
                     ))}
@@ -130,19 +130,19 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
 
                 {step === 1 && (
                     <div className="max-w-2xl mx-auto py-8">
-                        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 space-y-8 shadow-xl">
+                        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 space-y-8 shadow-xl">
                             <div className="text-center space-y-2">
-                                <h3 className="text-xl font-bold text-white">Lütfen Tarih Aralığını Belirleyin</h3>
-                                <p className="text-gray-400">Rezervasyon için alış ve teslim tarihlerini seçiniz.</p>
+                                <h3 className="text-xl font-bold text-gray-900">Lütfen Tarih Aralığını Belirleyin</h3>
+                                <p className="text-gray-500">Rezervasyon için alış ve teslim tarihlerini seçiniz.</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-400">Alış Tarihi</label>
+                                    <label className="block text-sm font-medium text-gray-600">Alış Tarihi</label>
                                     <DatePicker
                                         selected={dates.pickup}
                                         onChange={(date: Date | null) => setDates({ ...dates, pickup: date })}
-                                        className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 transition-colors"
+                                        className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 transition-colors"
                                         placeholderText="Alış Tarihi"
                                         dateFormat="dd/MM/yyyy"
                                         locale="tr"
@@ -150,11 +150,11 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-400">Teslim Tarihi</label>
+                                    <label className="block text-sm font-medium text-gray-600">Teslim Tarihi</label>
                                     <DatePicker
                                         selected={dates.dropoff}
                                         onChange={(date: Date | null) => setDates({ ...dates, dropoff: date })}
-                                        className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 transition-colors"
+                                        className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 transition-colors"
                                         placeholderText="Teslim Tarihi"
                                         dateFormat="dd/MM/yyyy"
                                         locale="tr"
@@ -178,8 +178,8 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                 {step === 2 && (
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-white">Araç Seçimi</h3>
-                            <span className="text-sm text-gray-400">{availableCars.length} araç bulundu</span>
+                            <h3 className="text-xl font-bold text-gray-900">Araç Seçimi</h3>
+                            <span className="text-sm text-gray-500">{availableCars.length} araç bulundu</span>
                         </div>
                         <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -189,9 +189,9 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                                         onClick={() => setSelectedCar(car)}
                                         className={`p-4 rounded-xl border-2 cursor-pointer flex gap-4 transition-all duration-300 ${selectedCar?.id === car.id
                                             ? 'bg-primary-500/10 border-primary-500 shadow-lg shadow-primary-500/10 transform scale-[1.02]'
-                                            : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20'}`}
+                                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'}`}
                                     >
-                                        <div className="relative w-32 h-20 bg-black/40 rounded-lg overflow-hidden shrink-0">
+                                        <div className="relative w-32 h-20 bg-gray-200 rounded-lg overflow-hidden shrink-0">
                                             <img
                                                 src={optimizeCloudinaryUrl(car.images?.[0] || '/placeholder-car.png', 'thumbnail')}
                                                 alt=""
@@ -209,7 +209,7 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                                         </div>
                                         <div className="flex-1 flex flex-col justify-between">
                                             <div>
-                                                <div className="text-white font-bold text-lg leading-tight">{car.brand} {car.model}</div>
+                                                <div className="text-gray-900 font-bold text-lg leading-tight">{car.brand} {car.model}</div>
                                                 <div className="text-xs text-gray-500 mt-1 uppercase tracking-wider">{car.plateNumber}</div>
                                             </div>
                                             <div className="flex items-baseline gap-1 mt-2">
@@ -221,13 +221,13 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                                 ))}
                             </div>
                             {availableCars.length === 0 && (
-                                <div className="text-center py-12 bg-white/5 rounded-2xl border border-dashed border-white/10">
-                                    <div className="text-gray-400">Müsait araç bulunamadı.</div>
+                                <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+                                    <div className="text-gray-500">Müsait araç bulunamadı.</div>
                                     <Button variant="outline" size="sm" className="mt-4" onClick={() => setStep(1)}>Tarihleri Değiştir</Button>
                                 </div>
                             )}
                         </div>
-                        <div className="flex gap-4 pt-4 border-t border-white/10">
+                        <div className="flex gap-4 pt-4 border-t border-gray-200">
                             <Button variant="outline" size="lg" onClick={() => setStep(1)} className="flex-1">Geri Dön</Button>
                             <Button size="lg" onClick={() => setStep(3)} disabled={!selectedCar} className="flex-1">Müşteri Bilgilerine Geç</Button>
                         </div>
@@ -237,39 +237,39 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                 {step === 3 && (
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-white">Müşteri Bilgileri</h3>
+                            <h3 className="text-xl font-bold text-gray-900">Müşteri Bilgileri</h3>
                             <div className="flex items-center gap-2 bg-primary-500/10 px-3 py-1 rounded-full text-xs font-medium text-primary-400 border border-primary-500/20">
                                 <span>{selectedCar?.brand} {selectedCar?.model}</span>
                             </div>
                         </div>
 
-                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-1">Ad</label>
-                                    <input placeholder="Müşterinin Adı" className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 outline-none transition-colors" value={customer.name} onChange={e => setCustomer({ ...customer, name: e.target.value })} />
+                                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wider ml-1">Ad</label>
+                                    <input placeholder="Müşterinin Adı" className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={customer.name} onChange={e => setCustomer({ ...customer, name: e.target.value })} />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-1">Soyad</label>
-                                    <input placeholder="Müşterinin Soyadı" className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 outline-none transition-colors" value={customer.surname} onChange={e => setCustomer({ ...customer, surname: e.target.value })} />
+                                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wider ml-1">Soyad</label>
+                                    <input placeholder="Müşterinin Soyadı" className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={customer.surname} onChange={e => setCustomer({ ...customer, surname: e.target.value })} />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-1">Telefon</label>
+                                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wider ml-1">Telefon</label>
                                     <input
                                         placeholder="(5XX) XXX XX XX"
-                                        className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 outline-none transition-colors"
+                                        className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors"
                                         value={customer.phone}
                                         onChange={handlePhoneChange}
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-1">E-posta</label>
-                                    <input placeholder="email@örnek.com" className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 outline-none transition-colors" value={customer.email} onChange={e => setCustomer({ ...customer, email: e.target.value })} />
+                                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wider ml-1">E-posta</label>
+                                    <input placeholder="email@örnek.com" className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={customer.email} onChange={e => setCustomer({ ...customer, email: e.target.value })} />
                                 </div>
 
                                 <div className="col-span-2 space-y-1.5">
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-1">Notlar</label>
-                                    <textarea rows={3} placeholder="Rezervasyonla ilgili ek notlar..." className="w-full bg-dark-bg border border-white/10 rounded-xl p-3 text-white focus:border-primary-500 outline-none transition-colors resize-none" value={customer.notes} onChange={e => setCustomer({ ...customer, notes: e.target.value })} />
+                                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wider ml-1">Notlar</label>
+                                    <textarea rows={3} placeholder="Rezervasyonla ilgili ek notlar..." className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors resize-none" value={customer.notes} onChange={e => setCustomer({ ...customer, notes: e.target.value })} />
                                 </div>
                             </div>
                         </div>
@@ -284,21 +284,21 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                 {step === 4 && (
                     <div className="space-y-8 max-w-4xl mx-auto">
                         <div className="text-center">
-                            <h3 className="text-2xl font-bold text-white">Ödeme ve Onay</h3>
-                            <p className="text-gray-400 mt-1">Lütfen ödeme yöntemini seçin ve detayları kontrol edin.</p>
+                            <h3 className="text-2xl font-bold text-gray-900">Ödeme ve Onay</h3>
+                            <p className="text-gray-500 mt-1">Lütfen ödeme yöntemini seçin ve detayları kontrol edin.</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                             <div className="space-y-4">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider ml-1">Ödeme Yöntemi</label>
+                                <label className="text-sm font-medium text-gray-600 uppercase tracking-wider ml-1">Ödeme Yöntemi</label>
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
                                         onClick={() => setPaymentMethod('CASH')}
                                         className={`p-8 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all duration-300 ${paymentMethod === 'CASH'
-                                            ? 'bg-primary-500/10 border-primary-500 text-primary-400 shadow-lg shadow-primary-500/10'
-                                            : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10'}`}
+                                            ? 'bg-primary-500/10 border-primary-500 text-primary-600 shadow-lg shadow-primary-500/10'
+                                            : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}
                                     >
-                                        <div className={`p-4 rounded-full ${paymentMethod === 'CASH' ? 'bg-primary-500 text-white' : 'bg-white/5'}`}>
+                                        <div className={`p-4 rounded-full ${paymentMethod === 'CASH' ? 'bg-primary-500 text-white' : 'bg-gray-100'}`}>
                                             <Banknote className="w-8 h-8" />
                                         </div>
                                         <span className="font-bold text-lg">Nakit</span>
@@ -306,10 +306,10 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                                     <button
                                         onClick={() => setPaymentMethod('POS')}
                                         className={`p-8 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all duration-300 ${paymentMethod === 'POS'
-                                            ? 'bg-primary-500/10 border-primary-500 text-primary-400 shadow-lg shadow-primary-500/10'
-                                            : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10'}`}
+                                            ? 'bg-primary-500/10 border-primary-500 text-primary-600 shadow-lg shadow-primary-500/10'
+                                            : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}
                                     >
-                                        <div className={`p-4 rounded-full ${paymentMethod === 'POS' ? 'bg-primary-500 text-white' : 'bg-white/5'}`}>
+                                        <div className={`p-4 rounded-full ${paymentMethod === 'POS' ? 'bg-primary-500 text-white' : 'bg-gray-100'}`}>
                                             <CreditCard className="w-8 h-8" />
                                         </div>
                                         <span className="font-bold text-lg">POS / Kart</span>
@@ -318,38 +318,38 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider ml-1">Özet ve Toplam</label>
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                                <label className="text-sm font-medium text-gray-600 uppercase tracking-wider ml-1">Özet ve Toplam</label>
+                                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 shadow-xl relative overflow-hidden">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 blur-3xl -z-10" />
 
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-400">Araç</span>
-                                            <span className="text-white font-medium">{selectedCar?.brand} {selectedCar?.model}</span>
+                                            <span className="text-gray-500">Araç</span>
+                                            <span className="text-gray-900 font-medium">{selectedCar?.brand} {selectedCar?.model}</span>
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-400">Süre</span>
-                                            <span className="text-white font-medium">
+                                            <span className="text-gray-500">Süre</span>
+                                            <span className="text-gray-900 font-medium">
                                                 {dates.pickup && dates.dropoff ? Math.ceil((dates.dropoff.getTime() - dates.pickup.getTime()) / (1000 * 60 * 60 * 24)) : 0} Gün
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-400">Müşteri</span>
-                                            <span className="text-white font-medium">{customer.name} {customer.surname}</span>
+                                            <span className="text-gray-500">Müşteri</span>
+                                            <span className="text-gray-900 font-medium">{customer.name} {customer.surname}</span>
                                         </div>
 
-                                        <div className="h-px bg-white/10 my-4" />
+                                        <div className="h-px bg-gray-200 my-4" />
 
                                         <div className="flex justify-between items-end">
                                             <div className="space-y-1">
                                                 <span className="text-xs text-gray-500 uppercase tracking-widest">Ödenecek Tutar</span>
-                                                <div className="text-3xl font-black text-white">
+                                                <div className="text-3xl font-black text-gray-900">
                                                     {dates.pickup && dates.dropoff && selectedCar
                                                         ? (selectedCar.dailyPrice * Math.ceil((dates.dropoff.getTime() - dates.pickup.getTime()) / (1000 * 60 * 60 * 24))).toLocaleString()
-                                                        : 0} <span className="text-lg text-primary-400">₺</span>
+                                                        : 0} <span className="text-lg text-primary-500">₺</span>
                                                 </div>
                                             </div>
-                                            <div className="text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded border border-green-500/20 font-bold uppercase">
+                                            <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200 font-bold uppercase">
                                                 Onaya Hazır
                                             </div>
                                         </div>

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Phone, MapPin, Instagram, Facebook } from 'lucide-react';
+import { Phone, MapPin, Instagram, Facebook, Mail } from 'lucide-react';
 import logo from '../../assets/logo/logo.jpg';
 import { useAppSelector } from '../../store/hooks';
 
@@ -31,8 +31,8 @@ export const Footer = () => {
 
                     <div className="flex gap-4">
                         {[
-                            { icon: Instagram, href: "https://www.instagram.com/kiralamakguzeldir" },
-                            { icon: Facebook, href: "https://www.facebook.com/yamanfilotr/" },
+                            { icon: Instagram, href: "https://www.instagram.com/yamanfilotr" },
+                            { icon: Facebook, href: "https://www.facebook.com/yamanfilo" },
                         ].map((social, idx) => (
                             <a key={idx} href={social.href} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/[0.08] rounded-xl hover:bg-primary-500 text-gray-400 hover:text-white transition-all border border-white/10 group">
                                 <social.icon className="w-5 h-5 transition-transform group-hover:scale-110" />
@@ -83,7 +83,18 @@ export const Footer = () => {
                             </div>
                             <div>
                                 <span className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Destek Hattı</span>
+                                <a href="tel:02362573232" className="text-white hover:text-primary-400 transition-colors text-lg font-black tracking-tight">0236 257 32 32</a>
+                                <br />
                                 <a href="tel:05462392626" className="text-white hover:text-primary-400 transition-colors text-lg font-black tracking-tight">0546 239 26 26</a>
+                            </div>
+                        </li>
+                        <li className="flex items-start gap-4">
+                            <div className="p-2.5 rounded-xl bg-white/[0.08] border border-white/10">
+                                <Mail className="w-4 h-4 text-primary-500" />
+                            </div>
+                            <div>
+                                <span className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">E-posta</span>
+                                <a href="mailto:info@yamanfilo.com" className="text-white hover:text-primary-400 transition-colors text-sm font-bold">info@yamanfilo.com</a>
                             </div>
                         </li>
                     </ul>
