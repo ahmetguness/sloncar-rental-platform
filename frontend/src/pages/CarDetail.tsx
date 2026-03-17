@@ -94,9 +94,10 @@ export const CarDetail = () => {
                                     <Phone className="w-5 h-5" />
                                     <span>Hemen Ara</span>
                                 </Button>
-                                <Button className="w-full bg-[#F5F5F5] hover:bg-[#EEEEEE] text-[#111111] font-bold h-16 rounded-2xl flex items-center justify-center gap-3 border border-[#E5E5E5] transition-all">
+                                <Button className="w-full bg-[#F5F5F5] text-[#111111]/50 font-bold h-16 rounded-2xl flex items-center justify-center gap-3 border border-[#E5E5E5] cursor-not-allowed" disabled>
                                     <MessageCircle className="w-5 h-5" />
                                     <span>WhatsApp</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Yakında</span>
                                 </Button>
                             </div>
                         </div>

@@ -10,9 +10,15 @@ export const uploadImage = async (filePath: string): Promise<string> => {
             folder: 'rent-a-car/cars',
             resource_type: 'image',
             transformation: [
-                { width: 1920, crop: "limit" }, // Resize if too big
-                { quality: "auto", fetch_format: "auto" } // Auto optimize
-            ]
+                { width: 1920, crop: "limit" },
+                { quality: "auto", fetch_format: "auto" }
+            ],
+            // Pre-generate common sizes to avoid on-the-fly transformations
+            eager: [
+                { width: 640, height: 400, crop: "fill", quality: "auto", fetch_format: "auto" },
+                { width: 200, height: 150, crop: "fill", quality: "auto", fetch_format: "auto" },
+            ],
+            eager_async: true,
         });
 
         // Delete local temp file

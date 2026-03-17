@@ -3,6 +3,7 @@ import { adminService } from '../../services/api';
 import { useToast } from '../ui/Toast';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import { optimizeCloudinaryUrl } from '../../utils/cloudinaryOptimize';
 import { formatPhoneNumber, cleanPhoneNumber } from '../../utils/formatters';
 import { Loader2, Banknote, CreditCard } from 'lucide-react';
 import DatePicker from 'react-datepicker';
@@ -192,7 +193,7 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                                     >
                                         <div className="relative w-32 h-20 bg-black/40 rounded-lg overflow-hidden shrink-0">
                                             <img
-                                                src={car.images?.[0] || '/placeholder-car.png'}
+                                                src={optimizeCloudinaryUrl(car.images?.[0] || '/placeholder-car.png', 'thumbnail')}
                                                 alt=""
                                                 className="w-full h-full object-cover"
                                             />

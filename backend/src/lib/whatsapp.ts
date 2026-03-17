@@ -7,6 +7,7 @@ export class WhatsAppService {
     private token: string;
     private phoneId: string;
     private baseUrl: string = 'https://graph.facebook.com/v22.0';
+    private enabled: boolean = false; // WhatsApp bildirimleri şimdilik devre dışı
 
     constructor() {
         this.token = process.env.WHATSAPP_API_TOKEN || '';
@@ -51,6 +52,10 @@ export class WhatsAppService {
      * Send a template message
      */
     async sendTemplateMessage(to: string, templateName: string, languageCode: string = 'tr', components: any[] = []): Promise<boolean> {
+        if (!this.enabled) {
+            console.info('[WhatsApp] Service disabled. Skipping template message.');
+            return false;
+        }
         if (!this.token || !this.phoneId) {
             console.warn('[WhatsApp] Credentials missing. Skipping message.');
             return false;
@@ -103,6 +108,10 @@ export class WhatsAppService {
      * Good for admin notifications as admin can initiate chat with bot.
      */
     async sendTextMessage(to: string, body: string): Promise<boolean> {
+        if (!this.enabled) {
+            console.info('[WhatsApp] Service disabled. Skipping text message.');
+            return false;
+        }
         if (!this.token || !this.phoneId) {
             console.warn('[WhatsApp] Credentials missing. Skipping message.');
             return false;

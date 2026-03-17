@@ -9,10 +9,11 @@ import type { Car } from '../services/types';
 import { CarCard } from '../components/CarCard';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Loader2, Search, Plus, Minus, ChevronLeft, ChevronRight, Sparkles, Clock, ShieldCheck, MapPin, RotateCcw, Target, Rocket, Shield, Users, Award, TrendingUp, Briefcase } from 'lucide-react';
+import { Loader2, Search, Plus, Minus, ChevronLeft, ChevronRight, Sparkles, MapPin, RotateCcw, Target, Rocket, Shield, Users, Award, TrendingUp, Briefcase } from 'lucide-react';
 import { CampaignCarousel } from '../components/CampaignCarousel';
 import { campaignService } from '../services/campaign.service';
 import type { Campaign } from '../services/campaign.service';
+import { optimizeCloudinaryUrl } from '../utils/cloudinaryOptimize';
 
 // Register Turkish locale
 registerLocale('tr', tr);
@@ -278,11 +279,11 @@ export const Home = () => {
     return (
         <div className="space-y-12 pb-20 min-h-screen">
             {/* Hero Section: Panoramic Luxury Restoration */}
-            <section className="relative min-h-[900px] lg:min-h-screen flex items-center justify-center px-4 overflow-hidden -mt-[88px] pt-[88px] pb-40 bg-white">
+            <section className="relative min-h-[700px] sm:min-h-[900px] lg:min-h-screen flex items-center justify-center px-4 overflow-hidden -mt-[88px] pt-[88px] pb-20 sm:pb-40 bg-white">
                 {/* Layer 1 (Deepest): Background texture */}
                 <div className="absolute bottom-[12%] left-0 w-full flex justify-center pointer-events-none z-0">
-                    <h1 className="text-[25vw] font-black text-[#F5F5F5] tracking-tighter leading-none select-none uppercase">
-                        YAMAN
+                    <h1 className="text-[12vw] sm:text-[15vw] font-black text-[#F5F5F5] tracking-tighter leading-none select-none uppercase whitespace-nowrap">
+                        YAMAN FİLO
                     </h1>
                 </div>
 
@@ -292,28 +293,30 @@ export const Home = () => {
                     <div className="absolute bottom-0 -left-1/4 w-[600px] h-[600px] bg-primary-500/5 rounded-full blur-[120px]" />
                 </div>
 
-                <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-16 py-20">
+                <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-16 py-10 sm:py-20">
 
                     {/* Left Column: Center-Left Headline Block */}
-                    <div className="w-full lg:w-1/2 space-y-10 text-center lg:text-left animate-fade-in-up">
+                    <div className="w-full lg:w-1/2 space-y-6 sm:space-y-10 text-center lg:text-left animate-fade-in-up">
                         <div className="space-y-4">
-
-                            <h2 className="text-5xl md:text-7xl xl:text-8xl font-black text-[#111111] tracking-tighter leading-[0.9] flex flex-col">
-                                <span>YOLCULUĞUN</span>
-                                <span className="text-primary-500">GELECEĞİNİ</span>
-                                <span>SÜR</span>
+                            <h2 className="text-4xl sm:text-5xl md:text-7xl xl:text-8xl font-black text-[#111111] tracking-tighter leading-[0.9]">
+                                <span className="block">YOLCULUĞUN</span>
+                                <span className="block text-primary-500 relative">
+                                    GELECEĞİNİ
+                                    <span className="absolute -bottom-2 left-0 w-1/3 h-1.5 bg-primary-500 rounded-full" />
+                                </span>
+                                <span className="block">SÜR</span>
                             </h2>
                         </div>
 
                         <div className="space-y-8">
-                            <p className="text-lg md:text-xl text-[#777777] max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium">
+                            <p className="text-base sm:text-lg md:text-xl text-[#777777] max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium">
                                 Prestij ve konforun buluştuğu nokta. Yaman Filo ile premium araç kiralama deneyimini kişiye özel hizmet anlayışıyla yeniden tanımlayın.
                             </p>
 
                             <div className="flex justify-center lg:justify-start">
                                 <Button
                                     onClick={() => document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' })}
-                                    className="bg-transparent text-[#111111] border-2 border-primary-500 px-10 py-5 rounded-2xl font-black text-base shadow-sm hover:bg-primary-500 hover:text-white hover:shadow-md transition-all duration-500 tracking-widest"
+                                    className="bg-primary-500 text-white border-2 border-primary-500 px-10 py-5 rounded-2xl font-black text-base shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-xl hover:shadow-primary-500/30 transition-all duration-500 tracking-widest"
                                 >
                                     ARAÇLARI İNCELE
                                 </Button>
@@ -322,7 +325,7 @@ export const Home = () => {
                     </div>
 
                     {/* Right Column: Luxury Service Pillars */}
-                    <div className="w-full lg:w-[40%] space-y-6 relative z-20">
+                    <div className="w-full lg:w-[40%] space-y-4 sm:space-y-6 relative z-20">
                         {[
                             {
                                 icon: <Award className="w-6 h-6" />,
@@ -333,23 +336,23 @@ export const Home = () => {
                             {
                                 icon: <MapPin className="w-6 h-6" />,
                                 title: "Gelişmiş Hizmet Ağı",
-                                desc: "Manisa ve İzmir'de Profesyonel Çözümler",
-                                delay: "500ms"
+                                desc: "Manisa'da Profesyonel Çözümler",
+                                delay: "700ms"
                             },
                             {
                                 icon: <Shield className="w-6 h-6" />,
                                 title: "Kesintisiz Destek",
                                 desc: "7/24 Asistan ve Yol Yardım Hizmeti",
-                                delay: "600ms"
+                                delay: "1000ms"
                             }
                         ].map((pillar, i) => (
                             <div
                                 key={i}
-                                className="group p-6 rounded-3xl bg-[#F5F5F5] border border-[#E5E5E5] hover:bg-white hover:border-primary-500/30 transition-all duration-500 animate-fade-in-up"
+                                className="group p-4 sm:p-6 rounded-3xl bg-white/80 backdrop-blur-sm border border-[#E5E5E5] hover:border-primary-500/30 transition-all duration-500 animate-fade-in-up shadow-sm hover:shadow-lg hover:shadow-black/5"
                                 style={{ animationDelay: pillar.delay }}
                             >
-                                <div className="flex items-center gap-6">
-                                    <div className="w-14 h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all duration-500 shadow-xl shadow-primary-500/5">
+                                <div className="flex items-center gap-4 sm:gap-6">
+                                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all duration-500 shadow-xl shadow-primary-500/5 flex-shrink-0">
                                         {pillar.icon}
                                     </div>
                                     <div>
@@ -364,7 +367,7 @@ export const Home = () => {
 
                 {/* Layer 4: Standardized Filter Panel (Bottom-Center, Z-30 to clear background text) */}
                 <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-full max-w-6xl px-4 z-30 hidden md:block">
-                    <div className="p-8 rounded-[38px] bg-white border border-[#E5E5E5] shadow-xl scale-105 lg:scale-100 relative group/filter">
+                    <div className="p-8 rounded-[38px] bg-white border border-[#E5E5E5] shadow-2xl shadow-black/5 relative group/filter">
                         {Object.values(filters).some(x => x !== '') && (
                             <button
                                 onClick={resetFilters}
@@ -594,7 +597,7 @@ export const Home = () => {
                         {secondaryCampaign.imageUrl && (
                             <div className="absolute inset-0 z-0">
                                 <img
-                                    src={secondaryCampaign.imageUrl}
+                                    src={optimizeCloudinaryUrl(secondaryCampaign.imageUrl, 'detail')}
                                     alt="Campaign"
                                     className="w-full h-full object-cover opacity-40 mix-blend-overlay"
                                 />
@@ -697,13 +700,20 @@ export const Home = () => {
             </div>
 
             {/* Car Grid */}
-            <section id="fleet" className="container mx-auto px-6 pt-12 scroll-mt-24 relative">
+            <section id="fleet" className="container mx-auto px-4 sm:px-6 pt-12 scroll-mt-24 relative">
                 <div className="absolute top-1/2 left-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-primary-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
                 <div className="absolute bottom-0 right-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-primary-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
                 <div className="flex items-center justify-between mb-10">
                     <div>
-                        <h2 className="text-2xl md:text-4xl font-black text-[#111111] tracking-tight">ARAÇ <span className="text-primary-500">FİLOSU</span></h2>
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-2xl md:text-4xl font-black text-[#111111] tracking-tight">ARAÇ <span className="text-primary-500">FİLOSU</span></h2>
+                            {pagination.total > 0 && (
+                                <span className="hidden md:inline-flex items-center px-3 py-1 rounded-full bg-primary-500/10 text-primary-500 text-xs font-bold">
+                                    {pagination.total} araç
+                                </span>
+                            )}
+                        </div>
                         <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-transparent mt-2 rounded-full" />
                     </div>
                 </div>
@@ -722,7 +732,7 @@ export const Home = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-8">
                             {cars.map(car => (
                                 <CarCard
                                     key={car.id}
@@ -763,7 +773,7 @@ export const Home = () => {
             </section>
 
             {/* About Us Section */}
-            <section id="about" className="container mx-auto px-6 py-20 md:py-32 border-t border-[#E5E5E5] relative overflow-hidden">
+            <section id="about" className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-32 border-t border-[#E5E5E5] relative overflow-hidden">
                 <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-primary-500/5 rounded-full blur-[128px] animate-pulse pointer-events-none duration-[4000ms]" />
                 
                 <div className="max-w-6xl mx-auto relative z-10">
@@ -801,6 +811,7 @@ export const Home = () => {
                     {/* Vision & Mission Row */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
                         <div className="bg-[#111111] rounded-[2rem] p-8 md:p-10 text-white relative overflow-hidden group shadow-2xl hover:-translate-y-2 transition-all duration-500">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary-500/20 transition-colors duration-700" />
                             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
                                 <Target size={80} />
                             </div>
@@ -812,6 +823,7 @@ export const Home = () => {
                             </p>
                         </div>
                         <div className="bg-white rounded-[2rem] border border-[#E5E5E5] p-8 md:p-10 text-[#111111] relative overflow-hidden group shadow-2xl hover:-translate-y-2 transition-all duration-500">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary-500/10 transition-colors duration-700" />
                             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700">
                                 <Rocket size={80} />
                             </div>
@@ -829,7 +841,7 @@ export const Home = () => {
                         <h2 className="text-2xl md:text-4xl font-black text-[#111111] tracking-tight mb-4 uppercase">DEĞERLERİMİZ</h2>
                         <div className="h-1 w-20 bg-primary-500 mx-auto rounded-full" />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                         {[
                             { icon: <Shield size={20} />, title: "Güvenilirlik" },
                             { icon: <Users size={20} />, title: "Müşteri Memnuniyeti" },
@@ -837,11 +849,11 @@ export const Home = () => {
                             { icon: <TrendingUp size={20} />, title: "Sürdürülebilir Büyüme" },
                             { icon: <Briefcase size={20} />, title: "Profesyonellik" }
                         ].map((item, idx) => (
-                            <div key={idx} className="bg-[#F5F5F5] border border-[#E5E5E5] p-6 rounded-3xl hover:bg-white hover:border-primary-500/30 transition-all duration-500 text-center group">
-                                <div className="w-10 h-10 rounded-xl bg-white border border-[#E5E5E5] flex items-center justify-center mx-auto mb-4 text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all shadow-sm">
+                            <div key={idx} className="bg-[#F5F5F5] border border-[#E5E5E5] p-6 rounded-3xl hover:bg-white hover:border-primary-500/30 hover:-translate-y-1 transition-all duration-500 text-center group">
+                                <div className="w-12 h-12 rounded-2xl bg-white border border-[#E5E5E5] flex items-center justify-center mx-auto mb-4 text-primary-500 group-hover:bg-primary-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-primary-500/20 transition-all duration-500">
                                     {item.icon}
                                 </div>
-                                <h4 className="text-xs font-black text-[#111111] uppercase tracking-tighter">{item.title}</h4>
+                                <h4 className="text-xs font-black text-[#111111] uppercase tracking-tight">{item.title}</h4>
                             </div>
                         ))}
                     </div>

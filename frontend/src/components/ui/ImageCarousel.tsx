@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
 import { translateCategory } from '../../utils/translate';
+import { optimizeCloudinaryUrl } from '../../utils/cloudinaryOptimize';
 
 interface ImageCarouselProps {
     images: string[];
@@ -50,8 +51,10 @@ export const ImageCarousel = ({
                     {images.map((img, idx) => (
                         <img
                             key={idx}
-                            src={img}
+                            src={optimizeCloudinaryUrl(img, 'detail')}
                             alt={`${alt} - ${idx + 1}`}
+                            loading={idx === 0 ? 'eager' : 'lazy'}
+                            decoding="async"
                             className="w-full h-full object-cover flex-shrink-0"
                         />
                     ))}
@@ -106,7 +109,7 @@ export const ImageCarousel = ({
                                 : 'border-[#E5E5E5] opacity-50 hover:opacity-100 hover:scale-[1.02]'
                                 }`}
                         >
-                            <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                            <img src={optimizeCloudinaryUrl(img, 'thumbnail')} alt={`Thumbnail ${idx + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         </button>
                     ))}
                 </div>
@@ -132,7 +135,7 @@ export const ImageCarousel = ({
                         onClick={(e) => e.stopPropagation()}
                     >
                         <img
-                            src={images[currentIndex]}
+                            src={optimizeCloudinaryUrl(images[currentIndex], 'full')}
                             alt={`${alt} Fullscreen`}
                             className="w-full h-full object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
                         />

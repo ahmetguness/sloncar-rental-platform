@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { campaignService } from '../services/campaign.service';
 import type { Campaign } from '../services/campaign.service';
+import { optimizeCloudinaryUrl } from '../utils/cloudinaryOptimize';
 
 export const CampaignCarousel = () => {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -87,7 +88,7 @@ export const CampaignCarousel = () => {
                             {campaign.imageUrl && (
                                 <>
                                     <img
-                                        src={campaign.imageUrl}
+                                        src={optimizeCloudinaryUrl(campaign.imageUrl, 'detail')}
                                         alt={campaign.title}
                                         className="w-full h-full object-cover object-center"
                                     />

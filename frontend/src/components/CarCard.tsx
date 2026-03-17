@@ -4,6 +4,7 @@ import { Fuel, Cog, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { translateCategory, translateFuel } from '../utils/translate';
 import { BrandLogo } from './ui/BrandLogo';
+import { optimizeCloudinaryUrl } from '../utils/cloudinaryOptimize';
 
 interface CarCardProps {
     car: Car;
@@ -65,8 +66,6 @@ const CarImageCarousel = ({ images, alt, autoPlay }: { images: string[], alt: st
 
     return (
         <div className="relative w-full h-full group/carousel overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent z-10 opacity-60 pointer-events-none" />
-
             {/* Images */}
             <div
                 className="flex transition-transform duration-500 ease-out h-full"
@@ -75,11 +74,11 @@ const CarImageCarousel = ({ images, alt, autoPlay }: { images: string[], alt: st
                 {images.map((img, idx) => (
                     <div key={idx} className="w-full h-full flex-shrink-0 overflow-hidden relative">
                         <img
-                            src={img}
+                            src={optimizeCloudinaryUrl(img, 'card')}
                             alt={`${alt} - ${idx + 1}`}
                             loading="lazy"
                             decoding="async"
-                            className="w-full h-full object-cover brightness-90 group-hover/card:brightness-100 transition-all duration-700 group-hover/card:scale-110"
+                            className="w-full h-full object-cover transition-all duration-700 group-hover/card:scale-110"
                         />
                     </div>
                 ))}
@@ -128,12 +127,12 @@ export const CarCard = ({ car }: CarCardProps) => {
             to={targetLink}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="group/card block h-full relative bg-white rounded-3xl shadow-sm border border-[#E5E5E5] hover:border-primary-500/30 overflow-hidden hover:-translate-y-2 transition-all duration-500 hover:shadow-md"
+            className="group/card block h-full relative bg-white rounded-3xl shadow-sm border border-[#E5E5E5] hover:border-primary-500/30 overflow-hidden hover:-translate-y-2 transition-all duration-500 hover:shadow-xl hover:shadow-black/5"
         >
             {/* Glow Effect behind card */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-            {/* Image Area: Standardized Studio Environment */}
+            {/* Image Area */}
             <div className="aspect-[16/10] bg-[#090909] relative overflow-hidden">
                 <CarImageCarousel images={car.images} alt={`${car.brand} ${car.model}`} autoPlay={isHovered} />
 
@@ -149,15 +148,12 @@ export const CarCard = ({ car }: CarCardProps) => {
                         {translateCategory(car.category)}
                     </span>
                 </div>
-
-                {/* Overlay Gradient for asset consistency */}
-                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-white via-transparent to-transparent z-10 pointer-events-none opacity-60" />
             </div>
 
             {/* Content Area */}
-            <div className="p-6 flex flex-col relative z-10">
-                <div className="mb-4">
-                    <h3 className="text-2xl font-black text-[#111111] group-hover/card:text-primary-500 transition-colors leading-tight tracking-tighter truncate">
+            <div className="p-4 sm:p-6 flex flex-col relative z-10">
+                <div className="mb-3 sm:mb-4">
+                    <h3 className="text-xl sm:text-2xl font-black text-[#111111] group-hover/card:text-primary-500 transition-colors leading-tight tracking-tighter truncate">
                         {car.brand} <span className="text-[#777777] font-medium">{car.model}</span>
                     </h3>
                     <div className="flex items-center gap-3 mt-2 text-[10px] font-black uppercase tracking-widest text-[#3c3c3b]">
@@ -180,7 +176,7 @@ export const CarCard = ({ car }: CarCardProps) => {
                 </div>
 
                 {/* Footer with Price */}
-                <div className="mt-auto pt-5 border-t border-[#E5E5E5] flex items-center justify-between">
+                <div className="mt-auto pt-4 sm:pt-5 border-t border-[#E5E5E5] flex items-center justify-between">
                     <div>
                         <p className="text-[9px] text-[#3c3c3b] font-black uppercase tracking-[0.2em] mb-1">
                             {car.type === 'SALE' ? 'Satış Fiyatı' : 'Günlük Kiralama'}

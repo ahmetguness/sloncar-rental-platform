@@ -84,7 +84,7 @@ export const SecondHand = () => {
                             ÖZEL SEÇİM
                         </span>
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-black text-[#111111] tracking-tighter leading-none animate-fade-in-up delay-100">
+                    <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-[#111111] tracking-tighter leading-none animate-fade-in-up delay-100">
                         HAYALİNDEKİ ARACA <br />
                         <span className="text-primary-500">GÜVENLE</span> SAHİP OL
                     </h1>
@@ -97,7 +97,7 @@ export const SecondHand = () => {
             {/* Car Grid Section */}
             <section
                 id="fleet"
-                className="container mx-auto px-6 pt-12 scroll-mt-24 relative"
+                className="container mx-auto px-4 sm:px-6 pt-12 scroll-mt-24 relative"
             >
                 <div className="absolute top-1/2 left-0 w-64 h-64 md:w-[500px] md:h-[500px] bg-primary-500/5 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none" />
 
@@ -128,7 +128,7 @@ export const SecondHand = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-8">
                             {cars.map(car => (
                                 <CarCard
                                     key={car.id}

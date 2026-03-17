@@ -8,14 +8,22 @@ export const Footer = () => {
     const franchiseEnabled = settingsData.franchiseEnabled !== 'false';
 
     return (
-        <footer className="bg-[#222222] border-t border-[#333333] text-gray-500 py-20 relative overflow-hidden font-sans">
-            <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-16 lg:gap-8 relative z-10">
+        <footer className="bg-[#222222] border-t border-[#333333] text-gray-500 py-12 sm:py-20 relative overflow-hidden font-sans">
+            <div className="container mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 sm:gap-16 lg:gap-8 relative z-10">
 
                 {/* Brand Identity Section */}
                 <div className="col-span-1 lg:col-span-4 space-y-8">
-                    <Link to="/" className="flex items-center gap-4 text-white font-black text-3xl group w-fit tracking-tighter">
-                        <img src={logo} alt="Yaman Filo" className="w-12 h-12 rounded-2xl object-cover ring-1 ring-white/10 group-hover:ring-primary-500 transition-all shadow-2xl" />
-                        <span>YAMAN<span className="text-primary-500"> FİLO</span></span>
+                    <Link to="/" className="flex items-center gap-3 text-white font-black text-2xl group w-fit tracking-tight">
+                        <div className="relative">
+                            <img src={logo} alt="Yaman Filo" className="w-11 h-11 rounded-xl object-cover ring-2 ring-primary-500/20 group-hover:ring-primary-500/60 transition-all duration-300 shadow-lg" />
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary-500 rounded-md flex items-center justify-center shadow-sm">
+                                <span className="text-white text-[6px] font-black">YF</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-black text-xl tracking-tight text-white uppercase leading-none">YAMAN<span className="text-primary-500"> FİLO</span></span>
+                            <span className="text-[9px] font-bold text-white/40 tracking-[0.25em] uppercase leading-none mt-0.5">OTOMOTİV</span>
+                        </div>
                     </Link>
                     <p className="text-[#AAAAAA] leading-relaxed font-medium text-base max-w-sm">
                         Seçkinliğin ve güvenin buluştuğu nokta. Yaman Filo, premium kiralama standartlarını üstün asset güvenliği ve şeffaf hizmet anlayışıyla birleştirir.
@@ -101,9 +109,9 @@ export const Footer = () => {
             </div>
 
             {/* Compliance Strip */}
-            <div className="container mx-auto px-6 mt-20 pt-10 border-t border-white/10">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
-                    <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+            <div className="container mx-auto px-4 sm:px-6 mt-12 sm:mt-20 pt-8 sm:pt-10 border-t border-white/10">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6 sm:gap-8 text-center md:text-left">
+                    <div className="flex flex-wrap justify-center md:justify-start gap-x-4 sm:gap-x-8 gap-y-3 sm:gap-y-4 text-[9px] sm:text-[10px] font-black text-gray-500 uppercase tracking-[0.15em] sm:tracking-[0.2em]">
                         <span>MERSİS: 0123-4567-8901-2345</span>
                         <span>Vergi No: 9876543210</span>
                         <span>Yönetmelik Uyumluluğu: KVKK 6698</span>

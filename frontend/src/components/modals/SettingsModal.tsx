@@ -60,17 +60,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, on
         <Modal isOpen={isOpen} onClose={onClose} title="Bildirim Ayarları" size="sm">
             <div className="space-y-5">
                 {/* WhatsApp */}
-                <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-black/10">
+                <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-black/10 opacity-60">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
                             <Megaphone className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="text-[#111111] font-bold text-sm">WhatsApp Bildirimleri</h3>
+                            <h3 className="text-[#111111] font-bold text-sm flex items-center gap-2">
+                                WhatsApp Bildirimleri
+                                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Yakında</span>
+                            </h3>
                             <p className="text-xs text-gray-500">Yeni rezervasyonlarda WhatsApp bildirimi</p>
                         </div>
                     </div>
-                    <Toggle checked={whatsappEnabled} onChange={setWhatsappEnabled} color="green" />
+                    <Toggle checked={false} onChange={() => {}} color="green" />
                 </div>
 
                 {/* E-posta Section */}

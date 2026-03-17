@@ -73,10 +73,8 @@ const limiter = rateLimit({
 });
 
 
-// Rate limiter
-if (env.NODE_ENV === 'production') {
-    app.use(limiter);
-}
+// Rate limiter (always active)
+app.use(limiter);
 
 
 app.use(express.json({ limit: '1mb' }));

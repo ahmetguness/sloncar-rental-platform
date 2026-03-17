@@ -45,10 +45,10 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalPr
             />
 
             {/* Modal Content */}
-            <div className={`relative w-full ${sizeClasses[size]} bg-white border border-[#E5E5E5] rounded-2xl shadow-2xl overflow-hidden animate-zoom-in flex flex-col max-h-[90vh]`}>
+            <div className={`relative w-full ${sizeClasses[size]} bg-white border border-[#E5E5E5] rounded-2xl shadow-2xl overflow-hidden animate-zoom-in flex flex-col max-h-[90vh] mx-2 sm:mx-0`}>
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-[#E5E5E5] bg-[#F5F5F5]">
-                    <h2 className="text-xl font-bold text-[#111111] tracking-tight">{title}</h2>
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-[#E5E5E5] bg-[#F5F5F5]">
+                    <h2 className="text-lg sm:text-xl font-bold text-[#111111] tracking-tight pr-2">{title}</h2>
                     <button
                         onClick={onClose}
                         className="p-2 rounded-lg hover:bg-[#F5F5F5] text-[#777777] hover:text-[#111111] transition-colors"
@@ -58,7 +58,7 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalPr
                 </div>
 
                 {/* Body */}
-                <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1">
                     {children}
                 </div>
             </div>

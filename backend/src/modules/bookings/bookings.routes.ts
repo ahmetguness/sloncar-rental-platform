@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import * as bookingsController from './bookings.controller.js';
 import { authMiddleware, adminGuard, validate } from '../../middlewares/index.js';
 import {
@@ -14,6 +15,23 @@ import {
     createManualBookingSchema,
     updateBookingDatesSchema,
 } from './bookings.validators.js';
+
+// Rate limit for public booking endpoints (prevent spam)
+const bookingRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { success: false, error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Çok fazla istek gönderildi. Lütfen daha sonra tekrar deneyin.' } },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const lookupRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 60,
+    message: { success: false, error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Çok fazla sorgu. Lütfen daha sonra tekrar deneyin.' } },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 const router = Router();
 
@@ -35,7 +53,7 @@ const router = Router();
  *       201:
  *         description: Rezervasyon oluşturuldu, kod döner
  */
-router.post('/', validate(createBookingSchema, 'body'), bookingsController.createBooking);
+router.post('/', bookingRateLimit, validate(createBookingSchema, 'body'), bookingsController.createBooking);
 
 /**
  * @openapi
@@ -55,7 +73,7 @@ router.post('/', validate(createBookingSchema, 'body'), bookingsController.creat
  *       200:
  *         description: Rezervasyon detayları
  */
-router.get('/:code', validate(bookingCodeParamSchema, 'params'), bookingsController.getBookingByCode);
+router.get('/:code', lookupRateLimit, validate(bookingCodeParamSchema, 'params'), bookingsController.getBookingByCode);
 
 /**
  * @openapi
@@ -87,6 +105,7 @@ router.get('/:code', validate(bookingCodeParamSchema, 'params'), bookingsControl
  */
 router.patch(
     '/:code/extend',
+    bookingRateLimit,
     validate(bookingCodeParamSchema, 'params'),
     validate(extendBookingSchema, 'body'),
     bookingsController.extendBooking
@@ -123,6 +142,7 @@ router.patch(
  */
 router.post(
     '/:code/pay',
+    bookingRateLimit,
     validate(bookingCodeParamSchema, 'params'),
     validate(payBookingSchema, 'body'),
     bookingsController.payBooking
@@ -144,7 +164,7 @@ router.post(
  *       200:
  *         description: Bulunan rezervasyonlar
  */
-router.get('/lookup/phone', validate(lookupBookingSchema, 'query'), bookingsController.lookupBooking);
+router.get('/lookup/phone', lookupRateLimit, validate(lookupBookingSchema, 'query'), bookingsController.lookupBooking);
 
 // Car availability router (mounted at /api/cars/:id/availability)
 export const carAvailabilityRouter = Router({ mergeParams: true });

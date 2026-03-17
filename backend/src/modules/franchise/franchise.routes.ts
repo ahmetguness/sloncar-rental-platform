@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import * as franchiseController from './franchise.controller.js';
 import { validate, authMiddleware, adminGuard } from '../../middlewares/index.js';
 import {
@@ -9,6 +10,15 @@ import {
     franchiseIdParamSchema,
     publicFranchiseSchema,
 } from './franchise.validators.js';
+
+// Rate limit for public franchise applications (prevent spam)
+const franchiseRateLimit = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 15,
+    message: { success: false, error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Çok fazla başvuru gönderildi. Lütfen daha sonra tekrar deneyin.' } },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 const router = Router();
 
@@ -53,6 +63,7 @@ const router = Router();
  */
 router.post(
     '/public',
+    franchiseRateLimit,
     validate(publicFranchiseSchema),
     franchiseController.createPublicApplication
 );

@@ -358,7 +358,7 @@ export const Booking = () => {
 
     return (
         <div className="min-h-screen bg-mesh relative font-sans selection:bg-primary-500/30 overflow-x-hidden">
-            <div className="max-w-7xl mx-auto px-4 md:px-6 pt-24 md:pt-36 pb-16 relative z-10">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 pt-24 sm:pt-28 md:pt-36 pb-16 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
                     
                     {/* Left: Car Details Sidebar */}
@@ -481,7 +481,7 @@ export const Booking = () => {
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                         className="lg:col-span-8 overflow-visible"
                     >
-                        <div className="glass-card rounded-[2.5rem] p-8 md:p-14 relative group shadow-xl overflow-hidden">
+                        <div className="glass-card rounded-[2.5rem] p-5 sm:p-8 md:p-14 relative group shadow-xl overflow-hidden">
                             <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary-500/5 rounded-full blur-[120px] pointer-events-none group-hover:bg-primary-500/10 transition-colors duration-[2000ms]" />
                             
                             <div className="relative z-10">
@@ -494,7 +494,7 @@ export const Booking = () => {
                                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#111111] text-white text-[9px] font-black uppercase tracking-[0.3em] mb-6 shadow-xl">
                                         <Shield className="w-4 h-4 text-primary-500" /> GÜVENLİ İŞLEM MERKEZİ
                                     </div>
-                                    <h1 className="text-4xl md:text-5xl text-luxury text-[#111111] mb-4 leading-tight">REZERVE <br/> <span className="text-gray-200">EDİN</span></h1>
+                                    <h1 className="text-3xl sm:text-4xl md:text-5xl text-luxury text-[#111111] mb-4 leading-tight">REZERVE <br/> <span className="text-gray-200">EDİN</span></h1>
                                     <p className="text-[#777777] text-lg font-medium tracking-tight">Yaman Filo kalitesiyle premium kiralama deneyimi.</p>
                                 </motion.div>
 
@@ -591,7 +591,7 @@ export const Booking = () => {
                                         </div>
                                     </div>
 
-                                    <div className="glass-dark p-8 md:p-10 rounded-[2rem] border border-white/10 flex gap-6 items-start relative overflow-hidden shadow-xl">
+                                    <div className="glass-dark p-5 sm:p-8 md:p-10 rounded-[2rem] border border-white/10 flex gap-4 sm:gap-6 items-start relative overflow-hidden shadow-xl">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-[60px]" />
                                         <div className="w-12 h-12 rounded-2xl bg-primary-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-primary-500/30 transform -rotate-12">
                                             <Info className="w-6 h-6" />

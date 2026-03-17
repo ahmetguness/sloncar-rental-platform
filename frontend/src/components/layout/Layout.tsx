@@ -49,16 +49,24 @@ export const Layout = () => {
         <div className="min-h-screen bg-dark-bg flex flex-col font-sans overflow-x-hidden">
             {/* Header: Pure Luxury Dark Navigation */}
             <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || isMenuOpen ? 'bg-[#222222]/90 backdrop-blur-xl border-b border-[#E5E5E5] shadow-2xl' : 'bg-transparent'}`}>
-                <div className="container mx-auto px-6 py-5 flex items-center justify-between transition-all duration-300">
-                    <Link to="/" className="flex items-center gap-4 group">
-                        <img
-                            src={logo}
-                            alt="Yaman Filo"
-                            className="w-12 h-12 rounded-2xl object-cover ring-1 ring-[#E5E5E5] group-hover:ring-primary-500 transition-all shadow-2xl"
-                        />
-                        <span className="font-black text-2xl tracking-tighter text-[#111111] uppercase">
-                            YAMAN<span className="text-primary-500"> FİLO</span>
-                        </span>
+                <div className="container mx-auto px-4 sm:px-6 py-5 flex items-center justify-between transition-all duration-300">
+                    <Link to="/" className="flex items-center gap-3 group">
+                        <div className="relative">
+                            <img
+                                src={logo}
+                                alt="Yaman Filo"
+                                className="w-11 h-11 rounded-xl object-cover ring-2 ring-primary-500/20 group-hover:ring-primary-500/60 transition-all duration-300 shadow-lg"
+                            />
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary-500 rounded-md flex items-center justify-center shadow-sm">
+                                <span className="text-white text-[6px] font-black">YF</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className={`font-black text-xl tracking-tight uppercase leading-none transition-colors duration-300 ${scrolled ? 'text-white' : 'text-[#111111]'}`}>
+                                YAMAN<span className="text-primary-500"> FİLO</span>
+                            </span>
+                            <span className={`text-[9px] font-bold tracking-[0.25em] uppercase leading-none mt-0.5 transition-colors duration-300 ${scrolled ? 'text-white/40' : 'text-[#999999]'}`}>OTOMOTİV</span>
+                        </div>
                     </Link>
 
                     {/* Desktop Navigation: Upper-Right */}
@@ -75,7 +83,7 @@ export const Layout = () => {
                                     <Link
                                         key={idx}
                                         to={link.to}
-                                        className="text-[#777777] hover:text-[#111111] text-sm font-black uppercase tracking-widest transition-all hover:translate-y-[-2px] active:scale-95"
+                                        className={`text-sm font-black uppercase tracking-widest transition-all hover:translate-y-[-2px] active:scale-95 ${scrolled ? 'text-gray-400 hover:text-white' : 'text-[#777777] hover:text-[#111111]'}`}
                                     >
                                         {link.label}
                                     </Link>
@@ -84,7 +92,7 @@ export const Layout = () => {
                         ) : (
                             <div className="flex items-center gap-6">
                                 <div className="flex flex-col items-end">
-                                    <span className="text-white text-xs font-black uppercase tracking-widest">{user?.name || 'Admin'}</span>
+                                    <span className={`text-xs font-black uppercase tracking-widest transition-colors duration-300 ${scrolled ? 'text-white' : 'text-[#111111]'}`}>{user?.name || 'Admin'}</span>
                                     <span className="text-primary-500 text-[9px] font-black uppercase tracking-[0.2em]">Yönetici Hesabı</span>
                                 </div>
                                 <button onClick={handleLogout} className="p-2.5 bg-white/5 rounded-xl text-gray-400 hover:text-white hover:bg-red-500/20 transition-all border border-white/10">
@@ -96,7 +104,7 @@ export const Layout = () => {
 
                     {/* Mobile Menu Button */}
                     <button
-                        className="md:hidden p-3 rounded-2xl bg-[#F5F5F5] border border-[#E5E5E5] text-white transition-all active:scale-90"
+                        className={`md:hidden p-3 rounded-2xl border transition-all active:scale-90 ${scrolled || isMenuOpen ? 'bg-white/10 border-white/20 text-white' : 'bg-[#F5F5F5] border-[#E5E5E5] text-[#111111]'}`}
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                         {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

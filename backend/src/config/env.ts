@@ -10,9 +10,9 @@ const envSchema = z.object({
     JWT_SECRET: z.string().min(32),
     JWT_EXPIRES_IN: z.string().default('7d'),
 
-    CORS_ORIGIN: z.string().default('*'),
+    CORS_ORIGIN: z.string().default('http://localhost:5173'),
     RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000), // 15 minutes
-    RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(500000),
+    RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
 
     // Cloudinary
     CLOUDINARY_CLOUD_NAME: z.string().trim(),

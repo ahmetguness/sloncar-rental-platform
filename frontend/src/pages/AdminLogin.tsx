@@ -16,7 +16,6 @@ export const AdminLogin = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
 
-    // Redirect if already authenticated
     useEffect(() => {
         if (isAuthenticated && user) {
             if (user.role === 'ADMIN' || user.role === 'STAFF') {
@@ -27,7 +26,6 @@ export const AdminLogin = () => {
         }
     }, [isAuthenticated, user, navigate]);
 
-    // Clear error on unmount
     useEffect(() => {
         return () => { dispatch(clearError()); }
     }, [dispatch]);
@@ -39,48 +37,54 @@ export const AdminLogin = () => {
 
     const isLoading = status === 'loading';
 
-    // Show loading state while checking authentication or redirecting (Matches AdminDashboard loading state)
     if (isAuthenticated) {
         return (
-            <div className="min-h-screen bg-[#111111] pt-24 flex justify-center items-center">
+            <div className="min-h-screen bg-white pt-24 flex justify-center items-center">
                 <Loader2 className="animate-spin w-10 h-10 text-primary-500" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#111111] relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-[#F5F5F5] relative overflow-hidden">
             {/* Background Effects */}
             <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-primary-500/5 to-transparent rounded-full" />
+                <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary-500/5 rounded-full blur-3xl" />
+                <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-primary-500/5 rounded-full blur-3xl" />
             </div>
 
             {/* Login Card */}
             <div className="relative z-10 w-full max-w-md mx-4">
-                <div className="bg-[#1a1a1a]/80 backdrop-blur-xl p-6 md:p-10 rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.5)] border border-white/10">
+                <div className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl shadow-black/5 border border-[#E5E5E5]">
                     {/* Header */}
                     <div className="text-center mb-8 md:mb-10">
                         <div className="flex items-center justify-center gap-3 mb-6">
-                            <img src={logo} alt="Yaman Filo" className="w-12 h-12 rounded-xl" />
-                            <span className="text-2xl font-bold text-white">
-                                Yaman<span className="text-primary-500"> Filo</span>
-                            </span>
+                            <div className="relative">
+                                <img src={logo} alt="Yaman Filo" className="w-12 h-12 rounded-xl object-cover ring-2 ring-primary-500/20" />
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary-500 rounded-md flex items-center justify-center shadow-sm">
+                                    <span className="text-white text-[6px] font-black">YF</span>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-start">
+                                <span className="text-xl font-black text-[#111111] tracking-tight uppercase leading-none">
+                                    YAMAN<span className="text-primary-500"> FİLO</span>
+                                </span>
+                                <span className="text-[9px] font-bold text-[#999999] tracking-[0.25em] uppercase leading-none mt-0.5">OTOMOTİV</span>
+                            </div>
                         </div>
 
-                        <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center shadow-[0_0_30px_rgba(99,102,241,0.4)]">
+                        <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-primary-500 flex items-center justify-center shadow-lg shadow-primary-500/20">
                             <Shield className="w-8 h-8 text-white" />
                         </div>
 
-                        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Yönetici Paneli</h1>
-                        <p className="text-gray-400 text-sm">Devam etmek için giriş yapın</p>
+                        <h1 className="text-2xl md:text-3xl font-black text-[#111111] mb-2 tracking-tight">Yönetici Paneli</h1>
+                        <p className="text-[#999999] text-sm font-medium">Devam etmek için giriş yapın</p>
                     </div>
 
                     {/* Error Message */}
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                        <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl mb-6 text-sm flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
                                 <Lock className="w-4 h-4" />
                             </div>
                             {error}
@@ -90,14 +94,14 @@ export const AdminLogin = () => {
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">E-posta</label>
+                            <label className="text-[10px] font-black text-[#777777] uppercase tracking-widest mb-2 block">E-posta</label>
                             <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AAAAAA] w-5 h-5" />
                                 <input
                                     type="email"
                                     value={credentials.email}
                                     onChange={(e) => setCredentials({ ...credentials, email: normalizeEmail(e.target.value) })}
-                                    className="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3.5 pl-12 text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                    className="w-full bg-[#F5F5F5] border border-[#E5E5E5] rounded-xl px-4 py-3.5 pl-12 text-[#111111] placeholder-[#AAAAAA] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                     placeholder="admin@example.com"
                                     required
                                 />
@@ -105,21 +109,21 @@ export const AdminLogin = () => {
                         </div>
 
                         <div>
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Şifre</label>
+                            <label className="text-[10px] font-black text-[#777777] uppercase tracking-widest mb-2 block">Şifre</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AAAAAA] w-5 h-5" />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={credentials.password}
                                     onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                                    className="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3.5 pl-12 pr-12 text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                    className="w-full bg-[#F5F5F5] border border-[#E5E5E5] rounded-xl px-4 py-3.5 pl-12 pr-12 text-[#111111] placeholder-[#AAAAAA] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                                     placeholder="••••••••"
                                     required
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#AAAAAA] hover:text-[#777777] transition-colors"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
@@ -128,42 +132,37 @@ export const AdminLogin = () => {
 
                         <div className="flex items-center justify-between text-sm">
                             <label className="flex items-center gap-2 cursor-pointer group">
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-primary-500 border-primary-500' : 'border-white/20 bg-[#111111] group-hover:border-primary-500/50'}`}>
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-primary-500 border-primary-500' : 'border-[#E5E5E5] bg-[#F5F5F5] group-hover:border-primary-500/50'}`}>
                                     {rememberMe && <Check className="w-3.5 h-3.5 text-white" />}
                                 </div>
                                 <input
                                     type="checkbox"
                                     className="sr-only"
                                     checked={rememberMe}
-                                    onChange={(e) => {
-                                        setRememberMe(e.target.checked);
-                                    }}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
                                 />
-                                <span className={rememberMe ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'}>Oturumu açık tut</span>
+                                <span className={rememberMe ? 'text-[#111111] font-medium' : 'text-[#777777] group-hover:text-[#555555]'}>Oturumu açık tut</span>
                             </label>
-                            <a href="#" className="text-primary-500 hover:text-primary-400 font-medium transition-colors">
-                                Şifremi unuttum?
-                            </a>
                         </div>
 
                         <Button
                             type="submit"
-                            className="w-full h-14 text-base font-bold mt-6 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all"
+                            className="w-full h-14 text-base font-black mt-6 bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 transition-all rounded-2xl tracking-widest"
                             disabled={isLoading}
                         >
                             {isLoading ? (
                                 <span className="flex items-center gap-2">
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Giriş Yapılıyor...
+                                    GİRİŞ YAPILIYOR...
                                 </span>
-                            ) : 'Giriş Yap'}
+                            ) : 'GİRİŞ YAP'}
                         </Button>
                     </form>
                 </div>
 
                 {/* Footer */}
-                <p className="text-center text-gray-500 text-xs mt-6">
-                    © 2024 Yaman Filo. Tüm hakları saklıdır.
+                <p className="text-center text-[#AAAAAA] text-xs mt-6 font-medium">
+                    © {new Date().getFullYear()} Yaman Filo. Tüm hakları saklıdır.
                 </p>
             </div>
         </div>

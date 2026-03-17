@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { campaignService } from '../services/campaign.service';
 import { uploadService } from '../services/api';
 import type { Campaign } from '../services/campaign.service';
+import { optimizeCloudinaryUrl } from '../utils/cloudinaryOptimize';
 import { Button } from '../components/ui/Button';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
@@ -201,7 +202,7 @@ export const AdminCampaigns = () => {
                                             <tr key={campaign.id} className="hover:bg-[#F3F4F6] transition-colors">
                                                 <td className="p-4">
                                                     {campaign.imageUrl ? (
-                                                        <img src={campaign.imageUrl} alt={campaign.title} className="w-24 h-16 object-cover rounded-lg border border-[#E5E7EB]" />
+                                                        <img src={optimizeCloudinaryUrl(campaign.imageUrl, 'thumbnail')} alt={campaign.title} className="w-24 h-16 object-cover rounded-lg border border-[#E5E7EB]" />
                                                     ) : (
                                                         <div className="w-24 h-16 rounded-lg border border-[#E5E7EB] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-xs text-[#6B7280]">
                                                             Görsel Yok

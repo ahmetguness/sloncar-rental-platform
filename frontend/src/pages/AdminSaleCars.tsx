@@ -10,6 +10,7 @@ import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { Skeleton } from '../components/ui/Skeleton';
 import { storage } from '../utils/storage';
+import { optimizeCloudinaryUrl } from '../utils/cloudinaryOptimize';
 import { CarDamageMap } from '../components/ui/CarDamageMap';
 
 interface Brand {
@@ -694,7 +695,7 @@ export const AdminSaleCars = () => {
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-2">
                                             {formData.images.map((img, idx) => (
                                                 <div key={idx} className="relative group aspect-video bg-black rounded-xl overflow-hidden border border-[#E5E7EB] shadow-lg">
-                                                    <img src={img} alt={`Car ${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                                    <img src={optimizeCloudinaryUrl(img, 'thumbnail')} alt={`Car ${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                         <button
                                                             type="button"
