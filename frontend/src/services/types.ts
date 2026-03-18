@@ -81,18 +81,53 @@ export interface CreateBookingRequest {
 
 export type UserRole = 'ADMIN' | 'STAFF';
 
+export type MembershipType = 'INDIVIDUAL' | 'CORPORATE';
+
 export interface User {
     id: string;
     email: string;
     name: string;
     role: UserRole;
     phone?: string;
+    membershipType: MembershipType;
+    // Bireysel alanlar
+    tcNo?: string;
+    // Kurumsal alanlar
+    companyName?: string;
+    taxNumber?: string;
+    taxOffice?: string;
+    companyAddress?: string;
+    // Bildirim tercihleri
     whatsappEnabled?: boolean;
     emailEnabled?: boolean;
     emailBookingEnabled?: boolean;
     emailInsuranceEnabled?: boolean;
+    emailCampaignEnabled?: boolean;
     createdAt?: string;
 }
+
+interface BaseRegisterRequest {
+    email: string;
+    password: string;
+    name: string;
+    phone?: string;
+    emailCampaignEnabled?: boolean;
+}
+
+export interface IndividualRegisterRequest extends BaseRegisterRequest {
+    membershipType: 'INDIVIDUAL';
+    tcNo?: string;
+}
+
+export interface CorporateRegisterRequest extends BaseRegisterRequest {
+    membershipType: 'CORPORATE';
+    companyName: string;
+    taxNumber: string;
+    taxOffice?: string;
+    companyAddress?: string;
+}
+
+export type RegisterRequest = IndividualRegisterRequest | CorporateRegisterRequest;
 
 export interface AuthResponse {
     user: User;

@@ -322,8 +322,8 @@ export async function getRevenueAnalytics(year?: number): Promise<RevenueAnalyti
     };
 }
 
-export async function getUsers(params: { page?: number; limit?: number; search?: string } = {}) {
-    const { page = 1, limit = 10, search } = params;
+export async function getUsers(params: { page?: number; limit?: number; search?: string; membershipType?: 'INDIVIDUAL' | 'CORPORATE'; role?: string } = {}) {
+    const { page = 1, limit = 10, search, membershipType, role } = params;
     const skip = (page - 1) * limit;
 
     const where: any = {};
@@ -331,8 +331,18 @@ export async function getUsers(params: { page?: number; limit?: number; search?:
         where.OR = [
             { name: { contains: search, mode: 'insensitive' } },
             { email: { contains: search, mode: 'insensitive' } },
-            { phone: { contains: search, mode: 'insensitive' } }
+            { phone: { contains: search, mode: 'insensitive' } },
+            { companyName: { contains: search, mode: 'insensitive' } },
+            { taxNumber: { contains: search, mode: 'insensitive' } }
         ];
+    }
+
+    if (membershipType) {
+        where.membershipType = membershipType;
+    }
+
+    if (role) {
+        where.role = role;
     }
 
     const [users, total] = await Promise.all([
@@ -344,6 +354,9 @@ export async function getUsers(params: { page?: number; limit?: number; search?:
                 email: true,
                 phone: true,
                 role: true,
+                membershipType: true,
+                companyName: true,
+                taxNumber: true,
                 version: true,
                 createdAt: true
             },
@@ -366,8 +379,7 @@ export async function getUsers(params: { page?: number; limit?: number; search?:
 }
 
 export async function createUser(data: any) {
-    const { name, email, password, phone, role } = data;
-
+    const { name, email, password, phone, role, membershipType, tcNo, companyName, taxNumber, taxOffice, companyAddress } = data;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -378,24 +390,50 @@ export async function createUser(data: any) {
         throw new Error('Bu e-posta adresi ile kayıtlı kullanıcı var.');
     }
 
+    // Kurumsal ise taxNumber benzersizlik kontrolü
+    if (membershipType === 'CORPORATE' && taxNumber) {
+        const existingTax = await prisma.user.findUnique({
+            where: { taxNumber }
+        });
+        if (existingTax) {
+            throw ApiError.conflict('Bu vergi numarası ile kayıtlı bir kurumsal üyelik var');
+        }
+    }
 
     const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
+    // Ortak alanlar
+    const userData: any = {
+        name,
+        email,
+        passwordHash,
+        phone,
+        role: role || 'USER',
+        membershipType: membershipType || 'INDIVIDUAL',
+    };
+
+    // Tipe özgü alanlar
+    if (membershipType === 'CORPORATE') {
+        userData.companyName = companyName;
+        userData.taxNumber = taxNumber;
+        userData.taxOffice = taxOffice ?? null;
+        userData.companyAddress = companyAddress ?? null;
+    } else {
+        userData.tcNo = tcNo ?? null;
+    }
+
     return prisma.user.create({
-        data: {
-            name,
-            email,
-            passwordHash,
-            phone,
-            role: role || 'USER'
-        },
+        data: userData,
         select: {
             id: true,
             name: true,
             email: true,
             phone: true,
             role: true,
+            membershipType: true,
+            companyName: true,
+            taxNumber: true,
             whatsappEnabled: true,
             createdAt: true,
             updatedAt: true,
@@ -418,8 +456,89 @@ export async function deleteUser(id: string) {
     });
 }
 
-export async function updateUser(id: string, data: { role: 'ADMIN' | 'STAFF'; version?: number }) {
-    const { version: expectedVersion, ...updateData } = data;
+export interface UpdateUserData {
+    role?: 'ADMIN' | 'STAFF' | 'USER';
+    membershipType?: 'INDIVIDUAL' | 'CORPORATE';
+    companyName?: string;
+    taxNumber?: string;
+    taxOffice?: string | null;
+    companyAddress?: string | null;
+    tcNo?: string | null;
+    version?: number;
+}
+
+const userSelectFields = {
+    id: true,
+    name: true,
+    email: true,
+    phone: true,
+    role: true,
+    membershipType: true,
+    companyName: true,
+    taxNumber: true,
+    taxOffice: true,
+    companyAddress: true,
+    tcNo: true,
+    whatsappEnabled: true,
+    createdAt: true,
+    updatedAt: true,
+    version: true
+};
+
+export async function updateUser(id: string, data: UpdateUserData) {
+    const { version: expectedVersion, membershipType, companyName, taxNumber, taxOffice, companyAddress, tcNo, ...rest } = data;
+
+    // Build update payload
+    const updateData: any = { ...rest };
+
+    // Handle membershipType change
+    if (membershipType) {
+        if (membershipType !== 'INDIVIDUAL' && membershipType !== 'CORPORATE') {
+            throw ApiError.badRequest('membershipType INDIVIDUAL veya CORPORATE olmalıdır');
+        }
+
+        // Validate required fields when changing to CORPORATE
+        if (membershipType === 'CORPORATE') {
+            if (!companyName || companyName.trim().length < 2) {
+                throw ApiError.badRequest('Kurumsal üyelik için şirket adı zorunludur');
+            }
+            if (!taxNumber || !/^\d{10}$/.test(taxNumber)) {
+                throw ApiError.badRequest('Kurumsal üyelik için geçerli bir vergi numarası (10 hane) zorunludur');
+            }
+
+            // Check taxNumber uniqueness (exclude current user)
+            const existingTax = await prisma.user.findFirst({
+                where: { taxNumber, id: { not: id } }
+            });
+            if (existingTax) {
+                throw ApiError.conflict('Bu vergi numarası ile kayıtlı bir kurumsal üyelik var');
+            }
+
+            updateData.membershipType = membershipType;
+            updateData.companyName = companyName;
+            updateData.taxNumber = taxNumber;
+            updateData.taxOffice = taxOffice ?? null;
+            updateData.companyAddress = companyAddress ?? null;
+            // Clear individual-specific fields
+            updateData.tcNo = null;
+        } else {
+            // Changing to INDIVIDUAL
+            updateData.membershipType = membershipType;
+            updateData.tcNo = tcNo ?? null;
+            // Clear corporate-specific fields
+            updateData.companyName = null;
+            updateData.taxNumber = null;
+            updateData.taxOffice = null;
+            updateData.companyAddress = null;
+        }
+    } else {
+        // No membershipType change — pass through membership-related fields if provided
+        if (companyName !== undefined) updateData.companyName = companyName;
+        if (taxNumber !== undefined) updateData.taxNumber = taxNumber;
+        if (taxOffice !== undefined) updateData.taxOffice = taxOffice;
+        if (companyAddress !== undefined) updateData.companyAddress = companyAddress;
+        if (tcNo !== undefined) updateData.tcNo = tcNo;
+    }
 
     if (expectedVersion !== undefined) {
         const result = await prisma.user.updateMany({
@@ -435,34 +554,34 @@ export async function updateUser(id: string, data: { role: 'ADMIN' | 'STAFF'; ve
 
         return prisma.user.findUnique({
             where: { id },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                phone: true,
-                role: true,
-                whatsappEnabled: true,
-                createdAt: true,
-                updatedAt: true,
-                version: true
-            }
+            select: userSelectFields
         });
     }
 
     return prisma.user.update({
         where: { id },
         data: updateData,
-        select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            role: true,
-            whatsappEnabled: true,
-            createdAt: true,
-            updatedAt: true,
-            version: true
-        }
+        select: userSelectFields
     });
 }
 
+
+export async function getRecipientsByTarget(targets: string[]): Promise<string[]> {
+    const conditions: any[] = [];
+
+    for (const target of targets) {
+        if (target === 'ADMIN') conditions.push({ role: 'ADMIN' });
+        else if (target === 'STAFF') conditions.push({ role: 'STAFF' });
+        else if (target === 'INDIVIDUAL') conditions.push({ role: 'USER', membershipType: 'INDIVIDUAL', emailCampaignEnabled: true });
+        else if (target === 'CORPORATE') conditions.push({ role: 'USER', membershipType: 'CORPORATE', emailCampaignEnabled: true });
+    }
+
+    if (conditions.length === 0) return [];
+
+    const users = await prisma.user.findMany({
+        where: { OR: conditions },
+        select: { email: true },
+    });
+
+    return users.map(u => u.email).filter(Boolean);
+}

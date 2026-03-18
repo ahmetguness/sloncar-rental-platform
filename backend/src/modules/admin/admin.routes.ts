@@ -56,6 +56,28 @@ router.get(
  *     summary: Kullanıcı listesi (Select için)
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: integer
+ *         description: Sayfa numarası
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *         description: Sayfa başına kayıt sayısı
+ *       - name: search
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Arama terimi (ad, email, telefon, şirket adı, vergi numarası)
+ *       - name: membershipType
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: [INDIVIDUAL, CORPORATE]
+ *         description: Üyelik tipine göre filtreleme
  *     responses:
  *       200:
  *         description: Kullanıcı listesi
@@ -137,7 +159,7 @@ router.delete(
  * /api/admin/users/{id}:
  *   patch:
  *     tags: [Admin - Users]
- *     summary: Kullanıcı rolünü güncelle (Sadece Süper Admin)
+ *     summary: Kullanıcı bilgilerini güncelle (Sadece Süper Admin)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -156,6 +178,21 @@ router.delete(
  *               role:
  *                 type: string
  *                 enum: [USER, ADMIN, STAFF]
+ *               membershipType:
+ *                 type: string
+ *                 enum: [INDIVIDUAL, CORPORATE]
+ *               companyName:
+ *                 type: string
+ *               taxNumber:
+ *                 type: string
+ *               taxOffice:
+ *                 type: string
+ *               companyAddress:
+ *                 type: string
+ *               tcNo:
+ *                 type: string
+ *               version:
+ *                 type: integer
  *     responses:
  *       200:
  *         description: Kullanıcı güncellendi
@@ -214,6 +251,13 @@ router.post(
     authMiddleware,
     adminGuard,
     adminController.markAllNotificationsRead
+);
+
+router.post(
+    '/bulk-email',
+    authMiddleware,
+    superAdminGuard,
+    adminController.sendBulkEmail
 );
 
 export default router;

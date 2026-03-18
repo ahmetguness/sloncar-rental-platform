@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { adminService } from '../../services/api';
+import { adminService, authService } from '../../services/api';
 import { storage } from '../../utils/storage';
-import type { User, AuthResponse } from '../../services/types';
+import type { User, AuthResponse, RegisterRequest } from '../../services/types';
 
 export interface AuthState {
     user: User | null;
@@ -31,7 +31,22 @@ export const loginUser = createAsyncThunk(
             const data = await adminService.login(credentials);
             return data;
         } catch (err: any) {
-            return rejectWithValue(err.response?.data?.message || 'Giriş yapılamadı');
+            const msg = err.response?.data?.message
+                || err.response?.data?.error?.message
+                || 'Giriş yapılamadı';
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const registerUser = createAsyncThunk(
+    'auth/register',
+    async (data: RegisterRequest, { rejectWithValue }) => {
+        try {
+            const result = await authService.register(data);
+            return result;
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data?.message || 'Kayıt yapılamadı');
         }
     }
 );
@@ -85,6 +100,22 @@ const authSlice = createSlice({
                 state.token = null;
                 state.isAuthenticated = false;
                 state.status = 'idle';
+            })
+            // Register
+            .addCase(registerUser.pending, (state) => {
+                state.status = 'loading';
+                state.error = null;
+            })
+            .addCase(registerUser.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
+                state.status = 'succeeded';
+                state.isAuthenticated = true;
+                state.user = action.payload.user;
+                state.token = action.payload.token;
+            })
+            .addCase(registerUser.rejected, (state, action) => {
+                state.status = 'failed';
+                state.isAuthenticated = false;
+                state.error = action.payload as string;
             });
     },
 });

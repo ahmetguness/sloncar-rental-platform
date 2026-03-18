@@ -81,8 +81,10 @@ export async function getUsers(
         const page = req.query.page ? parseInt(req.query.page as string) : 1;
         const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
         const search = req.query.search as string | undefined;
+        const membershipType = req.query.membershipType as 'INDIVIDUAL' | 'CORPORATE' | undefined;
+        const role = req.query.role as string | undefined;
 
-        const result = await adminService.getUsers({ page, limit, search });
+        const result = await adminService.getUsers({ page, limit, search, membershipType, role });
         res.json({
             success: true,
             data: result.data,
@@ -143,22 +145,81 @@ export async function updateUser(
 ): Promise<void> {
     try {
         const { id } = req.params;
-        const { role, version } = req.body;
+        const { role, version, membershipType, companyName, taxNumber, taxOffice, companyAddress, tcNo } = req.body;
 
         if (!id) {
             throw new Error('Kullanıcı ID gereklidir');
         }
 
-        const user = await adminService.updateUser(id, { role, version });
+        const user = await adminService.updateUser(id, {
+            role,
+            version,
+            membershipType,
+            companyName,
+            taxNumber,
+            taxOffice,
+            companyAddress,
+            tcNo
+        });
 
         if (user) {
-            auditService.logAction(req.user?.userId, 'UPDATE_USER_ROLE', { targetUserId: id, targetName: user.name, targetEmail: user.email, newRole: role }, req);
+            const auditDetails: any = { targetUserId: id, targetName: user.name, targetEmail: user.email };
+            if (role) auditDetails.newRole = role;
+            if (membershipType) auditDetails.newMembershipType = membershipType;
+            auditService.logAction(req.user?.userId, 'UPDATE_USER', auditDetails, req);
         }
 
         res.json({
             success: true,
             data: user,
-            message: 'Kullanıcı rolü güncellendi'
+            message: 'Kullanıcı güncellendi'
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function sendBulkEmail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const { subject, body, targets } = req.body;
+
+        if (!subject || !body || !targets || !Array.isArray(targets) || targets.length === 0) {
+            res.status(400).json({ success: false, message: 'Konu, içerik ve en az bir hedef kitle gereklidir' });
+            return;
+        }
+
+        const validTargets = ['ADMIN', 'STAFF', 'INDIVIDUAL', 'CORPORATE'];
+        const filtered = targets.filter((t: string) => validTargets.includes(t));
+        if (filtered.length === 0) {
+            res.status(400).json({ success: false, message: 'Geçersiz hedef kitle' });
+            return;
+        }
+
+        const recipients = await adminService.getRecipientsByTarget(filtered);
+        if (recipients.length === 0) {
+            res.status(404).json({ success: false, message: 'Seçilen hedef kitlede kullanıcı bulunamadı' });
+            return;
+        }
+
+        const { sendBulkMail } = await import('../../lib/mail.js');
+        const result = await sendBulkMail(subject, body, recipients);
+
+        auditService.logAction(req.user?.userId, 'SEND_BULK_EMAIL', {
+            targets: filtered,
+            recipientCount: recipients.length,
+            sent: result.sent,
+            failed: result.failed,
+            subject,
+        }, req);
+
+        res.json({
+            success: true,
+            data: { ...result, totalRecipients: recipients.length },
+            message: `${result.sent} kişiye mail gönderildi`,
         });
     } catch (error) {
         next(error);

@@ -45,6 +45,7 @@ export const Booking = () => {
     const [bookedDates, setBookedDates] = useState<Date[]>([]);
     const [copied, setCopied] = useState(false);
     const { data: settings, loading: settingsLoading } = useAppSelector(state => state.settings);
+    const { user } = useAppSelector(state => state.auth);
     const isPaymentEnabled = !settingsLoading && settings['paymentEnabled'] !== 'false';
 
     // Form State
@@ -64,6 +65,23 @@ export const Booking = () => {
         pickupBranchId: '', // Ideally fetched from car.branchId or separate branch list
         dropoffBranchId: '',
     });
+
+    // Pre-fill form with logged-in user data
+    useEffect(() => {
+        if (user) {
+            const nameParts = (user.name || '').trim().split(' ');
+            const firstName = nameParts[0] || '';
+            const surname = nameParts.slice(1).join(' ') || '';
+            setFormData(prev => ({
+                ...prev,
+                customerName: prev.customerName || firstName,
+                customerSurname: prev.customerSurname || surname,
+                customerEmail: prev.customerEmail || user.email || '',
+                customerPhone: prev.customerPhone || (user.phone ? formatPhoneNumber(user.phone) : ''),
+                customerTC: prev.customerTC || (user as any).tcNo || '',
+            }));
+        }
+    }, [user]);
 
     useEffect(() => {
         if (!carId) {

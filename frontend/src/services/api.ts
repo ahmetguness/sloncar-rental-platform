@@ -7,7 +7,9 @@ import type {
     PaginatedResponse,
     DashboardStats,
     ActionLog,
-    User
+    User,
+    RegisterRequest,
+    MembershipType
 } from './types';
 import { storage } from '../utils/storage';
 import { BRANDS } from '../constants/brands';
@@ -130,7 +132,22 @@ export const adminService = {
     isAuthenticated: () => {
         return storage.isAuthenticated();
     },
-    updateProfile: async (data: { whatsappEnabled?: boolean; emailEnabled?: boolean; emailBookingEnabled?: boolean; emailInsuranceEnabled?: boolean }) => {
+    getProfile: async () => {
+        const response = await api.get<{ success: boolean; data: { user: User } }>('/auth/profile');
+        return response.data.data.user;
+    },
+    updateProfile: async (data: {
+        name?: string;
+        phone?: string;
+        tcNo?: string;
+        companyName?: string;
+        taxOffice?: string;
+        companyAddress?: string;
+        whatsappEnabled?: boolean;
+        emailEnabled?: boolean;
+        emailBookingEnabled?: boolean;
+        emailInsuranceEnabled?: boolean;
+    }) => {
         const response = await api.patch<{ success: true; data: { user: User } }>('/auth/profile', data);
         return response.data;
     },
@@ -229,7 +246,7 @@ export const adminService = {
         return response.data.data;
     },
     // Users
-    getUsers: async (params?: any) => {
+    getUsers: async (params?: { page?: number; limit?: number; search?: string; membershipType?: MembershipType; role?: string }) => {
         const response = await api.get<{ success: boolean; data: any[]; pagination: any }>('/admin/users', { params });
         return response.data;
     },
@@ -241,7 +258,7 @@ export const adminService = {
         const response = await api.delete<{ success: boolean; message: string }>(`/admin/users/${id}`);
         return response.data;
     },
-    updateUser: async (id: string, data: { role: 'ADMIN' | 'STAFF' }) => {
+    updateUser: async (id: string, data: { role?: 'ADMIN' | 'STAFF'; membershipType?: MembershipType }) => {
         const response = await api.patch<{ success: boolean; data: any; message: string }>(`/admin/users/${id}`, data);
         return response.data;
     },
@@ -284,7 +301,21 @@ export const adminService = {
     getBackupHistory: async () => {
         const response = await api.get<{ success: boolean; data: any[] }>('/admin/backup/history');
         return response.data;
+    },
+    sendBulkEmail: async (data: { subject: string; body: string; targets: string[] }) => {
+        const response = await api.post<{ success: boolean; data: { sent: number; failed: number; totalRecipients: number }; message: string }>('/admin/bulk-email', data);
+        return response.data;
     }
+};
+
+export const authService = {
+    register: async (data: RegisterRequest) => {
+        const response = await api.post<{ success: boolean; data: AuthResponse }>('/auth/register', data);
+        if (response.data.data.token) {
+            storage.setAuth(response.data.data.token, response.data.data.user, false);
+        }
+        return response.data.data;
+    },
 };
 
 export const uploadService = {

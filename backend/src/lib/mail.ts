@@ -245,3 +245,117 @@ export async function sendInsuranceExpiryReminder(adminEmail: string, insurances
         wrapHtml('Sigorta Bitiş Uyarısı', content),
     );
 }
+
+// ─── 4. Welcome Email → New Member ─────────────────────────────────────
+export async function sendWelcomeToMember(user: {
+    email: string;
+    name: string;
+    membershipType: string;
+    companyName?: string | null;
+}): Promise<boolean> {
+    const isCorporate = user.membershipType === 'CORPORATE';
+    const typeLabel = isCorporate ? 'Kurumsal' : 'Bireysel';
+
+    const content = `
+        <h2 style="margin:0 0 8px;color:#111;font-size:22px;">Hoş Geldiniz 🎉</h2>
+        <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 4px;">
+            Sayın <strong>${user.name}</strong>,
+        </p>
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 20px;">
+            ${typeLabel} üyelik kaydınız başarıyla oluşturulmuştur. Artık hizmetlerimizden faydalanabilirsiniz.
+        </p>
+
+        ${sectionTitle('📋', 'Üyelik Bilgileri')}
+        ${tableWrap(
+            infoRow('Ad Soyad', user.name) +
+            infoRow('E-posta', user.email) +
+            infoRow('Üyelik Tipi', typeLabel, true) +
+            (isCorporate && user.companyName ? infoRow('Şirket', user.companyName) : '')
+        )}
+
+        ${sectionTitle('🚗', 'Neler Yapabilirsiniz?')}
+        ${bulletList([
+            'Araç kiralama ve rezervasyon oluşturma',
+            'Mevcut rezervasyonlarınızı takip etme',
+            'Profil bilgilerinizi güncelleme',
+        ])}
+
+        ${ctaButton(SITE_URL, 'Araçları İncele')}
+
+        <p style="color:#6b7280;font-size:13px;margin-top:24px;line-height:1.6;">
+            Herhangi bir sorunuz olması durumunda bizimle iletişime geçebilirsiniz.
+        </p>
+    `;
+
+    return sendMail(
+        user.email,
+        `Hoş Geldiniz 🎉 | ${typeLabel} Üyelik`,
+        wrapHtml('Hoş Geldiniz', content),
+    );
+}
+
+// ─── 5. New Member Alert → Admin ───────────────────────────────────────
+export async function sendNewMemberAlertToAdmin(adminEmail: string, user: {
+    name: string;
+    email: string;
+    phone?: string | null;
+    membershipType: string;
+    companyName?: string | null;
+    taxNumber?: string | null;
+}): Promise<boolean> {
+    const isCorporate = user.membershipType === 'CORPORATE';
+    const typeLabel = isCorporate ? 'Kurumsal' : 'Bireysel';
+
+    const content = `
+        <h2 style="margin:0 0 8px;color:#111;font-size:22px;">🔔 Yeni ${typeLabel} Üye Kaydı</h2>
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 20px;">
+            Sisteme yeni bir ${typeLabel.toLowerCase()} üye kaydoldu.
+        </p>
+
+        ${sectionTitle('📋', 'Üye Bilgileri')}
+        ${tableWrap(
+            infoRow('Ad Soyad', user.name, true) +
+            infoRow('E-posta', user.email) +
+            infoRow('Telefon', user.phone || '-') +
+            infoRow('Üyelik Tipi', typeLabel) +
+            (isCorporate && user.companyName ? infoRow('Şirket', user.companyName) : '') +
+            (isCorporate && user.taxNumber ? infoRow('Vergi No', user.taxNumber) : '')
+        )}
+
+        ${ctaButton(SITE_URL + '/admin/dashboard', 'Panele Git')}
+
+        <p style="color:#9ca3af;font-size:12px;margin-top:24px;font-style:italic;">
+            Bu bildirim otomatik olarak oluşturulmuştur.
+        </p>
+    `;
+
+    return sendMail(
+        adminEmail,
+        `🔔 Yeni ${typeLabel} Üye | ${user.name}`,
+        wrapHtml('Yeni Üye Kaydı', content),
+    );
+}
+
+// ─── 6. Bulk Mail → Selected Recipients ────────────────────────────────
+export async function sendBulkMail(subject: string, body: string, recipients: string[]): Promise<{ sent: number; failed: number }> {
+    let sent = 0;
+    let failed = 0;
+
+    const content = `
+        <h2 style="margin:0 0 16px;color:#111;font-size:22px;">${subject}</h2>
+        <div style="color:#374151;font-size:14px;line-height:1.8;white-space:pre-wrap;">${body}</div>
+        <p style="color:#9ca3af;font-size:12px;margin-top:32px;font-style:italic;">
+            Bu e-posta Yaman Filo yönetimi tarafından gönderilmiştir.
+        </p>
+    `;
+
+    const html = wrapHtml(subject, content);
+
+    for (const email of recipients) {
+        const ok = await sendMail(email, subject, html);
+        if (ok) sent++;
+        else failed++;
+    }
+
+    return { sent, failed };
+}

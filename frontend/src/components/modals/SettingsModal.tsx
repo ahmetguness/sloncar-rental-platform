@@ -3,7 +3,7 @@ import { adminService } from '../../services/api';
 import { useToast } from '../ui/Toast';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { Loader2, Megaphone, CalendarCheck, ShieldCheck } from 'lucide-react';
+import { Loader2, Megaphone, CalendarCheck, ShieldCheck, UserPlus } from 'lucide-react';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -31,19 +31,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, on
     const [whatsappEnabled, setWhatsappEnabled] = useState(user?.whatsappEnabled ?? true);
     const [emailBookingEnabled, setEmailBookingEnabled] = useState(user?.emailBookingEnabled ?? true);
     const [emailInsuranceEnabled, setEmailInsuranceEnabled] = useState(user?.emailInsuranceEnabled ?? true);
+    const [emailEnabled, setEmailEnabled] = useState(user?.emailEnabled ?? true);
 
     useEffect(() => {
         if (user) {
             setWhatsappEnabled(user.whatsappEnabled ?? true);
             setEmailBookingEnabled(user.emailBookingEnabled ?? true);
             setEmailInsuranceEnabled(user.emailInsuranceEnabled ?? true);
+            setEmailEnabled(user.emailEnabled ?? true);
         }
     }, [user]);
 
     const handleSave = async () => {
         setLoading(true);
         try {
-            const res = await adminService.updateProfile({ whatsappEnabled, emailBookingEnabled, emailInsuranceEnabled });
+            const res = await adminService.updateProfile({ whatsappEnabled, emailBookingEnabled, emailInsuranceEnabled, emailEnabled });
             addToast('Ayarlar güncellendi', 'success');
             onUpdate(res.data.user);
             onClose();
@@ -97,7 +99,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, on
                     </div>
 
                     {/* Sigorta */}
-                    <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center justify-between p-4 border-b border-black/5">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
                                 <ShieldCheck className="w-5 h-5" />
@@ -108,6 +110,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, on
                             </div>
                         </div>
                         <Toggle checked={emailInsuranceEnabled} onChange={setEmailInsuranceEnabled} color="blue" />
+                    </div>
+
+                    {/* Üye Bildirimi */}
+                    <div className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                                <UserPlus className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-[#111111] font-bold text-sm">Yeni Üye Bildirimi</h3>
+                                <p className="text-xs text-gray-500">Yeni üye kaydolduğunda bildirim</p>
+                            </div>
+                        </div>
+                        <Toggle checked={emailEnabled} onChange={setEmailEnabled} color="blue" />
                     </div>
                 </div>
 

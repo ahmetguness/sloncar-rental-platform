@@ -12,6 +12,7 @@ const MyBooking = lazy(() => import('./pages/MyBooking').then(m => ({ default: m
 const Franchise = lazy(() => import('./pages/Franchise').then(m => ({ default: m.Franchise })));
 const About = lazy(() => import('./pages/About').then(m => ({ default: m.About })));
 const SecondHand = lazy(() => import('./pages/SecondHand').then(m => ({ default: m.SecondHand })));
+const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const AdminLogin = lazy(() => import('./pages/AdminLogin').then(m => ({ default: m.AdminLogin })));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const AdminRentalCars = lazy(() => import('./pages/AdminRentalCars').then(m => ({ default: m.AdminRentalCars })));
@@ -21,6 +22,7 @@ const AuditLogs = lazy(() => import('./pages/AuditLogs').then(m => ({ default: m
 const AdminUsers = lazy(() => import('./pages/AdminUsers').then(m => ({ default: m.AdminUsers })));
 const AdminBackup = lazy(() => import('./pages/AdminBackup').then(m => ({ default: m.AdminBackup })));
 const CarDetail = lazy(() => import('./pages/CarDetail').then(m => ({ default: m.CarDetail })));
+const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
 
 import { useEffect } from 'react';
 import { useAppDispatch } from './store/hooks';
@@ -56,6 +58,13 @@ function App() {
             {/* Admin Routes */}
             <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="admin/login" element={<AdminLogin />} />
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Navigate to="/login?tip=bireysel" replace />} />
+
+            {/* Protected Profile Route */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="profile" element={<Profile />} />
+            </Route>
 
             <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'STAFF']} />}>
               <Route path="admin/dashboard" element={

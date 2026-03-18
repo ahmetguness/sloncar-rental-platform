@@ -79,6 +79,11 @@ enum InsuranceBranch {
   DIGER
 }
 
+enum MembershipType {
+  INDIVIDUAL
+  CORPORATE
+}
+
 
 // ============================================================================
 // MODELS
@@ -167,6 +172,18 @@ model User {
   phone        String?
   role         UserRole @default(USER)
 
+  // Üyelik tipi
+  membershipType MembershipType @default(INDIVIDUAL)
+
+  // Bireysel üyelik alanları
+  tcNo           String?        // TC Kimlik Numarası (11 hane)
+
+  // Kurumsal üyelik alanları
+  companyName    String?        // Şirket adı
+  taxNumber      String?        @unique // Vergi numarası (10 hane, benzersiz)
+  taxOffice      String?        // Vergi dairesi
+  companyAddress String?        // Şirket adresi
+
   // Relations
   bookings              Booking[]
   franchiseApplications FranchiseApplication[]
@@ -177,6 +194,7 @@ model User {
   emailEnabled           Boolean @default(true)
   emailBookingEnabled    Boolean @default(true)
   emailInsuranceEnabled  Boolean @default(true)
+  emailCampaignEnabled  Boolean @default(true)
 
   version   Int      @default(0) // Optimistic locking
   createdAt DateTime @default(now())
@@ -184,6 +202,7 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([membershipType])
 }
 
 /// Booking represents a car rental reservation

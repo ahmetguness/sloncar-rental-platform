@@ -10,7 +10,7 @@ import { adminService } from '../services/api';
 import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Banknote, Globe } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, User, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Banknote, Globe, Mail } from 'lucide-react';
 
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -28,6 +28,7 @@ import BookingDetailModal from '../components/modals/BookingDetailModal';
 import ManualBookingModal from '../components/modals/ManualBookingModal';
 import InsuranceDetailModal from '../components/modals/InsuranceDetailModal';
 import CreateInsuranceModal from '../components/modals/CreateInsuranceModal';
+import { BulkEmailModal } from '../components/modals/BulkEmailModal';
 
 import { StatCard } from '../components/admin/StatCard';
 import { BookingRow } from '../components/admin/BookingRow';
@@ -80,11 +81,17 @@ export const AdminDashboard = () => {
     const [renewDate, setRenewDate] = useState<Date | null>(new Date());
     const [showInsuranceCharts, setShowInsuranceCharts] = useState(false);
 
+    // Members States
+    const [membersPage, setMembersPage] = useState(1);
+    const [membersSearchTerm, setMembersSearchTerm] = useState('');
+    const [membershipTypeFilter, setMembershipTypeFilter] = useState<string>('');
+
 
     // User Management States
     const [currentUser, setCurrentUser] = useState<any | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isSiteSettingsOpen, setIsSiteSettingsOpen] = useState(false);
+    const [isBulkEmailOpen, setIsBulkEmailOpen] = useState(false);
     const [isSystemMenuOpen, setIsSystemMenuOpen] = useState(false);
     const systemMenuRef = useRef<HTMLDivElement>(null);
 
@@ -122,7 +129,12 @@ export const AdminDashboard = () => {
         setInsurancePage(1);
     }, []);
 
-    const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'franchise' | 'insurance'>('overview');
+    const handleMembersSearch = useCallback((val: string) => {
+        setMembersSearchTerm(val);
+        setMembersPage(1);
+    }, []);
+
+    const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'franchise' | 'insurance' | 'members'>('overview');
     const [chartView, setChartView] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
 
     // Load current user from storage
@@ -207,6 +219,19 @@ export const AdminDashboard = () => {
         queryKey: ['admin-insurance-stats'],
         queryFn: () => adminService.getInsuranceStats(),
         enabled: activeTab === 'insurance',
+        staleTime: 60000,
+    });
+
+    const { data: membersData, isLoading: membersQueryLoading } = useQuery({
+        queryKey: ['admin-members', membersPage, membersSearchTerm, membershipTypeFilter],
+        queryFn: () => adminService.getUsers({
+            page: membersPage,
+            limit: ITEMS_PER_PAGE,
+            search: membersSearchTerm || undefined,
+            membershipType: (membershipTypeFilter as 'INDIVIDUAL' | 'CORPORATE') || undefined,
+            role: 'USER'
+        }),
+        enabled: activeTab === 'members',
         staleTime: 60000,
     });
 
@@ -450,6 +475,12 @@ export const AdminDashboard = () => {
                 onClose={() => setIsSiteSettingsOpen(false)}
             />
 
+            {/* Bulk Email Modal */}
+            <BulkEmailModal
+                isOpen={isBulkEmailOpen}
+                onClose={() => setIsBulkEmailOpen(false)}
+            />
+
             {/* Manual Booking Modal */}
             <ManualBookingModal
                 isOpen={showManualModal}
@@ -522,6 +553,16 @@ export const AdminDashboard = () => {
                                                 >
                                                     <Globe className="w-4 h-4 text-primary-500" />
                                                     Site Ayarlari
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setIsBulkEmailOpen(true);
+                                                        setIsSystemMenuOpen(false);
+                                                    }}
+                                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-[#111111] hover:bg-black/5 rounded-lg transition-colors text-left"
+                                                >
+                                                    <Mail className="w-4 h-4 text-rose-500" />
+                                                    Mail Gönder
                                                 </button>
                                                 <Link to="/admin/audit-logs" onClick={() => setIsSystemMenuOpen(false)}>
                                                     <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-[#111111] hover:bg-black/5 rounded-lg transition-colors text-left">
@@ -853,6 +894,7 @@ export const AdminDashboard = () => {
                             { key: 'bookings', label: 'Rezervasyonlar', icon: <Calendar className="w-4 h-4" />, count: stats?.totalBookings || null },
                             { key: 'franchise', label: 'Franchise', icon: <Building2 className="w-4 h-4" />, count: stats?.pendingFranchiseApplications || null },
                             { key: 'insurance', label: 'Sigorta', icon: <Shield className="w-4 h-4" />, count: stats?.totalInsurances || null },
+                            { key: 'members', label: 'Üyeler', icon: <Users className="w-4 h-4" />, count: null },
                         ] as const).map((tab) => {
                             const isActive = activeTab === tab.key;
                             return (
@@ -2067,9 +2109,143 @@ export const AdminDashboard = () => {
                         </div>
                     )
                 }
-            </div>
 
-            {/* Insurance Detail Modal */}
+                {/* Members Section */}
+                {
+                    activeTab === 'members' && (
+                        <div id="members-section" className="bg-white rounded-2xl border border-black/10 overflow-hidden shadow-sm">
+                            <div className="p-6 border-b border-black/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                                        <Users className="w-6 h-6 text-emerald-500" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-[#111111]">Üyeler</h2>
+                                        <p className="text-sm text-gray-500">
+                                            {membersData?.pagination?.total || 0} kayıtlı üye
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                    <DebouncedInput
+                                        value={membersSearchTerm}
+                                        onChange={handleMembersSearch}
+                                        placeholder="Ara..."
+                                        className="sm:w-48"
+                                    />
+                                    <select
+                                        value={membershipTypeFilter}
+                                        onChange={(e) => { setMembershipTypeFilter(e.target.value); setMembersPage(1); }}
+                                        className="bg-black/[0.03] border border-black/10 rounded-xl px-4 py-2.5 text-sm text-[#111111] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                                    >
+                                        <option value="">Tüm Üyeler</option>
+                                        <option value="INDIVIDUAL">Bireysel</option>
+                                        <option value="CORPORATE">Kurumsal</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {membersQueryLoading ? (
+                                <div className="flex justify-center items-center py-20">
+                                    <Loader2 className="animate-spin w-8 h-8 text-primary-500" />
+                                </div>
+                            ) : !membersData?.data?.length ? (
+                                <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                                    <Users className="w-12 h-12 mb-3 opacity-50" />
+                                    <p className="text-lg font-medium">Üye bulunamadı</p>
+                                    <p className="text-sm mt-1">Arama kriterlerinizi değiştirmeyi deneyin</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-black/10">
+                                                    <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Üye</th>
+                                                    <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">İletişim</th>
+                                                    <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Üyelik Tipi</th>
+                                                    <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Detay</th>
+                                                    <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Kayıt Tarihi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-black/5">
+                                                {membersData.data.map((member: any) => (
+                                                    <tr key={member.id} className="hover:bg-black/[0.02] transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${member.membershipType === 'CORPORATE' ? 'bg-blue-500/10' : 'bg-emerald-500/10'}`}>
+                                                                    {member.membershipType === 'CORPORATE'
+                                                                        ? <Building2 className="w-4 h-4 text-blue-500" />
+                                                                        : <User className="w-4 h-4 text-emerald-500" />
+                                                                    }
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-sm font-semibold text-[#111111]">{member.name}</p>
+                                                                    {member.companyName && (
+                                                                        <p className="text-xs text-gray-500">{member.companyName}</p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <p className="text-sm text-[#111111]">{member.email}</p>
+                                                            {member.phone && <p className="text-xs text-gray-500">{member.phone}</p>}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${member.membershipType === 'CORPORATE'
+                                                                ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
+                                                                : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                                                                }`}>
+                                                                {member.membershipType === 'CORPORATE' ? <Building2 className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                                                                {member.membershipType === 'CORPORATE' ? 'Kurumsal' : 'Bireysel'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                                            {member.membershipType === 'CORPORATE' ? (
+                                                                <span className="text-xs">VN: {member.taxNumber || '-'}</span>
+                                                            ) : (
+                                                                <span className="text-xs">TC: {member.tcNo || '-'}</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">
+                                                            {new Date(member.createdAt).toLocaleDateString('tr-TR')}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Pagination */}
+                                    {(membersData.pagination?.totalPages || 1) > 1 && (
+                                        <div className="p-4 border-t border-black/10 flex items-center justify-between">
+                                            <p className="text-sm text-gray-500">
+                                                Toplam {membersData.pagination.total} üye, Sayfa {membersPage}/{membersData.pagination.totalPages}
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setMembersPage(prev => Math.max(1, prev - 1))}
+                                                    disabled={membersPage <= 1 || membersQueryLoading}
+                                                    className="p-2 rounded-lg bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                >
+                                                    <ChevronLeft className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setMembersPage(prev => prev + 1)}
+                                                    disabled={membersPage >= (membersData.pagination?.totalPages || 1) || membersQueryLoading}
+                                                    className="p-2 rounded-lg bg-black/[0.03] border border-black/10 text-gray-600 hover:text-[#111111] hover:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                >
+                                                    <ChevronRight className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    )
+                }
+            </div>
             {
                 selectedInsurance && (
                     <InsuranceDetailModal
