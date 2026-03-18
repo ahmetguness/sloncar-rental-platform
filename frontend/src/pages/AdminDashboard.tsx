@@ -28,6 +28,7 @@ import BookingDetailModal from '../components/modals/BookingDetailModal';
 import ManualBookingModal from '../components/modals/ManualBookingModal';
 import InsuranceDetailModal from '../components/modals/InsuranceDetailModal';
 import CreateInsuranceModal from '../components/modals/CreateInsuranceModal';
+import AdminProfileModal from '../components/modals/AdminProfileModal';
 import { BulkEmailModal } from '../components/modals/BulkEmailModal';
 
 import { StatCard } from '../components/admin/StatCard';
@@ -90,6 +91,7 @@ export const AdminDashboard = () => {
     // User Management States
     const [currentUser, setCurrentUser] = useState<any | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isSiteSettingsOpen, setIsSiteSettingsOpen] = useState(false);
     const [isBulkEmailOpen, setIsBulkEmailOpen] = useState(false);
     const [isSystemMenuOpen, setIsSystemMenuOpen] = useState(false);
@@ -469,6 +471,14 @@ export const AdminDashboard = () => {
                 onUpdate={handleUpdateUser}
             />
 
+            {/* Admin Profile Modal */}
+            <AdminProfileModal
+                isOpen={isProfileOpen}
+                onClose={() => setIsProfileOpen(false)}
+                user={currentUser}
+                onUpdate={handleUpdateUser}
+            />
+
             {/* Site Settings Modal */}
             <SiteSettingsModal
                 isOpen={isSiteSettingsOpen}
@@ -573,7 +583,7 @@ export const AdminDashboard = () => {
                                                 <Link to="/admin/users" onClick={() => setIsSystemMenuOpen(false)}>
                                                     <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-[#111111] hover:bg-black/5 rounded-lg transition-colors text-left">
                                                         <Users className="w-4 h-4 text-emerald-500" />
-                                                        Kullanicilar
+                                                        Yöneticiler
                                                     </button>
                                                 </Link>
                                                 <Link to="/admin/backup" onClick={() => setIsSystemMenuOpen(false)}>
@@ -594,6 +604,16 @@ export const AdminDashboard = () => {
                                         >
                                             <Megaphone className="w-4 h-4 text-purple-500" />
                                             Bildirim Ayarlari
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsProfileOpen(true);
+                                                setIsSystemMenuOpen(false);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-[#111111] hover:bg-black/5 rounded-lg transition-colors text-left"
+                                        >
+                                            <User className="w-4 h-4 text-cyan-500" />
+                                            Profilim
                                         </button>
                                     </div>
                                 </div>

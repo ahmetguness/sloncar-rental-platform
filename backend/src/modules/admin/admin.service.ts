@@ -341,7 +341,9 @@ export async function getUsers(params: { page?: number; limit?: number; search?:
         where.membershipType = membershipType;
     }
 
-    if (role) {
+    if (role === 'ADMIN_STAFF') {
+        where.role = { in: ['ADMIN', 'STAFF'] };
+    } else if (role) {
         where.role = role;
     }
 
