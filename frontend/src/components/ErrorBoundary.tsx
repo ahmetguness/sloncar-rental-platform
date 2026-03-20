@@ -1,3 +1,4 @@
+"use client";
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertCircle, RotateCcw } from 'lucide-react';
 import { Button } from './ui/Button';

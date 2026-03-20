@@ -1,4 +1,5 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+"use client";
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useAppSelector } from '../store/hooks';
 
 interface ProtectedRouteProps {
@@ -6,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
-    const location = useLocation();
+    const location = usePathname();
     const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
     if (!isAuthenticated) {

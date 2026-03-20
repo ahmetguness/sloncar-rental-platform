@@ -3,3 +3,6 @@ backend/.env
 .kiro
 .vscode
 a.txt
+
+frontend/.next
+.next

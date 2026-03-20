@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+"use client";
+import Link from 'next/link';
 import { Phone, MapPin, Instagram, Facebook, Mail } from 'lucide-react';
 import logo from '../../assets/logo/logo.jpg';
 import { useAppSelector } from '../../store/hooks';
@@ -13,9 +14,9 @@ export const Footer = () => {
 
                 {/* Brand Identity Section */}
                 <div className="col-span-1 lg:col-span-4 space-y-8">
-                    <Link to="/" className="flex items-center gap-3 text-white font-black text-2xl group w-fit tracking-tight">
+                    <Link href="/" className="flex items-center gap-3 text-white font-black text-2xl group w-fit tracking-tight">
                         <div className="relative">
-                            <img src={logo} alt="Yaman Filo" className="w-11 h-11 rounded-xl object-cover ring-2 ring-primary-500/20 group-hover:ring-primary-500/60 transition-all duration-300 shadow-lg" />
+                            <img src={logo.src} alt="Yaman Filo" className="w-11 h-11 rounded-xl object-cover ring-2 ring-primary-500/20 group-hover:ring-primary-500/60 transition-all duration-300 shadow-lg" />
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary-500 rounded-md flex items-center justify-center shadow-sm">
                                 <span className="text-white text-[6px] font-black">YF</span>
                             </div>
@@ -53,7 +54,7 @@ export const Footer = () => {
                             { label: 'Hakkımızda', to: '/about' },
                         ].map((link, idx) => (
                             <li key={idx}>
-                                <Link to={link.to} className="text-[#AAAAAA] hover:text-white transition-all text-sm font-bold flex items-center gap-2 group">
+                                <Link href={link.to} className="text-[#AAAAAA] hover:text-white transition-all text-sm font-bold flex items-center gap-2 group">
                                     <span className="w-1.5 h-1.5 rounded-full bg-primary-500/0 group-hover:bg-primary-500 transition-all" />
                                     {link.label}
                                 </Link>
@@ -129,7 +130,7 @@ export const Footer = () => {
                     </div>
                     <p className="text-[11px] font-bold text-gray-500 tracking-tight group">
                         &copy; {new Date().getFullYear()} Yaman Filo. Seçkin yaşam tarzları için tasarlandı.
-                        <Link to="/admin/login" className="ml-4 opacity-5 group-hover:opacity-50 transition-opacity hover:text-white">Admin</Link>
+                        <Link href="/admin/login" className="ml-4 opacity-5 group-hover:opacity-50 transition-opacity hover:text-white">Admin</Link>
                     </p>
                 </div>
             </div>

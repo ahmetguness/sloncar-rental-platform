@@ -10,6 +10,7 @@ const log = (_msg: string, ..._args: any[]) => {
 };
 
 const getToken = (): string | null => {
+    if (typeof window === 'undefined') return null;
     const local = localStorage.getItem('token');
     const session = sessionStorage.getItem('token');
     // Debug
@@ -19,6 +20,7 @@ const getToken = (): string | null => {
 };
 
 const getUser = (): any | null => {
+    if (typeof window === 'undefined') return null;
     const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
     try {
         return userStr ? JSON.parse(userStr) : null;
@@ -30,17 +32,19 @@ const getUser = (): any | null => {
 
 const clearAuth = () => {
     log('Clearing auth');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+    }
 };
 
 const parseJwt = (token: string) => {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+        const jsonPayload = decodeURIComponent((typeof window !== 'undefined' ? window.atob(base64) : Buffer.from(base64, 'base64').toString('binary')).split('').map(function (c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
         return JSON.parse(jsonPayload);
@@ -68,23 +72,27 @@ const setAuth = (token: string, user: any, rememberMe: boolean) => {
     // Clear potentially conflicting old state
     clearAuth();
 
-    if (rememberMe) {
-        log('Saving to localStorage');
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', userStr);
-    } else {
-        log('Saving to sessionStorage');
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('user', userStr);
+    if (typeof window !== 'undefined') {
+        if (rememberMe) {
+            log('Saving to localStorage');
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', userStr);
+        } else {
+            log('Saving to sessionStorage');
+            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('user', userStr);
+        }
     }
 };
 
 const setUser = (user: any) => {
     const userStr = JSON.stringify(user);
-    if (localStorage.getItem('user')) {
-        localStorage.setItem('user', userStr);
-    } else {
-        sessionStorage.setItem('user', userStr);
+    if (typeof window !== 'undefined') {
+        if (localStorage.getItem('user')) {
+            localStorage.setItem('user', userStr);
+        } else {
+            sessionStorage.setItem('user', userStr);
+        }
     }
 };
 

@@ -22,7 +22,7 @@ import volkswagenLogo from '../assets/logo/brand_logos/Volkswagen.png';
 export interface Brand {
     id: string;
     name: string;
-    logoUrl: string;
+    logoUrl: string | any;
 }
 
 export const BRANDS: Brand[] = [
@@ -35,7 +35,7 @@ export const BRANDS: Brand[] = [
     { id: 'honda', name: 'Honda', logoUrl: hondaLogo },
     { id: 'hyundai', name: 'Hyundai', logoUrl: hyundaiLogo },
     { id: 'kia', name: 'Kia', logoUrl: kiaLogo },
-    { id: 'mercedes', name: 'Mercedes-Benz', logoUrl: mercedesLogo },
+    { id: 'mercedes', name: 'Mercedes', logoUrl: mercedesLogo },
     { id: 'mitsubishi', name: 'Mitsubishi', logoUrl: mitsubishiLogo },
     { id: 'nissan', name: 'Nissan', logoUrl: nissanLogo },
     { id: 'opel', name: 'Opel', logoUrl: opelLogo },

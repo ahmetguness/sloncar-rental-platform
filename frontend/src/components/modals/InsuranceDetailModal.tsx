@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { adminService } from '../../services/api';
 import { useToast } from '../ui/Toast';

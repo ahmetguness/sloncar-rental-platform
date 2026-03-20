@@ -1,7 +1,8 @@
+"use client";
 import { useState, useEffect } from 'react';
 import type { Car } from '../services/types';
 import { Fuel, Cog, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { translateCategory, translateFuel } from '../utils/translate';
 import { BrandLogo } from './ui/BrandLogo';
 import { optimizeCloudinaryUrl } from '../utils/cloudinaryOptimize';
@@ -117,14 +118,13 @@ const CarImageCarousel = ({ images, alt, autoPlay }: { images: string[], alt: st
     );
 };
 
-export const CarCard = ({ car }: CarCardProps) => {
+export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const targetLink = car.type === 'SALE' ? `/car/${car.id}` : `/book/${car.id}`;
 
     return (
-        <Link
-            to={targetLink}
+        <Link href={targetLink}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             className="group/card block h-full relative bg-white rounded-3xl shadow-sm border border-[#E5E5E5] hover:border-primary-500/30 overflow-hidden hover:-translate-y-2 transition-all duration-500 hover:shadow-xl hover:shadow-black/5"
@@ -139,7 +139,7 @@ export const CarCard = ({ car }: CarCardProps) => {
                 {/* Top Badges */}
                 <div className="absolute top-5 left-5 z-20 flex flex-col gap-2">
                     <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center p-1.5 shadow-md border border-[#E5E5E5]">
-                        <BrandLogo name={car.brand} url={car.brandLogo} className="w-full h-full" variant="light" />
+                        <BrandLogo name={car.brand} url={brandLogoUrl || car.brandLogo} className="w-full h-full" variant="light" />
                     </div>
                 </div>
 

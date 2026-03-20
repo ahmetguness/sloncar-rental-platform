@@ -1,8 +1,9 @@
+"use client";
 import React, { useState } from 'react';
 import { Check, Copy, Key, CheckCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useToast } from '../ui/Toast';
-import { BrandLogo } from './BrandLogo';
+import { BrandLogo } from '../ui/BrandLogo';
 import type { Booking } from '../../services/types';
 
 interface BookingRowProps {

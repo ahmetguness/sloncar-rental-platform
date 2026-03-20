@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
 import { translateCategory } from '../../utils/translate';

@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from 'react';
 import { settingsService } from '../../services/api';
 import { useToast } from '../ui/Toast';

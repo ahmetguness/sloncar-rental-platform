@@ -1,27 +1,31 @@
+"use client";
 import { useState, useEffect } from 'react';
-
-// Load all brand logos from assets
-const BRAND_LOGOS = import.meta.glob('/src/assets/logo/brand_logos/*.png', { eager: true, query: '?url', import: 'default' });
+import { BRANDS } from '../../constants/brands';
 
 export const BrandLogo = ({ name, url, className = "w-8 h-8", variant = "dark" }: { name: string, url?: string, className?: string, variant?: "dark" | "light" }) => {
-    const [imageSrc, setImageSrc] = useState<string | null>(url || null);
+    const [imageSrc, setImageSrc] = useState<any>(url || null);
     const [hasError, setHasError] = useState(false);
+
+    const getLocalLogo = (brandName: string) => {
+        const brand = BRANDS.find(b => 
+            b.name.toLowerCase() === brandName.toLowerCase() || 
+            brandName.toLowerCase().includes(b.name.toLowerCase()) ||
+            b.name.toLowerCase().includes(brandName.toLowerCase())
+        );
+        if (brand && brand.logoUrl) {
+            return brand.logoUrl.src || brand.logoUrl;
+        }
+        return null;
+    };
 
     useEffect(() => {
         if (url) {
             setImageSrc(url);
             setHasError(false);
         } else {
-            // Try to find local logo
-            const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-            const localLogoKey = Object.keys(BRAND_LOGOS).find(key => {
-                const fileName = key.split('/').pop()?.replace('.png', '') || '';
-                return normalize(fileName) === normalize(name);
-            });
-
-            if (localLogoKey) {
-                setImageSrc(BRAND_LOGOS[localLogoKey] as string);
+            const localLogo = getLocalLogo(name);
+            if (localLogo) {
+                setImageSrc(localLogo);
                 setHasError(false);
             } else {
                 setHasError(true);
@@ -29,19 +33,12 @@ export const BrandLogo = ({ name, url, className = "w-8 h-8", variant = "dark" }
         }
     }, [url, name]);
 
-    // Handle image load error
     const handleError = () => {
         if (imageSrc === url && url) {
-            // If remote URL failed, try local
-            const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-            const localLogoKey = Object.keys(BRAND_LOGOS).find(key => {
-                const fileName = key.split('/').pop()?.replace('.png', '') || '';
-                return normalize(fileName) === normalize(name);
-            });
-
-            if (localLogoKey) {
-                setImageSrc(BRAND_LOGOS[localLogoKey] as string);
-                setHasError(false); // Reset error because we have a new candidate
+            const localLogo = getLocalLogo(name);
+            if (localLogo) {
+                setImageSrc(localLogo);
+                setHasError(false);
             } else {
                 setHasError(true);
             }

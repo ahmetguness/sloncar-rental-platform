@@ -1,4 +1,6 @@
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+"use client";
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, Menu, X, User, Building2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import logo from '../../assets/logo/logo.jpg';
@@ -7,7 +9,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutUser } from '../../features/auth/authSlice';
 import { carService } from '../../services/api';
 
-export const Layout = () => {
+export const Layout = ({ children }: { children?: React.ReactNode }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -15,9 +17,9 @@ export const Layout = () => {
     const { user } = useAppSelector((state) => state.auth);
     const { data: settingsData } = useAppSelector((state) => state.settings);
     const [hasSaleCars, setHasSaleCars] = useState(true);
-    const location = useLocation();
-    const navigate = useNavigate();
-    const isAdmin = location.pathname.startsWith('/admin');
+    const pathname = usePathname() || '';
+    const router = useRouter();
+    const isAdmin = pathname.startsWith('/admin');
 
     const franchiseEnabled = settingsData.franchiseEnabled !== 'false';
 
@@ -45,19 +47,20 @@ export const Layout = () => {
     const handleLogout = async () => {
         const wasAdmin = user?.role === 'ADMIN' || user?.role === 'STAFF';
         await dispatch(logoutUser());
-        navigate(wasAdmin ? '/admin/login' : '/', { replace: true });
+        if (wasAdmin) router.replace('/admin/login');
+        else router.replace('/');
         setShowLogoutConfirm(false);
     };
 
     return (
         <div className="min-h-screen bg-dark-bg flex flex-col font-sans overflow-x-hidden">
             {/* Header: Pure Luxury Dark Navigation */}
-            <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || isMenuOpen ? 'bg-[#222222]/90 backdrop-blur-xl border-b border-[#E5E5E5] shadow-2xl' : 'bg-transparent'}`}>
+            <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || isMenuOpen ? 'bg-[#222222]/90 backdrop-blur-xl border-b border-[#E5E5E5] shadow-2xl' : (isAdmin ? 'bg-white/90 backdrop-blur-md border-b border-[#E5E5E5]' : 'bg-transparent')}`}>
                 <div className="container mx-auto px-4 sm:px-6 py-5 flex items-center justify-between transition-all duration-300">
-                    <Link to="/" className="flex items-center gap-3 group">
+                    <Link href="/" className="flex items-center gap-3 group">
                         <div className="relative">
                             <img
-                                src={logo}
+                                src={logo.src}
                                 alt="Yaman Filo"
                                 className="w-11 h-11 rounded-xl object-cover ring-2 ring-primary-500/20 group-hover:ring-primary-500/60 transition-all duration-300 shadow-lg"
                             />
@@ -69,7 +72,6 @@ export const Layout = () => {
                             <span className={`font-black text-xl tracking-tight uppercase leading-none transition-colors duration-300 ${scrolled ? 'text-white' : 'text-[#111111]'}`}>
                                 YAMAN<span className="text-primary-500"> FİLO</span>
                             </span>
-                            <span className={`text-[9px] font-bold tracking-[0.25em] uppercase leading-none mt-0.5 transition-colors duration-300 ${scrolled ? 'text-white/40' : 'text-[#999999]'}`}>OTOMOTİV</span>
                         </div>
                     </Link>
 
@@ -86,7 +88,7 @@ export const Layout = () => {
                                 ].map((link, idx) => (
                                     <Link
                                         key={idx}
-                                        to={link.to}
+                                        href={link.to}
                                         className={`text-sm font-black uppercase tracking-widest transition-all hover:translate-y-[-2px] active:scale-95 ${scrolled ? 'text-gray-400 hover:text-white' : 'text-[#777777] hover:text-[#111111]'}`}
                                     >
                                         {link.label}
@@ -97,7 +99,7 @@ export const Layout = () => {
                                 {user ? (
                                     <div className="flex items-center gap-3 ml-2">
                                         <Link
-                                            to="/profile"
+                                            href="/profile"
                                             className={`flex items-center gap-2 text-sm font-black uppercase tracking-widest transition-all hover:translate-y-[-2px] ${scrolled ? 'text-gray-400 hover:text-white' : 'text-[#777777] hover:text-[#111111]'}`}
                                         >
                                             <User className="w-4 h-4" />
@@ -114,14 +116,14 @@ export const Layout = () => {
                                 ) : (
                                     <div className="flex items-center gap-2 ml-2">
                                         <Link
-                                            to="/login?tip=bireysel"
+                                            href="/login?tip=bireysel"
                                             className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-widest px-4 py-2.5 rounded-xl border transition-all hover:translate-y-[-2px] active:scale-95 ${scrolled ? 'border-white/20 text-gray-300 hover:bg-white/10 hover:text-white' : 'border-[#E5E5E5] text-[#777777] hover:border-primary-500 hover:text-primary-500'}`}
                                         >
                                             <User className="w-4 h-4" />
                                             Bireysel
                                         </Link>
                                         <Link
-                                            to="/login?tip=kurumsal"
+                                            href="/login?tip=kurumsal"
                                             className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest bg-primary-500 text-white px-4 py-2.5 rounded-xl hover:bg-primary-600 transition-all hover:translate-y-[-2px] active:scale-95 shadow-lg shadow-primary-500/20"
                                         >
                                             <Building2 className="w-4 h-4" />
@@ -166,7 +168,7 @@ export const Layout = () => {
                                 ].map((link, idx) => (
                                     <Link
                                         key={idx}
-                                        to={link.to}
+                                        href={link.to}
                                         className="text-3xl font-black text-white uppercase tracking-tighter border-b border-white/10 pb-4"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
@@ -179,7 +181,7 @@ export const Layout = () => {
                                     {user ? (
                                         <>
                                             <Link
-                                                to="/profile"
+                                                href="/profile"
                                                 className="flex items-center gap-4 text-2xl font-black text-primary-500 uppercase tracking-tighter"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
@@ -195,14 +197,14 @@ export const Layout = () => {
                                     ) : (
                                         <>
                                             <Link
-                                                to="/login?tip=bireysel"
+                                                href="/login?tip=bireysel"
                                                 className="flex items-center gap-4 text-2xl font-black text-white uppercase tracking-tighter"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
                                                 <User className="w-7 h-7" /> Bireysel
                                             </Link>
                                             <Link
-                                                to="/login?tip=kurumsal"
+                                                href="/login?tip=kurumsal"
                                                 className="flex items-center gap-4 text-2xl font-black text-primary-500 uppercase tracking-tighter"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
@@ -252,7 +254,7 @@ export const Layout = () => {
 
             {/* Main Content */}
             <main className="flex-grow pt-0">
-                <Outlet />
+                {children}
             </main>
 
             {/* Footer */}

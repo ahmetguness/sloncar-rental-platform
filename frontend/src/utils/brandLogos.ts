@@ -15,6 +15,6 @@ export const getBrandLogo = (brandName: string): string => {
         return name.includes(normalized) || normalized.includes(name);
     });
 
-    return brand ? brand.logoUrl : '';
+    return brand ? (brand.logoUrl?.src || brand.logoUrl || '') : '';
 };
 

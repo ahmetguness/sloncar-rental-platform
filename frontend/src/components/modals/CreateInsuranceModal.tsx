@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { adminService } from '../../services/api';
 import { Modal } from '../ui/Modal';

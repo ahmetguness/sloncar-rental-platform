@@ -1,19 +1,22 @@
+"use client";
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, Plus, Upload, X, Check, Loader2 } from 'lucide-react';
 import { Button } from './Button';
 import { uploadService } from '../../services/api';
 
+import { BrandLogo } from './BrandLogo';
+
 interface Brand {
     id: string;
     name: string;
-    logoUrl: string;
+    logoUrl: any;
 }
 
 interface BrandAutocompleteProps {
     brands: Brand[];
     value: string; // brand name
-    logoUrl?: string;
-    onChange: (brandName: string, logoUrl?: string) => void;
+    logoUrl?: any;
+    onChange: (brandName: string, logoUrl?: any) => void;
     label?: string;
     required?: boolean;
 }
@@ -134,7 +137,7 @@ export const BrandAutocomplete = ({ brands, value, logoUrl, onChange, label = "M
                                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#F3F4F6] text-left transition-colors group"
                                 >
                                     <div className="w-8 h-8 bg-[#F3F4F6] rounded-lg flex items-center justify-center p-1">
-                                        <img src={brand.logoUrl} alt={brand.name} className="w-full h-full object-contain" />
+                                        <BrandLogo name={brand.name} url={brand.logoUrl} className="w-full h-full" variant="light" />
                                     </div>
                                     <span className="text-[#111111] font-medium">{brand.name}</span>
                                     {exactMatch?.id === brand.id && (
@@ -154,11 +157,7 @@ export const BrandAutocomplete = ({ brands, value, logoUrl, onChange, label = "M
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-3 overflow-hidden">
                                     <div className="w-10 h-10 rounded-xl bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center overflow-hidden flex-shrink-0">
-                                        {logoUrl ? (
-                                            <img src={logoUrl} alt="New logo" className="w-full h-full object-contain" />
-                                        ) : (
-                                            <Plus className="w-5 h-5 text-[#9CA3AF]" />
-                                        )}
+                                        <BrandLogo name={query} url={logoUrl} className="w-full h-full" variant="light" />
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-sm font-bold text-[#111111] uppercase truncate">{query}</p>
@@ -197,13 +196,7 @@ export const BrandAutocomplete = ({ brands, value, logoUrl, onChange, label = "M
             {query && (
                 <div className="mt-2 flex items-center gap-3 p-2.5 bg-[#F3F4F6] rounded-xl border border-[#E5E7EB]">
                     <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-1 shadow-inner">
-                        {logoUrl || exactMatch?.logoUrl ? (
-                            <img src={logoUrl || exactMatch?.logoUrl} alt={query} className="w-full h-full object-contain" />
-                        ) : (
-                            <div className="text-[10px] font-black text-[#111111] uppercase">
-                                {query.substring(0, 2)}
-                            </div>
-                        )}
+                        <BrandLogo name={query} url={logoUrl || exactMatch?.logoUrl} className="w-full h-full" variant="light" />
                     </div>
                     <div>
                         <span className="text-sm font-bold text-[#111111] uppercase block leading-none mb-1">{query}</span>

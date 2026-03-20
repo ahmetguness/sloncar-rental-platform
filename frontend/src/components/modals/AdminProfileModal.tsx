@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from 'react';
 import { adminService } from '../../services/api';
 import type { User } from '../../services/types';

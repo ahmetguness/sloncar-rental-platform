@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import { Skeleton } from '../ui/Skeleton';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
