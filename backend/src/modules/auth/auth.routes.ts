@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as authController from './auth.controller.js';
 import { authMiddleware, validate } from '../../middlewares/index.js';
-import { loginSchema, registerSchema } from './auth.validators.js';
+import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema } from './auth.validators.js';
 
 const router = Router();
 
@@ -106,5 +106,53 @@ router.get('/profile', authMiddleware, authController.getProfile);
  *         description: Profile updated
  */
 router.patch('/profile', authMiddleware, authController.updateProfile);
+
+/**
+ * @openapi
+ * /api/auth/forgot-password:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Request password reset email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Reset email sent
+ */
+router.post('/forgot-password', validate(forgotPasswordSchema, 'body'), authController.forgotPassword);
+
+/**
+ * @openapi
+ * /api/auth/reset-password:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Reset password with token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token, newPassword]
+ *             properties:
+ *               token:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 8
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ */
+router.post('/reset-password', validate(resetPasswordSchema, 'body'), authController.resetPassword);
 
 export default router;

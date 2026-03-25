@@ -359,3 +359,28 @@ export async function sendBulkMail(subject: string, body: string, recipients: st
 
     return { sent, failed };
 }
+
+// ─── 7. Password Reset Email ───────────────────────────────────────────
+export async function sendPasswordResetEmail(email: string, resetLink: string, userName: string): Promise<boolean> {
+    const content = `
+        <h2 style="margin:0 0 8px;color:#111;font-size:22px;">Şifre Sıfırlama İsteğiniz Alındı</h2>
+        <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 4px;">
+            Sayın <strong>${userName}</strong>,
+        </p>
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 20px;">
+            Hesabınızın şifresini sıfırlamak için bir istekte bulundunuz. Aşağıdaki butona tıklayarak yeni şifrenizi belirleyebilirsiniz. Bu bağlantı 1 saat boyunca geçerlidir.
+        </p>
+
+        ${ctaButton(resetLink, 'Şifremi Sıfırla')}
+
+        <p style="color:#6b7280;font-size:13px;margin-top:24px;line-height:1.6;">
+            Eğer şifre sıfırlama talebinde bulunmadıysanız, bu e-postayı dikkate almayınız. Güvenliğiniz için linki kimseyle paylaşmayınız.
+        </p>
+    `;
+
+    return sendMail(
+        email,
+        'Şifre Sıfırlama İsteği',
+        wrapHtml('Şifre Sıfırlama', content)
+    );
+}

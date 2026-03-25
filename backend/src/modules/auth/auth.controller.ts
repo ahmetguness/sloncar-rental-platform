@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as authService from './auth.service.js';
 import { auditService } from '../audit/audit.service.js';
-import { RegisterInput, LoginInput } from './auth.validators.js';
+import { RegisterInput, LoginInput, ForgotPasswordInput, ResetPasswordInput } from './auth.validators.js';
 
 
 export async function register(
@@ -76,3 +76,36 @@ export async function updateProfile(
         next(error);
     }
 }
+
+export async function forgotPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const result = await authService.forgotPassword(req.body as ForgotPasswordInput);
+        res.json({
+            success: true,
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function resetPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const result = await authService.resetPassword(req.body as ResetPasswordInput);
+        res.json({
+            success: true,
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+

@@ -2,9 +2,10 @@ import bcrypt from 'bcryptjs';
 import prisma from '../../lib/prisma.js';
 import { signToken } from '../../lib/jwt.js';
 import { ApiError } from '../../middlewares/errorHandler.js';
-import { RegisterInput, LoginInput } from './auth.validators.js';
+import { RegisterInput, LoginInput, ForgotPasswordInput, ResetPasswordInput } from './auth.validators.js';
 import { AuthResponse } from './auth.types.js';
-import { sendWelcomeToMember, sendNewMemberAlertToAdmin } from '../../lib/mail.js';
+import { sendWelcomeToMember, sendNewMemberAlertToAdmin, sendPasswordResetEmail } from '../../lib/mail.js';
+import crypto from 'crypto';
 import { Logger } from '../../lib/logger.js';
 
 const SALT_ROUNDS = process.env.NODE_ENV === 'test' ? 1 : 12;
@@ -251,3 +252,79 @@ export async function updateProfile(userId: string, data: {
 
     return { ...base, tcNo: user.tcNo };
 }
+
+export async function forgotPassword(input: ForgotPasswordInput): Promise<{ message: string }> {
+    const user = await prisma.user.findUnique({
+        where: { email: input.email },
+    });
+
+    if (!user) {
+        throw ApiError.notFound('Bu e-posta adresi sistemimizde kayıtlı değil.');
+    }
+
+    // Generate random token
+    const token = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Set expiry 1 hour from now
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Save hashed token and expiry to DB
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            resetPasswordToken: hashedToken,
+            resetPasswordExpires: expiresAt,
+        },
+    });
+
+    // Send email with unhashed token
+    const frontendUrl = process.env.SITE_URL || 'http://localhost:5173';
+    const resetLink = `${frontendUrl}/sifre-sifirla?token=${token}`;
+
+    const userName = user.membershipType === 'CORPORATE' ? user.companyName ?? user.name : user.name;
+    
+    await sendPasswordResetEmail(user.email, resetLink, userName).catch(err => 
+        Logger.error('[Auth] Failed to send password reset email:', err)
+    );
+
+    return { message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.' };
+}
+
+export async function resetPassword(input: ResetPasswordInput): Promise<{ message: string; user: { role: string; membershipType: string } }> {
+    // Hash the incoming token
+    const hashedToken = crypto.createHash('sha256').update(input.token).digest('hex');
+
+    // Find user with this token and ensure it's not expired
+    const user = await prisma.user.findFirst({
+        where: {
+            resetPasswordToken: hashedToken,
+            resetPasswordExpires: {
+                gt: new Date(),
+            },
+        },
+    });
+
+    if (!user) {
+        throw ApiError.badRequest('Geçersiz veya süresi dolmuş şifre sıfırlama bağlantısı.');
+    }
+
+    // Hash the new password
+    const passwordHash = await bcrypt.hash(input.newPassword, process.env.NODE_ENV === 'test' ? 1 : 12);
+
+    // Update user and clear token fields
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            passwordHash,
+            resetPasswordToken: null,
+            resetPasswordExpires: null,
+        },
+    });
+
+    return { 
+        message: 'Şifreniz başarıyla sıfırlandı. Artık yeni şifrenizle giriş yapabilirsiniz.',
+        user: { role: user.role, membershipType: user.membershipType }
+    };
+}
+

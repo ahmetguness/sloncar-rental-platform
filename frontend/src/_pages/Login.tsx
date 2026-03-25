@@ -185,7 +185,7 @@ export const Login = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F5F5F5] relative overflow-hidden py-10">
+        <div className="min-h-screen flex items-center justify-center bg-[#F5F5F5] relative overflow-hidden pt-32 pb-10">
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary-500/5 rounded-full blur-3xl" />
                 <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-primary-500/5 rounded-full blur-3xl" />
@@ -250,7 +250,7 @@ export const Login = () => {
                             {renderInput('loginEmail', 'E-posta', loginEmail, (v) => setLoginEmail(normalizeEmail(v)), <Mail className="w-5 h-5" />, { type: 'email', placeholder: 'ornek@email.com', required: true })}
                             {renderInput('loginPassword', 'Şifre', loginPassword, setLoginPassword, <Lock className="w-5 h-5" />, { type: 'password', placeholder: '••••••••', required: true })}
 
-                            <div className="flex items-center text-sm">
+                            <div className="flex items-center justify-between text-sm">
                                 <label className="flex items-center gap-2 cursor-pointer group">
                                     <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-primary-500 border-primary-500' : 'border-[#E5E5E5] bg-[#F5F5F5] group-hover:border-primary-500/50'}`}>
                                         {rememberMe && <Check className="w-3.5 h-3.5 text-white" />}
@@ -258,6 +258,7 @@ export const Login = () => {
                                     <input type="checkbox" className="sr-only" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
                                     <span className={rememberMe ? 'text-[#111111] font-medium' : 'text-[#777777] group-hover:text-[#555555]'}>Oturumu açık tut</span>
                                 </label>
+                                <Link href="/sifremi-unuttum" className="text-primary-500 font-bold hover:underline text-xs">Şifremi Unuttum</Link>
                             </div>
 
                             <Button type="submit"

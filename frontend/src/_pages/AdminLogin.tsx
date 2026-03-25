@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { loginUser, clearError } from '../features/auth/authSlice';
 import { Button } from '../components/ui/Button';
@@ -144,6 +145,7 @@ export const AdminLogin = () => {
                                 />
                                 <span className={rememberMe ? 'text-[#111111] font-medium' : 'text-[#777777] group-hover:text-[#555555]'}>Oturumu açık tut</span>
                             </label>
+                            <Link href="/sifremi-unuttum" className="text-primary-500 font-bold hover:underline text-xs">Şifremi Unuttum</Link>
                         </div>
 
                         <Button

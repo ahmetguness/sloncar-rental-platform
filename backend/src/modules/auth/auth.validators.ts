@@ -44,5 +44,16 @@ export const loginSchema = z.object({
     rememberMe: z.boolean().optional(),
 });
 
+export const forgotPasswordSchema = z.object({
+    email: z.string().email('Geçersiz e-posta formatı'),
+});
+
+export const resetPasswordSchema = z.object({
+    token: z.string().min(1, 'Token zorunludur'),
+    newPassword: z.string().min(8, 'Şifre en az 8 karakter olmalıdır'),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

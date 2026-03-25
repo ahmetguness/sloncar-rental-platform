@@ -316,6 +316,14 @@ export const authService = {
         }
         return response.data.data;
     },
+    forgotPassword: async (email: string) => {
+        const response = await api.post<{ success: boolean; data: { message: string } }>('/auth/forgot-password', { email });
+        return response.data.data;
+    },
+    resetPassword: async (data: { token: string; newPassword: string }) => {
+        const response = await api.post<{ success: boolean; data: { message: string; user: { role: string; membershipType: string } } }>('/auth/reset-password', data);
+        return response.data.data;
+    },
 };
 
 export const uploadService = {

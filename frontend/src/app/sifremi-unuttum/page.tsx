@@ -1,10 +1,10 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { Login } from '../../_pages/Login';
+import { ForgotPassword } from '../../_pages/ForgotPassword';
 
 export const metadata: Metadata = {
-  title: 'Giriş Yap | Yaman Filo Manisa',
-  description: 'Yaman Filo üye girişi. Bireysel veya kurumsal hesabınıza erişin.',
+  title: 'Şifremi Unuttum | Yaman Filo Manisa',
+  description: 'Yaman Filo şifre sıfırlama.',
   robots: {
     index: false,
     follow: true,
@@ -17,7 +17,7 @@ export default function Page() {
   return (
     <Layout>
       <Suspense>
-        <Login />
+        <ForgotPassword />
       </Suspense>
     </Layout>
   );

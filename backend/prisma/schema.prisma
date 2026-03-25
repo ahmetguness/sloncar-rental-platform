@@ -191,6 +191,10 @@ model User {
   taxNumber      String?        @unique // Vergi numarası (10 hane, benzersiz)
   taxOffice      String?        // Vergi dairesi
   companyAddress String?        // Şirket adresi
+  
+  // Şifre Sıfırlama Alanları
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
 
   // Relations
   bookings              Booking[]
@@ -211,6 +215,7 @@ model User {
   @@index([email])
   @@index([role])
   @@index([membershipType])
+  @@index([resetPasswordToken])
 }
 
 /// Booking represents a car rental reservation
