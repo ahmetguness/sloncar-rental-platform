@@ -16,7 +16,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
     const { data: settingsData } = useAppSelector((state) => state.settings);
-    const [hasSaleCars, setHasSaleCars] = useState(true);
+    const [hasSaleCars, setHasSaleCars] = useState(false);
     const pathname = usePathname() || '';
     const router = useRouter();
     const isAdmin = pathname.startsWith('/admin');
