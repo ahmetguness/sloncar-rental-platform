@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import { Info, Target, Rocket, Shield, Users, Award, TrendingUp, Briefcase } from 'lucide-react';
 
 export const About = () => {
@@ -131,6 +132,25 @@ export const About = () => {
                                 <p className="text-[#777777] text-sm leading-relaxed font-medium">{value.desc}</p>
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                {/* Internal Links Section */}
+                <div className="mt-16 pt-12 border-t border-[#E5E5E5]">
+                    <h2 className="text-xl font-black text-[#111111] mb-6 uppercase tracking-tight">Keşfetmeye Devam Edin</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <Link href="/#fleet" className="group p-6 rounded-2xl bg-[#F5F5F5] border border-[#E5E5E5] hover:border-primary-500/30 transition-all">
+                            <h3 className="font-bold text-[#111111] group-hover:text-primary-500 transition-colors">Kiralık Araçlar</h3>
+                            <p className="text-sm text-[#777777] mt-1">Günlük ve uzun dönem araç kiralama seçenekleri</p>
+                        </Link>
+                        <Link href="/ikinci-el" className="group p-6 rounded-2xl bg-[#F5F5F5] border border-[#E5E5E5] hover:border-primary-500/30 transition-all">
+                            <h3 className="font-bold text-[#111111] group-hover:text-primary-500 transition-colors">2. El Araçlar</h3>
+                            <p className="text-sm text-[#777777] mt-1">Ekspertiz garantili satılık ikinci el araçlar</p>
+                        </Link>
+                        <Link href="/bayilik" className="group p-6 rounded-2xl bg-[#F5F5F5] border border-[#E5E5E5] hover:border-primary-500/30 transition-all">
+                            <h3 className="font-bold text-[#111111] group-hover:text-primary-500 transition-colors">Bayilik Başvurusu</h3>
+                            <p className="text-sm text-[#777777] mt-1">Yaman Filo franchise fırsatını değerlendirin</p>
+                        </Link>
                     </div>
                 </div>
             </div>

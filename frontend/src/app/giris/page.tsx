@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Login } from '../../_pages/Login';
 
 export const metadata: Metadata = {
@@ -11,5 +12,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <Login />;
+  return (
+    <Suspense>
+      <Login />
+    </Suspense>
+  );
 }

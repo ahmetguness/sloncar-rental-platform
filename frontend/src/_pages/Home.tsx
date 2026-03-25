@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { tr } from 'date-fns/locale/tr';
 import { translateCategory } from '../utils/translate';
@@ -282,10 +282,10 @@ export const Home = () => {
             {/* Hero Section: Panoramic Luxury Restoration */}
             <section className="relative min-h-[600px] sm:min-h-[900px] lg:min-h-screen flex items-center justify-center px-4 overflow-hidden -mt-[88px] pt-[120px] sm:pt-[88px] pb-16 sm:pb-40 bg-white">
                 {/* Layer 1 (Deepest): Background texture */}
-                <div className="absolute bottom-[12%] left-0 w-full flex justify-center pointer-events-none z-0 hidden sm:flex">
-                    <h1 className="text-[15vw] font-black text-[#F5F5F5] tracking-tighter leading-none select-none uppercase whitespace-nowrap">
+                <div className="absolute bottom-[12%] left-0 w-full flex justify-center pointer-events-none z-0 hidden sm:flex" aria-hidden="true">
+                    <span className="text-[15vw] font-black text-[#F5F5F5] tracking-tighter leading-none select-none uppercase whitespace-nowrap">
                         YAMAN FİLO
-                    </h1>
+                    </span>
                 </div>
 
                 {/* Abstract Ambient Lights */}
@@ -299,14 +299,14 @@ export const Home = () => {
                     {/* Left Column: Center-Left Headline Block */}
                     <div className="w-full lg:w-1/2 space-y-6 sm:space-y-10 text-center lg:text-left animate-fade-in-up mt-4 sm:mt-0">
                         <div className="space-y-4">
-                            <h2 className="text-3xl sm:text-5xl md:text-7xl xl:text-8xl font-black text-[#111111] tracking-tighter leading-[0.9]">
-                                <span className="block">GÜVENLE</span>
+                            <h1 className="text-3xl sm:text-5xl md:text-7xl xl:text-8xl font-black text-[#111111] tracking-tighter leading-[0.9]">
+                                <span className="block">Manisa Araç Kiralama</span>
                                 <span className="block text-primary-500 relative">
-                                    YOLA
+                                    Rent A Car
                                     <span className="absolute -bottom-2 left-0 w-1/3 h-1.5 bg-primary-500 rounded-full" />
                                 </span>
-                                <span className="block">ÇIK</span>
-                            </h2>
+                                <span className="block">Yaman Filo</span>
+                            </h1>
                         </div>
 
                         <div className="space-y-8">

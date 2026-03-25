@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { carService, brandService } from '../services/api';
 import type { Car } from '../services/types';
 import { SaleCarCard } from '../components/SaleCarCard';
@@ -54,27 +55,25 @@ export const SecondHand = () => {
         fetchBrands();
     }, []);
 
-    const getBrandLogoUrl = (brandName: string) => {
-        const brand = brands.find(b => b.name.toLowerCase() === brandName.toLowerCase());
-        return brand?.logoUrl;
-    };
-
     return (
         <div className="space-y-12 pb-20 min-h-screen">
             {/* Hero Section: Luxury Sales Edition */}
             <section className="relative min-h-[500px] flex items-center justify-center text-center px-4 overflow-hidden -mt-[88px] pt-[120px]">
                 {/* Background Watermark */}
-                <div className="absolute bottom-[10%] left-0 w-full flex justify-center pointer-events-none z-0 opacity-[0.05]">
-                    <h1 className="text-[20vw] font-black text-white tracking-tighter leading-none select-none uppercase">
+                <div className="absolute bottom-[10%] left-0 w-full flex justify-center pointer-events-none z-0 opacity-[0.05]" aria-hidden="true">
+                    <span className="text-[20vw] font-black text-white tracking-tighter leading-none select-none uppercase">
                         İKİNCİ EL
-                    </h1>
+                    </span>
                 </div>
 
                 <div className="absolute inset-0 z-0">
-                    <img
+                    <Image
                         src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
-                        alt="Luxury Car Showroom"
-                        className="w-full h-full object-cover opacity-40 grayscale"
+                        alt="Yaman Filo 2. El Araç Showroom Manisa"
+                        fill
+                        className="object-cover opacity-40 grayscale"
+                        priority
+                        sizes="100vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 to-transparent" />
                 </div>

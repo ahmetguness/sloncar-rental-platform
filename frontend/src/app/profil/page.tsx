@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { Metadata } from 'next';
 import { Profile } from '../../_pages/Profile';
 
