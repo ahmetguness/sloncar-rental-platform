@@ -50,8 +50,8 @@ export const Footer = () => {
                     <ul className="space-y-4">
                         {[
                             { label: 'Araç Filosu', to: '/#fleet' },
-                            ...(franchiseEnabled ? [{ label: 'Franchise', to: '/franchise' }] : []),
-                            { label: 'Hakkımızda', to: '/about' },
+                            ...(franchiseEnabled ? [{ label: 'Bayilik', to: '/bayilik' }] : []),
+                            { label: 'Hakkımızda', to: '/hakkimizda' },
                         ].map((link, idx) => (
                             <li key={idx}>
                                 <Link href={link.to} className="text-[#AAAAAA] hover:text-white transition-all text-sm font-bold flex items-center gap-2 group">
@@ -124,8 +124,8 @@ export const Footer = () => {
             <div className="container mx-auto px-4 sm:px-6 mt-12 sm:mt-20 pt-8 sm:pt-10 border-t border-white/10">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 sm:gap-8 text-center md:text-left">
                     <div className="flex flex-wrap justify-center md:justify-start gap-x-4 sm:gap-x-8 gap-y-3 sm:gap-y-4 text-[9px] sm:text-[10px] font-black text-gray-500 uppercase tracking-[0.15em] sm:tracking-[0.2em]">
-                        <span>MERSİS: 0123-4567-8901-2345</span>
-                        <span>Vergi No: 9876543210</span>
+                        <span>Vergi No: 934 049 6595</span>
+                        <span>MERSİS No: 0934049659500001</span>
                         <span>Yönetmelik Uyumluluğu: KVKK 6698</span>
                     </div>
                     <p className="text-[11px] font-bold text-gray-500 tracking-tight group">

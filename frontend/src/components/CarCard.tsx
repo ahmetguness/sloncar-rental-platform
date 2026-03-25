@@ -103,7 +103,7 @@ export const CarCard = ({ car }: CarCardProps) => {
 
     return (
         <Link
-            href={`/book/${car.id}`}
+            href={`/rezervasyon/${car.id}`}
             className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-primary-500/40 transition-all duration-300 hover:shadow-lg hover:shadow-black/5"
         >
             {/* Header: Category + Name */}

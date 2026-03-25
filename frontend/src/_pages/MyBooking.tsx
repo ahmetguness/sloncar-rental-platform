@@ -4,7 +4,7 @@ import { bookingService } from '../services/api';
 import type { Booking as BookingType } from '../services/types';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Search, AlertCircle, Loader2, Users, CheckCircle, Car as CarIcon } from 'lucide-react';
+import { Search, AlertCircle, Loader2, Users, CheckCircle, Car as CarIcon, Phone } from 'lucide-react';
 import { BrandLogo } from '../components/ui/BrandLogo';
 import { ImageCarousel } from '../components/ui/ImageCarousel';
 import { translateFuel } from '../utils/translate';
@@ -206,6 +206,31 @@ export const MyBooking = () => {
                             </div>
                         </div>
 
+                        {/* Payment Pending Notice */}
+                        {booking.paymentStatus !== 'PAID' && booking.status === 'RESERVED' && (
+                            <div className="mb-6 md:mb-8 p-4 md:p-6 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/20 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.1)] animate-in slide-in-from-top-4 duration-500">
+                                <div className="flex items-start md:items-center gap-3 md:gap-5">
+                                    <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 shadow-lg border border-amber-500/30">
+                                        <AlertCircle className="w-6 h-6 text-amber-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-amber-500 font-bold text-base md:text-xl tracking-tight">Ödeme Bekleniyor</h3>
+                                        <p className="text-gray-500 text-xs md:text-sm mt-1">Rezervasyonunuz oluşturuldu, ödemeniz beklenmektedir. Aracınızı güvence altına almak için en kısa sürede bizimle iletişime geçin.</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-3 mt-4 ml-0 md:ml-[68px]">
+                                    <a href="tel:02362573232" className="flex items-center gap-2 px-4 py-2.5 bg-white border border-amber-500/20 rounded-xl text-amber-700 font-bold text-sm hover:bg-amber-50 transition-colors">
+                                        <Phone size={14} />
+                                        0236 257 32 32
+                                    </a>
+                                    <a href="tel:05462392626" className="flex items-center gap-2 px-4 py-2.5 bg-white border border-amber-500/20 rounded-xl text-amber-700 font-bold text-sm hover:bg-amber-50 transition-colors">
+                                        <Phone size={14} />
+                                        0546 239 26 26
+                                    </a>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Active Booking Banner */}
                         {booking.status === 'ACTIVE' && (
                             <div className="mb-6 md:mb-8 p-4 md:p-6 bg-gradient-to-r from-green-500/10 to-green-500/5 border border-green-500/20 rounded-2xl flex items-start md:items-center gap-3 md:gap-5 shadow-[0_0_30px_rgba(34,197,94,0.1)] animate-in slide-in-from-top-4 duration-500">
@@ -340,14 +365,7 @@ export const MyBooking = () => {
                                 {/* Timeline Card */}
                                 <div className="bg-[#F5F5F5] border border-[#E5E5E5] rounded-3xl p-6 md:p-8 flex flex-col sticky top-24 shadow-2xl">
                                     {/* Specs Stacked Inside Timeline Card Top */}
-                                    <div className="grid grid-cols-2 gap-3 mb-8 pb-8 border-b border-[#E5E5E5]">
-                                        <div className="bg-[#F5F5F5] border border-[#E5E5E5] px-3 py-3 rounded-2xl text-[#111111] text-sm font-bold flex flex-col items-center justify-center gap-1.5 shadow-sm group hover:bg-[#EEEEEE] transition-colors">
-                                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">MODEL YILI</span>
-                                            <span className="flex items-center gap-2 text-base">
-                                                <span className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(99,102,241,0.8)]"></span>
-                                                {booking.car?.year}
-                                            </span>
-                                        </div>
+                                    <div className="grid grid-cols-3 gap-3 mb-8 pb-8 border-b border-[#E5E5E5]">
                                         <div className="bg-[#F5F5F5] border border-[#E5E5E5] px-3 py-3 rounded-2xl text-[#111111] text-sm font-bold capitalize flex flex-col items-center justify-center gap-1.5 shadow-sm group hover:bg-[#EEEEEE] transition-colors text-center text-base">
                                             <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">YAKIT</span>
                                             {translateFuel(booking.car?.fuel || '')}
@@ -361,15 +379,6 @@ export const MyBooking = () => {
                                             {booking.car?.color}
                                         </div>
                                     </div>
-
-                                    {booking.car?.plateNumber && (
-                                        <div className="mb-6 px-5 py-4 bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl flex items-center justify-between group hover:border-primary-500/30 transition-colors">
-                                            <div className="text-xs font-black text-gray-500 uppercase tracking-widest">ARAÇ PLAKASI</div>
-                                            <div className="bg-white text-[#111111] px-3 md:px-4 py-1.5 rounded-lg text-base md:text-lg font-black tracking-widest uppercase shadow-[0_0_15px_rgba(255,255,255,0.2)] border-2 border-gray-300">
-                                                {booking.car.plateNumber}
-                                            </div>
-                                        </div>
-                                    )}
 
                                     <h3 className="text-lg font-black text-[#111111] mb-8 flex items-center gap-3">
                                         <div className="w-1.5 h-6 bg-primary-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" />

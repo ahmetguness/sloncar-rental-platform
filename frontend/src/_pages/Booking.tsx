@@ -323,10 +323,24 @@ export const Booking = () => {
                             transition={{ delay: 0.4 }}
                             className="text-[#777777] mb-10 text-base font-medium leading-relaxed max-w-sm mx-auto"
                         >
-                            Premium yolculuğunuz başlıyor. {isPaymentEnabled && (
-                                <>Kesinleşme için <span className="text-[#111111] font-black underline decoration-primary-500 decoration-4 underline-offset-8">10 dakika</span> içinde ödeme yapın.</>
-                            )}
+                            Rezervasyonunuz oluşturuldu, ödemeniz beklenmektedir. Aracınızı güvence altına almak için en kısa sürede bizimle iletişime geçin.
                         </motion.p>
+
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.45 }}
+                            className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10"
+                        >
+                            <a href="tel:02362573232" className="flex items-center gap-2 px-5 py-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-700 font-bold text-sm hover:bg-green-500/20 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                0236 257 32 32
+                            </a>
+                            <a href="tel:05462392626" className="flex items-center gap-2 px-5 py-3 bg-primary-500/10 border border-primary-500/20 rounded-xl text-primary-600 font-bold text-sm hover:bg-primary-500/20 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                0546 239 26 26
+                            </a>
+                        </motion.div>
 
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -357,7 +371,7 @@ export const Booking = () => {
                             transition={{ delay: 0.6 }}
                             className="space-y-4"
                         >
-                            <Link href={`/my-booking?code=${successCode}`}>
+                            <Link href={`/rezervasyonum?code=${successCode}`}>
                                 <Button className="w-full h-16 text-base text-luxury shadow-xl shadow-primary-500/15 rounded-xl group relative overflow-hidden">
                                     <span className="relative z-10 font-black">REZERVASYONU GÖRÜNTÜLE</span>
                                     <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />

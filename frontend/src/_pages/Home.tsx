@@ -282,8 +282,8 @@ export const Home = () => {
             {/* Hero Section: Panoramic Luxury Restoration */}
             <section className="relative min-h-[700px] sm:min-h-[900px] lg:min-h-screen flex items-center justify-center px-4 overflow-hidden -mt-[88px] pt-[88px] pb-20 sm:pb-40 bg-white">
                 {/* Layer 1 (Deepest): Background texture */}
-                <div className="absolute bottom-[12%] left-0 w-full flex justify-center pointer-events-none z-0">
-                    <h1 className="text-[12vw] sm:text-[15vw] font-black text-[#F5F5F5] tracking-tighter leading-none select-none uppercase whitespace-nowrap">
+                <div className="absolute bottom-[12%] left-0 w-full flex justify-center pointer-events-none z-0 hidden sm:flex">
+                    <h1 className="text-[15vw] font-black text-[#F5F5F5] tracking-tighter leading-none select-none uppercase whitespace-nowrap">
                         YAMAN FİLO
                     </h1>
                 </div>

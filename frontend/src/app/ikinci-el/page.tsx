@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Manisa 2. El Araç Fiyatları & İlanları | Satılık Otomobil',
   description: 'Yaman Filo güvencesiyle düşük kilometreli, ekspertiz onaylı güvenilir 2. el araç (satılık araba) ilanlarını Manisa bayimizde inceleyin.',
   alternates: {
-    canonical: '/second-hand',
+    canonical: '/ikinci-el',
   },
 };
 
@@ -14,7 +14,7 @@ const collectionSchema = {
   '@type': 'CollectionPage',
   name: 'Manisa 2. El Araç Fiyatları',
   description: 'Ekspertiz garantili satılık ikinci el arabalar.',
-  url: 'https://yamanfilo.com/second-hand'
+  url: 'https://yamanfilo.com/ikinci-el'
 };
 
 export default function Page() {

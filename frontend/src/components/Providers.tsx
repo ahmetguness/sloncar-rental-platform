@@ -4,7 +4,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider } from 'react-redux';
 import { store } from '../store';
 import { ToastProvider } from './ui/Toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { fetchSettings } from '../features/settings/settingsSlice';
+
+function SettingsLoader({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    store.dispatch(fetchSettings());
+  }, []);
+  return <>{children}</>;
+}
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -23,7 +31,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
-          {children}
+          <SettingsLoader>
+            {children}
+          </SettingsLoader>
         </ToastProvider>
       </QueryClientProvider>
     </Provider>

@@ -276,7 +276,7 @@ export const Register = () => {
                     {/* Login Link */}
                     <p className="text-center text-[#999999] text-sm mt-6">
                         Zaten hesabınız var mı?{' '}
-                        <Link href="/login" className="text-primary-500 font-bold hover:underline">
+                        <Link href="/giris" className="text-primary-500 font-bold hover:underline">
                             Giriş Yap
                         </Link>
                     </p>

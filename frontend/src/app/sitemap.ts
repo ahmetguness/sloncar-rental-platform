@@ -15,9 +15,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       dynamicRoutes = cars.map((car: any) => {
         const isRental = car.type === 'RENTAL' || !car.type;
-        const slug = carSlug(car.brand, car.model);
         return {
-          url: isRental ? `${baseUrl}/arac/${slug}` : `${baseUrl}/car/${car.id}`,
+          url: isRental ? `${baseUrl}/rezervasyon/${car.id}` : `${baseUrl}/arac/${car.id}`,
           lastModified: new Date(),
           changeFrequency: 'daily' as const,
           priority: 0.8,
@@ -36,13 +35,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/second-hand`,
+      url: `${baseUrl}/ikinci-el`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/about`,
+      url: `${baseUrl}/hakkimizda`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,

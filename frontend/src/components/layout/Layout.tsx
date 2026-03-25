@@ -81,10 +81,10 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                             <>
                                 {[
                                     { label: 'Araçlar', to: '/#fleet' },
-                                    ...(hasSaleCars ? [{ label: '2. El Satış', to: '/second-hand' }] : []),
-                                    { label: 'Rezervasyonum', to: '/my-booking' },
-                                    ...(franchiseEnabled ? [{ label: 'Franchise', to: '/franchise' }] : []),
-                                    { label: 'Hakkımızda', to: '/about' },
+                                    ...(hasSaleCars ? [{ label: '2. El Satış', to: '/ikinci-el' }] : []),
+                                    { label: 'Rezervasyonum', to: '/rezervasyonum' },
+                                    ...(franchiseEnabled ? [{ label: 'Bayilik', to: '/bayilik' }] : []),
+                                    { label: 'Hakkımızda', to: '/hakkimizda' },
                                 ].map((link, idx) => (
                                     <Link
                                         key={idx}
@@ -99,7 +99,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                                 {user ? (
                                     <div className="flex items-center gap-3 ml-2">
                                         <Link
-                                            href="/profile"
+                                            href="/profil"
                                             className={`flex items-center gap-2 text-sm font-black uppercase tracking-widest transition-all hover:translate-y-[-2px] ${scrolled ? 'text-gray-400 hover:text-white' : 'text-[#777777] hover:text-[#111111]'}`}
                                         >
                                             <User className="w-4 h-4" />
@@ -116,14 +116,14 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                                 ) : (
                                     <div className="flex items-center gap-2 ml-2">
                                         <Link
-                                            href="/login?tip=bireysel"
+                                            href="/giris?tip=bireysel"
                                             className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-widest px-4 py-2.5 rounded-xl border transition-all hover:translate-y-[-2px] active:scale-95 ${scrolled ? 'border-white/20 text-gray-300 hover:bg-white/10 hover:text-white' : 'border-[#E5E5E5] text-[#777777] hover:border-primary-500 hover:text-primary-500'}`}
                                         >
                                             <User className="w-4 h-4" />
                                             Bireysel
                                         </Link>
                                         <Link
-                                            href="/login?tip=kurumsal"
+                                            href="/giris?tip=kurumsal"
                                             className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest bg-primary-500 text-white px-4 py-2.5 rounded-xl hover:bg-primary-600 transition-all hover:translate-y-[-2px] active:scale-95 shadow-lg shadow-primary-500/20"
                                         >
                                             <Building2 className="w-4 h-4" />
@@ -161,10 +161,10 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                             <>
                                 {[
                                     { label: 'Araç Filosu', to: '/#fleet' },
-                                    ...(hasSaleCars ? [{ label: '2. El Satış', to: '/second-hand' }] : []),
-                                    { label: 'Rezervasyon Sorgula', to: '/my-booking' },
-                                    ...(franchiseEnabled ? [{ label: 'Franchise', to: '/franchise' }] : []),
-                                    { label: 'Hakkımızda', to: '/about' },
+                                    ...(hasSaleCars ? [{ label: '2. El Satış', to: '/ikinci-el' }] : []),
+                                    { label: 'Rezervasyon Sorgula', to: '/rezervasyonum' },
+                                    ...(franchiseEnabled ? [{ label: 'Bayilik', to: '/bayilik' }] : []),
+                                    { label: 'Hakkımızda', to: '/hakkimizda' },
                                 ].map((link, idx) => (
                                     <Link
                                         key={idx}
@@ -181,7 +181,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                                     {user ? (
                                         <>
                                             <Link
-                                                href="/profile"
+                                                href="/profil"
                                                 className="flex items-center gap-4 text-2xl font-black text-primary-500 uppercase tracking-tighter"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
@@ -197,14 +197,14 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                                     ) : (
                                         <>
                                             <Link
-                                                href="/login?tip=bireysel"
+                                                href="/giris?tip=bireysel"
                                                 className="flex items-center gap-4 text-2xl font-black text-white uppercase tracking-tighter"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
                                                 <User className="w-7 h-7" /> Bireysel
                                             </Link>
                                             <Link
-                                                href="/login?tip=kurumsal"
+                                                href="/giris?tip=kurumsal"
                                                 className="flex items-center gap-4 text-2xl font-black text-primary-500 uppercase tracking-tighter"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >

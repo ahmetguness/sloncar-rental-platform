@@ -40,7 +40,7 @@ export const CarDetail = () => {
     if (!car) return (
         <div className="min-h-screen flex flex-col items-center justify-center pt-24">
             <div className="text-[#111111] text-xl mb-4">Araç bulunamadı.</div>
-            <Link href="/second-hand">
+            <Link href="/ikinci-el">
                 <Button variant="outline">Geri Dön</Button>
             </Link>
         </div>
@@ -50,7 +50,7 @@ export const CarDetail = () => {
         <div className="min-h-screen pt-24 pb-20 px-4 md:px-8">
             <div className="container mx-auto max-w-7xl">
                 {/* Back Button */}
-                <Link href="/second-hand" className="inline-flex items-center gap-2 text-[#777777] hover:text-[#111111] mb-8 transition-colors">
+                <Link href="/ikinci-el" className="inline-flex items-center gap-2 text-[#777777] hover:text-[#111111] mb-8 transition-colors">
                     <ArrowLeft className="w-5 h-5" />
                     <span>Satılık Araçlara Dön</span>
                 </Link>
