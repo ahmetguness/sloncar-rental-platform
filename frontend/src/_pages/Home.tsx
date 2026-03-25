@@ -156,7 +156,7 @@ export const Home = () => {
             const cleanedFilters: any = {
                 ...filters,
                 q: filters.brand,
-                limit: 12,
+                limit: 6,
                 page: pageToFetch,
                 type: 'RENTAL'
             };
@@ -251,7 +251,7 @@ export const Home = () => {
         setLoading(true);
         try {
             const res = await carService.getAll({
-                limit: 12,
+                limit: 6,
                 page: 1,
                 type: 'RENTAL'
             });
@@ -280,7 +280,7 @@ export const Home = () => {
     return (
         <div className="space-y-12 pb-20 min-h-screen">
             {/* Hero Section: Panoramic Luxury Restoration */}
-            <section className="relative min-h-[700px] sm:min-h-[900px] lg:min-h-screen flex items-center justify-center px-4 overflow-hidden -mt-[88px] pt-[88px] pb-20 sm:pb-40 bg-white">
+            <section className="relative min-h-[600px] sm:min-h-[900px] lg:min-h-screen flex items-center justify-center px-4 overflow-hidden -mt-[88px] pt-[120px] sm:pt-[88px] pb-16 sm:pb-40 bg-white">
                 {/* Layer 1 (Deepest): Background texture */}
                 <div className="absolute bottom-[12%] left-0 w-full flex justify-center pointer-events-none z-0 hidden sm:flex">
                     <h1 className="text-[15vw] font-black text-[#F5F5F5] tracking-tighter leading-none select-none uppercase whitespace-nowrap">
@@ -294,12 +294,12 @@ export const Home = () => {
                     <div className="absolute bottom-0 -left-1/4 w-[600px] h-[600px] bg-primary-500/5 rounded-full blur-[120px]" />
                 </div>
 
-                <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-16 py-10 sm:py-20">
+                <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-16 py-8 sm:py-20">
 
                     {/* Left Column: Center-Left Headline Block */}
-                    <div className="w-full lg:w-1/2 space-y-6 sm:space-y-10 text-center lg:text-left animate-fade-in-up">
+                    <div className="w-full lg:w-1/2 space-y-6 sm:space-y-10 text-center lg:text-left animate-fade-in-up mt-4 sm:mt-0">
                         <div className="space-y-4">
-                            <h2 className="text-4xl sm:text-5xl md:text-7xl xl:text-8xl font-black text-[#111111] tracking-tighter leading-[0.9]">
+                            <h2 className="text-3xl sm:text-5xl md:text-7xl xl:text-8xl font-black text-[#111111] tracking-tighter leading-[0.9]">
                                 <span className="block">GÜVENLE</span>
                                 <span className="block text-primary-500 relative">
                                     YOLA
@@ -663,7 +663,7 @@ export const Home = () => {
                                 key={`${brand.name}-${index}`}
                                 onClick={() => {
                                     setFilters(prev => ({ ...prev, brand: brand.name }));
-                                    carService.getAll({ q: brand.name, limit: 12, page: 1, type: 'RENTAL' }).then(res => {
+                                    carService.getAll({ q: brand.name, limit: 6, page: 1, type: 'RENTAL' }).then(res => {
                                         setCars(res.data);
                                         setPagination(res.pagination);
                                         setPage(1);
@@ -738,6 +738,7 @@ export const Home = () => {
                                 <CarCard
                                     key={car.id}
                                     car={car}
+                                    brandLogoUrl={brands.find(b => b.name.toLowerCase() === car.brand.toLowerCase())?.logoUrl}
                                 />
                             ))}
                         </div>
@@ -759,7 +760,16 @@ export const Home = () => {
 
                                 {page < pagination.totalPages && (
                                     <Button
-                                        onClick={() => fetchCars(page + 1, true)}
+                                        onClick={async () => {
+                                            const prevCount = cars.length;
+                                            await fetchCars(page + 1, true);
+                                            setTimeout(() => {
+                                                const cards = document.querySelectorAll('#fleet .grid > a');
+                                                if (cards[prevCount]) {
+                                                    cards[prevCount].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                }
+                                            }, 100);
+                                        }}
                                         disabled={loading}
                                         className="bg-[#F5F5F5] border border-[#E5E5E5] text-[#111111] hover:bg-primary-500 px-8 py-4 rounded-2xl font-bold transition-all shadow-lg flex items-center gap-2"
                                     >

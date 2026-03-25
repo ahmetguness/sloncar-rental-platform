@@ -417,7 +417,16 @@ export const Booking = () => {
                                         <div className="w-8 h-[2px] bg-primary-500 rounded-full" />
                                         <span className="text-[10px] font-black text-primary-500 uppercase tracking-[0.3em]">{car.category} SERİSİ</span>
                                     </div>
-                                    <h2 className="text-3xl font-black text-[#111111] tracking-tighter uppercase leading-none break-words mb-1">{car.brand}</h2>
+                                    <div className="flex items-center gap-3 mb-1">
+                                        {car.brandLogo && (
+                                            <img
+                                                src={car.brandLogo}
+                                                alt={`${car.brand} logo`}
+                                                className="w-9 h-9 object-contain flex-shrink-0"
+                                            />
+                                        )}
+                                        <h2 className="text-3xl font-black text-[#111111] tracking-tighter uppercase leading-none break-words">{car.brand}</h2>
+                                    </div>
                                     <p className="text-lg text-[#777777] font-medium tracking-tight">{car.model}</p>
                                 </motion.div>
 

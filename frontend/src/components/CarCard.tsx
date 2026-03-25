@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { Car } from '../services/types';
 import {
     Users, Briefcase, ShieldCheck, Fuel, Cog,
-    ArrowRight, ChevronLeft, ChevronRight, CreditCard, IdCard, UserCheck
+    ArrowRight, ChevronLeft, ChevronRight, IdCard, UserCheck
 } from 'lucide-react';
 import Link from 'next/link';
 import { translateCategory, translateFuel } from '../utils/translate';
@@ -92,7 +92,7 @@ const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) =>
     );
 };
 
-export const CarCard = ({ car }: CarCardProps) => {
+export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
     const seats = car.seats ?? 5;
     const largeLuggage = car.largeLuggage ?? 1;
     const smallLuggage = car.smallLuggage ?? 1;
@@ -100,6 +100,7 @@ export const CarCard = ({ car }: CarCardProps) => {
     const hasABS = car.hasABS ?? true;
     const minDriverAge = car.minDriverAge ?? 21;
     const minLicenseYear = car.minLicenseYear ?? 1;
+    const logoSrc = car.brandLogo || brandLogoUrl;
 
     return (
         <Link
@@ -111,9 +112,18 @@ export const CarCard = ({ car }: CarCardProps) => {
                 <span className="text-[11px] font-semibold text-primary-500 uppercase tracking-wide">
                     {translateCategory(car.category)} Kiralık Araç
                 </span>
-                <h3 className="text-lg font-bold text-gray-900 leading-tight mt-0.5 truncate">
-                    {car.brand} {car.model}
-                </h3>
+                <div className="flex items-center gap-2.5 mt-0.5">
+                    {logoSrc && (
+                        <img
+                            src={logoSrc}
+                            alt={`${car.brand} logo`}
+                            className="w-7 h-7 object-contain flex-shrink-0"
+                        />
+                    )}
+                    <h3 className="text-lg font-bold text-gray-900 leading-tight truncate">
+                        {car.brand} {car.model}
+                    </h3>
+                </div>
             </div>
 
             {/* Image */}
@@ -138,7 +148,6 @@ export const CarCard = ({ car }: CarCardProps) => {
             <div className="px-4 py-3 space-y-1.5">
                 <RequirementRow icon={<UserCheck size={14} />} text={`${minDriverAge} Yaş ve Üstü`} />
                 <RequirementRow icon={<IdCard size={14} />} text={`Ehliyet Yaşı ${minLicenseYear} ve Üzeri`} />
-                <RequirementRow icon={<CreditCard size={14} />} text="1 Kredi Kartı" />
             </div>
 
             {/* Divider */}
