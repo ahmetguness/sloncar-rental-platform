@@ -305,6 +305,10 @@ export const adminService = {
     sendBulkEmail: async (data: { subject: string; body: string; targets: string[] }) => {
         const response = await api.post<{ success: boolean; data: { sent: number; failed: number; totalRecipients: number }; message: string }>('/admin/bulk-email', data);
         return response.data;
+    },
+    getMemberBookings: async (userId: string) => {
+        const response = await api.get<{ success: boolean; data: any[]; user: any }>(`/admin/users/${userId}/bookings`);
+        return response.data;
     }
 };
 

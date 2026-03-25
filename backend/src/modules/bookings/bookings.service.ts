@@ -20,7 +20,8 @@ function generateBookingCode(): string {
 
 // PUBLIC - Create booking and return booking code
 export async function createBooking(
-    input: CreateBookingInput
+    input: CreateBookingInput,
+    userId?: string
 ): Promise<BookingWithRelations> {
     const booking = await prisma.$transaction(async (tx) => {
         // Normalize dates to ensure daily granularity (Time is irrelevant for availability)
@@ -99,6 +100,7 @@ export async function createBooking(
                 pickupBranchId: input.pickupBranchId,
                 dropoffBranchId: input.dropoffBranchId,
                 totalPrice,
+                ...(userId ? { userId } : {}),
                 expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
             },
             include: {

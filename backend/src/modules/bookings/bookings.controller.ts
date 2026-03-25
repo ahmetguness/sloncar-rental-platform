@@ -16,7 +16,7 @@ export async function createBooking(
     next: NextFunction
 ): Promise<void> {
     try {
-        const booking = await bookingsService.createBooking(req.body as CreateBookingInput);
+        const booking = await bookingsService.createBooking(req.body as CreateBookingInput, req.user?.userId);
         res.status(201).json({
             success: true,
             message: 'Rezervasyonunuz başarıyla oluşturuldu!',

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import * as bookingsController from './bookings.controller.js';
-import { authMiddleware, adminGuard, validate } from '../../middlewares/index.js';
+import { authMiddleware, adminGuard, validate, optionalAuthMiddleware } from '../../middlewares/index.js';
 import {
     createBookingSchema,
     bookingQuerySchema,
@@ -53,7 +53,7 @@ const router = Router();
  *       201:
  *         description: Rezervasyon oluşturuldu, kod döner
  */
-router.post('/', bookingRateLimit, validate(createBookingSchema, 'body'), bookingsController.createBooking);
+router.post('/', bookingRateLimit, optionalAuthMiddleware, validate(createBookingSchema, 'body'), bookingsController.createBooking);
 
 /**
  * @openapi

@@ -568,6 +568,53 @@ export async function updateUser(id: string, data: UpdateUserData) {
 }
 
 
+export async function getMemberBookings(userId: string) {
+    // Verify user exists
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, email: true, phone: true }
+    });
+
+    if (!user) {
+        throw ApiError.notFound('Kullanıcı bulunamadı');
+    }
+
+    // Match by userId OR by email/phone to catch bookings made before userId tracking
+    const conditions: any[] = [{ userId }];
+    if (user.email) {
+        conditions.push({ customerEmail: user.email });
+    }
+    if (user.phone) {
+        conditions.push({ customerPhone: user.phone });
+    }
+
+    const bookings = await prisma.booking.findMany({
+        where: { OR: conditions },
+        include: {
+            car: {
+                select: {
+                    id: true,
+                    brand: true,
+                    model: true,
+                    plateNumber: true,
+                    dailyPrice: true,
+                    images: true,
+                }
+            },
+            pickupBranch: { select: { id: true, name: true, city: true } },
+            dropoffBranch: { select: { id: true, name: true, city: true } },
+        },
+        orderBy: { createdAt: 'desc' }
+    });
+
+    // Deduplicate in case same booking matches multiple conditions
+    const uniqueBookings = Array.from(
+        new Map(bookings.map(b => [b.id, b])).values()
+    );
+
+    return { user, bookings: uniqueBookings };
+}
+
 export async function getRecipientsByTarget(targets: string[]): Promise<string[]> {
     const conditions: any[] = [];
 

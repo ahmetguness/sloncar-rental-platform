@@ -206,6 +206,31 @@ router.patch(
 
 /**
  * @openapi
+ * /api/admin/users/{id}/bookings:
+ *   get:
+ *     tags: [Admin - Users]
+ *     summary: Üyenin kiralamalarını listele
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Üyenin kiralama listesi
+ */
+router.get(
+    '/users/:id/bookings',
+    authMiddleware,
+    adminGuard,
+    adminController.getMemberBookings
+);
+
+/**
+ * @openapi
  * /api/admin/notifications/mark-read:
  *   post:
  *     tags: [Admin - Notifications]

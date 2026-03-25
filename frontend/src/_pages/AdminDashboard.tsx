@@ -11,7 +11,7 @@ import { adminService } from '../services/api';
 import type { Booking, UserInsurance } from '../services/types';
 
 import { Button } from '../components/ui/Button';
-import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, User, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Banknote, Globe, Mail } from 'lucide-react';
+import { Loader2, Calendar, Car as CarIcon, TrendingUp, Users, User, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Filter, X, Building2, AlertCircle, Download, Check, Key, Plus, CheckCircle, Megaphone, DollarSign, Shield, Clock, Database, Bell, Settings, ChevronDown, Upload, ShieldCheck, ArrowRight, RefreshCcw, Eye, EyeOff, Banknote, Globe, Mail, Trash2 } from 'lucide-react';
 
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -87,6 +87,9 @@ export const AdminDashboard = () => {
     const [membersPage, setMembersPage] = useState(1);
     const [membersSearchTerm, setMembersSearchTerm] = useState('');
     const [membershipTypeFilter, setMembershipTypeFilter] = useState<string>('');
+    const [selectedMemberForBookings, setSelectedMemberForBookings] = useState<any | null>(null);
+    const [memberToDelete, setMemberToDelete] = useState<any | null>(null);
+    const [isDeletingMember, setIsDeletingMember] = useState(false);
 
 
     // User Management States
@@ -236,6 +239,33 @@ export const AdminDashboard = () => {
         }),
         enabled: activeTab === 'members',
         staleTime: 60000,
+    });
+
+    const deleteMemberMutation = useMutation({
+        mutationFn: (id: string) => adminService.deleteUser(id),
+        onSuccess: () => {
+            toast('Üye başarıyla silindi', 'success');
+            queryClient.invalidateQueries({ queryKey: ['admin-members'] });
+            setMemberToDelete(null);
+            setIsDeletingMember(false);
+        },
+        onError: (error: any) => {
+            toast(error.response?.data?.error?.message || error.response?.data?.message || 'Silme işlemi başarısız', 'error');
+            setIsDeletingMember(false);
+        }
+    });
+
+    const confirmDeleteMember = () => {
+        if (!memberToDelete) return;
+        setIsDeletingMember(true);
+        deleteMemberMutation.mutate(memberToDelete.id);
+    };
+
+    const { data: memberBookingsData, isLoading: memberBookingsLoading } = useQuery({
+        queryKey: ['member-bookings', selectedMemberForBookings?.id],
+        queryFn: () => adminService.getMemberBookings(selectedMemberForBookings!.id),
+        enabled: !!selectedMemberForBookings,
+        staleTime: 30000,
     });
 
     const getInsuranceStatus = useCallback((insurance: any) => {
@@ -1890,7 +1920,7 @@ export const AdminDashboard = () => {
                                                 const isExpanded = expandedTCs.has(group.tcNo);
 
                                                 let rowStyle = "hover:bg-black/[0.02] transition-colors border-b border-black/5";
-                                                let badge = null;
+                                                let badge: React.ReactNode = null;
 
                                                 if (worstStatus.type === 'EXPIRED') {
                                                     rowStyle = "bg-red-500/10 hover:bg-red-500/20";
@@ -2187,6 +2217,7 @@ export const AdminDashboard = () => {
                                                     <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Üyelik Tipi</th>
                                                     <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Detay</th>
                                                     <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Kayıt Tarihi</th>
+                                                    <th className="text-center px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">İşlemler</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-black/5">
@@ -2231,6 +2262,27 @@ export const AdminDashboard = () => {
                                                         <td className="px-6 py-4 text-sm text-gray-500">
                                                             {new Date(member.createdAt).toLocaleDateString('tr-TR')}
                                                         </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex justify-center gap-2">
+                                                                <button
+                                                                    onClick={() => setSelectedMemberForBookings(member)}
+                                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-500/10 text-primary-600 border border-primary-500/20 hover:bg-primary-500/20 transition-all"
+                                                                    title="Kiralamaları Göster"
+                                                                >
+                                                                    <CarIcon className="w-3.5 h-3.5" />
+                                                                    Kiralamaları
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setMemberToDelete(member)}
+                                                                    disabled={isDeletingMember && memberToDelete?.id === member.id}
+                                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-600 border border-red-500/20 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                                    title="Üyeyi Sil"
+                                                                >
+                                                                    {isDeletingMember && memberToDelete?.id === member.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                                                    Sil
+                                                                </button>
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -2266,6 +2318,151 @@ export const AdminDashboard = () => {
                         </div>
                     )
                 }
+
+                {/* Member Delete Confirmation Modal */}
+                {memberToDelete && !isDeletingMember && (
+                    <Modal
+                        isOpen={true}
+                        onClose={() => setMemberToDelete(null)}
+                        title="Üyeyi Sil"
+                        size="sm"
+                    >
+                        <div className="space-y-5">
+                            <div className="flex flex-col items-center text-center">
+                                <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+                                    <AlertCircle className="w-7 h-7 text-red-500" />
+                                </div>
+                                <h3 className="text-lg font-bold text-[#111111] mb-1">Üyeyi silmek istediğinize emin misiniz?</h3>
+                                <p className="text-sm text-gray-500 leading-relaxed max-w-[320px]">
+                                    Bu işlem geri alınamaz. Üyenin hesabı ve tüm verileri kalıcı olarak silinecektir.
+                                </p>
+                            </div>
+
+                            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${memberToDelete.membershipType === 'CORPORATE' ? 'bg-blue-500/10' : 'bg-emerald-500/10'}`}>
+                                        {memberToDelete.membershipType === 'CORPORATE'
+                                            ? <Building2 className="w-5 h-5 text-blue-500" />
+                                            : <User className="w-5 h-5 text-emerald-500" />
+                                        }
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-[#111111] text-sm truncate">{memberToDelete.name}</p>
+                                        <p className="text-xs text-gray-500 truncate">{memberToDelete.email}</p>
+                                        {memberToDelete.companyName && (
+                                            <p className="text-xs text-gray-400 truncate">{memberToDelete.companyName}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-1">
+                                <Button variant="outline" onClick={() => setMemberToDelete(null)} className="border-black/10 text-gray-700 hover:bg-black/5 px-6">
+                                    Vazgeç
+                                </Button>
+                                <Button
+                                    className="bg-red-500 hover:bg-red-600 text-white border-none px-6 font-bold shadow-lg shadow-red-500/20"
+                                    onClick={confirmDeleteMember}
+                                >
+                                    <Trash2 className="w-4 h-4 mr-1.5" />
+                                    Evet, Sil
+                                </Button>
+                            </div>
+                        </div>
+                    </Modal>
+                )}
+
+                {/* Member Bookings Modal */}
+                {selectedMemberForBookings && (
+                    <Modal
+                        isOpen={true}
+                        onClose={() => setSelectedMemberForBookings(null)}
+                        title={`${selectedMemberForBookings.name} — Kiralamalar`}
+                        size="lg"
+                    >
+                        <div className="space-y-4">
+                            <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedMemberForBookings.membershipType === 'CORPORATE' ? 'bg-blue-500/10' : 'bg-emerald-500/10'}`}>
+                                    {selectedMemberForBookings.membershipType === 'CORPORATE'
+                                        ? <Building2 className="w-5 h-5 text-blue-500" />
+                                        : <User className="w-5 h-5 text-emerald-500" />
+                                    }
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-[#111111]">{selectedMemberForBookings.name}</p>
+                                    <p className="text-sm text-gray-500">{selectedMemberForBookings.email}</p>
+                                </div>
+                            </div>
+
+                            {memberBookingsLoading ? (
+                                <div className="flex justify-center py-12">
+                                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                                </div>
+                            ) : !memberBookingsData?.data?.length ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                                    <CarIcon className="w-10 h-10 mb-3 opacity-50" />
+                                    <p className="text-sm font-medium">Bu üyeye ait kiralama bulunamadı</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                                    {memberBookingsData.data.map((booking: any) => {
+                                        const statusMap: Record<string, { label: string; color: string }> = {
+                                            RESERVED: { label: 'Rezerve', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+                                            ACTIVE: { label: 'Aktif', color: 'bg-green-500/10 text-green-600 border-green-500/20' },
+                                            COMPLETED: { label: 'Tamamlandı', color: 'bg-gray-500/10 text-gray-600 border-gray-500/20' },
+                                            CANCELLED: { label: 'İptal', color: 'bg-red-500/10 text-red-600 border-red-500/20' },
+                                        };
+                                        const st = statusMap[booking.status] || statusMap.RESERVED;
+                                        return (
+                                            <div key={booking.id} className="border border-black/10 rounded-xl p-4 hover:bg-black/[0.01] transition-colors">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <CarIcon className="w-4 h-4 text-gray-500" />
+                                                        <span className="font-semibold text-sm text-[#111111]">
+                                                            {booking.car?.brand} {booking.car?.model}
+                                                        </span>
+                                                        {booking.car?.plateNumber && (
+                                                            <span className="text-xs text-gray-400 font-mono">{booking.car.plateNumber}</span>
+                                                        )}
+                                                    </div>
+                                                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${st.color}`}>
+                                                        {st.label}
+                                                    </span>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                                    <div>
+                                                        <span className="text-gray-400">Kod: </span>
+                                                        <span className="font-mono font-semibold">{booking.bookingCode}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-gray-400">Toplam: </span>
+                                                        <span className="font-semibold">{booking.totalPrice ? `₺${Number(booking.totalPrice).toLocaleString('tr-TR')}` : '-'}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-gray-400">Alış: </span>
+                                                        {new Date(booking.pickupDate).toLocaleDateString('tr-TR')}
+                                                        {booking.pickupBranch && <span className="text-gray-400"> ({booking.pickupBranch.name})</span>}
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-gray-400">Teslim: </span>
+                                                        {new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}
+                                                        {booking.dropoffBranch && <span className="text-gray-400"> ({booking.dropoffBranch.name})</span>}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            <div className="flex justify-end pt-2 border-t border-black/10">
+                                <Button variant="outline" onClick={() => setSelectedMemberForBookings(null)} className="border-black/10 text-gray-700 hover:bg-black/5">
+                                    Kapat
+                                </Button>
+                            </div>
+                        </div>
+                    </Modal>
+                )}
             </div>
             {
                 selectedInsurance && (

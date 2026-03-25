@@ -179,6 +179,28 @@ export async function updateUser(
     }
 }
 
+export async function getMemberBookings(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            res.status(400).json({ success: false, message: 'Kullanıcı ID gereklidir' });
+            return;
+        }
+        const result = await adminService.getMemberBookings(id);
+        res.json({
+            success: true,
+            data: result.bookings,
+            user: result.user
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function sendBulkEmail(
     req: Request,
     res: Response,
