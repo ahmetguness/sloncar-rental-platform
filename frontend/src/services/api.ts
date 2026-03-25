@@ -314,10 +314,15 @@ export const adminService = {
 
 export const authService = {
     register: async (data: RegisterRequest) => {
-        const response = await api.post<{ success: boolean; data: AuthResponse }>('/auth/register', data);
-        if (response.data.data.token) {
-            storage.setAuth(response.data.data.token, response.data.data.user, false);
-        }
+        const response = await api.post<{ success: boolean; data: { message: string } }>('/auth/register', data);
+        return response.data.data;
+    },
+    verifyEmail: async (token: string) => {
+        const response = await api.post<{ success: boolean; data: { message: string } }>('/auth/verify-email', { token });
+        return response.data.data;
+    },
+    resendVerification: async (email: string) => {
+        const response = await api.post<{ success: boolean; data: { message: string } }>('/auth/resend-verification', { email });
         return response.data.data;
     },
     forgotPassword: async (email: string) => {

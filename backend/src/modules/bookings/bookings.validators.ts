@@ -27,8 +27,8 @@ const baseBookingSchemaObject = z.object({
 
 // Customer booking schema - no auth required
 export const createBookingSchema = baseBookingSchemaObject.refine(
-    (data) => data.dropoffDate > data.pickupDate,
-    { message: 'Teslim tarihi alış tarihinden sonra olmalı', path: ['dropoffDate'] }
+    (data) => data.dropoffDate >= data.pickupDate,
+    { message: 'Teslim tarihi alış tarihinden önce olamaz', path: ['dropoffDate'] }
 );
 
 // Admin manual booking schema
@@ -38,8 +38,8 @@ export const createManualBookingSchema = baseBookingSchemaObject.extend({
     paymentRef: z.string().optional(),
     isActive: z.boolean().default(true), // Direct to ACTIVE or RESERVED status
 }).refine(
-    (data) => data.dropoffDate > data.pickupDate,
-    { message: 'Teslim tarihi alış tarihinden sonra olmalı', path: ['dropoffDate'] }
+    (data) => data.dropoffDate >= data.pickupDate,
+    { message: 'Teslim tarihi alış tarihinden önce olamaz', path: ['dropoffDate'] }
 );
 
 // Lookup booking by code

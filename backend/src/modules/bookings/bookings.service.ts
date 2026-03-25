@@ -654,6 +654,9 @@ export async function cancelBooking(
         });
     });
 
+    // Send cancellation notification
+    notificationService.sendBookingCancellation(updatedBooking, 'Rezervasyonunuz yönetici tarafından iptal edilmiştir.').catch(err => console.error('Cancellation notification failed', err));
+
     return updatedBooking as BookingWithRelations;
 }
 
@@ -957,6 +960,25 @@ export async function getAdminBookings(
 
 // SYSTEM - Cancel expired unpaid bookings
 export async function cancelExpiredBookings() {
+    // First find the bookings that will be cancelled (need details for email)
+    const expiredBookingsList = await prisma.booking.findMany({
+        where: {
+            status: BookingStatus.RESERVED,
+            paymentStatus: PaymentStatus.UNPAID,
+            expiresAt: {
+                lt: new Date()
+            }
+        },
+        include: {
+            car: true,
+            pickupBranch: true,
+            dropoffBranch: true,
+        }
+    });
+
+    if (expiredBookingsList.length === 0) return 0;
+
+    // Cancel them
     const expiredBookings = await prisma.booking.updateMany({
         where: {
             status: BookingStatus.RESERVED,
@@ -972,6 +994,16 @@ export async function cancelExpiredBookings() {
 
     if (expiredBookings.count > 0) {
         console.log(`[CRON] Cancelled ${expiredBookings.count} expired unpaid bookings.`);
+
+        // Send cancellation emails
+        for (const booking of expiredBookingsList) {
+            if (booking.customerEmail) {
+                notificationService.sendBookingCancellation(
+                    booking,
+                    'Ödeme süresi içinde ödeme yapılmadığı için rezervasyonunuz otomatik olarak iptal edilmiştir.'
+                ).catch(err => console.error('Expired booking cancellation notification failed', err));
+            }
+        }
     }
 
     return expiredBookings.count;

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as authController from './auth.controller.js';
 import { authMiddleware, validate } from '../../middlewares/index.js';
-import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema } from './auth.validators.js';
+import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema, verifyEmailSchema, resendVerificationSchema } from './auth.validators.js';
 
 const router = Router();
 
@@ -154,5 +154,52 @@ router.post('/forgot-password', validate(forgotPasswordSchema, 'body'), authCont
  *         description: Password reset successful
  */
 router.post('/reset-password', validate(resetPasswordSchema, 'body'), authController.resetPassword);
+
+/**
+ * @openapi
+ * /api/auth/verify-email:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Verify email address with token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token]
+ *             properties:
+ *               token:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *       400:
+ *         description: Invalid or expired token
+ */
+router.post('/verify-email', validate(verifyEmailSchema, 'body'), authController.verifyEmail);
+
+/**
+ * @openapi
+ * /api/auth/resend-verification:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Resend email verification link
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Verification email sent
+ */
+router.post('/resend-verification', validate(resendVerificationSchema, 'body'), authController.resendVerification);
 
 export default router;

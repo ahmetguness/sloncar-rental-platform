@@ -192,6 +192,11 @@ model User {
   taxOffice      String?        // Vergi dairesi
   companyAddress String?        // Şirket adresi
   
+  // E-posta Doğrulama Alanları
+  isEmailVerified          Boolean   @default(false)
+  emailVerificationToken   String?
+  emailVerificationExpires DateTime?
+
   // Şifre Sıfırlama Alanları
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
@@ -216,6 +221,7 @@ model User {
   @@index([role])
   @@index([membershipType])
   @@index([resetPasswordToken])
+  @@index([emailVerificationToken])
 }
 
 /// Booking represents a car rental reservation

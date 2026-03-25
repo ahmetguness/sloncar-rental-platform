@@ -4,10 +4,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link'; // keep if needed
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { loginUser, registerUser, clearError } from '../features/auth/authSlice';
+import { authService } from '../services/api';
 import { Button } from '../components/ui/Button';
 import {
     Lock, Mail, Eye, EyeOff, User, Phone, Building2, FileText,
-    MapPin, Check, Loader2
+    MapPin, Check, Loader2, CheckCircle2
 } from 'lucide-react';
 import { normalizeEmail, formatPhoneNumber, cleanPhoneNumber } from '../utils/formatters';
 import type { MembershipType } from '../services/types';
@@ -32,6 +33,7 @@ export const Login = () => {
     const [rememberMe, setRememberMe] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [generalError, setGeneralError] = useState<string | null>(null);
+    const [registerSuccess, setRegisterSuccess] = useState<string | null>(null);
     const [errors, setErrors] = useState<FormErrors>({});
 
     // Login fields
@@ -71,6 +73,7 @@ export const Login = () => {
     // Clear errors on tab switch
     useEffect(() => {
         setGeneralError(null);
+        setRegisterSuccess(null);
         setErrors({});
         dispatch(clearError());
     }, [tab, dispatch]);
@@ -108,6 +111,7 @@ export const Login = () => {
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setGeneralError(null);
+        setRegisterSuccess(null);
         if (!validateRegister()) return;
         setIsSubmitting(true);
         try {
@@ -125,7 +129,7 @@ export const Login = () => {
             }
             const result = await dispatch(registerUser(registerData)).unwrap();
             if (result) {
-                navigate.replace('/');
+                setRegisterSuccess(result.message);
             }
         } catch (err: unknown) {
             const axiosErr = err as { response?: { data?: { message?: string; error?: { details?: { field: string; message: string }[] } } } };
@@ -281,6 +285,38 @@ export const Login = () => {
 
                     {/* REGISTER FORM */}
                     {tab === 'register' && (
+                        registerSuccess ? (
+                            <div className="text-center py-6">
+                                <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/20">
+                                    <CheckCircle2 className="w-8 h-8 text-white" />
+                                </div>
+                                <h2 className="text-xl font-bold text-[#111111] mb-3">Kayıt Başarılı</h2>
+                                <p className="text-[#666666] text-sm leading-relaxed mb-6">
+                                    {registerSuccess}
+                                </p>
+                                <p className="text-[#999999] text-xs mb-4">
+                                    E-posta gelmedi mi?{' '}
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            try {
+                                                await authService.resendVerification(email.trim());
+                                                setRegisterSuccess('Doğrulama bağlantısı tekrar gönderildi. Lütfen e-postanızı kontrol edin.');
+                                            } catch {
+                                                setGeneralError('Doğrulama e-postası gönderilemedi.');
+                                            }
+                                        }}
+                                        className="text-primary-500 font-bold hover:underline"
+                                    >
+                                        Tekrar Gönder
+                                    </button>
+                                </p>
+                                <button type="button" onClick={() => { setTab('login'); setRegisterSuccess(null); }}
+                                    className="text-primary-500 font-bold hover:underline text-sm">
+                                    Giriş Sayfasına Dön
+                                </button>
+                            </div>
+                        ) : (
                         <form onSubmit={handleRegister} className="space-y-4">
                             {renderInput('name', 'Ad Soyad', name, setName, <User className="w-5 h-5" />, { placeholder: 'Adınız Soyadınız', required: true })}
                             {renderInput('email', 'E-posta', email, (v) => setEmail(normalizeEmail(v)), <Mail className="w-5 h-5" />, { type: 'email', placeholder: 'ornek@email.com', required: true })}
@@ -325,6 +361,7 @@ export const Login = () => {
                                 <button type="button" onClick={() => setTab('login')} className="text-primary-500 font-bold hover:underline">Giriş Yap</button>
                             </p>
                         </form>
+                        )
                     )}
                 </div>
 

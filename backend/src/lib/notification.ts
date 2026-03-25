@@ -3,7 +3,7 @@ import path from 'path';
 import { whatsAppService } from './whatsapp.js';
 import prisma from './prisma.js';
 import { Logger } from './logger.js';
-import { sendBookingConfirmationToCustomer, sendBookingAlertToAdmin } from './mail.js';
+import { sendBookingConfirmationToCustomer, sendBookingAlertToAdmin, sendPaymentConfirmationToCustomer, sendBookingCancelledToCustomer } from './mail.js';
 
 // Log directory
 const LOG_DIR = path.join(process.cwd(), 'logs');
@@ -148,10 +148,14 @@ class NotificationService {
     }
 
     async sendPaymentReceipt(booking: any, amount: number): Promise<void> {
+        // 1. Send payment confirmation email to customer
+        sendPaymentConfirmationToCustomer(booking).catch(err => Logger.error('[Notification] Payment confirmation email failed:', err));
+
+        // 2. Log notification
         await this.logNotification('EMAIL', {
             to: booking.customerEmail || 'no-email',
             subject: `Ödeme Alındı - ${booking.bookingCode}`,
-            body: `Sayın ${booking.customerName},\n\n${amount} TL tutarındaki ödemeniz başarıyla alınmıştır.\nReferans No: ${booking.paymentRef}\n\nTeşekkür ederiz.`,
+            body: `Sayın ${booking.customerName}, ${amount} TL tutarındaki ödemeniz başarıyla alınmıştır. Ref: ${booking.paymentRef}`,
         });
     }
 
@@ -160,6 +164,20 @@ class NotificationService {
             to: booking.customerEmail || 'no-email',
             subject: `Süre Uzatma Onayı - ${booking.bookingCode}`,
             body: `Sayın ${booking.customerName},\n\nRezervasyon süreniz uzatılmıştır.\nYeni Teslim Tarihi: ${booking.dropoffDate}\nEk Ücret: ${additionalPrice} TL\n\nİyi yolculuklar!`,
+        });
+    }
+
+    async sendBookingCancellation(booking: any, reason?: string): Promise<void> {
+        // 1. Send cancellation email to customer
+        if (booking.customerEmail) {
+            sendBookingCancelledToCustomer(booking, reason).catch(err => Logger.error('[Notification] Cancellation email failed:', err));
+        }
+
+        // 2. Log notification
+        await this.logNotification('EMAIL', {
+            to: booking.customerEmail || 'no-email',
+            subject: `Rezervasyon İptal - ${booking.bookingCode}`,
+            body: `Sayın ${booking.customerName}, ${booking.bookingCode} kodlu rezervasyonunuz iptal edilmiştir. Sebep: ${reason || 'Belirtilmedi'}`,
         });
     }
 }

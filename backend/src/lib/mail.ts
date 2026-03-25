@@ -89,21 +89,25 @@ export async function sendMail(to: string, subject: string, html: string): Promi
     }
 }
 
-// ─── 1. Booking Confirmation → Customer ────────────────────────────────
+// ─── 1. Booking Confirmation → Customer (Ödeme Bekleniyor) ─────────────
 export async function sendBookingConfirmationToCustomer(booking: any): Promise<boolean> {
     const pickupDate = new Date(booking.pickupDate).toLocaleDateString('tr-TR');
     const dropoffDate = new Date(booking.dropoffDate).toLocaleDateString('tr-TR');
     const car = `${booking.car?.brand || ''} ${booking.car?.model || ''}`.trim();
-    const bookingUrl = `${SITE_URL}/my-booking?code=${booking.bookingCode}`;
+    const bookingUrl = `${SITE_URL}/rezervasyonum?code=${booking.bookingCode}`;
 
     const content = `
-        <h2 style="margin:0 0 8px;color:#111;font-size:22px;">Rezervasyonunuz Onaylandı 🎉</h2>
+        <h2 style="margin:0 0 8px;color:#111;font-size:22px;">Rezervasyonunuz Oluşturuldu 📋</h2>
         <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 4px;">
             Sayın <strong>${booking.customerName} ${booking.customerSurname || ''}</strong>,
         </p>
         <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 20px;">
-            Rezervasyonunuz başarıyla oluşturulmuş ve onaylanmıştır. Aşağıda rezervasyon detaylarınızı bulabilirsiniz:
+            Rezervasyonunuz başarıyla oluşturulmuştur. Rezervasyonunuzun kesinleşmesi için ödemenizi tamamlamanız gerekmektedir.
         </p>
+
+        <div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:10px;padding:14px 18px;margin:0 0 20px;">
+            <p style="margin:0;color:#92400E;font-size:13px;font-weight:700;">⏳ Ödeme süresi 10 dakikadır. Süre içinde ödeme yapılmazsa rezervasyonunuz otomatik olarak iptal edilecektir.</p>
+        </div>
 
         ${sectionTitle('📋', 'Rezervasyon Detayları')}
         ${tableWrap(
@@ -111,29 +115,25 @@ export async function sendBookingConfirmationToCustomer(booking: any): Promise<b
             infoRow('Araç', car) +
             infoRow('Alış Tarihi', pickupDate) +
             infoRow('Teslim Tarihi', dropoffDate) +
-            infoRow('Toplam Tutar', `${booking.totalPrice} TL`, true)
+            infoRow('Toplam Tutar', `${booking.totalPrice} TL`, true) +
+            infoRow('Ödeme Durumu', '<span style="color:#F59E0B;font-weight:700;">Ödeme Bekleniyor</span>')
         )}
 
-        ${sectionTitle('🚗', 'Önemli Bilgiler')}
+        ${sectionTitle('📌', 'Önemli Bilgiler')}
         ${bulletList([
-            'Aracınızı belirtilen tarih ve saatte teslim alabilirsiniz.',
-            'Lütfen teslim sırasında kimlik ve ehliyetinizi yanınızda bulundurunuz.',
-            'Herhangi bir değişiklik için bizimle iletişime geçebilirsiniz.',
+            'Ödemenizi tamamladıktan sonra rezervasyonunuz kesinleşecektir.',
+            'Teslim sırasında kimlik ve ehliyetinizi yanınızda bulundurunuz.',
+            'Herhangi bir sorunuz için bizimle iletişime geçebilirsiniz.',
         ])}
 
         <p style="color:#374151;font-size:14px;margin:24px 0 4px;">👉 Rezervasyonunuzu görüntülemek için:</p>
         ${ctaButton(bookingUrl, 'Rezervasyonumu Görüntüle')}
-
-        <p style="color:#6b7280;font-size:13px;margin-top:24px;line-height:1.6;">
-            Herhangi bir sorunuz olması durumunda size yardımcı olmaktan memnuniyet duyarız.<br/>
-            İyi yolculuklar dileriz.
-        </p>
     `;
 
     return sendMail(
         booking.customerEmail,
-        `Rezervasyonunuz Onaylandı 🎉 | ${booking.bookingCode}`,
-        wrapHtml('Rezervasyon Onayı', content),
+        `Rezervasyonunuz Oluşturuldu 📋 | ${booking.bookingCode}`,
+        wrapHtml('Rezervasyon Oluşturuldu', content),
     );
 }
 
@@ -176,6 +176,106 @@ export async function sendBookingAlertToAdmin(adminEmail: string, booking: any):
         adminEmail,
         `🔔 Yeni Rezervasyon Oluşturuldu | ${booking.bookingCode}`,
         wrapHtml('Yeni Rezervasyon', content),
+    );
+}
+
+// ─── 2b. Payment Confirmation → Customer ───────────────────────────────
+export async function sendPaymentConfirmationToCustomer(booking: any): Promise<boolean> {
+    const pickupDate = new Date(booking.pickupDate).toLocaleDateString('tr-TR');
+    const dropoffDate = new Date(booking.dropoffDate).toLocaleDateString('tr-TR');
+    const car = `${booking.car?.brand || ''} ${booking.car?.model || ''}`.trim();
+    const bookingUrl = `${SITE_URL}/rezervasyonum?code=${booking.bookingCode}`;
+    const paidAt = booking.paidAt ? new Date(booking.paidAt).toLocaleString('tr-TR') : new Date().toLocaleString('tr-TR');
+
+    const content = `
+        <h2 style="margin:0 0 8px;color:#111;font-size:22px;">Ödemeniz Alındı, Rezervasyonunuz Kesinleşti ✅</h2>
+        <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 4px;">
+            Sayın <strong>${booking.customerName} ${booking.customerSurname || ''}</strong>,
+        </p>
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 20px;">
+            Ödemeniz başarıyla alınmıştır ve rezervasyonunuz kesinleşmiştir. Aşağıda detayları bulabilirsiniz:
+        </p>
+
+        ${sectionTitle('💳', 'Ödeme Bilgileri')}
+        ${tableWrap(
+            infoRow('Ödeme Tutarı', `${booking.totalPrice} TL`, true) +
+            infoRow('Ödeme Referansı', booking.paymentRef || '-') +
+            infoRow('Ödeme Tarihi', paidAt) +
+            infoRow('Ödeme Durumu', '<span style="color:#16a34a;font-weight:700;">Ödendi ✅</span>')
+        )}
+
+        ${sectionTitle('📋', 'Rezervasyon Detayları')}
+        ${tableWrap(
+            infoRow('Rezervasyon Kodu', booking.bookingCode, true) +
+            infoRow('Araç', car) +
+            infoRow('Alış Tarihi', pickupDate) +
+            infoRow('Teslim Tarihi', dropoffDate)
+        )}
+
+        ${sectionTitle('🚗', 'Önemli Bilgiler')}
+        ${bulletList([
+            'Aracınızı belirtilen tarih ve saatte teslim alabilirsiniz.',
+            'Lütfen teslim sırasında kimlik ve ehliyetinizi yanınızda bulundurunuz.',
+            'Herhangi bir değişiklik için bizimle iletişime geçebilirsiniz.',
+        ])}
+
+        <p style="color:#374151;font-size:14px;margin:24px 0 4px;">👉 Rezervasyonunuzu görüntülemek için:</p>
+        ${ctaButton(bookingUrl, 'Rezervasyonumu Görüntüle')}
+
+        <p style="color:#6b7280;font-size:13px;margin-top:24px;line-height:1.6;">
+            İyi yolculuklar dileriz.
+        </p>
+    `;
+
+    return sendMail(
+        booking.customerEmail,
+        `Ödemeniz Alındı ✅ | ${booking.bookingCode}`,
+        wrapHtml('Ödeme Onayı', content),
+    );
+}
+
+// ─── 2c. Booking Cancelled → Customer ──────────────────────────────────
+export async function sendBookingCancelledToCustomer(booking: any, reason?: string): Promise<boolean> {
+    const pickupDate = new Date(booking.pickupDate).toLocaleDateString('tr-TR');
+    const dropoffDate = new Date(booking.dropoffDate).toLocaleDateString('tr-TR');
+    const car = `${booking.car?.brand || ''} ${booking.car?.model || ''}`.trim();
+
+    const cancelReason = reason || 'Ödeme süresi içinde ödeme yapılmadığı için rezervasyonunuz otomatik olarak iptal edilmiştir.';
+
+    const content = `
+        <h2 style="margin:0 0 8px;color:#111;font-size:22px;">Rezervasyonunuz İptal Edildi ❌</h2>
+        <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 4px;">
+            Sayın <strong>${booking.customerName} ${booking.customerSurname || ''}</strong>,
+        </p>
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 20px;">
+            ${cancelReason}
+        </p>
+
+        ${sectionTitle('📋', 'İptal Edilen Rezervasyon')}
+        ${tableWrap(
+            infoRow('Rezervasyon Kodu', booking.bookingCode, true) +
+            infoRow('Araç', car) +
+            infoRow('Alış Tarihi', pickupDate) +
+            infoRow('Teslim Tarihi', dropoffDate) +
+            infoRow('Tutar', `${booking.totalPrice} TL`) +
+            infoRow('Durum', '<span style="color:#dc2626;font-weight:700;">İptal Edildi ❌</span>')
+        )}
+
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:20px 0;">
+            Yeni bir rezervasyon oluşturmak isterseniz sitemizi ziyaret edebilirsiniz.
+        </p>
+
+        ${ctaButton(SITE_URL, 'Yeni Rezervasyon Oluştur')}
+
+        <p style="color:#6b7280;font-size:13px;margin-top:24px;line-height:1.6;">
+            Herhangi bir sorunuz olması durumunda bizimle iletişime geçebilirsiniz.
+        </p>
+    `;
+
+    return sendMail(
+        booking.customerEmail,
+        `Rezervasyonunuz İptal Edildi ❌ | ${booking.bookingCode}`,
+        wrapHtml('Rezervasyon İptali', content),
     );
 }
 
@@ -382,5 +482,120 @@ export async function sendPasswordResetEmail(email: string, resetLink: string, u
         email,
         'Şifre Sıfırlama İsteği',
         wrapHtml('Şifre Sıfırlama', content)
+    );
+}
+
+// ─── 8. Email Verification → New Member ────────────────────────────────
+export async function sendEmailVerificationEmail(email: string, verificationLink: string, userName: string): Promise<boolean> {
+    const content = `
+        <h2 style="margin:0 0 8px;color:#111;font-size:22px;">E-posta Adresinizi Doğrulayın ✉️</h2>
+        <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 4px;">
+            Sayın <strong>${userName}</strong>,
+        </p>
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 20px;">
+            Üyelik kaydınız başarıyla oluşturuldu. Hesabınızı aktifleştirmek için lütfen aşağıdaki butona tıklayarak e-posta adresinizi doğrulayın. Bu bağlantı 24 saat boyunca geçerlidir.
+        </p>
+
+        ${ctaButton(verificationLink, 'E-postamı Doğrula')}
+
+        <p style="color:#6b7280;font-size:13px;margin-top:24px;line-height:1.6;">
+            Eğer bu hesabı siz oluşturmadıysanız, bu e-postayı dikkate almayınız.
+        </p>
+    `;
+
+    return sendMail(
+        email,
+        'E-posta Doğrulama | Hesabınızı Aktifleştirin',
+        wrapHtml('E-posta Doğrulama', content)
+    );
+}
+
+// ─── 9. Account Activated → Member ─────────────────────────────────────
+export async function sendAccountActivatedToMember(user: {
+    email: string;
+    name: string;
+    membershipType: string;
+    companyName?: string | null;
+}): Promise<boolean> {
+    const isCorporate = user.membershipType === 'CORPORATE';
+    const typeLabel = isCorporate ? 'Kurumsal' : 'Bireysel';
+
+    const content = `
+        <h2 style="margin:0 0 8px;color:#111;font-size:22px;">Hesabınız Aktifleştirildi 🎉</h2>
+        <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 4px;">
+            Sayın <strong>${user.name}</strong>,
+        </p>
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 20px;">
+            E-posta doğrulamanız tamamlandı ve ${typeLabel.toLowerCase()} üyelik hesabınız başarıyla aktifleştirildi. Artık tüm hizmetlerimizden faydalanabilirsiniz.
+        </p>
+
+        ${sectionTitle('📋', 'Üyelik Bilgileri')}
+        ${tableWrap(
+            infoRow('Ad Soyad', user.name) +
+            infoRow('E-posta', user.email) +
+            infoRow('Üyelik Tipi', typeLabel, true) +
+            (isCorporate && user.companyName ? infoRow('Şirket', user.companyName) : '')
+        )}
+
+        ${sectionTitle('🚗', 'Neler Yapabilirsiniz?')}
+        ${bulletList([
+            'Araç kiralama ve rezervasyon oluşturma',
+            'Mevcut rezervasyonlarınızı takip etme',
+            'Profil bilgilerinizi güncelleme',
+        ])}
+
+        ${ctaButton(SITE_URL, 'Araçları İncele')}
+
+        <p style="color:#6b7280;font-size:13px;margin-top:24px;line-height:1.6;">
+            Herhangi bir sorunuz olması durumunda bizimle iletişime geçebilirsiniz.
+        </p>
+    `;
+
+    return sendMail(
+        user.email,
+        `Hesabınız Aktifleştirildi 🎉 | ${typeLabel} Üyelik`,
+        wrapHtml('Hesap Aktifleştirildi', content),
+    );
+}
+
+// ─── 10. Account Activated Alert → Admin ───────────────────────────────
+export async function sendAccountActivatedAlertToAdmin(adminEmail: string, user: {
+    name: string;
+    email: string;
+    phone?: string | null;
+    membershipType: string;
+    companyName?: string | null;
+    taxNumber?: string | null;
+}): Promise<boolean> {
+    const isCorporate = user.membershipType === 'CORPORATE';
+    const typeLabel = isCorporate ? 'Kurumsal' : 'Bireysel';
+
+    const content = `
+        <h2 style="margin:0 0 8px;color:#111;font-size:22px;">✅ Yeni ${typeLabel} Üye Doğrulandı</h2>
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 20px;">
+            Bir ${typeLabel.toLowerCase()} üye e-posta doğrulamasını tamamlayarak hesabını aktifleştirdi.
+        </p>
+
+        ${sectionTitle('📋', 'Üye Bilgileri')}
+        ${tableWrap(
+            infoRow('Ad Soyad', user.name, true) +
+            infoRow('E-posta', user.email) +
+            infoRow('Telefon', user.phone || '-') +
+            infoRow('Üyelik Tipi', typeLabel) +
+            (isCorporate && user.companyName ? infoRow('Şirket', user.companyName) : '') +
+            (isCorporate && user.taxNumber ? infoRow('Vergi No', user.taxNumber) : '')
+        )}
+
+        ${ctaButton(SITE_URL + '/admin/dashboard', 'Panele Git')}
+
+        <p style="color:#9ca3af;font-size:12px;margin-top:24px;font-style:italic;">
+            Bu bildirim otomatik olarak oluşturulmuştur.
+        </p>
+    `;
+
+    return sendMail(
+        adminEmail,
+        `✅ Üye Doğrulandı | ${user.name}`,
+        wrapHtml('Üye Doğrulandı', content),
     );
 }

@@ -413,6 +413,7 @@ export async function createUser(data: any) {
         phone,
         role: role || 'USER',
         membershipType: membershipType || 'INDIVIDUAL',
+        isEmailVerified: true, // Admin tarafından oluşturulan kullanıcılar doğrulanmış sayılır
     };
 
     // Tipe özgü alanlar

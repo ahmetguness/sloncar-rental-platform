@@ -106,15 +106,12 @@ const authSlice = createSlice({
                 state.status = 'loading';
                 state.error = null;
             })
-            .addCase(registerUser.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
+            .addCase(registerUser.fulfilled, (state) => {
                 state.status = 'succeeded';
-                state.isAuthenticated = true;
-                state.user = action.payload.user;
-                state.token = action.payload.token;
+                // Don't authenticate - user needs to verify email first
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.status = 'failed';
-                state.isAuthenticated = false;
                 state.error = action.payload as string;
             });
     },

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as authService from './auth.service.js';
 import { auditService } from '../audit/audit.service.js';
-import { RegisterInput, LoginInput, ForgotPasswordInput, ResetPasswordInput } from './auth.validators.js';
+import { RegisterInput, LoginInput, ForgotPasswordInput, ResetPasswordInput, VerifyEmailInput, ResendVerificationInput } from './auth.validators.js';
 
 
 export async function register(
@@ -100,6 +100,38 @@ export async function resetPassword(
 ): Promise<void> {
     try {
         const result = await authService.resetPassword(req.body as ResetPasswordInput);
+        res.json({
+            success: true,
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function verifyEmail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const result = await authService.verifyEmail((req.body as VerifyEmailInput).token);
+        res.json({
+            success: true,
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function resendVerification(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const result = await authService.resendVerification((req.body as ResendVerificationInput).email);
         res.json({
             success: true,
             data: result,

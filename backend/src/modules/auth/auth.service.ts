@@ -4,13 +4,13 @@ import { signToken } from '../../lib/jwt.js';
 import { ApiError } from '../../middlewares/errorHandler.js';
 import { RegisterInput, LoginInput, ForgotPasswordInput, ResetPasswordInput } from './auth.validators.js';
 import { AuthResponse } from './auth.types.js';
-import { sendWelcomeToMember, sendNewMemberAlertToAdmin, sendPasswordResetEmail } from '../../lib/mail.js';
+import { sendEmailVerificationEmail, sendAccountActivatedToMember, sendAccountActivatedAlertToAdmin, sendPasswordResetEmail } from '../../lib/mail.js';
 import crypto from 'crypto';
 import { Logger } from '../../lib/logger.js';
 
 const SALT_ROUNDS = process.env.NODE_ENV === 'test' ? 1 : 12;
 
-export async function register(input: RegisterInput): Promise<AuthResponse> {
+export async function register(input: RegisterInput): Promise<{ message: string }> {
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
         where: { email: input.email },
@@ -33,6 +33,11 @@ export async function register(input: RegisterInput): Promise<AuthResponse> {
     // Hash password
     const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
 
+    // Generate email verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     // Ortak ve tipe özgü alanları birleştir
     const userData: Parameters<typeof prisma.user.create>[0]['data'] = {
         email: input.email,
@@ -41,6 +46,9 @@ export async function register(input: RegisterInput): Promise<AuthResponse> {
         phone: input.phone,
         membershipType: input.membershipType,
         emailCampaignEnabled: input.emailCampaignEnabled ?? true,
+        isEmailVerified: false,
+        emailVerificationToken: hashedToken,
+        emailVerificationExpires: verificationExpires,
     };
 
     if (input.membershipType === 'INDIVIDUAL') {
@@ -52,53 +60,19 @@ export async function register(input: RegisterInput): Promise<AuthResponse> {
         userData.companyAddress = input.companyAddress ?? null;
     }
 
-    // Create user
+    // Create user (unverified)
     const user = await prisma.user.create({ data: userData });
 
-    // Generate token
-    const token = signToken({
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-    });
+    // Send verification email (async, non-blocking)
+    const frontendUrl = process.env.SITE_URL || 'http://localhost:5173';
+    const verificationLink = `${frontendUrl}/eposta-dogrula?token=${verificationToken}`;
 
-    // Send welcome email to new member (async, non-blocking)
-    sendWelcomeToMember({
-        email: user.email,
-        name: user.name,
-        membershipType: user.membershipType,
-        companyName: user.companyName,
-    }).catch(err => Logger.error('[Auth] Welcome email failed:', err));
-
-    // Notify admins about new member (async, non-blocking)
-    prisma.user.findMany({
-        where: { role: 'ADMIN', emailEnabled: true },
-        select: { email: true },
-    }).then(admins => {
-        for (const admin of admins) {
-            if (admin.email) {
-                sendNewMemberAlertToAdmin(admin.email, {
-                    name: user.name,
-                    email: user.email,
-                    phone: user.phone,
-                    membershipType: user.membershipType,
-                    companyName: user.companyName,
-                    taxNumber: user.taxNumber,
-                }).catch(err => Logger.error('[Auth] Admin notification email failed:', err));
-            }
-        }
-    }).catch(err => Logger.error('[Auth] Failed to fetch admins for new member notification:', err));
+    sendEmailVerificationEmail(user.email, verificationLink, user.name).catch(err =>
+        Logger.error('[Auth] Verification email failed:', err)
+    );
 
     return {
-        user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-            phone: user.phone,
-            membershipType: user.membershipType,
-        },
-        token,
+        message: 'Kayıt başarılı. Lütfen e-posta adresinize gönderilen doğrulama bağlantısına tıklayarak hesabınızı aktifleştirin.',
     };
 }
 
@@ -111,6 +85,11 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
 
     if (!user) {
         throw ApiError.unauthorized('Invalid email or password');
+    }
+
+    // Check if email is verified (only for regular users, not admin/staff)
+    if (!user.isEmailVerified && user.role === 'USER') {
+        throw ApiError.forbidden('E-posta adresiniz henüz doğrulanmamış. Lütfen e-postanıza gönderilen doğrulama bağlantısına tıklayın.');
     }
 
     // Verify password
@@ -326,5 +305,100 @@ export async function resetPassword(input: ResetPasswordInput): Promise<{ messag
         message: 'Şifreniz başarıyla sıfırlandı. Artık yeni şifrenizle giriş yapabilirsiniz.',
         user: { role: user.role, membershipType: user.membershipType }
     };
+}
+
+export async function verifyEmail(token: string): Promise<{ message: string }> {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await prisma.user.findFirst({
+        where: {
+            emailVerificationToken: hashedToken,
+            emailVerificationExpires: { gt: new Date() },
+        },
+    });
+
+    if (!user) {
+        throw ApiError.badRequest('Geçersiz veya süresi dolmuş doğrulama bağlantısı.');
+    }
+
+    if (user.isEmailVerified) {
+        return { message: 'E-posta adresiniz zaten doğrulanmış.' };
+    }
+
+    // Activate user
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            isEmailVerified: true,
+            emailVerificationToken: null,
+            emailVerificationExpires: null,
+        },
+    });
+
+    // Send account activated email to member (async, non-blocking)
+    sendAccountActivatedToMember({
+        email: user.email,
+        name: user.name,
+        membershipType: user.membershipType,
+        companyName: user.companyName,
+    }).catch(err => Logger.error('[Auth] Account activated email failed:', err));
+
+    // Notify admins about verified member (async, non-blocking)
+    prisma.user.findMany({
+        where: { role: 'ADMIN', emailEnabled: true },
+        select: { email: true },
+    }).then(admins => {
+        for (const admin of admins) {
+            if (admin.email) {
+                sendAccountActivatedAlertToAdmin(admin.email, {
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone,
+                    membershipType: user.membershipType,
+                    companyName: user.companyName,
+                    taxNumber: user.taxNumber,
+                }).catch(err => Logger.error('[Auth] Admin verification notification failed:', err));
+            }
+        }
+    }).catch(err => Logger.error('[Auth] Failed to fetch admins for verification notification:', err));
+
+    return { message: 'E-posta adresiniz başarıyla doğrulandı. Artık giriş yapabilirsiniz.' };
+}
+
+export async function resendVerification(email: string): Promise<{ message: string }> {
+    const user = await prisma.user.findUnique({
+        where: { email },
+    });
+
+    if (!user) {
+        // Don't reveal if user exists
+        return { message: 'Eğer bu e-posta adresi sistemimizde kayıtlıysa, doğrulama bağlantısı gönderilecektir.' };
+    }
+
+    if (user.isEmailVerified) {
+        throw ApiError.badRequest('Bu e-posta adresi zaten doğrulanmış.');
+    }
+
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            emailVerificationToken: hashedToken,
+            emailVerificationExpires: verificationExpires,
+        },
+    });
+
+    const frontendUrl = process.env.SITE_URL || 'http://localhost:5173';
+    const verificationLink = `${frontendUrl}/eposta-dogrula?token=${verificationToken}`;
+
+    await sendEmailVerificationEmail(user.email, verificationLink, user.name).catch(err =>
+        Logger.error('[Auth] Resend verification email failed:', err)
+    );
+
+    return { message: 'Eğer bu e-posta adresi sistemimizde kayıtlıysa, doğrulama bağlantısı gönderilecektir.' };
 }
 

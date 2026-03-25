@@ -5,7 +5,7 @@ import Link from 'next/link'; // keep if needed
 import { Button } from '../components/ui/Button';
 import {
     Mail, Lock, Eye, EyeOff, User, Phone, Building2, FileText,
-    MapPin, UserPlus, Loader2
+    MapPin, UserPlus, Loader2, CheckCircle2
 } from 'lucide-react';
 import { normalizeEmail, formatPhoneNumber, cleanPhoneNumber } from '../utils/formatters';
 import { authService } from '../services/api';
@@ -23,6 +23,7 @@ export const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [generalError, setGeneralError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [errors, setErrors] = useState<FormErrors>({});
 
     // Common fields
@@ -75,14 +76,16 @@ export const Register = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setGeneralError(null);
+        setSuccessMessage(null);
 
         if (!validate()) return;
 
         setIsLoading(true);
         try {
             const cleanedPhone = phone.replace(/\D/g, '');
+            let result;
             if (membershipType === 'INDIVIDUAL') {
-                await authService.register({
+                result = await authService.register({
                     membershipType: 'INDIVIDUAL',
                     name: name.trim(),
                     email: email.trim(),
@@ -91,7 +94,7 @@ export const Register = () => {
                     tcNo: tcNo || undefined,
                 });
             } else {
-                await authService.register({
+                result = await authService.register({
                     membershipType: 'CORPORATE',
                     name: name.trim(),
                     email: email.trim(),
@@ -103,7 +106,7 @@ export const Register = () => {
                     companyAddress: companyAddress.trim() || undefined,
                 });
             }
-            navigate.replace('/');
+            setSuccessMessage(result.message);
         } catch (err: unknown) {
             const axiosErr = err as { response?: { data?: { message?: string; error?: { details?: { field: string; message: string }[] } } } };
             const details = axiosErr.response?.data?.error?.details;
@@ -236,6 +239,39 @@ export const Register = () => {
                         </div>
                     )}
 
+                    {/* Success Message */}
+                    {successMessage ? (
+                        <div className="text-center py-6">
+                            <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/20">
+                                <CheckCircle2 className="w-8 h-8 text-white" />
+                            </div>
+                            <h2 className="text-xl font-bold text-[#111111] mb-3">Kayıt Başarılı</h2>
+                            <p className="text-[#666666] text-sm leading-relaxed mb-6">
+                                {successMessage}
+                            </p>
+                            <p className="text-[#999999] text-xs mb-6">
+                                E-posta gelmedi mi?{' '}
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        try {
+                                            await authService.resendVerification(email.trim());
+                                            setSuccessMessage('Doğrulama bağlantısı tekrar gönderildi. Lütfen e-postanızı kontrol edin.');
+                                        } catch {
+                                            setGeneralError('Doğrulama e-postası gönderilemedi. Lütfen daha sonra tekrar deneyin.');
+                                        }
+                                    }}
+                                    className="text-primary-500 font-bold hover:underline"
+                                >
+                                    Tekrar Gönder
+                                </button>
+                            </p>
+                            <Link href="/giris" className="text-primary-500 font-bold hover:underline text-sm">
+                                Giriş Sayfasına Dön
+                            </Link>
+                        </div>
+                    ) : (
+                    <>
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Common Fields */}
@@ -280,6 +316,8 @@ export const Register = () => {
                             Giriş Yap
                         </Link>
                     </p>
+                    </>
+                    )}
                 </div>
 
                 {/* Footer */}
