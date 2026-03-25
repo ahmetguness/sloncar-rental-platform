@@ -9,7 +9,9 @@ export default function robots(): MetadataRoute.Robots {
         '/admin/',
         '/profile/',
         '/api/',
-        '/my-booking/'
+        '/my-booking/',
+        '/book/',
+        '/login/',
       ],
     },
     sitemap: 'https://yamanfilo.com/sitemap.xml',

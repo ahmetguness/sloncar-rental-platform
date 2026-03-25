@@ -10,7 +10,7 @@ const carTypeEnum = z.nativeEnum(CarType);
 
 const baseCarSchema = z.object({
     brand: z.string().min(1, 'Brand is required'),
-    brandLogo: z.string().optional().or(z.literal('')),
+    brandLogo: z.string().nullish().transform(val => val || undefined),
     model: z.string().min(1, 'Model is required'),
     year: z.number().int().min(1900).max(new Date().getFullYear() + 1),
     type: carTypeEnum.default('RENTAL'),
@@ -36,6 +36,13 @@ const baseCarSchema = z.object({
     changedParts: z.array(z.string()).default([]),
     paintedParts: z.array(z.string()).default([]),
     features: z.array(z.string()).default([]),
+    // Rental detail fields
+    largeLuggage: z.number().int().min(0).max(10).default(1),
+    smallLuggage: z.number().int().min(0).max(10).default(1),
+    hasAirbag: z.boolean().default(true),
+    hasABS: z.boolean().default(true),
+    minDriverAge: z.number().int().min(18).max(99).default(21),
+    minLicenseYear: z.number().int().min(0).max(50).default(1),
 });
 
 export const createCarSchema = baseCarSchema.refine(data => {

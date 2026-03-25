@@ -23,6 +23,12 @@ export interface Car {
     type?: 'RENTAL' | 'SALE';
     salePrice?: string | number;
     description?: string;
+    largeLuggage?: number;
+    smallLuggage?: number;
+    hasAirbag?: boolean;
+    hasABS?: boolean;
+    minDriverAge?: number;
+    minLicenseYear?: number;
     branchId: string;
     branch?: Branch;
 }

@@ -237,8 +237,8 @@ export const AdminSaleCars = () => {
         setSubmitting(true);
 
         // Manual validation since we use noValidate to allow mixed step logic
-        if (!formData.brand || !formData.model || !formData.plateNumber || !formData.color || Number(formData.salePrice) < 0) {
-            toast('Lütfen tüm zorunlu alanları doldurun', 'error');
+        if (!formData.brand || !formData.model || !formData.plateNumber || !formData.color || !Number(formData.salePrice) || !formData.branchId) {
+            toast('Lütfen tüm zorunlu alanları doldurun (satış fiyatı 0\'dan büyük olmalı)', 'error');
             setSubmitting(false);
             return;
         }
@@ -251,18 +251,29 @@ export const AdminSaleCars = () => {
 
         try {
             const carData = {
-                ...formData,
-                salePrice: Number(formData.salePrice),
-                mileage: Number(formData.mileage),
+                brand: formData.brand,
+                brandLogo: typeof formData.brandLogo === 'object' && formData.brandLogo?.src ? formData.brandLogo.src : (formData.brandLogo || ''),
+                model: formData.model,
                 year: Number(formData.year),
+                transmission: formData.transmission,
+                fuel: formData.fuel,
+                category: formData.category,
                 seats: Number(formData.seats),
                 doors: Number(formData.doors),
+                color: formData.color,
+                plateNumber: formData.plateNumber,
+                salePrice: Number(formData.salePrice),
+                mileage: Number(formData.mileage),
+                branchId: formData.branchId,
+                images: formData.images,
+                status: formData.status,
                 isFeatured: formData.isFeatured,
-                accidentDescription: formData.accidentDescription,
+                description: formData.description || undefined,
+                accidentDescription: formData.accidentDescription || undefined,
                 changedParts: formData.changedParts.split(',').map(s => s.trim()).filter(Boolean),
                 paintedParts: formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean),
                 features: formData.features.split(',').map(s => s.trim()).filter(Boolean),
-                type: 'SALE' // Enforce SALE
+                type: 'SALE' as const,
             };
 
             if (editingCar) {
@@ -506,7 +517,7 @@ export const AdminSaleCars = () => {
                                     brands={brands}
                                     value={formData.brand}
                                     logoUrl={formData.brandLogo}
-                                    onChange={(name, logo) => setFormData(prev => ({ ...prev, brand: name, brandLogo: logo || '' }))}
+                                    onChange={(name, logo) => setFormData(prev => ({ ...prev, brand: name, brandLogo: typeof logo === 'object' && logo?.src ? logo.src : (logo || '') }))}
                                     required
                                 />
                             </div>

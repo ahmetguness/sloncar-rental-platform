@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { carService, brandService } from '../services/api';
 import type { Car } from '../services/types';
-import { CarCard } from '../components/CarCard';
+import { SaleCarCard } from '../components/SaleCarCard';
 import { Button } from '../components/ui/Button';
 import { Loader2, Plus, Minus, Tag, ShieldCheck } from 'lucide-react';
 
@@ -131,10 +131,9 @@ export const SecondHand = () => {
                     <>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-8">
                             {cars.map(car => (
-                                <CarCard
+                                <SaleCarCard
                                     key={car.id}
                                     car={car}
-                                    brandLogoUrl={getBrandLogoUrl(car.brand)}
                                 />
                             ))}
                         </div>

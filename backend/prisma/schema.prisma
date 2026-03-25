@@ -144,6 +144,14 @@ model Car {
   features            String[] // Extra features (Sunroof, Nav, etc.)
   description         String?
 
+  // Rental-specific detail fields
+  largeLuggage        Int       @default(1) // Büyük bavul kapasitesi
+  smallLuggage        Int       @default(1) // Küçük bavul kapasitesi
+  hasAirbag           Boolean   @default(true)
+  hasABS              Boolean   @default(true)
+  minDriverAge        Int       @default(21) // Minimum sürücü yaşı
+  minLicenseYear      Int       @default(1)  // Minimum ehliyet yılı
+
   // Relations
   branch   Branch    @relation(fields: [branchId], references: [id])
   branchId String

@@ -136,8 +136,22 @@ export async function createCar(input: CreateCarInput): Promise<CarWithBranch> {
         throw ApiError.conflict('Bu plakaya sahip bir araç zaten mevcut');
     }
 
+    const {
+        brand, brandLogo, model, year, type, transmission, fuel, category,
+        seats, doors, color, plateNumber, dailyPrice, weeklyPrice, salePrice,
+        deposit, mileage, images, status, isFeatured, description, branchId,
+        accidentDescription, changedParts, paintedParts, features,
+        largeLuggage, smallLuggage, hasAirbag, hasABS, minDriverAge, minLicenseYear,
+    } = input;
+
     const car = await prisma.car.create({
-        data: input,
+        data: {
+            brand, brandLogo, model, year, type, transmission, fuel, category,
+            seats, doors, color, plateNumber, dailyPrice, weeklyPrice, salePrice,
+            deposit, mileage, images, status, isFeatured, description, branchId,
+            accidentDescription, changedParts, paintedParts, features,
+            largeLuggage, smallLuggage, hasAirbag, hasABS, minDriverAge, minLicenseYear,
+        },
         include: { branch: true },
     });
 

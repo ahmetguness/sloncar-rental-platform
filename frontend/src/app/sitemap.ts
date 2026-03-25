@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { carSlug } from '../utils/slug';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://yamanfilo.com';
@@ -6,19 +7,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
-    // Add pagination or grab all if API supports it
-    const res = await fetch(`${apiUrl}/cars?page=1&limit=100`, { next: { revalidate: 3600 } });
-    
+    const res = await fetch(`${apiUrl}/cars?page=1&limit=200`, { next: { revalidate: 3600 } });
+
     if (res.ok) {
       const { data } = await res.json();
       const cars = data?.items || data || [];
-      
-      dynamicRoutes = cars.map((car: any) => ({
-        url: `${baseUrl}/car/${car.id}`,
-        lastModified: new Date(),
-        changeFrequency: 'daily',
-        priority: 0.8,
-      }));
+
+      dynamicRoutes = cars.map((car: any) => {
+        const isRental = car.type === 'RENTAL' || !car.type;
+        const slug = carSlug(car.brand, car.model);
+        return {
+          url: isRental ? `${baseUrl}/arac/${slug}` : `${baseUrl}/car/${car.id}`,
+          lastModified: new Date(),
+          changeFrequency: 'daily' as const,
+          priority: 0.8,
+        };
+      });
     }
   } catch (error) {
     console.error('Sitemap fetch failed:', error);
@@ -42,12 +46,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/book`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.6,
     },
   ];
 

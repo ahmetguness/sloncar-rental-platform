@@ -2,19 +2,18 @@
 import { useState } from 'react';
 import type { Car } from '../services/types';
 import {
-    Users, Briefcase, ShieldCheck, Fuel, Cog,
-    ArrowRight, ChevronLeft, ChevronRight, CreditCard, IdCard, UserCheck
+    Fuel, Cog, ArrowRight, ChevronLeft, ChevronRight,
+    Gauge, Calendar, Palette
 } from 'lucide-react';
 import Link from 'next/link';
-import { translateCategory, translateFuel } from '../utils/translate';
+import { translateFuel } from '../utils/translate';
 import { optimizeCloudinaryUrl } from '../utils/cloudinaryOptimize';
 
-interface CarCardProps {
+interface SaleCarCardProps {
     car: Car;
-    brandLogoUrl?: string;
 }
 
-const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) => {
+const SaleImageCarousel = ({ images, alt }: { images: string[], alt: string }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     const nextSlide = (e: React.MouseEvent) => {
@@ -92,53 +91,35 @@ const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) =>
     );
 };
 
-export const CarCard = ({ car }: CarCardProps) => {
-    const seats = car.seats ?? 5;
-    const largeLuggage = car.largeLuggage ?? 1;
-    const smallLuggage = car.smallLuggage ?? 1;
-    const hasAirbag = car.hasAirbag ?? true;
-    const hasABS = car.hasABS ?? true;
-    const minDriverAge = car.minDriverAge ?? 21;
-    const minLicenseYear = car.minLicenseYear ?? 1;
-
+export const SaleCarCard = ({ car }: SaleCarCardProps) => {
     return (
         <Link
-            href={`/book/${car.id}`}
-            className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-primary-500/40 transition-all duration-300 hover:shadow-lg hover:shadow-black/5"
+            href={`/car/${car.id}`}
+            className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-green-500/40 transition-all duration-300 hover:shadow-lg hover:shadow-black/5"
         >
-            {/* Header: Category + Name */}
-            <div className="px-4 pt-4 pb-2">
-                <span className="text-[11px] font-semibold text-primary-500 uppercase tracking-wide">
-                    {translateCategory(car.category)} Kiralık Araç
-                </span>
-                <h3 className="text-lg font-bold text-gray-900 leading-tight mt-0.5 truncate">
-                    {car.brand} {car.model}
-                </h3>
+            {/* Header */}
+            <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+                <div>
+                    <span className="text-[11px] font-semibold text-green-600 uppercase tracking-wide">
+                        2. El Satılık
+                    </span>
+                    <h3 className="text-lg font-bold text-gray-900 leading-tight mt-0.5 truncate">
+                        {car.brand} {car.model}
+                    </h3>
+                </div>
             </div>
 
             {/* Image */}
             <div className="aspect-[16/9] bg-white border-y border-gray-100">
-                <CarImageCarousel images={car.images} alt={`${car.brand} ${car.model} kiralık araç Manisa`} />
+                <SaleImageCarousel images={car.images} alt={`${car.brand} ${car.model} satılık araç Manisa`} />
             </div>
 
-            {/* Features List */}
-            <div className="px-4 py-3 space-y-2">
-                <FeatureRow icon={<Users size={15} />} text={`${seats} Yetişkin`} />
-                <FeatureRow icon={<Briefcase size={15} />} text={`${largeLuggage} Büyük, ${smallLuggage} Küçük Bavul`} />
-                <FeatureRow icon={<ShieldCheck size={15} />} text={hasAirbag ? 'Airbag' : 'Airbag Yok'} />
-                <FeatureRow icon={<ShieldCheck size={15} />} text={hasABS ? 'ABS' : 'ABS Yok'} />
-                <FeatureRow icon={<Fuel size={15} />} text={translateFuel(car.fuel)} />
-                <FeatureRow icon={<Cog size={15} />} text={car.transmission === 'AUTO' ? 'Otomatik Vites' : 'Manuel Vites'} />
-            </div>
-
-            {/* Divider */}
-            <div className="border-t border-gray-100 mx-4" />
-
-            {/* Requirements */}
-            <div className="px-4 py-3 space-y-1.5">
-                <RequirementRow icon={<UserCheck size={14} />} text={`${minDriverAge} Yaş ve Üstü`} />
-                <RequirementRow icon={<IdCard size={14} />} text={`Ehliyet Yaşı ${minLicenseYear} ve Üzeri`} />
-                <RequirementRow icon={<CreditCard size={14} />} text="1 Kredi Kartı" />
+            {/* Key Specs - Grid */}
+            <div className="px-4 py-3 grid grid-cols-2 gap-2">
+                <SpecBadge icon={<Gauge size={14} />} label="Kilometre" value={`${Number(car.mileage).toLocaleString('tr-TR')} km`} />
+                <SpecBadge icon={<Fuel size={14} />} label="Yakıt" value={translateFuel(car.fuel)} />
+                <SpecBadge icon={<Cog size={14} />} label="Vites" value={car.transmission === 'AUTO' ? 'Otomatik' : 'Manuel'} />
+                <SpecBadge icon={<Palette size={14} />} label="Renk" value={car.color} />
             </div>
 
             {/* Divider */}
@@ -147,14 +128,14 @@ export const CarCard = ({ car }: CarCardProps) => {
             {/* Price + CTA */}
             <div className="px-4 py-3 flex items-center justify-between gap-3">
                 <div>
-                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Günlük</p>
-                    <div className="text-xl font-bold text-gray-900 flex items-baseline gap-0.5">
-                        {Number(car.dailyPrice).toLocaleString('tr-TR')}
-                        <span className="text-xs font-semibold text-gray-500">₺</span>
+                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Satış Fiyatı</p>
+                    <div className="text-xl font-bold text-green-600 flex items-baseline gap-0.5">
+                        {Number(car.salePrice).toLocaleString('tr-TR')}
+                        <span className="text-xs font-semibold text-green-500">₺</span>
                     </div>
                 </div>
-                <span className="inline-flex items-center gap-1.5 bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold px-5 py-2.5 rounded-full transition-colors whitespace-nowrap">
-                    Hemen Kirala
+                <span className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-5 py-2.5 rounded-full transition-colors whitespace-nowrap">
+                    Detayları Gör
                     <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                 </span>
             </div>
@@ -162,16 +143,12 @@ export const CarCard = ({ car }: CarCardProps) => {
     );
 };
 
-const FeatureRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
-    <div className="flex items-center gap-2.5">
+const SpecBadge = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
+    <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2.5 py-2 border border-gray-100">
         <span className="text-gray-400 flex-shrink-0">{icon}</span>
-        <span className="text-sm text-gray-700 font-medium">{text}</span>
-    </div>
-);
-
-const RequirementRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
-    <div className="flex items-center gap-2">
-        <span className="text-gray-400 flex-shrink-0">{icon}</span>
-        <span className="text-xs text-gray-500 font-medium">{text}</span>
+        <div className="min-w-0">
+            <p className="text-[10px] text-gray-400 font-medium uppercase leading-none">{label}</p>
+            <p className="text-sm text-gray-800 font-semibold truncate">{value}</p>
+        </div>
     </div>
 );

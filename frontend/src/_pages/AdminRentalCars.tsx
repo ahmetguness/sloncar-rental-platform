@@ -48,7 +48,13 @@ const initialFormData = {
     changedParts: '',
     paintedParts: '',
     features: '',
-    type: 'RENTAL' as 'RENTAL'
+    type: 'RENTAL' as 'RENTAL',
+    largeLuggage: 1 as number | string,
+    smallLuggage: 1 as number | string,
+    hasAirbag: true,
+    hasABS: true,
+    minDriverAge: 21 as number | string,
+    minLicenseYear: 1 as number | string,
 };
 
 export const AdminRentalCars = () => {
@@ -187,7 +193,13 @@ export const AdminRentalCars = () => {
             changedParts: car.changedParts?.join(', ') || '',
             paintedParts: car.paintedParts?.join(', ') || '',
             features: car.features?.join(', ') || '',
-            type: 'RENTAL'
+            type: 'RENTAL',
+            largeLuggage: car.largeLuggage ?? 1,
+            smallLuggage: car.smallLuggage ?? 1,
+            hasAirbag: car.hasAirbag ?? true,
+            hasABS: car.hasABS ?? true,
+            minDriverAge: car.minDriverAge ?? 21,
+            minLicenseYear: car.minLicenseYear ?? 1,
         });
         setShowForm(true);
     };
@@ -235,8 +247,8 @@ export const AdminRentalCars = () => {
         setSubmitting(true);
 
         // Manual validation since we use noValidate to allow mixed step logic
-        if (!formData.brand || !formData.model || !formData.plateNumber || !formData.color || Number(formData.dailyPrice) < 0) {
-            toast('Lütfen tüm zorunlu alanları doldurun', 'error');
+        if (!formData.brand || !formData.model || !formData.plateNumber || !formData.color || !Number(formData.dailyPrice) || !formData.branchId) {
+            toast('Lütfen tüm zorunlu alanları doldurun (günlük fiyat 0\'dan büyük olmalı)', 'error');
             setSubmitting(false);
             return;
         }
@@ -249,17 +261,35 @@ export const AdminRentalCars = () => {
 
         try {
             const carData = {
-                ...formData,
-                dailyPrice: Number(formData.dailyPrice),
-                mileage: Number(formData.mileage),
+                brand: formData.brand,
+                brandLogo: typeof formData.brandLogo === 'object' && formData.brandLogo?.src ? formData.brandLogo.src : (formData.brandLogo || ''),
+                model: formData.model,
                 year: Number(formData.year),
+                transmission: formData.transmission,
+                fuel: formData.fuel,
+                category: formData.category,
                 seats: Number(formData.seats),
                 doors: Number(formData.doors),
-                accidentDescription: formData.accidentDescription,
+                color: formData.color,
+                plateNumber: formData.plateNumber,
+                dailyPrice: Number(formData.dailyPrice),
+                mileage: Number(formData.mileage),
+                branchId: formData.branchId,
+                images: formData.images,
+                status: formData.status,
+                isFeatured: formData.isFeatured,
+                description: formData.description || undefined,
+                accidentDescription: formData.accidentDescription || undefined,
                 changedParts: formData.changedParts.split(',').map(s => s.trim()).filter(Boolean),
                 paintedParts: formData.paintedParts.split(',').map(s => s.trim()).filter(Boolean),
                 features: formData.features.split(',').map(s => s.trim()).filter(Boolean),
-                type: 'RENTAL' // Enforce RENTAL
+                type: 'RENTAL' as const,
+                largeLuggage: Number(formData.largeLuggage),
+                smallLuggage: Number(formData.smallLuggage),
+                hasAirbag: formData.hasAirbag,
+                hasABS: formData.hasABS,
+                minDriverAge: Number(formData.minDriverAge),
+                minLicenseYear: Number(formData.minLicenseYear),
             };
 
             if (editingCar) {
@@ -547,7 +577,7 @@ export const AdminRentalCars = () => {
                                     brands={brands}
                                     value={formData.brand}
                                     logoUrl={formData.brandLogo}
-                                    onChange={(name, logo) => setFormData(prev => ({ ...prev, brand: name, brandLogo: logo || '' }))}
+                                    onChange={(name, logo) => setFormData(prev => ({ ...prev, brand: name, brandLogo: typeof logo === 'object' && logo?.src ? logo.src : (logo || '') }))}
                                     required
                                 />
                             </div>
@@ -658,6 +688,42 @@ export const AdminRentalCars = () => {
                                     <option value="MAINTENANCE" className="bg-[#F9FAFB]">Bakımda</option>
                                 </select>
                             </div>
+
+                            {/* Kiralama Detay Alanları */}
+                            <div className="lg:col-span-3 border-t border-[#E5E7EB] pt-4 mt-2">
+                                <p className="text-sm font-bold text-[#111111] mb-3">Kiralama Detayları</p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                    <div>
+                                        <label className={labelClass}>Büyük Bavul</label>
+                                        <input type="number" min="0" max="10" className={inputClass} value={formData.largeLuggage} onChange={e => setFormData({ ...formData, largeLuggage: e.target.value === '' ? '' : Number(e.target.value) })} />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Küçük Bavul</label>
+                                        <input type="number" min="0" max="10" className={inputClass} value={formData.smallLuggage} onChange={e => setFormData({ ...formData, smallLuggage: e.target.value === '' ? '' : Number(e.target.value) })} />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Min. Sürücü Yaşı</label>
+                                        <input type="number" min="18" max="99" className={inputClass} value={formData.minDriverAge} onChange={e => setFormData({ ...formData, minDriverAge: e.target.value === '' ? '' : Number(e.target.value) })} />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Min. Ehliyet Yılı</label>
+                                        <input type="number" min="0" max="50" className={inputClass} value={formData.minLicenseYear} onChange={e => setFormData({ ...formData, minLicenseYear: e.target.value === '' ? '' : Number(e.target.value) })} />
+                                    </div>
+                                    <div className="flex items-center gap-3 pt-6">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="checkbox" checked={formData.hasAirbag} onChange={e => setFormData({ ...formData, hasAirbag: e.target.checked })} className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500" />
+                                            <span className="text-sm text-[#374151] font-medium">Airbag</span>
+                                        </label>
+                                    </div>
+                                    <div className="flex items-center gap-3 pt-6">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="checkbox" checked={formData.hasABS} onChange={e => setFormData({ ...formData, hasABS: e.target.checked })} className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500" />
+                                            <span className="text-sm text-[#374151] font-medium">ABS</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="lg:col-span-3">
                                 <label className={labelClass}>Araç Fotoğrafı</label>
                                 <div className="mt-2">
