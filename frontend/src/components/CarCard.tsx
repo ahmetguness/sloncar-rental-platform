@@ -48,13 +48,13 @@ const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) =>
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
                 {images.map((img, idx) => (
-                    <div key={idx} className="w-full h-full flex-shrink-0 flex items-center justify-center p-4">
+                    <div key={idx} className="w-full h-full flex-shrink-0 flex items-center justify-center px-2 py-2">
                         <img
                             src={optimizeCloudinaryUrl(img, 'card')}
                             alt={`${alt} - ${idx + 1}`}
                             loading="lazy"
                             decoding="async"
-                            className="max-w-full max-h-full object-contain"
+                            className="w-full h-full object-contain drop-shadow-sm"
                         />
                     </div>
                 ))}
@@ -117,7 +117,7 @@ export const CarCard = ({ car }: CarCardProps) => {
             </div>
 
             {/* Image */}
-            <div className="aspect-[16/9] bg-white border-y border-gray-100">
+            <div className="aspect-[4/3] bg-white border-y border-gray-100">
                 <CarImageCarousel images={car.images} alt={`${car.brand} ${car.model} kiralık araç Manisa`} />
             </div>
 
