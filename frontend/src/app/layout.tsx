@@ -12,10 +12,9 @@ export const metadata: Metadata = {
   description:
     'Manisa araç kiralama, günlük rent a car ve 2. el araç ihtiyaçlarınız için güvenilir adres Yaman Filo. Hemen fiyatları inceleyin ve rezervasyon yapın.',
 
-  // 🔥 BURASI EKLENDİ
-  verification: {
-    google: 'google727b4689f7382549.html',
-  },
+ verification: {
+  google: 'kOjqG4aEkYycXGbChmO-IJLsufkwxow0YtXwd5S2YJo',
+},
 
   icons: {
     icon: '/favicon.jpg',
