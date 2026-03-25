@@ -36,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let dynamicRoutes: MetadataRoute.Sitemap = [];
 
   try {
-    const res = await fetch(`${API_URL}/cars?page=1&limit=200`, {
+    const res = await fetch(`${API_URL}/cars?page=1&limit=100`, {
       next: { revalidate: 3600 },
     });
 
