@@ -1,50 +1,53 @@
-import "../index.css";
-import Providers from "../components/Providers";
+import '../index.css';
+import Providers from '../components/Providers';
 
-import { Metadata } from "next";
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yamanfilo.com"),
+  metadataBase: new URL('https://yamanfilo.com'),
   title: {
-    template: "%s | Yaman Filo",
-    default: "Yaman Filo | Manisa Araç Kiralama & Rent A Car",
+    template: '%s | Yaman Filo',
+    default: 'Yaman Filo | Manisa Araç Kiralama & Rent A Car',
   },
   description:
-    "Manisa araç kiralama, günlük rent a car ve 2. el araç ihtiyaçlarınız için güvenilir adres Yaman Filo. Hemen fiyatları inceleyin ve rezervasyon yapın.",
+    'Manisa araç kiralama, günlük rent a car ve 2. el araç ihtiyaçlarınız için güvenilir adres Yaman Filo. Hemen fiyatları inceleyin ve rezervasyon yapın.',
+
+  // 🔥 BURASI EKLENDİ
   verification: {
-    google: "google727b4689f7382549.html",
+    google: 'google727b4689f7382549.html',
   },
+
   icons: {
-    icon: "/favicon.jpg",
-    shortcut: "/favicon.jpg",
-    apple: "/favicon.jpg",
+    icon: '/favicon.jpg',
+    shortcut: '/favicon.jpg',
+    apple: '/favicon.jpg',
   },
   alternates: {
-    canonical: "/",
+    canonical: '/',
   },
   openGraph: {
-    title: "Manisa Araç Kiralama & Rent A Car | Yaman Filo",
+    title: 'Manisa Araç Kiralama & Rent A Car | Yaman Filo',
     description:
-      "Manisa araç kiralama, günlük rent a car ve 2. el araç ihtiyaçlarınız için güvenilir adres Yaman Filo.",
-    url: "https://yamanfilo.com",
-    siteName: "Yaman Filo",
-    locale: "tr_TR",
-    type: "website",
+      'Manisa araç kiralama, günlük rent a car ve 2. el araç ihtiyaçlarınız için güvenilir adres Yaman Filo.',
+    url: 'https://yamanfilo.com',
+    siteName: 'Yaman Filo',
+    locale: 'tr_TR',
+    type: 'website',
     images: [
       {
-        url: "/og-image.jpg",
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: "Yaman Filo - Manisa Araç Kiralama",
+        alt: 'Yaman Filo - Manisa Araç Kiralama',
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Manisa Araç Kiralama | Yaman Filo",
+    card: 'summary_large_image',
+    title: 'Manisa Araç Kiralama | Yaman Filo',
     description:
-      "Manisa araç kiralama ve 2. el araç ihtiyaçlarınız için güvenilir adres.",
-    images: ["/og-image.jpg"],
+      'Manisa araç kiralama ve 2. el araç ihtiyaçlarınız için güvenilir adres.',
+    images: ['/og-image.jpg'],
   },
   robots: {
     index: true,
