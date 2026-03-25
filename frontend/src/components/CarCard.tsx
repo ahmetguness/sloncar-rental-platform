@@ -48,13 +48,13 @@ const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) =>
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
                 {images.map((img, idx) => (
-                    <div key={idx} className="w-full h-full flex-shrink-0 flex items-center justify-center px-2 py-2">
+                    <div key={idx} className="w-full h-full flex-shrink-0 flex items-center justify-center p-1.5">
                         <img
                             src={optimizeCloudinaryUrl(img, 'card')}
                             alt={`${alt} - ${idx + 1}`}
                             loading="lazy"
                             decoding="async"
-                            className="w-full h-full object-contain drop-shadow-sm"
+                            className="w-full h-full object-contain"
                         />
                     </div>
                 ))}
@@ -117,12 +117,12 @@ export const CarCard = ({ car }: CarCardProps) => {
             </div>
 
             {/* Image */}
-            <div className="aspect-[4/3] bg-white border-y border-gray-100">
+            <div className="aspect-[16/10] mx-4 mt-1 rounded-lg bg-gray-50 overflow-hidden">
                 <CarImageCarousel images={car.images} alt={`${car.brand} ${car.model} kiralık araç Manisa`} />
             </div>
 
             {/* Features List */}
-            <div className="px-4 py-3 space-y-2">
+            <div className="px-4 py-2.5 space-y-1.5">
                 <FeatureRow icon={<Users size={15} />} text={`${seats} Yetişkin`} />
                 <FeatureRow icon={<Briefcase size={15} />} text={`${largeLuggage} Büyük, ${smallLuggage} Küçük Bavul`} />
                 <FeatureRow icon={<ShieldCheck size={15} />} text={hasAirbag ? 'Airbag' : 'Airbag Yok'} />

@@ -11,7 +11,7 @@ type ImageSize = 'thumbnail' | 'card' | 'detail' | 'full';
 
 const SIZE_CONFIG: Record<ImageSize, { width: number; height?: number; crop?: string }> = {
     thumbnail: { width: 200, height: 150, crop: 'fill' },
-    card: { width: 640, height: 400, crop: 'fill' },
+    card: { width: 640, height: 420, crop: 'pad' },
     detail: { width: 1280 },
     full: { width: 1920 },
 };
@@ -30,6 +30,7 @@ export function optimizeCloudinaryUrl(url: string, size: ImageSize = 'card'): st
         `w_${config.width}`,
         config.height ? `h_${config.height}` : '',
         config.crop ? `c_${config.crop}` : 'c_limit',
+        config.crop === 'pad' ? 'b_white' : '',
         'f_auto',
         'q_auto',
     ].filter(Boolean);
