@@ -12,6 +12,7 @@ import { carService } from '../../services/api';
 export const Layout = ({ children }: { children?: React.ReactNode }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
@@ -24,6 +25,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
     const franchiseEnabled = settingsData.franchiseEnabled !== 'false';
 
     useEffect(() => {
+        setMounted(true);
         const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
 
@@ -96,7 +98,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                                 ))}
 
                                 {/* Auth: Giriş / Üye Ol */}
-                                {user ? (
+                                {mounted && user ? (
                                     <div className="flex items-center gap-3 ml-2">
                                         <Link
                                             href="/profil"
@@ -113,7 +115,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                                             <LogOut className="w-4 h-4" />
                                         </button>
                                     </div>
-                                ) : (
+                                ) : mounted ? (
                                     <div className="flex items-center gap-2 ml-2">
                                         <Link
                                             href="/giris?tip=bireysel"
@@ -130,7 +132,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                                             Kurumsal
                                         </Link>
                                     </div>
-                                )}
+                                ) : null}
                             </>
                         ) : (
                             <div className="flex items-center gap-6">
@@ -178,7 +180,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
 
                                 {/* Mobile Auth Links */}
                                 <div className="border-t border-white/10 pt-6 mt-2 flex flex-col gap-6">
-                                    {user ? (
+                                    {mounted && user ? (
                                         <>
                                             <Link
                                                 href="/profil"

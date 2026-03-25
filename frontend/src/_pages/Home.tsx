@@ -66,6 +66,40 @@ export const Home = () => {
         }
     };
 
+    // Touch support: pause auto-scroll while user is swiping on mobile
+    const touchPauseRef = useRef(false);
+    const touchResumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        const el = scrollContainerRef.current;
+        if (!el) return;
+
+        const onTouchStart = () => {
+            touchPauseRef.current = true;
+            if (touchResumeTimer.current) clearTimeout(touchResumeTimer.current);
+        };
+        const onTouchEnd = () => {
+            // Resume auto-scroll after a short delay so momentum scroll finishes
+            touchResumeTimer.current = setTimeout(() => {
+                if (scrollContainerRef.current) {
+                    scrollAccumulator.current = scrollContainerRef.current.scrollLeft;
+                }
+                touchPauseRef.current = false;
+            }, 2500);
+        };
+
+        el.addEventListener('touchstart', onTouchStart, { passive: true });
+        el.addEventListener('touchend', onTouchEnd, { passive: true });
+        el.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+        return () => {
+            el.removeEventListener('touchstart', onTouchStart);
+            el.removeEventListener('touchend', onTouchEnd);
+            el.removeEventListener('touchcancel', onTouchEnd);
+            if (touchResumeTimer.current) clearTimeout(touchResumeTimer.current);
+        };
+    }, [brands.length]);
+
     // Robust Auto-scroll with requestAnimationFrame and sub-pixel accumulation
     useEffect(() => {
         if (brands.length < 8) return;
@@ -78,7 +112,9 @@ export const Home = () => {
         const scrollLoop = () => {
             if (!scrollContainerRef.current) return;
 
-            if (!isPaused) {
+            const paused = isPaused || touchPauseRef.current;
+
+            if (!paused) {
                 const oneSetWidth = scrollContainerRef.current.scrollWidth / 2; // Double buffer
 
                 // Increment accumulator
@@ -303,7 +339,7 @@ export const Home = () => {
                                 <span className="block">Manisa Araç Kiralama</span>
                                 <span className="block text-primary-500 relative">
                                     Rent A Car
-                                    <span className="absolute -bottom-2 left-0 w-1/3 h-1.5 bg-primary-500 rounded-full" />
+                                    <span className="absolute -bottom-2 left-0 w-1/5 h-1.5 bg-primary-500 rounded-full" />
                                 </span>
                                 <span className="block">Yaman Filo</span>
                             </h1>
@@ -444,12 +480,12 @@ export const Home = () => {
 
             {/* Mobile Search Trigger */}
             <div className="md:hidden relative z-20 px-4 -mt-10">
-                <Button
+                <button
                     onClick={() => setIsMobileSearchOpen(true)}
-                    className="w-full h-16 bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-between px-6"
+                    className="w-full h-16 bg-white border border-[#E5E5E5] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-between px-6"
                 >
                     <div className="flex flex-col items-start">
-                        <span className="text-xs font-bold text-primary-400 uppercase tracking-wider">Müsait Araçları Ara</span>
+                        <span className="text-xs font-bold text-primary-500 uppercase tracking-wider">Müsait Araçları Ara</span>
                         <span className="text-[#111111] font-medium text-sm truncate">
                             {filters.pickupDate || filters.dropoffDate ?
                                 `${filters.pickupDate ? filters.pickupDate : 'Tarih'} - ${filters.dropoffDate ? filters.dropoffDate : 'Seçiniz'}`
@@ -459,7 +495,7 @@ export const Home = () => {
                     <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center shadow-lg shadow-primary-500/30">
                         <Search className="w-5 h-5 text-white" />
                     </div>
-                </Button>
+                </button>
             </div>
 
             {/* Mobile Search Modal */}
@@ -655,7 +691,9 @@ export const Home = () => {
                             scrollbarWidth: 'none',
                             msOverflowStyle: 'none',
                             maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
-                            WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
+                            WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+                            touchAction: 'pan-x',
+                            WebkitOverflowScrolling: 'touch',
                         }}
                     >
                         {displayBrands.map((brand, index) => (
