@@ -59,7 +59,12 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
             {/* Header: Pure Luxury Dark Navigation */}
             <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || isMenuOpen ? 'bg-[#222222]/90 backdrop-blur-xl border-b border-[#E5E5E5] shadow-2xl' : (isAdmin ? 'bg-white/90 backdrop-blur-md border-b border-[#E5E5E5]' : 'bg-transparent')}`}>
                 <div className="container mx-auto px-4 sm:px-6 py-5 flex items-center justify-between transition-all duration-300">
-                    <Link href="/" className="flex items-center gap-3 group">
+                    <Link href="/" className="flex items-center gap-3 group" onClick={() => {
+                        if (pathname === '/') {
+                            window.dispatchEvent(new CustomEvent('reset-filters'));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    }}>
                         <div className="relative">
                             <img
                                 src={logo.src}

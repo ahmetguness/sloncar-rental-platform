@@ -1,5 +1,4 @@
 "use client";
-import Link from 'next/link';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -260,6 +259,12 @@ export const Home = () => {
     }, []);
 
     useEffect(() => {
+        const handleResetFilters = () => resetFilters();
+        window.addEventListener('reset-filters', handleResetFilters);
+        return () => window.removeEventListener('reset-filters', handleResetFilters);
+    }, []);
+
+    useEffect(() => {
         if (typeof window !== 'undefined' && window.location.hash === '#fleet') {
             const el = document.getElementById('fleet');
             if (el) {
@@ -478,24 +483,6 @@ export const Home = () => {
                 </div>
             </section>
 
-            {/* SEO Content & Internal Links */}
-            <section className="container mx-auto px-4 sm:px-6 py-12">
-                <div className="max-w-4xl mx-auto bg-[#F5F5F5] rounded-3xl border border-[#E5E5E5] p-8 md:p-12 space-y-6">
-                    <h2 className="text-2xl md:text-3xl font-black text-[#111111] tracking-tight">Yaman Filo ile Araç Kiralama</h2>
-                    <p className="text-[#555555] text-base md:text-lg leading-relaxed font-medium">
-                        Yaman Filo, Manisa'da araç kiralama hizmeti sunan güvenilir bir firmadır. Günlük araç kiralama, uzun dönem filo kiralama ve ekonomik araç seçenekleriyle müşterilerine profesyonel çözümler sunar.
-                    </p>
-                    <div className="flex flex-wrap gap-4">
-                        <Link href="/manisa-arac-kiralama" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-bold text-sm transition-colors">
-                            Manisa araç kiralama hizmetlerimizi incelemek için tıklayın →
-                        </Link>
-
-                        <Link href="/gunluk-arac-kiralama" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-bold text-sm transition-colors">
-                            Günlük araç kiralama seçeneklerimiz →
-                        </Link>
-                    </div>
-                </div>
-            </section>
 
             {/* Mobile Search Trigger */}
             <div className="md:hidden relative z-20 px-4 -mt-10">

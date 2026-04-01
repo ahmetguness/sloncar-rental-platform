@@ -30,19 +30,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
-    {
-      url: `${BASE_URL}/manisa-arac-kiralama`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-
-    {
-      url: `${BASE_URL}/gunluk-arac-kiralama`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
   ];
 
   // Dynamic car detail pages
@@ -68,18 +55,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     dynamicRoutes = cars
       .filter(
-        (car: any) =>
-          car?.id &&
-          (car?.type === 'SALE' ||
-            car?.category === 'SECOND_HAND' ||
-            car?.salePrice)
+        (car: any) => car?.id
       )
-      .map((car: any) => ({
-        url: `${BASE_URL}/arac/${car.id}`,
-        lastModified: new Date(car?.updatedAt || Date.now()),
-        changeFrequency: 'weekly' as const,
-        priority: 0.8,
-      }));
+      .map((car: any) => {
+        const isForSale =
+          car?.type === 'SALE' ||
+          car?.category === 'SECOND_HAND' ||
+          car?.salePrice;
+        return {
+          url: `${BASE_URL}/arac/${car.id}`,
+          lastModified: new Date(car?.updatedAt || Date.now()),
+          changeFrequency: 'weekly' as const,
+          priority: isForSale ? 0.8 : 0.7,
+        };
+      });
   } catch (error) {
     console.error('Sitemap: car fetch failed', error);
   }

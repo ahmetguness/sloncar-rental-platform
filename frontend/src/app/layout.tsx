@@ -11,11 +11,24 @@ export const metadata: Metadata = {
   },
   description:
     'Yaman Filo, Manisa\'da güvenilir araç kiralama hizmeti sunar. Günlük ve uzun dönem rent a car çözümlerini hemen inceleyin.',
-
- verification: {
-  google: 'kOjqG4aEkYycXGbChmO-IJLsufkwxow0YtXwd5S2YJo',
-},
-
+  keywords: [
+    'Yaman Filo',
+    'Manisa araç kiralama',
+    'Manisa rent a car',
+    'araç kiralama',
+    'günlük araç kiralama',
+    'filo kiralama',
+    'kiralık araç Manisa',
+    '2. el araç Manisa',
+    'oto kiralama',
+  ],
+  authors: [{ name: 'Yaman Filo', url: 'https://yamanfilo.com' }],
+  creator: 'Yaman Filo',
+  publisher: 'Yaman Filo',
+  category: 'Araç Kiralama',
+  verification: {
+    google: 'kOjqG4aEkYycXGbChmO-IJLsufkwxow0YtXwd5S2YJo',
+  },
   icons: {
     icon: '/favicon.jpg',
     shortcut: '/favicon.jpg',
@@ -23,11 +36,14 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: '/',
+    languages: {
+      'tr-TR': '/',
+    },
   },
   openGraph: {
-    title: 'Manisa Araç Kiralama & Rent A Car | Yaman Filo',
+    title: 'Yaman Filo | Manisa Araç Kiralama & Rent A Car',
     description:
-      'Manisa araç kiralama, günlük rent a car ve 2. el araç ihtiyaçlarınız için güvenilir adres Yaman Filo.',
+      'Yaman Filo, Manisa\'da güvenilir araç kiralama hizmeti sunar. Günlük ve uzun dönem rent a car çözümlerini hemen inceleyin.',
     url: 'https://yamanfilo.com',
     siteName: 'Yaman Filo',
     locale: 'tr_TR',
@@ -43,14 +59,21 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Manisa Araç Kiralama | Yaman Filo',
+    title: 'Yaman Filo | Manisa Araç Kiralama & Rent A Car',
     description:
-      'Manisa araç kiralama ve 2. el araç ihtiyaçlarınız için güvenilir adres.',
+      'Yaman Filo, Manisa\'da güvenilir araç kiralama hizmeti sunar. Günlük ve uzun dönem rent a car çözümlerini hemen inceleyin.',
     images: ['/og-image.jpg'],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 
