@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -336,18 +337,17 @@ export const Home = () => {
                     <div className="w-full lg:w-1/2 space-y-6 sm:space-y-10 text-center lg:text-left animate-fade-in-up mt-4 sm:mt-0">
                         <div className="space-y-4">
                             <h1 className="text-3xl sm:text-5xl md:text-7xl xl:text-8xl font-black text-[#111111] tracking-tighter leading-[0.9]">
-                                <span className="block">Manisa Araç Kiralama</span>
+                                <span className="block">Yaman Filo Araç Kiralama</span>
                                 <span className="block text-primary-500 relative">
-                                    Rent A Car
+                                    Manisa Rent A Car Hizmetleri
                                     <span className="absolute -bottom-2 left-0 w-1/5 h-1.5 bg-primary-500 rounded-full" />
                                 </span>
-                                <span className="block">Yaman Filo</span>
                             </h1>
                         </div>
 
                         <div className="space-y-8">
                             <p className="text-base sm:text-lg md:text-xl text-[#777777] max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium">
-                                Prestij ve konforun buluştuğu nokta. Yaman Filo ile premium araç kiralama deneyimini kişiye özel hizmet anlayışıyla yeniden tanımlayın.
+                                Yaman Filo, Manisa'da araç kiralama hizmeti sunan güvenilir bir firmadır. Günlük araç kiralama, uzun dönem filo kiralama ve ekonomik araç seçenekleriyle müşterilerine profesyonel çözümler sunar.
                             </p>
 
                             <div className="flex justify-center lg:justify-start">
@@ -474,6 +474,25 @@ export const Home = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* SEO Content & Internal Links */}
+            <section className="container mx-auto px-4 sm:px-6 py-12">
+                <div className="max-w-4xl mx-auto bg-[#F5F5F5] rounded-3xl border border-[#E5E5E5] p-8 md:p-12 space-y-6">
+                    <h2 className="text-2xl md:text-3xl font-black text-[#111111] tracking-tight">Yaman Filo ile Araç Kiralama</h2>
+                    <p className="text-[#555555] text-base md:text-lg leading-relaxed font-medium">
+                        Yaman Filo, Manisa'da araç kiralama hizmeti sunan güvenilir bir firmadır. Günlük araç kiralama, uzun dönem filo kiralama ve ekonomik araç seçenekleriyle müşterilerine profesyonel çözümler sunar.
+                    </p>
+                    <div className="flex flex-wrap gap-4">
+                        <Link href="/manisa-arac-kiralama" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-bold text-sm transition-colors">
+                            Manisa araç kiralama hizmetlerimizi incelemek için tıklayın →
+                        </Link>
+
+                        <Link href="/gunluk-arac-kiralama" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-bold text-sm transition-colors">
+                            Günlük araç kiralama seçeneklerimiz →
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -758,8 +777,20 @@ export const Home = () => {
                 </div>
 
                 {loading && cars.length === 0 ? (
-                    <div className="flex justify-center items-center py-32">
-                        <Loader2 className="w-12 h-12 animate-spin text-primary-500" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="animate-pulse bg-[#F5F5F5] rounded-3xl border border-[#E5E5E5] overflow-hidden">
+                                <div className="h-48 bg-[#E5E5E5]" />
+                                <div className="p-6 space-y-4">
+                                    <div className="h-5 bg-[#E5E5E5] rounded-lg w-3/4" />
+                                    <div className="h-4 bg-[#E5E5E5] rounded-lg w-1/2" />
+                                    <div className="flex justify-between items-center pt-4 border-t border-[#E5E5E5]">
+                                        <div className="h-6 bg-[#E5E5E5] rounded-lg w-1/3" />
+                                        <div className="h-10 bg-primary-500/20 rounded-xl w-1/3" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : cars.length === 0 ? (
                     <div className="text-center py-32 bg-[#F5F5F5] rounded-3xl border border-[#E5E5E5]">
@@ -849,7 +880,7 @@ export const Home = () => {
                                 Yaman Filo, 2013 yılında otomotiv ve araç kiralama sektöründe güvenilir hizmet sunma hedefiyle kurulmuştur. Kurulduğu günden bu yana müşteri memnuniyetini ve kaliteli hizmet anlayışını ön planda tutan Yaman Filo, 2017 yılında kurumsallaşma sürecini tamamlayarak Yaman Filo Otomotiv İnşaat Turizm İthalat ve İhracat Sanayi Ticaret Limited Şirketi çatısı altında faaliyetlerini sürdürmeye başlamıştır.
                             </p>
                             <p>
-                                2018 yılında Yaman Filo marka lisansının alınmasıyla birlikte, araç kiralama ve filo kiralama alanında kurumsal hizmetlerini daha da güçlendiren şirketimiz, bugün Manisa araç kiralama ve İzmir araç kiralama hizmetleri başta olmak üzere bireysel ve kurumsal müşterilerine profesyonel çözümler sunmaktadır.
+                                2018 yılında Yaman Filo marka lisansının alınmasıyla birlikte, araç kiralama ve filo kiralama alanında kurumsal hizmetlerini daha da güçlendiren şirketimiz, bugün Manisa araç kiralama hizmetleri başta olmak üzere bireysel ve kurumsal müşterilerine profesyonel çözümler sunmaktadır.
                             </p>
                             <p className="hidden md:block">
                                 Şirketimiz bünyesinde faaliyet gösteren Yaman Filo, Sloncar ve ETC markaları ile otomotiv, araç kiralama ve mobilite hizmetleri alanında geniş bir hizmet ağı oluşturulmuştur. Tüm bu hizmetler Yaman Filo Otomotiv İnşaat Turizm İth. ve İhr. San. Tic. Ltd. Şti. tarafından yürütülmektedir.

@@ -27,7 +27,7 @@ export const Footer = () => {
                         </div>
                     </Link>
                     <p className="text-[#AAAAAA] leading-relaxed font-medium text-base max-w-sm">
-                        Seçkinliğin ve güvenin buluştuğu nokta. Yaman Filo, premium kiralama standartlarını üstün asset güvenliği ve şeffaf hizmet anlayışıyla birleştirir.
+                        Yaman Filo ile Manisa araç kiralama hizmetlerinde güvenilir ve profesyonel çözümler.
                     </p>
 
                     <div className="flex gap-4">
@@ -52,6 +52,9 @@ export const Footer = () => {
                             { label: 'Araç Filosu', to: '/#fleet' },
                             ...(franchiseEnabled ? [{ label: 'Bayilik', to: '/bayilik' }] : []),
                             { label: 'Hakkımızda', to: '/hakkimizda' },
+                            { label: 'Manisa Araç Kiralama', to: '/manisa-arac-kiralama' },
+
+                            { label: 'Günlük Araç Kiralama', to: '/gunluk-arac-kiralama' },
                         ].map((link, idx) => (
                             <li key={idx}>
                                 <Link href={link.to} className="text-[#AAAAAA] hover:text-white transition-all text-sm font-bold flex items-center gap-2 group">

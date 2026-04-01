@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     default: 'Yaman Filo | Manisa Araç Kiralama & Rent A Car',
   },
   description:
-    'Manisa araç kiralama, günlük rent a car ve 2. el araç ihtiyaçlarınız için güvenilir adres Yaman Filo. Hemen fiyatları inceleyin ve rezervasyon yapın.',
+    'Yaman Filo, Manisa\'da güvenilir araç kiralama hizmeti sunar. Günlük ve uzun dönem rent a car çözümlerini hemen inceleyin.',
 
  verification: {
   google: 'kOjqG4aEkYycXGbChmO-IJLsufkwxow0YtXwd5S2YJo',

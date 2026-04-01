@@ -4,16 +4,16 @@ import { Layout } from '../components/layout/Layout';
 import { Home } from '../_pages/Home';
 
 export const metadata: Metadata = {
-  title: 'Manisa Araç Kiralama, Rent A Car & 2. El Araç | Yaman Filo',
+  title: 'Yaman Filo | Manisa Araç Kiralama & Rent A Car',
   description:
-    'Manisa araç kiralama (rent a car) hizmetinde güvenilir adres Yaman Filo. Günlük, uzun dönem filo kiralama ve 2. el araç fiyatlarını inceleyin.',
+    'Yaman Filo, Manisa\'da güvenilir araç kiralama hizmeti sunar. Günlük ve uzun dönem rent a car çözümlerini hemen inceleyin.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Manisa Araç Kiralama, Rent A Car & 2. El Araç | Yaman Filo',
+    title: 'Yaman Filo | Manisa Araç Kiralama & Rent A Car',
     description:
-      'Manisa araç kiralama hizmetinde güvenilir adres Yaman Filo. Günlük ve uzun dönem filo kiralama fırsatları.',
+      'Yaman Filo, Manisa\'da güvenilir araç kiralama hizmeti sunar. Günlük ve uzun dönem rent a car çözümlerini hemen inceleyin.',
     url: 'https://yamanfilo.com',
     images: [{ url: '/og-image.jpg', width: 1200, height: 630 }],
   },

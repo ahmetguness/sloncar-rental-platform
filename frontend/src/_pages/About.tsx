@@ -38,7 +38,7 @@ export const About = () => {
                                     Yaman Filo, 2013 yılında otomotiv ve araç kiralama sektöründe güvenilir hizmet sunma hedefiyle kurulmuştur. Kurulduğu günden bu yana müşteri memnuniyetini ve kaliteli hizmet anlayışını ön planda tutan Yaman Filo, 2017 yılında kurumsallaşma sürecini tamamlayarak Yaman Filo Otomotiv İnşaat Turizm İthalat ve İhracat Sanayi Ticaret Limited Şirketi çatısı altında faaliyetlerini sürdürmeye başlamıştır.
                                 </p>
                                 <p>
-                                    2018 yılında Yaman Filo marka lisansının alınmasıyla birlikte, araç kiralama ve filo kiralama alanında kurumsal hizmetlerini daha da güçlendiren şirketimiz, bugün Manisa araç kiralama ve İzmir araç kiralama hizmetleri başta olmak üzere bireysel ve kurumsal müşterilerine profesyonel çözümler sunmaktadır.
+                                    2018 yılında Yaman Filo marka lisansının alınmasıyla birlikte, araç kiralama ve filo kiralama alanında kurumsal hizmetlerini daha da güçlendiren şirketimiz, bugün Manisa araç kiralama hizmetleri başta olmak üzere bireysel ve kurumsal müşterilerine profesyonel çözümler sunmaktadır.
                                 </p>
                                 <p>
                                     Şirketimiz bünyesinde faaliyet gösteren Yaman Filo, Sloncar ve ETC markaları ile otomotiv, araç kiralama ve mobilite hizmetleri alanında geniş bir hizmet ağı oluşturulmuştur. Tüm bu hizmetler Yaman Filo Otomotiv İnşaat Turizm İth. ve İhr. San. Tic. Ltd. Şti. tarafından yürütülmektedir.
@@ -67,7 +67,7 @@ export const About = () => {
                             </div>
                             <h3 className="text-3xl font-black mb-6 tracking-tight">Vizyonumuz</h3>
                             <p className="text-gray-400 text-lg leading-relaxed font-medium">
-                                Otomotiv ve araç kiralama sektöründe güvenilirliği, kaliteli hizmet anlayışı ve güçlü marka yapısı ile tercih edilen; yenilikçi çözümleri ve sürdürülebilir büyüme yaklaşımıyla Manisa, İzmir ve Türkiye genelinde sektörün öncü markalarından biri olmak.
+                                Otomotiv ve araç kiralama sektöründe güvenilirliği, kaliteli hizmet anlayışı ve güçlü marka yapısı ile tercih edilen; yenilikçi çözümleri ve sürdürülebilir büyüme yaklaşımıyla Manisa ve Türkiye genelinde sektörün öncü markalarından biri olmak.
                             </p>
                         </div>
                     </div>
