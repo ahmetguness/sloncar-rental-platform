@@ -322,7 +322,7 @@ export const Home = () => {
     return (
         <div className="space-y-12 pb-20 min-h-screen">
             {/* Hero Section: Panoramic Luxury Restoration */}
-            <section className="relative min-h-[600px] sm:min-h-[900px] lg:min-h-screen flex items-center justify-center px-4 overflow-hidden -mt-[88px] pt-[120px] sm:pt-[88px] pb-16 sm:pb-40 bg-white">
+            <section className="hidden md:flex relative min-h-[600px] sm:min-h-[900px] lg:min-h-screen items-center justify-center px-4 overflow-hidden -mt-[88px] pt-[120px] sm:pt-[88px] pb-16 sm:pb-40 bg-white">
                 {/* Layer 1 (Deepest): Background texture */}
                 <div className="absolute bottom-[12%] left-0 w-full flex justify-center pointer-events-none z-0 hidden sm:flex" aria-hidden="true">
                     <span className="text-[15vw] font-black text-[#F5F5F5] tracking-tighter leading-none select-none uppercase whitespace-nowrap">
@@ -485,7 +485,7 @@ export const Home = () => {
 
 
             {/* Mobile Search Trigger */}
-            <div className="md:hidden relative z-20 px-4 -mt-10">
+            <div className="md:hidden relative z-20 px-4 pt-28">
                 <button
                     onClick={() => setIsMobileSearchOpen(true)}
                     className="w-full h-16 bg-white border border-[#E5E5E5] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-between px-6"
@@ -706,8 +706,10 @@ export const Home = () => {
                             <button
                                 key={`${brand.name}-${index}`}
                                 onClick={() => {
-                                    setFilters(prev => ({ ...prev, brand: brand.name }));
-                                    carService.getAll({ q: brand.name, limit: 6, page: 1, type: 'RENTAL' }).then(res => {
+                                    const isSelected = filters.brand.toLowerCase() === brand.name.toLowerCase();
+                                    const newBrand = isSelected ? '' : brand.name;
+                                    setFilters(prev => ({ ...prev, brand: newBrand }));
+                                    carService.getAll({ q: newBrand, limit: 6, page: 1, type: 'RENTAL' }).then(res => {
                                         setCars(res.data);
                                         setPagination(res.pagination);
                                         setPage(1);

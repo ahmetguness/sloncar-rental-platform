@@ -452,7 +452,10 @@ export const Booking = () => {
 
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between px-2">
-                                        <span className="text-[10px] font-black text-[#777777] uppercase tracking-[0.2em]">Haftalık Paket</span>
+                                        <div className="flex flex-col items-start">
+                                            <span className="text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] block">Haftalık Paket</span>
+                                            <span className="inline-flex items-center px-1.5 py-0.5 mt-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-700 font-bold text-[9px] rounded uppercase tracking-wider shadow-sm">* Fiyatlara KDV Dahil Değildir</span>
+                                        </div>
                                         <div className="flex items-baseline gap-1">
                                             <span className="text-2xl font-black text-[#111111]">{Number(car.dailyPrice).toLocaleString()}</span>
                                             <span className="text-xs font-bold text-[#777777]">₺ / Gün</span>
@@ -487,11 +490,15 @@ export const Booking = () => {
                                             />
                                             <div className="relative z-10">
                                                 <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">TOPLAM TUTAR</span>
-                                                <div className="flex items-baseline gap-1 mt-1">
+                                                <div className="flex items-baseline gap-1 mt-1 mb-1">
                                                     <span className="text-4xl font-black text-white tracking-tighter">
                                                         <AnimatedNumber value={totalPrice} />
                                                     </span>
                                                     <span className="text-xl font-black text-primary-500">₺</span>
+                                                </div>
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 mt-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white font-bold text-[10px] uppercase tracking-wider shadow-xl">
+                                                    <Info className="w-3.5 h-3.5 text-primary-400" />
+                                                    FİYATLARA KDV DAHİL DEĞİLDİR
                                                 </div>
                                             </div>
                                         </motion.div>
