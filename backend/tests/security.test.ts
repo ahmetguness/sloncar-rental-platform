@@ -71,11 +71,15 @@ describe('Security Verification', () => {
                 .send({
                     email: `security_test_${Date.now()}@example.com`,
                     password: 'password123',
-                    name: 'Security Test User'
+                    name: 'Security Test User',
+                    phone: '905554443322',
+                    membershipType: 'INDIVIDUAL',
+                    kvkkAccepted: true
                 });
 
             expect(res.status).toBe(201);
-            expect(res.body.data.user.role).toBe('USER');
+            const createCalls = (prisma.user.create as any).mock.calls;
+            expect(createCalls[0][0].data.role).toBeUndefined();
         });
     });
 

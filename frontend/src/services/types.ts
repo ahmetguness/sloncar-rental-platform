@@ -52,7 +52,16 @@ export interface Booking {
     customerPhone: string;
     customerEmail?: string;
     customerTC?: string;
-    customerDriverLicense: string;
+    customerCompanyTitle?: string;
+    customerIdentitySerial?: string;
+    customerBirthDate?: string;
+    customerBirthPlace?: string;
+    customerDriverLicense?: string;
+    customerLicenseIssuedPlace?: string;
+    customerLicenseIssuedDate?: string;
+    customerLicenseClass?: string;
+    customerIsForeignLicense?: boolean;
+    customerAddress?: string;
     notes?: string;
     pickupDate: string; // ISO Date string
     dropoffDate: string; // ISO Date string
@@ -76,8 +85,17 @@ export interface CreateBookingRequest {
     customerSurname: string;
     customerPhone: string;
     customerEmail: string;
-    customerTC?: string;
+    customerTC: string;
+    customerCompanyTitle?: string;
+    customerIdentitySerial: string;
+    customerBirthDate: string;
+    customerBirthPlace: string;
     customerDriverLicense: string;
+    customerLicenseIssuedPlace: string;
+    customerLicenseIssuedDate: string;
+    customerLicenseClass: string;
+    customerIsForeignLicense?: boolean;
+    customerAddress: string;
     pickupDate: string;
     dropoffDate: string;
     pickupBranchId: string;

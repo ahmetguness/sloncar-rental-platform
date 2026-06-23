@@ -51,6 +51,9 @@ describe('Auth Module', () => {
                 email: 'test@example.com',
                 password: 'Password123!',
                 name: 'Test User',
+                phone: '905554443322',
+                membershipType: 'INDIVIDUAL',
+                kvkkAccepted: true,
             };
 
             (prisma.user.findUnique as any).mockResolvedValue(null);
@@ -67,8 +70,7 @@ describe('Auth Module', () => {
 
             expect(res.status).toBe(201);
             expect(res.body.success).toBe(true);
-            expect(res.body.data.user.email).toBe(userData.email);
-            expect(res.body.data.token).toBeDefined();
+            expect(res.body.data.message).toBeDefined();
         });
 
         it('should return 409 if user already exists', async () => {
@@ -80,6 +82,9 @@ describe('Auth Module', () => {
                     email: 'existing@example.com',
                     password: 'Password123!',
                     name: 'Existing User',
+                    phone: '905554443322',
+                    membershipType: 'INDIVIDUAL',
+                    kvkkAccepted: true,
                 });
 
             expect(res.status).toBe(409);
@@ -93,6 +98,9 @@ describe('Auth Module', () => {
                     email: 'invalid-email',
                     password: 'Password123!',
                     name: 'Test User',
+                    phone: '905554443322',
+                    membershipType: 'INDIVIDUAL',
+                    kvkkAccepted: true,
                 });
 
             expect(res.status).toBe(400);
@@ -106,6 +114,9 @@ describe('Auth Module', () => {
                     email: 'test@example.com',
                     password: '123',
                     name: 'Test User',
+                    phone: '905554443322',
+                    membershipType: 'INDIVIDUAL',
+                    kvkkAccepted: true,
                 });
 
             expect(res.status).toBe(400);
@@ -128,6 +139,7 @@ describe('Auth Module', () => {
                 name: 'Test User',
                 role: 'USER',
                 passwordHash: hashedPassword,
+                isEmailVerified: true,
             });
 
             const res = await request(app)

@@ -6,13 +6,21 @@ const bookingStatusEnum = z.nativeEnum(BookingStatus);
 // Base schema object to allow extension
 const baseBookingSchemaObject = z.object({
     carId: z.string().uuid('Geçersiz araç ID'),
-    // Customer Information
     customerName: z.string().min(2, 'Müşteri adı gerekli'),
     customerSurname: z.string().min(2, 'Müşteri soyadı gerekli'),
     customerPhone: z.string().min(7, 'Telefon numarası gerekli'),
     customerEmail: z.string().min(3, 'Geçerli e-posta adresi giriniz'),
-    customerTC: z.string().length(11, 'TC kimlik numarası 11 haneli olmalı').optional(),
-    customerDriverLicense: z.string().min(5, 'Ehliyet numarası gerekli').optional(),
+    customerTC: z.string().regex(/^\d{10,11}$/, 'TCKN (11 hane) veya VKN (10 hane) geçerli olmalıdır'),
+    customerCompanyTitle: z.string().optional(),
+    customerIdentitySerial: z.string().min(3, 'Kimlik seri/no geçerli olmalıdır'),
+    customerBirthDate: z.coerce.date(),
+    customerBirthPlace: z.string().min(2, 'Doğum yeri en az 2 karakter olmalıdır'),
+    customerDriverLicense: z.string().min(5, 'Ehliyet numarası en az 5 karakter olmalıdır'),
+    customerLicenseIssuedPlace: z.string().min(2, 'Ehliyetin verildiği yer en az 2 karakter olmalıdır'),
+    customerLicenseIssuedDate: z.coerce.date(),
+    customerLicenseClass: z.string().min(1, 'Ehliyet sınıfı gereklidir'),
+    customerIsForeignLicense: z.boolean().default(false),
+    customerAddress: z.string().min(5, 'Adres en az 5 karakter olmalıdır'),
     // Booking Details
     pickupDate: z.coerce.date().refine(
         (date) => date >= new Date(new Date().setHours(0, 0, 0, 0)),

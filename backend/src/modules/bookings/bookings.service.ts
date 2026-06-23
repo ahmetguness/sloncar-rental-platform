@@ -93,7 +93,16 @@ export async function createBooking(
                 customerPhone: input.customerPhone,
                 customerEmail: input.customerEmail,
                 customerTC: input.customerTC,
+                customerCompanyTitle: input.customerCompanyTitle,
+                customerIdentitySerial: input.customerIdentitySerial,
+                customerBirthDate: input.customerBirthDate,
+                customerBirthPlace: input.customerBirthPlace,
                 customerDriverLicense: input.customerDriverLicense,
+                customerLicenseIssuedPlace: input.customerLicenseIssuedPlace,
+                customerLicenseIssuedDate: input.customerLicenseIssuedDate,
+                customerLicenseClass: input.customerLicenseClass,
+                customerIsForeignLicense: input.customerIsForeignLicense,
+                customerAddress: input.customerAddress,
                 notes: input.notes,
                 pickupDate: pickupDate,
                 dropoffDate: dropoffDate,
@@ -171,7 +180,16 @@ export async function createManualBooking(
                 customerPhone: input.customerPhone,
                 customerEmail: input.customerEmail,
                 customerTC: input.customerTC,
+                customerCompanyTitle: input.customerCompanyTitle,
+                customerIdentitySerial: input.customerIdentitySerial,
+                customerBirthDate: input.customerBirthDate,
+                customerBirthPlace: input.customerBirthPlace,
                 customerDriverLicense: input.customerDriverLicense,
+                customerLicenseIssuedPlace: input.customerLicenseIssuedPlace,
+                customerLicenseIssuedDate: input.customerLicenseIssuedDate,
+                customerLicenseClass: input.customerLicenseClass,
+                customerIsForeignLicense: input.customerIsForeignLicense,
+                customerAddress: input.customerAddress,
                 notes: input.notes ? `[MANUAL - ${input.paymentMethod}] ${input.notes}` : `[MANUAL - ${input.paymentMethod}]`,
                 pickupDate,
                 dropoffDate,
@@ -244,6 +262,23 @@ export async function getBookingByCode(
     if (processedBooking.customerDriverLicense) {
         processedBooking.customerDriverLicense = '******';
     }
+    if (processedBooking.customerCompanyTitle) {
+        processedBooking.customerCompanyTitle = processedBooking.customerCompanyTitle.charAt(0) + '***';
+    }
+    if (processedBooking.customerIdentitySerial) {
+        processedBooking.customerIdentitySerial = '******';
+    }
+    if (processedBooking.customerAddress) {
+        processedBooking.customerAddress = '******';
+    }
+    if (processedBooking.customerBirthPlace) {
+        processedBooking.customerBirthPlace = '***';
+    }
+    if (processedBooking.customerLicenseIssuedPlace) {
+        processedBooking.customerLicenseIssuedPlace = '***';
+    }
+    processedBooking.customerBirthDate = null;
+    processedBooking.customerLicenseIssuedDate = null;
 
     // Mask personal details
     if (processedBooking.customerName) {

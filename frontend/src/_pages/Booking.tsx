@@ -12,7 +12,7 @@ import { translateFuel } from '../utils/translate';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { tr } from 'date-fns/locale/tr';
-import { formatPhoneNumber, cleanPhoneNumber, normalizeEmail } from '../utils/formatters';
+import { formatPhoneNumber, cleanPhoneNumber, normalizeEmail, isoToDisplayDate, displayDateToISO, maskDateInput } from '../utils/formatters';
 import { useAppSelector } from '../store/hooks';
 registerLocale('tr', tr);
 
@@ -60,6 +60,7 @@ export const Booking = () => {
     // Form State
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
+    const [customerType, setCustomerType] = useState<'INDIVIDUAL' | 'CORPORATE'>('INDIVIDUAL');
 
     const [formData, setFormData] = useState<Partial<CreateBookingRequest>>({
         pickupDate: '',
@@ -68,10 +69,19 @@ export const Booking = () => {
         customerSurname: '',
         customerPhone: '',
         customerEmail: '',
-        customerDriverLicense: '',
         customerTC: '',
+        customerCompanyTitle: '',
+        customerIdentitySerial: '',
+        customerBirthDate: '',
+        customerBirthPlace: '',
+        customerDriverLicense: '',
+        customerLicenseIssuedPlace: '',
+        customerLicenseIssuedDate: '',
+        customerLicenseClass: '',
+        customerIsForeignLicense: false,
+        customerAddress: '',
         notes: '',
-        pickupBranchId: '', // Ideally fetched from car.branchId or separate branch list
+        pickupBranchId: '',
         dropoffBranchId: '',
     });
 
@@ -90,8 +100,13 @@ export const Booking = () => {
                 customerSurname: prev.customerSurname || surname,
                 customerEmail: prev.customerEmail || user.email || '',
                 customerPhone: prev.customerPhone || (user.phone ? formatPhoneNumber(user.phone) : ''),
-                customerTC: prev.customerTC || (user as any).tcNo || '',
+                customerTC: prev.customerTC || (user as any).tcNo || (user as any).taxNumber || '',
+                customerCompanyTitle: prev.customerCompanyTitle || (user as any).companyName || '',
+                customerAddress: prev.customerAddress || (user as any).companyAddress || '',
             }));
+            if (user.membershipType) {
+                setCustomerType(user.membershipType);
+            }
         }
     }, [user]);
 
@@ -208,13 +223,22 @@ export const Booking = () => {
 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        let value = e.target.value;
-        if (e.target.name === 'customerPhone') {
+        let value: any = e.target.value;
+        const target = e.target as HTMLInputElement;
+        if (target.type === 'checkbox') {
+            value = target.checked;
+        } else if (e.target.name === 'customerPhone') {
             value = formatPhoneNumber(cleanPhoneNumber(value));
         } else if (e.target.name === 'customerEmail') {
             value = normalizeEmail(value);
         }
         setFormData({ ...formData, [e.target.name]: value });
+    };
+
+    const handleDateFieldChange = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const masked = maskDateInput(e.target.value);
+        const iso = displayDateToISO(masked);
+        setFormData(prev => ({ ...prev, [fieldName]: iso }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -243,20 +267,28 @@ export const Booking = () => {
 
         try {
             // Clean payload
-            const payload = {
+            const payload: any = {
                 ...formData,
                 carId: car.id,
-                // Ensure branch IDs are present. For now, default to car's branch if not selected.
                 pickupBranchId: formData.pickupBranchId || car.branchId,
                 dropoffBranchId: formData.dropoffBranchId || car.branchId,
-                // Ensure dates are string for JSON (backend coerces them)
                 pickupDate: formData.pickupDate,
                 dropoffDate: formData.dropoffDate,
+                customerPhone: cleanPhoneNumber(formData.customerPhone || ''),
+                customerIsForeignLicense: !!formData.customerIsForeignLicense,
                 kvkkAccepted: true,
             };
 
-            if (!payload.customerTC) delete payload.customerTC;
-            if (!payload.customerDriverLicense) delete payload.customerDriverLicense;
+            if (customerType === 'INDIVIDUAL') {
+                delete payload.customerCompanyTitle;
+            } else {
+                if (!payload.customerCompanyTitle) {
+                    setError('Şirket ünvanı zorunludur.');
+                    setSubmitting(false);
+                    return;
+                }
+            }
+
             if (!payload.notes) delete payload.notes;
 
             const res = await bookingService.create(payload as CreateBookingRequest);
@@ -725,9 +757,29 @@ export const Booking = () => {
                                     </div>
 
                                     <div className="space-y-8">
-                                        <div className="flex items-center gap-4">
-                                            <span className="w-12 h-[2px] bg-primary-500 rounded-full" />
-                                            <h3 className="text-[10px] font-black text-[#111111] uppercase tracking-[0.3em]">Müşteri Bilgileri</h3>
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                            <div className="flex items-center gap-4">
+                                                <span className="w-12 h-[2px] bg-primary-500 rounded-full" />
+                                                <h3 className="text-[10px] font-black text-[#111111] uppercase tracking-[0.3em]">Müşteri Bilgileri</h3>
+                                            </div>
+                                            
+                                            {/* Bireysel/Kurumsal Seçimi */}
+                                            <div className="flex gap-2 p-1 bg-gray-100/80 rounded-xl border border-gray-200/50 self-start sm:self-auto">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCustomerType('INDIVIDUAL')}
+                                                    className={`px-4 py-1.5 text-[10px] font-black rounded-lg transition-all ${customerType === 'INDIVIDUAL' ? 'bg-white text-[#111111] shadow' : 'text-[#777777] hover:text-[#111111]'}`}
+                                                >
+                                                    BİREYSEL
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCustomerType('CORPORATE')}
+                                                    className={`px-4 py-1.5 text-[10px] font-black rounded-lg transition-all ${customerType === 'CORPORATE' ? 'bg-white text-[#111111] shadow' : 'text-[#777777] hover:text-[#111111]'}`}
+                                                >
+                                                    KURUMSAL
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -743,6 +795,169 @@ export const Booking = () => {
                                             <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
                                                 <Input id="customerEmail" label="E-POSTA" type="email" name="customerEmail" placeholder="ornek@alanadi.com" value={formData.customerEmail} onChange={handleChange} required className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2" />
                                             </motion.div>
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input
+                                                    id="customerTC"
+                                                    label={customerType === 'INDIVIDUAL' ? 'T.C. KİMLİK NUMARASI' : 'VERGİ KİMLİK NUMARASI (VKN)'}
+                                                    name="customerTC"
+                                                    placeholder={customerType === 'INDIVIDUAL' ? '11 haneli T.C. kimlik numaranız' : '10 haneli vergi kimlik numaranız'}
+                                                    value={formData.customerTC}
+                                                    onChange={handleChange}
+                                                    required
+                                                    minLength={customerType === 'INDIVIDUAL' ? 11 : 10}
+                                                    maxLength={customerType === 'INDIVIDUAL' ? 11 : 10}
+                                                    className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2"
+                                                />
+                                            </motion.div>
+
+                                            {customerType === 'CORPORATE' && (
+                                                <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                    <Input
+                                                        id="customerCompanyTitle"
+                                                        label="ŞİRKET ÜNVANI"
+                                                        name="customerCompanyTitle"
+                                                        placeholder="Şirket resmi adı / ünvanı"
+                                                        value={formData.customerCompanyTitle}
+                                                        onChange={handleChange}
+                                                        required
+                                                        className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2"
+                                                    />
+                                                </motion.div>
+                                            )}
+                                        </div>
+
+                                        {/* Kimlik Bilgileri Alt Başlığı */}
+                                        <div className="flex items-center gap-4 pt-4">
+                                            <span className="w-8 h-[2px] bg-primary-500/50 rounded-full" />
+                                            <h4 className="text-[10px] font-black text-[#555555] uppercase tracking-[0.25em]">Kimlik Detayları</h4>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input
+                                                    id="customerIdentitySerial"
+                                                    label="KİMLİK SERİ / NO"
+                                                    name="customerIdentitySerial"
+                                                    placeholder="A12B34567 veya Seri No"
+                                                    value={formData.customerIdentitySerial}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2"
+                                                />
+                                            </motion.div>
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input
+                                                    id="customerBirthDate"
+                                                    label="DOĞUM TARİHİ"
+                                                    name="customerBirthDate"
+                                                    placeholder="GG/AA/YYYY"
+                                                    value={isoToDisplayDate(formData.customerBirthDate || '')}
+                                                    onChange={handleDateFieldChange('customerBirthDate')}
+                                                    required
+                                                    maxLength={10}
+                                                    className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2"
+                                                />
+                                            </motion.div>
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input
+                                                    id="customerBirthPlace"
+                                                    label="DOĞUM YERİ"
+                                                    name="customerBirthPlace"
+                                                    placeholder="İl veya İlçe"
+                                                    value={formData.customerBirthPlace}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2"
+                                                />
+                                            </motion.div>
+                                        </div>
+
+                                        {/* Ehliyet Bilgileri Alt Başlığı */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
+                                            <div className="flex items-center gap-4">
+                                                <span className="w-8 h-[2px] bg-primary-500/50 rounded-full" />
+                                                <h4 className="text-[10px] font-black text-[#555555] uppercase tracking-[0.25em]">Ehliyet Detayları</h4>
+                                            </div>
+                                            <label className="flex items-center gap-2 cursor-pointer select-none self-start sm:self-auto">
+                                                <input
+                                                    type="checkbox"
+                                                    name="customerIsForeignLicense"
+                                                    checked={formData.customerIsForeignLicense}
+                                                    onChange={handleChange}
+                                                    className="h-4 w-4 rounded border-gray-300 text-[#E30613] focus:ring-primary-500/20 cursor-pointer accent-[#E30613]"
+                                                />
+                                                <span className="text-[10px] font-black text-[#777777] uppercase tracking-[0.1em]">YABANCI EHLİYET Mİ?</span>
+                                            </label>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input
+                                                    id="customerDriverLicense"
+                                                    label="EHLİYET BELGE NO"
+                                                    name="customerDriverLicense"
+                                                    placeholder="Belge Numarası"
+                                                    value={formData.customerDriverLicense}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2"
+                                                />
+                                            </motion.div>
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input
+                                                    id="customerLicenseClass"
+                                                    label="EHLİYET SINIFI"
+                                                    name="customerLicenseClass"
+                                                    placeholder="Örn: B, C, D"
+                                                    value={formData.customerLicenseClass}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2"
+                                                />
+                                            </motion.div>
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input
+                                                    id="customerLicenseIssuedPlace"
+                                                    label="EHLİYETİN VERİLDİĞİ YER"
+                                                    name="customerLicenseIssuedPlace"
+                                                    placeholder="Verildiği Makam/İl/İlçe"
+                                                    value={formData.customerLicenseIssuedPlace}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2"
+                                                />
+                                            </motion.div>
+                                            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2">
+                                                <Input
+                                                    id="customerLicenseIssuedDate"
+                                                    label="EHLİYET DÜZENLEME TARİHİ"
+                                                    name="customerLicenseIssuedDate"
+                                                    placeholder="GG/AA/YYYY"
+                                                    value={isoToDisplayDate(formData.customerLicenseIssuedDate || '')}
+                                                    onChange={handleDateFieldChange('customerLicenseIssuedDate')}
+                                                    required
+                                                    maxLength={10}
+                                                    className="bg-gray-50/30 border-gray-100 h-16 rounded-2xl focus:bg-white text-lg font-bold transition-all border-2"
+                                                />
+                                            </motion.div>
+                                        </div>
+
+                                        {/* Adres Bilgileri Alt Başlığı */}
+                                        <div className="flex items-center gap-4 pt-4">
+                                            <span className="w-8 h-[2px] bg-primary-500/50 rounded-full" />
+                                            <h4 className="text-[10px] font-black text-[#555555] uppercase tracking-[0.25em]">Adres Bilgileri</h4>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] ml-1">AÇIK ADRES</label>
+                                            <textarea
+                                                name="customerAddress"
+                                                required
+                                                className="w-full px-6 py-4 bg-white border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary-500/5 focus:border-primary-500/20 focus:bg-gray-50/10 transition-all text-[#111111] font-bold placeholder-[#999999] min-h-[100px] resize-none"
+                                                placeholder="İkametgah veya Şirket Adresi..."
+                                                value={formData.customerAddress ?? ''}
+                                                onChange={handleChange}
+                                            />
                                         </div>
 
                                         <div className="space-y-3">

@@ -245,9 +245,18 @@ model Booking {
   customerSurname       String?
   customerPhone         String
   customerEmail         String?
-  customerTC            String? // TC Kimlik No
-  customerDriverLicense String? // Ehliyet No
-  notes                 String? // Customer notes
+  customerTC                 String?   // TC Kimlik No
+  customerCompanyTitle       String?   // Şirket Ünvanı
+  customerIdentitySerial     String?   // Kimlik Seri/No
+  customerBirthDate          DateTime? // Doğum Tarihi
+  customerBirthPlace         String?   // Doğum Yeri
+  customerDriverLicense      String?   // Ehliyet No
+  customerLicenseIssuedPlace String?   // Ehliyet Verildiği Yer
+  customerLicenseIssuedDate  DateTime? // Ehliyet Düzenleme Tarihi
+  customerLicenseClass       String?   // Ehliyet Sınıfı
+  customerIsForeignLicense   Boolean   @default(false) // Yabancı Ehliyet Mi
+  customerAddress            String?   // Adres
+  notes                      String?   // Customer notes
 
   // Rental period
   pickupDate          DateTime

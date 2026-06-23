@@ -7,6 +7,7 @@ import { Button } from '../ui/Button';
 import { Loader2, Calendar, Users, Car as CarIcon, AlertCircle, DollarSign } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import { translateCategory } from '../../utils/translate';
+import { formatDateTR } from '../../utils/formatters';
 import type { Booking } from '../../services/types';
 
 interface BookingDetailModalProps {
@@ -175,23 +176,80 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, onClos
                                     )}
                                 </div>
                             </div>
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">Telefon</label>
-                                <p className="text-[#111111] font-mono font-medium">{booking.customerPhone}</p>
-                            </div>
-                            <div>
-                                <label className="text-xs text-gray-500 block mb-1">E-posta</label>
-                                <p className="text-[#111111] font-medium break-all">{booking.customerEmail}</p>
+                            {booking.customerCompanyTitle && (
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Şirket Ünvanı</label>
+                                    <p className="text-[#111111] font-bold">{booking.customerCompanyTitle}</p>
+                                </div>
+                            )}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Telefon</label>
+                                    <p className="text-[#111111] font-mono font-medium">{booking.customerPhone}</p>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">E-posta</label>
+                                    <p className="text-[#111111] font-medium break-all">{booking.customerEmail}</p>
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Ehliyet No</label>
-                                    <p className="text-[#111111] font-mono font-medium">{booking.customerDriverLicense || '-'}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs text-gray-500 block mb-1">TC Kimlik</label>
+                                    <label className="text-xs text-gray-500 block mb-1">{booking.customerCompanyTitle ? 'Vergi No (VKN)' : 'T.C. Kimlik No'}</label>
                                     <p className="text-[#111111] font-mono font-medium">{booking.customerTC || '-'}</p>
                                 </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Kimlik Seri / No</label>
+                                    <p className="text-[#111111] font-mono font-medium">{(booking as any).customerIdentitySerial || '-'}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Doğum Tarihi</label>
+                                    <p className="text-[#111111] font-medium">
+                                        {formatDateTR((booking as any).customerBirthDate)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Doğum Yeri</label>
+                                    <p className="text-[#111111] font-medium">{(booking as any).customerBirthPlace || '-'}</p>
+                                </div>
+                            </div>
+                            
+                            {/* Ehliyet Detayları */}
+                            <div className="border-t border-black/[0.08] pt-2 mt-2 space-y-3">
+                                <label className="text-[10px] font-bold text-gray-400 block tracking-wider uppercase">Ehliyet Detayları</label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs text-gray-500 block mb-1">Ehliyet Belge No</label>
+                                        <p className="text-[#111111] font-mono font-medium">{booking.customerDriverLicense || '-'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-gray-500 block mb-1">Ehliyet Sınıfı</label>
+                                        <p className="text-[#111111] font-medium">{(booking as any).customerLicenseClass || '-'}</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs text-gray-500 block mb-1">Verildiği Yer</label>
+                                        <p className="text-[#111111] font-medium">{(booking as any).customerLicenseIssuedPlace || '-'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-gray-500 block mb-1">Düzenleme Tarihi</label>
+                                        <p className="text-[#111111] font-medium">
+                                            {formatDateTR((booking as any).customerLicenseIssuedDate)}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Yabancı Ehliyet mi?</label>
+                                    <p className="text-[#111111] font-medium">{(booking as any).customerIsForeignLicense ? 'Evet' : 'Hayır'}</p>
+                                </div>
+                            </div>
+
+                            {/* Adres */}
+                            <div className="border-t border-black/[0.08] pt-2 mt-2">
+                                <label className="text-xs text-gray-500 block mb-1">Açık Adres</label>
+                                <p className="text-gray-700 text-sm font-medium">{(booking as any).customerAddress || '-'}</p>
                             </div>
                         </div>
                     </div>
@@ -285,12 +343,12 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, onClos
                              <div className="bg-black/[0.02] p-4 rounded-xl border border-black/10 flex justify-between items-center text-center">
                                  <div>
                                      <label className="text-xs text-gray-500 block mb-1">Alış</label>
-                                     <p className="text-[#111111] font-bold">{new Date(booking.pickupDate).toLocaleDateString('tr-TR')}</p>
+                                     <p className="text-[#111111] font-bold">{formatDateTR(booking.pickupDate)}</p>
                                  </div>
                                  <div className="text-gray-600 font-bold">➝</div>
                                  <div>
                                      <label className="text-xs text-gray-500 block mb-1">Teslim</label>
-                                     <p className="text-[#111111] font-bold">{new Date(booking.dropoffDate).toLocaleDateString('tr-TR')}</p>
+                                     <p className="text-[#111111] font-bold">{formatDateTR(booking.dropoffDate)}</p>
                                  </div>
                              </div>
                         )}

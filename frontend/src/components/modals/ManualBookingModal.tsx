@@ -5,7 +5,7 @@ import { useToast } from '../ui/Toast';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { optimizeCloudinaryUrl } from '../../utils/cloudinaryOptimize';
-import { formatPhoneNumber, cleanPhoneNumber } from '../../utils/formatters';
+import { formatPhoneNumber, cleanPhoneNumber, isoToDisplayDate, displayDateToISO, maskDateInput } from '../../utils/formatters';
 import { Loader2, Banknote, CreditCard } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 
@@ -24,8 +24,24 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
     const [dates, setDates] = useState<{ pickup: Date | null; dropoff: Date | null }>({ pickup: null, dropoff: null });
     const [availableCars, setAvailableCars] = useState<any[]>([]);
     const [selectedCar, setSelectedCar] = useState<any>(null);
+    const [customerType, setCustomerType] = useState<'INDIVIDUAL' | 'CORPORATE'>('INDIVIDUAL');
     const [customer, setCustomer] = useState({
-        name: '', surname: '', phone: '', email: '', tc: '', license: '', notes: ''
+        name: '',
+        surname: '',
+        phone: '',
+        email: '',
+        tc: '',
+        companyTitle: '',
+        identitySerial: '',
+        birthDate: '',
+        birthPlace: '',
+        license: '',
+        licenseIssuedPlace: '',
+        licenseIssuedDate: '',
+        licenseClass: '',
+        isForeignLicense: false,
+        address: '',
+        notes: ''
     });
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'POS'>('CASH');
 
@@ -71,8 +87,18 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                 carId: selectedCar.id,
                 customerName: customer.name,
                 customerSurname: customer.surname,
-                customerPhone: customer.phone,
+                customerPhone: cleanPhoneNumber(customer.phone),
                 customerEmail: customer.email,
+                customerTC: customer.tc,
+                customerIdentitySerial: customer.identitySerial,
+                customerBirthDate: customer.birthDate,
+                customerBirthPlace: customer.birthPlace,
+                customerDriverLicense: customer.license,
+                customerLicenseIssuedPlace: customer.licenseIssuedPlace,
+                customerLicenseIssuedDate: customer.licenseIssuedDate,
+                customerLicenseClass: customer.licenseClass,
+                customerIsForeignLicense: !!customer.isForeignLicense,
+                customerAddress: customer.address,
 
                 pickupDate: formatDateForAPI(dates.pickup),
                 dropoffDate: formatDateForAPI(dates.dropoff),
@@ -82,12 +108,15 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                 isActive: true
             };
 
-            if (customer.tc && customer.tc.trim() !== '') {
-                payload.customerTC = customer.tc;
+            if (customerType === 'CORPORATE') {
+                if (!customer.companyTitle || customer.companyTitle.trim() === '') {
+                    toast('Şirket ünvanı zorunludur', 'error');
+                    setLoading(false);
+                    return;
+                }
+                payload.customerCompanyTitle = customer.companyTitle;
             }
-            if (customer.license && customer.license.trim() !== '') {
-                payload.customerDriverLicense = customer.license;
-            }
+
             if (customer.notes && customer.notes.trim() !== '') {
                 payload.notes = customer.notes;
             }
@@ -99,7 +128,12 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
             setStep(1);
             setDates({ pickup: null, dropoff: null });
             setSelectedCar(null);
-            setCustomer({ name: '', surname: '', phone: '', email: '', tc: '', license: '', notes: '' });
+            setCustomer({
+                name: '', surname: '', phone: '', email: '', tc: '', companyTitle: '',
+                identitySerial: '', birthDate: '', birthPlace: '', license: '',
+                licenseIssuedPlace: '', licenseIssuedDate: '', licenseClass: '',
+                isForeignLicense: false, address: '', notes: ''
+            });
         } catch (err: any) {
             const errorData = err.response?.data?.error;
             let errorMessage = errorData?.message || 'Rezervasyon oluşturulamadı';
@@ -239,12 +273,31 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <h3 className="text-xl font-bold text-gray-900">Müşteri Bilgileri</h3>
-                            <div className="flex items-center gap-2 bg-primary-500/10 px-3 py-1 rounded-full text-xs font-medium text-primary-400 border border-primary-500/20">
-                                <span>{selectedCar?.brand} {selectedCar?.model}</span>
+                            <div className="flex items-center gap-4">
+                                <div className="flex gap-1 p-1 bg-gray-100 rounded-lg border border-gray-200">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCustomerType('INDIVIDUAL')}
+                                        className={`px-3 py-1 text-xs font-black rounded transition-all ${customerType === 'INDIVIDUAL' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                    >
+                                        Bireysel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCustomerType('CORPORATE')}
+                                        className={`px-3 py-1 text-xs font-black rounded transition-all ${customerType === 'CORPORATE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                    >
+                                        Kurumsal
+                                    </button>
+                                </div>
+                                <div className="flex items-center gap-2 bg-primary-500/10 px-3 py-1 rounded-full text-xs font-medium text-primary-400 border border-primary-500/20">
+                                    <span>{selectedCar?.brand} {selectedCar?.model}</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
+                        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 space-y-6 max-h-[500px] overflow-y-auto custom-scrollbar">
+                            {/* Temel Bilgiler */}
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-medium text-gray-600 uppercase tracking-wider ml-1">Ad</label>
@@ -268,9 +321,95 @@ const ManualBookingModal: React.FC<ManualBookingModalProps> = ({ isOpen, onClose
                                     <input placeholder="email@örnek.com" className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={customer.email} onChange={e => setCustomer({ ...customer, email: e.target.value })} />
                                 </div>
 
-                                <div className="col-span-2 space-y-1.5">
-                                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wider ml-1">Notlar</label>
-                                    <textarea rows={3} placeholder="Rezervasyonla ilgili ek notlar..." className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors resize-none" value={customer.notes} onChange={e => setCustomer({ ...customer, notes: e.target.value })} />
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wider ml-1">
+                                        {customerType === 'INDIVIDUAL' ? 'T.C. Kimlik No' : 'Vergi No (VKN)'}
+                                    </label>
+                                    <input
+                                        placeholder={customerType === 'INDIVIDUAL' ? '11 haneli T.C. no' : '10 haneli VKN'}
+                                        minLength={customerType === 'INDIVIDUAL' ? 11 : 10}
+                                        maxLength={customerType === 'INDIVIDUAL' ? 11 : 10}
+                                        className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors"
+                                        value={customer.tc}
+                                        onChange={e => setCustomer({ ...customer, tc: e.target.value })}
+                                    />
+                                </div>
+
+                                {customerType === 'CORPORATE' && (
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-gray-600 uppercase tracking-wider ml-1">Şirket Ünvanı</label>
+                                        <input placeholder="Şirket Resmi Ünvanı" className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={customer.companyTitle} onChange={e => setCustomer({ ...customer, companyTitle: e.target.value })} />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Kimlik Bilgileri */}
+                            <div className="border-t border-gray-200 pt-4">
+                                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">Kimlik Detayları</h4>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-gray-600 ml-1">Kimlik Seri / No</label>
+                                        <input placeholder="A12B34567" className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={customer.identitySerial} onChange={e => setCustomer({ ...customer, identitySerial: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-gray-600 ml-1">Doğum Tarihi</label>
+                                        <input placeholder="GG/AA/YYYY" maxLength={10} className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={isoToDisplayDate(customer.birthDate)} onChange={e => { const masked = maskDateInput(e.target.value); setCustomer({ ...customer, birthDate: displayDateToISO(masked) }); }} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-gray-600 ml-1">Doğum Yeri</label>
+                                        <input placeholder="İl / İlçe" className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={customer.birthPlace} onChange={e => setCustomer({ ...customer, birthPlace: e.target.value })} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Ehliyet Bilgileri */}
+                            <div className="border-t border-gray-200 pt-4">
+                                <div className="flex justify-between items-center mb-3">
+                                    <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Ehliyet Detayları</h4>
+                                    <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={customer.isForeignLicense}
+                                            onChange={e => setCustomer({ ...customer, isForeignLicense: e.target.checked })}
+                                            className="h-3.5 w-3.5 rounded border-gray-300 text-primary-500 focus:ring-primary-500/20 cursor-pointer accent-[#E30613]"
+                                        />
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Yabancı Ehliyet</span>
+                                    </label>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-gray-600 ml-1">Ehliyet Belge No</label>
+                                        <input placeholder="Belge No" className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={customer.license} onChange={e => setCustomer({ ...customer, license: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-gray-600 ml-1">Ehliyet Sınıfı</label>
+                                        <input placeholder="Örn: B, C" className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={customer.licenseClass} onChange={e => setCustomer({ ...customer, licenseClass: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-gray-600 ml-1">Ehliyetin Verildiği Yer</label>
+                                        <input placeholder="İl / İlçe" className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={customer.licenseIssuedPlace} onChange={e => setCustomer({ ...customer, licenseIssuedPlace: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-medium text-gray-600 ml-1">Ehliyet Düzenleme Tarihi</label>
+                                        <input placeholder="GG/AA/YYYY" maxLength={10} className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors" value={isoToDisplayDate(customer.licenseIssuedDate)} onChange={e => { const masked = maskDateInput(e.target.value); setCustomer({ ...customer, licenseIssuedDate: displayDateToISO(masked) }); }} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Adres Bilgileri */}
+                            <div className="border-t border-gray-200 pt-4">
+                                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">Adres Bilgileri</h4>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-gray-600 ml-1">Açık Adres</label>
+                                    <textarea rows={2} placeholder="İkametgah Adresi..." className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors resize-none" value={customer.address} onChange={e => setCustomer({ ...customer, address: e.target.value })} />
+                                </div>
+                            </div>
+
+                            {/* Notlar */}
+                            <div className="border-t border-gray-200 pt-4">
+                                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">Ek Notlar</h4>
+                                <div className="space-y-1.5">
+                                    <textarea rows={2} placeholder="Rezervasyonla ilgili ek notlar..." className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 focus:border-primary-500 outline-none transition-colors resize-none" value={customer.notes} onChange={e => setCustomer({ ...customer, notes: e.target.value })} />
                                 </div>
                             </div>
                         </div>

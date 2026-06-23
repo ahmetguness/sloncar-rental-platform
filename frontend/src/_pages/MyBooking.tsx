@@ -8,6 +8,7 @@ import { Search, AlertCircle, Loader2, Users, CheckCircle, Car as CarIcon, Phone
 import { BrandLogo } from '../components/ui/BrandLogo';
 import { ImageCarousel } from '../components/ui/ImageCarousel';
 import { translateFuel } from '../utils/translate';
+import { formatDateTR } from '../utils/formatters';
 import { useAppSelector } from '../store/hooks';
 
 export const MyBooking = () => {
@@ -289,65 +290,116 @@ export const MyBooking = () => {
                             <div className="lg:col-span-8 space-y-8">
                                 {/* Hero Image Container */}
                                 {/* Driver Info Row */}
-                                <div className="bg-[#F5F5F5] border border-[#E5E5E5] rounded-3xl p-6 md:p-8 flex flex-col xl:flex-row items-center justify-between gap-6 shadow-xl">
-                                    <div className="flex items-center gap-5 w-full xl:w-auto overflow-hidden">
-                                        <div className="w-14 h-14 shrink-0 rounded-2xl bg-[#F5F5F5] flex items-center justify-center text-[#777777] border border-[#E5E5E5]">
-                                            <Users size={28} />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <div className="text-xs font-bold text-primary-500 uppercase tracking-widest mb-1.5 flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" /> SÜRÜCÜ BİLGİLERİ
+                                <div className="bg-[#F5F5F5] border border-[#E5E5E5] rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
+                                    <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
+                                        <div className="flex items-center gap-5 w-full xl:w-auto overflow-hidden">
+                                            <div className="w-14 h-14 shrink-0 rounded-2xl bg-white flex items-center justify-center text-[#777777] border border-[#E5E5E5]">
+                                                <Users size={28} />
                                             </div>
-                                            <div className="text-xl md:text-2xl font-black text-[#111111] tracking-wide truncate">
-                                                {booking.customerName} {booking.customerSurname}
-                                            </div>
-                                            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2">
-                                                {booking.customerTC && (
-                                                    <div className="text-sm text-gray-400 font-mono flex items-center gap-2">
-                                                        <span className="text-gray-500 font-bold">TC:</span>
-                                                        {booking.customerTC.replace(/(\d{3})\d{6}(\d{2})/, '$1******$2')}
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-bold text-primary-500 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" /> SÜRÜCÜ BİLGİLERİ
+                                                </div>
+                                                <div className="text-xl md:text-2xl font-black text-[#111111] tracking-wide truncate">
+                                                    {booking.customerName} {booking.customerSurname}
+                                                </div>
+                                                {booking.customerCompanyTitle && (
+                                                    <div className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">
+                                                        {booking.customerCompanyTitle}
                                                     </div>
                                                 )}
-                                                <div className="text-sm text-gray-400 font-mono flex items-center gap-2">
-                                                    <span className="text-gray-500 font-bold">TEL:</span>
-                                                    {booking.customerPhone}
-                                                </div>
                                             </div>
                                         </div>
+
+                                        {isPaymentEnabled && booking.paymentStatus !== 'PAID' && booking.status !== 'CANCELLED' && (
+                                            <div className="w-full xl:w-auto shrink-0 flex flex-col items-center xl:items-end gap-3 p-5 bg-[#1e1b4b]/40 rounded-2xl border border-primary-500/20 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]">
+                                                {timeLeft > 0 ? (
+                                                    <div className="flex flex-col items-center xl:items-end">
+                                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 opacity-80">ÖDEME İÇİN KALAN SÜRE</div>
+                                                        <div className="font-mono text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500 tabular-nums animate-pulse tracking-tight drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                                                            {formatTimeLeft(timeLeft)}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-center xl:items-end">
+                                                        <div className="text-[10px] font-bold text-red-500/80 uppercase tracking-widest mb-1">ÖDEME SÜRESİ</div>
+                                                        <div className="font-black text-2xl md:text-3xl text-red-500 tracking-tight drop-shadow-[0_0_15px_rgba(239,68,68,0.3)]">SÜRE DOLDU</div>
+                                                    </div>
+                                                )}
+
+                                                <Button
+                                                    onClick={handlePay}
+                                                    disabled={paying || timeLeft <= 0}
+                                                    className={`w-full xl:w-auto min-w-[200px] h-14 bg-gradient-to-r ${timeLeft > 0 ? 'from-primary-600 via-primary-500 to-primary-600 hover:from-primary-500 hover:to-primary-400' : 'from-gray-700 to-gray-800 cursor-not-allowed opacity-50'} text-white font-bold text-lg rounded-xl shadow-sm transition-all transform border border-[#E5E5E5]`}
+                                                >
+                                                    {paying ? <Loader2 className="animate-spin w-6 h-6" /> : <span className="flex items-center justify-center gap-2">HEMEN ÖDE <CheckCircle size={18} className="text-white fill-white/20" /></span>}
+                                                </Button>
+
+                                                <div className="flex items-start gap-3 w-full max-w-sm">
+                                                    <AlertCircle className="w-4 h-4 text-primary-400 shrink-0 mt-0.5" />
+                                                    <p className="text-[11px] text-primary-200/70 leading-relaxed text-left">
+                                                        Onay için <strong className="text-primary-100 font-bold">10 dakika</strong> içinde ödeme işlemini tamamlamanız gerekmektedir.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {isPaymentEnabled && booking.paymentStatus !== 'PAID' && booking.status !== 'CANCELLED' && (
-                                        <div className="w-full xl:w-auto shrink-0 flex flex-col items-center xl:items-end gap-3 p-5 bg-[#1e1b4b]/40 rounded-2xl border border-primary-500/20 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]">
-                                            {timeLeft > 0 ? (
-                                                <div className="flex flex-col items-center xl:items-end">
-                                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 opacity-80">ÖDEME İÇİN KALAN SÜRE</div>
-                                                    <div className="font-mono text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500 tabular-nums animate-pulse tracking-tight drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                                                        {formatTimeLeft(timeLeft)}
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col items-center xl:items-end">
-                                                    <div className="text-[10px] font-bold text-red-500/80 uppercase tracking-widest mb-1">ÖDEME SÜRESİ</div>
-                                                    <div className="font-black text-2xl md:text-3xl text-red-500 tracking-tight drop-shadow-[0_0_15px_rgba(239,68,68,0.3)]">SÜRE DOLDU</div>
-                                                </div>
-                                            )}
-
-                                            <Button
-                                                onClick={handlePay}
-                                                disabled={paying || timeLeft <= 0}
-                                                className={`w-full xl:w-auto min-w-[200px] h-14 bg-gradient-to-r ${timeLeft > 0 ? 'from-primary-600 via-primary-500 to-primary-600 hover:from-primary-500 hover:to-primary-400' : 'from-gray-700 to-gray-800 cursor-not-allowed opacity-50'} text-white font-bold text-lg rounded-xl shadow-sm transition-all transform border border-[#E5E5E5]`}
-                                            >
-                                                {paying ? <Loader2 className="animate-spin w-6 h-6" /> : <span className="flex items-center justify-center gap-2">HEMEN ÖDE <CheckCircle size={18} className="text-white fill-white/20" /></span>}
-                                            </Button>
-
-                                            <div className="flex items-start gap-3 w-full max-w-sm">
-                                                <AlertCircle className="w-4 h-4 text-primary-400 shrink-0 mt-0.5" />
-                                                <p className="text-[11px] text-primary-200/70 leading-relaxed text-left">
-                                                    Onay için <strong className="text-primary-100 font-bold">10 dakika</strong> içinde ödeme işlemini tamamlamanız gerekmektedir.
-                                                </p>
+                                    {/* Detay Bilgileri Izgarası */}
+                                    <div className="border-t border-[#E5E5E5] pt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-sm">
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Telefon</div>
+                                            <div className="font-mono text-gray-800 font-medium">{booking.customerPhone}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">E-posta</div>
+                                            <div className="text-gray-800 font-medium truncate">{booking.customerEmail}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">
+                                                {booking.customerCompanyTitle ? 'Vergi No (VKN)' : 'T.C. Kimlik No'}
+                                            </div>
+                                            <div className="font-mono text-gray-800 font-medium">
+                                                {booking.customerTC ? (booking.customerTC.length === 11 ? booking.customerTC.replace(/(\d{3})\d{6}(\d{2})/, '$1******$2') : booking.customerTC.replace(/(\d{2})\d{6}(\d{2})/, '$1******$2')) : '-'}
                                             </div>
                                         </div>
-                                    )}
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Kimlik Seri / No</div>
+                                            <div className="font-mono text-gray-800 font-medium">{booking.customerIdentitySerial || '-'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Doğum Tarihi</div>
+                                            <div className="text-gray-800 font-medium">{formatDateTR(booking.customerBirthDate)}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Doğum Yeri</div>
+                                            <div className="text-gray-800 font-medium">{booking.customerBirthPlace || '-'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Ehliyet Belge No</div>
+                                            <div className="font-mono text-gray-800 font-medium">{booking.customerDriverLicense || '-'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Ehliyet Sınıfı</div>
+                                            <div className="text-gray-800 font-medium">{booking.customerLicenseClass || '-'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Verildiği Yer</div>
+                                            <div className="text-gray-800 font-medium">{booking.customerLicenseIssuedPlace || '-'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Düzenleme Tarihi</div>
+                                            <div className="text-gray-800 font-medium">{formatDateTR(booking.customerLicenseIssuedDate)}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Yabancı Ehliyet</div>
+                                            <div className="text-gray-800 font-medium">{booking.customerIsForeignLicense ? 'Evet' : 'Hayır'}</div>
+                                        </div>
+                                        <div className="col-span-1 sm:col-span-2 md:col-span-3 space-y-1">
+                                            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Açık Adres</div>
+                                            <div className="text-gray-800 font-medium leading-relaxed">{booking.customerAddress || '-'}</div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* Hero Image Container */}

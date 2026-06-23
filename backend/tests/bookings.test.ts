@@ -113,7 +113,16 @@ describe('Bookings Module', () => {
                 customerPhone: '905554443322',
                 customerEmail: 'test@example.com',
                 customerTC: '12345678901',
+                customerIdentitySerial: 'A12-34567',
+                customerBirthDate: '1990-01-01',
+                customerBirthPlace: 'Ankara',
                 customerDriverLicense: '123456',
+                customerLicenseIssuedPlace: 'Ankara',
+                customerLicenseIssuedDate: '2015-01-01',
+                customerLicenseClass: 'B',
+                customerIsForeignLicense: false,
+                customerAddress: 'Test Adresi Mahallesi',
+                kvkkAccepted: true,
             };
 
             (prisma.car.findUnique as any).mockResolvedValue({ id: '550e8400-e29b-41d4-a716-446655440001', status: 'ACTIVE', branchId: '550e8400-e29b-41d4-a716-446655440000', dailyPrice: 1000 });
@@ -124,7 +133,6 @@ describe('Bookings Module', () => {
             const res = await request(app)
                 .post('/api/bookings')
                 .send(bookingData);
-
             expect(res.status).toBe(201);
             expect(res.body.success).toBe(true);
             expect(res.body.data.bookingCode).toBeDefined();
