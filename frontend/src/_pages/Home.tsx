@@ -514,7 +514,12 @@ export const Home = () => {
                             </div>
                             <div className="col-span-2">
                                 <button
-                                    onClick={() => fetchCars(1, false)}
+                                    onClick={async () => {
+                                        await fetchCars(1, false);
+                                        setTimeout(() => {
+                                            document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                        }, 100);
+                                    }}
                                     className="w-full h-14 bg-primary-500 text-white font-black tracking-[0.1em] rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center justify-center text-sm"
                                 >
                                     FİLTRELE
@@ -638,7 +643,12 @@ export const Home = () => {
                     </div>
 
                     <button
-                        onClick={() => fetchCars(1, false)}
+                        onClick={async () => {
+                            await fetchCars(1, false);
+                            setTimeout(() => {
+                                document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 100);
+                        }}
                         className="w-full h-14 bg-primary-500 hover:bg-primary-600 text-white font-black tracking-widest rounded-2xl shadow-lg shadow-primary-500/20 transition-all flex items-center justify-center gap-2 text-sm uppercase"
                     >
                         <Search className="w-5 h-5" /> Müsait Araçları Bul
