@@ -556,7 +556,7 @@ export const Home = () => {
                                     onChange={(e) => setFilters(prev => ({ ...prev, pickupBranchId: e.target.value }))}
                                     disabled
                                 >
-                                    <option value="">Lokasyon Seçiniz</option>
+                                    <option value="" disabled>Manisa Şehzadeler</option>
                                     {branches.map(branch => (
                                         <option key={branch.id} value={branch.id}>
                                             {branch.name}
@@ -578,7 +578,7 @@ export const Home = () => {
                                     onChange={(e) => setFilters(prev => ({ ...prev, dropoffBranchId: e.target.value }))}
                                     disabled
                                 >
-                                    <option value="">Lokasyon Seçiniz</option>
+                                    <option value="" disabled>Manisa Şehzadeler</option>
                                     {branches.map(branch => (
                                         <option key={branch.id} value={branch.id}>
                                             {branch.name}
