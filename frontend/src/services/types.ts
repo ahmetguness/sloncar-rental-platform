@@ -83,6 +83,7 @@ export interface CreateBookingRequest {
     pickupBranchId: string;
     dropoffBranchId: string;
     notes?: string;
+    kvkkAccepted: boolean;
 }
 
 export type UserRole = 'ADMIN' | 'STAFF';
@@ -118,6 +119,7 @@ interface BaseRegisterRequest {
     name: string;
     phone?: string;
     emailCampaignEnabled?: boolean;
+    kvkkAccepted: boolean;
 }
 
 export interface IndividualRegisterRequest extends BaseRegisterRequest {

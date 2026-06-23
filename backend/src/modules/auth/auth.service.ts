@@ -49,6 +49,8 @@ export async function register(input: RegisterInput): Promise<{ message: string 
         isEmailVerified: false,
         emailVerificationToken: hashedToken,
         emailVerificationExpires: verificationExpires,
+        kvkkAccepted: true,
+        kvkkAcceptedAt: new Date(),
     };
 
     if (input.membershipType === 'INDIVIDUAL') {

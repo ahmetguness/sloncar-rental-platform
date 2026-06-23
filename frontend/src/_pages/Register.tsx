@@ -11,6 +11,7 @@ import { normalizeEmail, formatPhoneNumber, cleanPhoneNumber } from '../utils/fo
 import { authService } from '../services/api';
 import type { MembershipType } from '../services/types';
 import logo from '../assets/logo/logo.jpg';
+import { KVKKModal } from '../components/modals/KVKKModal';
 
 interface FormErrors {
     [key: string]: string;
@@ -31,6 +32,8 @@ export const Register = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [phone, setPhone] = useState('');
+    const [kvkkAccepted, setKvkkAccepted] = useState(false);
+    const [kvkkModalOpen, setKvkkModalOpen] = useState(false);
 
     // Individual fields
     const [tcNo, setTcNo] = useState('');
@@ -69,6 +72,10 @@ export const Register = () => {
             }
         }
 
+        if (!kvkkAccepted) {
+            newErrors.kvkkAccepted = 'KVKK metnini onaylamanız gerekmektedir';
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -92,6 +99,7 @@ export const Register = () => {
                     password,
                     phone: cleanedPhone || undefined,
                     tcNo: tcNo || undefined,
+                    kvkkAccepted: true,
                 });
             } else {
                 result = await authService.register({
@@ -104,6 +112,7 @@ export const Register = () => {
                     taxNumber: taxNumber.trim(),
                     taxOffice: taxOffice.trim() || undefined,
                     companyAddress: companyAddress.trim() || undefined,
+                    kvkkAccepted: true,
                 });
             }
             setSuccessMessage(result.message);
@@ -295,6 +304,36 @@ export const Register = () => {
                             </>
                         )}
 
+                        {/* KVKK Consent Checkbox */}
+                        <div className="space-y-1.5 mt-4">
+                            <div className="flex items-start gap-2.5">
+                                <input
+                                    type="checkbox"
+                                    id="kvkkAccepted"
+                                    checked={kvkkAccepted}
+                                    onChange={(e) => {
+                                        setKvkkAccepted(e.target.checked);
+                                        clearFieldError('kvkkAccepted');
+                                    }}
+                                    className="mt-1 h-4.5 w-4.5 rounded border-gray-300 text-primary-500 focus:ring-primary-500/20 cursor-pointer"
+                                />
+                                <label htmlFor="kvkkAccepted" className="text-xs text-[#555555] font-medium leading-relaxed select-none cursor-pointer">
+                                    Üyelik işlemlerimin gerçekleştirilmesi amacıyla kişisel verilerimin işlenmesine ilişkin{' '}
+                                    <button
+                                        type="button"
+                                        onClick={() => setKvkkModalOpen(true)}
+                                        className="text-primary-500 font-bold hover:underline inline-block text-left"
+                                    >
+                                        KVKK Aydınlatma ve Açık Rıza Metni
+                                    </button>
+                                    'ni okudum, kabul ediyorum.
+                                </label>
+                            </div>
+                            {errors.kvkkAccepted && (
+                                <p className="text-red-500 text-xs ml-7">{errors.kvkkAccepted}</p>
+                            )}
+                        </div>
+
                         <Button
                             type="submit"
                             className="w-full h-14 text-base font-black mt-6 bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 transition-all rounded-2xl tracking-widest"
@@ -308,6 +347,17 @@ export const Register = () => {
                             ) : 'KAYIT OL'}
                         </Button>
                     </form>
+
+                    <KVKKModal
+                        isOpen={kvkkModalOpen}
+                        onClose={() => setKvkkModalOpen(false)}
+                        onAccept={() => {
+                            setKvkkAccepted(true);
+                            clearFieldError('kvkkAccepted');
+                            setKvkkModalOpen(false);
+                        }}
+                        customerName={name}
+                    />
 
                     {/* Login Link */}
                     <p className="text-center text-[#999999] text-sm mt-6">

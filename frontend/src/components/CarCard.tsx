@@ -12,6 +12,12 @@ import { optimizeCloudinaryUrl } from '../utils/cloudinaryOptimize';
 interface CarCardProps {
     car: Car;
     brandLogoUrl?: string;
+    searchParams?: {
+        pickupDate?: string;
+        dropoffDate?: string;
+        pickupBranchId?: string;
+        dropoffBranchId?: string;
+    };
 }
 
 const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) => {
@@ -92,7 +98,7 @@ const CarImageCarousel = ({ images, alt }: { images: string[], alt: string }) =>
     );
 };
 
-export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
+export const CarCard = ({ car, brandLogoUrl, searchParams }: CarCardProps) => {
     const seats = car.seats ?? 5;
     const largeLuggage = car.largeLuggage ?? 1;
     const smallLuggage = car.smallLuggage ?? 1;
@@ -104,7 +110,12 @@ export const CarCard = ({ car, brandLogoUrl }: CarCardProps) => {
 
     return (
         <Link
-            href={`/rezervasyon/${car.id}`}
+            href={{
+                pathname: `/rezervasyon/${car.id}`,
+                query: searchParams ? Object.fromEntries(
+                    Object.entries(searchParams).filter(([, v]) => v !== undefined && v !== '')
+                ) : undefined
+            }}
             className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-primary-500/40 transition-all duration-300 hover:shadow-lg hover:shadow-black/5"
         >
             {/* Header: Category + Name */}

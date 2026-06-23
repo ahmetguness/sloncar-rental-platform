@@ -123,6 +123,7 @@ export async function sendBookingConfirmationToCustomer(booking: any): Promise<b
         ${bulletList([
             'Ödemenizi tamamladıktan sonra rezervasyonunuz kesinleşecektir.',
             'Teslim sırasında kimlik ve ehliyetinizi yanınızda bulundurunuz.',
+            'Seçmiş olduğunuz aracın beklenmedik durumlar (arıza, kaza, kiralama uzaması vb.) nedeniyle teslim edilemeyecek olması durumunda; tarafınıza ek bir ücret alınmaksızın aynı grupta (muadil) ya da daha üst grupta bir araç tahsis edilecektir.',
             'Herhangi bir sorunuz için bizimle iletişime geçebilirsiniz.',
         ])}
 
@@ -216,6 +217,7 @@ export async function sendPaymentConfirmationToCustomer(booking: any): Promise<b
         ${bulletList([
             'Aracınızı belirtilen tarih ve saatte teslim alabilirsiniz.',
             'Lütfen teslim sırasında kimlik ve ehliyetinizi yanınızda bulundurunuz.',
+            'Seçmiş olduğunuz aracın beklenmedik durumlar (arıza, kaza, kiralama uzaması vb.) nedeniyle teslim edilemeyecek olması durumunda; tarafınıza ek bir ücret alınmaksızın aynı grupta (muadil) ya da daha üst grupta bir araç tahsis edilecektir.',
             'Herhangi bir değişiklik için bizimle iletişime geçebilirsiniz.',
         ])}
 

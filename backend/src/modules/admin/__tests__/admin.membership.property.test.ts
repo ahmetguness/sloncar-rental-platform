@@ -93,11 +93,11 @@ describe('Property 7: Admin üyelik tipi filtrelemesi', () => {
                 expect(result.pagination.total).toBe(filteredUsers.length);
 
                 // Verify Prisma was called with the correct where clause
-                const findManyCall = mockFindMany.mock.calls[mockFindMany.mock.calls.length - 1][0];
-                expect(findManyCall.where.membershipType).toBe(filterType);
+                const findManyCall = mockFindMany.mock.calls[mockFindMany.mock.calls.length - 1]?.[0];
+                expect(findManyCall?.where?.membershipType).toBe(filterType);
 
-                const countCall = mockCount.mock.calls[mockCount.mock.calls.length - 1][0];
-                expect(countCall.where.membershipType).toBe(filterType);
+                const countCall = mockCount.mock.calls[mockCount.mock.calls.length - 1]?.[0];
+                expect(countCall?.where?.membershipType).toBe(filterType);
 
                 mockFindMany.mockReset();
                 mockCount.mockReset();
@@ -124,8 +124,8 @@ describe('Property 7: Admin üyelik tipi filtrelemesi', () => {
                 expect(result.pagination.total).toBe(allUsers.length);
 
                 // Verify Prisma where clause does NOT contain membershipType
-                const findManyCall = mockFindMany.mock.calls[mockFindMany.mock.calls.length - 1][0];
-                expect(findManyCall.where).not.toHaveProperty('membershipType');
+                const findManyCall = mockFindMany.mock.calls[mockFindMany.mock.calls.length - 1]?.[0];
+                expect(findManyCall?.where).not.toHaveProperty('membershipType');
 
                 mockFindMany.mockReset();
                 mockCount.mockReset();

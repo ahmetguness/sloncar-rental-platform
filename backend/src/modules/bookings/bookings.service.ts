@@ -102,6 +102,8 @@ export async function createBooking(
                 totalPrice,
                 ...(userId ? { userId } : {}),
                 expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
+                kvkkAccepted: true,
+                kvkkAcceptedAt: new Date(),
             },
             include: {
                 car: { include: { branch: true } },

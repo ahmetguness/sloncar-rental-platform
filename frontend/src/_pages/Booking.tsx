@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { carService, bookingService } from '../services/api';
+import { useParams, useSearchParams } from 'next/navigation';
+import { carService, bookingService, branchService } from '../services/api';
 import type { Car, CreateBookingRequest } from '../services/types';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Loader2, CheckCircle, MapPin, Users, Fuel, Cog, Gauge, Copy, Check, Shield, Info } from 'lucide-react';
+import { Loader2, CheckCircle, MapPin, Users, Fuel, Cog, Gauge, Copy, Check, Shield, Info, Clock } from 'lucide-react';
 import { ImageCarousel } from '../components/ui/ImageCarousel';
 import Link from 'next/link';
 import { translateFuel } from '../utils/translate';
@@ -18,6 +18,7 @@ registerLocale('tr', tr);
 
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { KVKKModal } from '../components/modals/KVKKModal';
 
 const AnimatedNumber = ({ value }: { value: number }) => {
     return (
@@ -34,7 +35,14 @@ const AnimatedNumber = ({ value }: { value: number }) => {
 
 export const Booking = () => {
     const { carId } = useParams();
+    const searchParams = useSearchParams();
+    const pickupDateParam = searchParams.get('pickupDate');
+    const dropoffDateParam = searchParams.get('dropoffDate');
+    const pickupBranchParam = searchParams.get('pickupBranchId');
+    const dropoffBranchParam = searchParams.get('dropoffBranchId');
+
     const [car, setCar] = useState<Car | null>(null);
+    const [branches, setBranches] = useState<{ id: string; name: string; city: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -67,6 +75,9 @@ export const Booking = () => {
         dropoffBranchId: '',
     });
 
+    const [kvkkAccepted, setKvkkAccepted] = useState(false);
+    const [kvkkModalOpen, setKvkkModalOpen] = useState(false);
+
     // Pre-fill form with logged-in user data
     useEffect(() => {
         if (user) {
@@ -84,21 +95,44 @@ export const Booking = () => {
         }
     }, [user]);
 
+    // Pre-populate dates from query parameters (local noon to avoid timezone shift)
+    useEffect(() => {
+        if (pickupDateParam) {
+            const [y, m, d] = pickupDateParam.split('-').map(Number);
+            if (y && m && d) {
+                setStartDate(new Date(y, m - 1, d, 12, 0, 0));
+            }
+        }
+        if (dropoffDateParam) {
+            const [y, m, d] = dropoffDateParam.split('-').map(Number);
+            if (y && m && d) {
+                setEndDate(new Date(y, m - 1, d, 12, 0, 0));
+            }
+        }
+    }, [pickupDateParam, dropoffDateParam]);
+
     useEffect(() => {
         if (!carId) {
             setLoading(false);
             return;
         }
 
-        const loadCar = async () => {
+        const loadData = async () => {
             try {
-                const carData = await carService.getById(carId as string);
+                const [carData, list] = await Promise.all([
+                    carService.getById(carId as string),
+                    branchService.getAll()
+                ]);
+
                 setCar(carData);
+                setBranches(list);
+
+                const target = list.find(b => b.name === 'Manisa Şehzadeler');
                 setFormData(prev => ({
                     ...prev,
                     carId: carData.id,
-                    pickupBranchId: carData.branchId,
-                    dropoffBranchId: carData.branchId,
+                    pickupBranchId: target?.id || carData.branchId,
+                    dropoffBranchId: target?.id || carData.branchId,
                 }));
             } catch (err) {
                 setError('Araç bilgileri yüklenemedi.');
@@ -132,7 +166,7 @@ export const Booking = () => {
             }
         };
 
-        loadCar();
+        loadData();
         loadAvailability();
     }, [carId]);
 
@@ -201,6 +235,12 @@ export const Booking = () => {
             return;
         }
 
+        if (!kvkkAccepted) {
+            setError('Rezervasyon yapabilmek için KVKK Aydınlatma ve Açık Rıza Metni\'ni kabul etmeniz gerekmektedir.');
+            setSubmitting(false);
+            return;
+        }
+
         try {
             // Clean payload
             const payload = {
@@ -212,6 +252,7 @@ export const Booking = () => {
                 // Ensure dates are string for JSON (backend coerces them)
                 pickupDate: formData.pickupDate,
                 dropoffDate: formData.dropoffDate,
+                kvkkAccepted: true,
             };
 
             if (!payload.customerTC) delete payload.customerTC;
@@ -340,6 +381,19 @@ export const Booking = () => {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                 0546 239 26 26
                             </a>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.48 }}
+                            className="bg-gray-50 border border-gray-100 rounded-2xl p-5 mb-10 text-left flex gap-3.5 items-start max-w-md mx-auto"
+                        >
+                            <Info className="w-5 h-5 text-[#111111] shrink-0 mt-0.5" />
+                            <p className="text-xs text-[#555555] leading-relaxed font-semibold">
+                                <strong className="text-[#111111] block mb-1">Araç Grubu ve Muadil Bilgilendirmesi:</strong>
+                                Seçmiş olduğunuz aracın beklenmedik durumlar (arıza, kaza, kiralama uzaması vb.) nedeniyle teslim edilemeyecek olması durumunda; tarafınıza ek bir ücret alınmaksızın aynı grupta (muadil) ya da daha üst grupta bir araç tahsis edilecektir.
+                            </p>
                         </motion.div>
 
                         <motion.div
@@ -569,7 +623,12 @@ export const Booking = () => {
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-gray-200 rounded-[2rem] overflow-hidden border-2 border-gray-100 shadow-inner">
                                             <div className="bg-white p-8 space-y-3 focus-within:bg-gray-50 transition-all duration-500 group/input">
-                                                <label className="text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] group-focus-within/input:text-primary-500 transition-colors">ALIŞ TARİHİ</label>
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] group-focus-within/input:text-primary-500 transition-colors">ALIŞ TARİHİ</label>
+                                                    <span className="text-[10px] font-black text-primary-500 bg-primary-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" /> 12:00
+                                                    </span>
+                                                </div>
                                                 <DatePicker
                                                     selected={startDate}
                                                     onChange={(date: Date | null) => setStartDate(date)}
@@ -587,7 +646,12 @@ export const Booking = () => {
                                                 />
                                             </div>
                                             <div className="bg-white p-8 space-y-3 focus-within:bg-gray-50 transition-all duration-500 group/input">
-                                                <label className="text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] group-focus-within/input:text-primary-500 transition-colors">TESLİM TARİHİ</label>
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] group-focus-within/input:text-primary-500 transition-colors">TESLİM TARİHİ</label>
+                                                    <span className="text-[10px] font-black text-primary-500 bg-primary-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" /> 12:00
+                                                    </span>
+                                                </div>
                                                 <DatePicker
                                                     selected={endDate}
                                                     onChange={(date: Date | null) => setEndDate(date)}
@@ -603,6 +667,59 @@ export const Booking = () => {
                                                     excludeDates={bookedDates}
                                                     required
                                                 />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-8">
+                                        <div className="flex items-center gap-4">
+                                            <span className="w-12 h-[2px] bg-primary-500 rounded-full" />
+                                            <h3 className="text-[10px] font-black text-[#111111] uppercase tracking-[0.3em]">Kiralama Noktaları</h3>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                                            <div className="space-y-2">
+                                                <label className="block text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] ml-2">ALIŞ ŞUBESİ</label>
+                                                <div className="relative flex items-center bg-gray-50/30 border-2 border-gray-100 rounded-2xl h-16 px-4 focus-within:bg-white focus-within:border-primary-500/20 transition-all opacity-75">
+                                                    <MapPin className="w-5 h-5 text-primary-500 shrink-0 mr-3" />
+                                                    <select
+                                                        name="pickupBranchId"
+                                                        className="w-full bg-transparent text-[#111111] font-bold text-lg outline-none appearance-none cursor-not-allowed pr-2"
+                                                        value={formData.pickupBranchId || ''}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, pickupBranchId: e.target.value }))}
+                                                        disabled
+                                                        required
+                                                    >
+                                                        <option value="">Seçiniz</option>
+                                                        {branches.map(branch => (
+                                                            <option key={branch.id} value={branch.id}>
+                                                                {branch.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="block text-[10px] font-black text-[#777777] uppercase tracking-[0.2em] ml-2">BIRAKIŞ ŞUBESİ</label>
+                                                <div className="relative flex items-center bg-gray-50/30 border-2 border-gray-100 rounded-2xl h-16 px-4 focus-within:bg-white focus-within:border-primary-500/20 transition-all opacity-75">
+                                                    <MapPin className="w-5 h-5 text-primary-500 shrink-0 mr-3" />
+                                                    <select
+                                                        name="dropoffBranchId"
+                                                        className="w-full bg-transparent text-[#111111] font-bold text-lg outline-none appearance-none cursor-not-allowed pr-2"
+                                                        value={formData.dropoffBranchId || ''}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, dropoffBranchId: e.target.value }))}
+                                                        disabled
+                                                        required
+                                                    >
+                                                        <option value="">Seçiniz</option>
+                                                        {branches.map(branch => (
+                                                            <option key={branch.id} value={branch.id}>
+                                                                {branch.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -652,6 +769,30 @@ export const Booking = () => {
                                         </p>
                                     </div>
 
+                                    {/* KVKK Consent Checkbox */}
+                                    <div className="space-y-2 mb-6">
+                                        <div className="flex items-start gap-3">
+                                            <input
+                                                type="checkbox"
+                                                id="kvkkAccepted"
+                                                checked={kvkkAccepted}
+                                                onChange={(e) => setKvkkAccepted(e.target.checked)}
+                                                className="mt-1 h-5 w-5 rounded border-gray-300 text-[#E30613] focus:ring-primary-500/20 cursor-pointer accent-[#E30613]"
+                                            />
+                                            <label htmlFor="kvkkAccepted" className="text-sm text-gray-700 font-medium leading-relaxed select-none cursor-pointer">
+                                                Rezervasyon işlemlerimin gerçekleştirilmesi amacıyla kişisel verilerimin işlenmesine ilişkin{' '}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setKvkkModalOpen(true)}
+                                                    className="text-primary-500 font-bold hover:underline inline-block text-left"
+                                                >
+                                                    KVKK Aydınlatma ve Açık Rıza Metni
+                                                </button>
+                                                'ni okudum, kabul ediyorum.
+                                            </label>
+                                        </div>
+                                    </div>
+
                                     <motion.div
                                         whileHover={{ scale: 1.01 }}
                                         whileTap={{ scale: 0.99 }}
@@ -667,6 +808,16 @@ export const Booking = () => {
                                             <span className="relative z-10 font-black tracking-[0.1em]">{submitting ? 'İŞLENİYOR...' : 'REZERVASYONU ONAYLA'}</span>
                                         </Button>
                                     </motion.div>
+
+                                    <KVKKModal
+                                        isOpen={kvkkModalOpen}
+                                        onClose={() => setKvkkModalOpen(false)}
+                                        onAccept={() => {
+                                            setKvkkAccepted(true);
+                                            setKvkkModalOpen(false);
+                                        }}
+                                        customerName={`${formData.customerName || ''} ${formData.customerSurname || ''}`.trim()}
+                                    />
                                 </form>
                             </div>
                         </div>

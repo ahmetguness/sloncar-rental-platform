@@ -5,12 +5,12 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { tr } from 'date-fns/locale/tr';
 import { translateCategory } from '../utils/translate';
 import "react-datepicker/dist/react-datepicker.css";
-import { carService, brandService } from '../services/api';
+import { carService, brandService, branchService } from '../services/api';
 import type { Car } from '../services/types';
 import { CarCard } from '../components/CarCard';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Loader2, Search, Plus, Minus, ChevronLeft, ChevronRight, Sparkles, MapPin, RotateCcw, Target, Rocket, Shield, Users, Award, TrendingUp, Briefcase } from 'lucide-react';
+import { Loader2, Search, Plus, Minus, ChevronLeft, ChevronRight, Sparkles, MapPin, RotateCcw, Target, Rocket, Shield, Users, Award, TrendingUp, Briefcase, Calendar, Clock } from 'lucide-react';
 import { CampaignCarousel } from '../components/CampaignCarousel';
 import { campaignService } from '../services/campaign.service';
 import type { Campaign } from '../services/campaign.service';
@@ -24,6 +24,7 @@ export const Home = () => {
     const [cars, setCars] = useState<Car[]>([]);
     const [brands, setBrands] = useState<{ id: string; name: string; logoUrl: string }[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
+    const [branches, setBranches] = useState<{ id: string; name: string; city: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
         brand: '',
@@ -32,6 +33,8 @@ export const Home = () => {
         maxPrice: '',
         pickupDate: '',
         dropoffDate: '',
+        pickupBranchId: '',
+        dropoffBranchId: '',
     });
     const [secondaryCampaign, setSecondaryCampaign] = useState<Campaign | null>(null);
     const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -88,14 +91,29 @@ export const Home = () => {
             }, 2500);
         };
 
+        const onMouseEnter = () => {
+            // Only pause on devices that support true hover
+            if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
+                setIsPaused(true);
+            }
+        };
+
+        const onMouseLeave = () => {
+            setIsPaused(false);
+        };
+
         el.addEventListener('touchstart', onTouchStart, { passive: true });
         el.addEventListener('touchend', onTouchEnd, { passive: true });
         el.addEventListener('touchcancel', onTouchEnd, { passive: true });
+        el.addEventListener('mouseenter', onMouseEnter);
+        el.addEventListener('mouseleave', onMouseLeave);
 
         return () => {
             el.removeEventListener('touchstart', onTouchStart);
             el.removeEventListener('touchend', onTouchEnd);
             el.removeEventListener('touchcancel', onTouchEnd);
+            el.removeEventListener('mouseenter', onMouseEnter);
+            el.removeEventListener('mouseleave', onMouseLeave);
             if (touchResumeTimer.current) clearTimeout(touchResumeTimer.current);
         };
     }, [brands.length]);
@@ -198,6 +216,13 @@ export const Home = () => {
             };
             delete cleanedFilters.brand;
 
+            // Map pickupBranchId to branch query parameter for backend
+            if (filters.pickupBranchId) {
+                cleanedFilters.branch = filters.pickupBranchId;
+            }
+            delete cleanedFilters.pickupBranchId;
+            delete cleanedFilters.dropoffBranchId;
+
             const finalFilters = Object.fromEntries(
                 Object.entries(cleanedFilters).filter(([, v]) => v !== '')
             );
@@ -222,10 +247,11 @@ export const Home = () => {
 
     const fetchBrands = async () => {
         try {
-            const [allBrands, usedBrandNames, usedCategories] = await Promise.all([
+            const [allBrands, usedBrandNames, usedCategories, activeBranches] = await Promise.all([
                 brandService.getAllAdmin(),
                 carService.getUsedBrands('RENTAL'),
-                carService.getUsedCategories('RENTAL')
+                carService.getUsedCategories('RENTAL'),
+                branchService.getAll()
             ]);
 
             const filteredBrands = allBrands.filter(b =>
@@ -234,6 +260,17 @@ export const Home = () => {
 
             setBrands(filteredBrands);
             setCategories(usedCategories);
+            setBranches(activeBranches);
+
+            // Set default branch filter to Manisa Şehzadeler
+            const target = activeBranches.find(b => b.name === 'Manisa Şehzadeler');
+            if (target) {
+                setFilters(prev => ({
+                    ...prev,
+                    pickupBranchId: target.id,
+                    dropoffBranchId: target.id
+                }));
+            }
         } catch (error) {
             console.error('Failed to fetch filter data', error);
         }
@@ -281,13 +318,16 @@ export const Home = () => {
     };
 
     const resetFilters = async () => {
+        const target = branches.find(b => b.name === 'Manisa Şehzadeler');
         const emptyFilters = {
             brand: '',
             category: '',
             minPrice: '',
             maxPrice: '',
             pickupDate: '',
-            dropoffDate: ''
+            dropoffDate: '',
+            pickupBranchId: target?.id || '',
+            dropoffBranchId: target?.id || ''
         };
         setFilters(emptyFilters);
         setLoading(true);
@@ -421,7 +461,7 @@ export const Home = () => {
                         )}
                         <div className="grid grid-cols-12 gap-4 items-end">
                             <div className="col-span-2 space-y-2">
-                                <label className="text-[10px] font-black text-[#777777] uppercase tracking-widest pl-1">Alış Tarihi</label>
+                                <label className="text-[10px] font-black text-[#777777] uppercase tracking-widest pl-1">Alış Tarihi (12:00)</label>
                                 <DatePicker
                                     selected={parseDateString(filters.pickupDate)}
                                     onChange={(date: Date | null) => setFilters(prev => ({ ...prev, pickupDate: date ? formatDateForAPI(date) : '' }))}
@@ -430,10 +470,11 @@ export const Home = () => {
                                     placeholderText="Seçiniz"
                                     className="w-full h-14 px-4 bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl text-[#111111] focus:border-primary-500/50 transition-all outline-none text-sm"
                                     minDate={new Date()}
+                                    
                                 />
                             </div>
                             <div className="col-span-2 space-y-2">
-                                <label className="text-[10px] font-black text-[#777777] uppercase tracking-widest pl-1">İade Tarihi</label>
+                                <label className="text-[10px] font-black text-[#777777] uppercase tracking-widest pl-1">İade Tarihi (12:00)</label>
                                 <DatePicker
                                     selected={parseDateString(filters.dropoffDate)}
                                     onChange={(date: Date | null) => setFilters(prev => ({ ...prev, dropoffDate: date ? formatDateForAPI(date) : '' }))}
@@ -442,6 +483,7 @@ export const Home = () => {
                                     placeholderText="Seçiniz"
                                     className="w-full h-14 px-4 bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl text-[#111111] focus:border-primary-500/50 transition-all outline-none text-sm"
                                     minDate={parseDateString(filters.pickupDate) || new Date()}
+                                    
                                 />
                             </div>
                             <div className="col-span-3 space-y-2">
@@ -484,43 +526,73 @@ export const Home = () => {
             </section>
 
 
-            {/* Mobile Search Trigger */}
+            {/* Mobile Search Form (Inline) */}
             <div className="md:hidden relative z-20 px-4 pt-28">
-                <button
-                    onClick={() => setIsMobileSearchOpen(true)}
-                    className="w-full h-16 bg-white border border-[#E5E5E5] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-between px-6"
-                >
-                    <div className="flex flex-col items-start">
-                        <span className="text-xs font-bold text-primary-500 uppercase tracking-wider">Müsait Araçları Ara</span>
-                        <span className="text-[#111111] font-medium text-sm truncate">
-                            {filters.pickupDate || filters.dropoffDate ?
-                                `${filters.pickupDate ? filters.pickupDate : 'Tarih'} - ${filters.dropoffDate ? filters.dropoffDate : 'Seçiniz'}`
-                                : 'Tarih ve Araç Seçimi Yapınız'}
-                        </span>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center shadow-lg shadow-primary-500/30">
-                        <Search className="w-5 h-5 text-white" />
-                    </div>
-                </button>
-            </div>
-
-            {/* Mobile Search Modal */}
-            {isMobileSearchOpen && (
-                <div className="fixed inset-0 z-50 bg-white flex flex-col md:hidden">
-                    <div className="flex items-center justify-between p-6 border-b border-[#E5E5E5]">
-                        <h2 className="text-xl font-bold text-[#111111]">Filtrele & Ara</h2>
-                        <button
-                            onClick={() => setIsMobileSearchOpen(false)}
-                            className="w-10 h-10 rounded-full bg-[#F5F5F5] flex items-center justify-center text-[#777777] hover:text-[#111111]"
-                        >
-                            <Minus className="w-6 h-6 rotate-45" />
-                        </button>
+                <div className="bg-white rounded-[2.5rem] border border-[#E5E5E5] shadow-[0_15px_50px_-15px_rgba(0,0,0,0.1)] p-6 space-y-5">
+                    <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                        <h3 className="text-base font-black text-[#111111] tracking-tight uppercase flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-primary-500 animate-pulse" /> Araç Kiralama
+                        </h3>
+                        {Object.values(filters).some(x => x !== '') && (
+                            <button
+                                onClick={resetFilters}
+                                className="text-xs font-bold text-primary-500 hover:text-primary-600 flex items-center gap-1 transition-colors"
+                            >
+                                <RotateCcw className="w-3.5 h-3.5" /> Sıfırla
+                            </button>
+                        )}
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-[#777777] uppercase tracking-wide">Alış Tarihi</label>
+                    <div className="space-y-4">
+                        {/* Alış Lokasyonu */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-[#777777] uppercase tracking-widest pl-1 block">Alış Lokasyonu</label>
+                            <div className="relative flex items-center bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl h-14 px-4 focus-within:border-primary-500/50 transition-all opacity-75">
+                                <MapPin className="w-5 h-5 text-primary-500 shrink-0 mr-3" />
+                                <select
+                                    name="pickupBranchId"
+                                    className="w-full bg-transparent text-[#111111] font-semibold text-sm outline-none appearance-none cursor-not-allowed pr-2"
+                                    value={filters.pickupBranchId}
+                                    onChange={(e) => setFilters(prev => ({ ...prev, pickupBranchId: e.target.value }))}
+                                    disabled
+                                >
+                                    <option value="">Lokasyon Seçiniz</option>
+                                    {branches.map(branch => (
+                                        <option key={branch.id} value={branch.id}>
+                                            {branch.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Bırakış Lokasyonu */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-[#777777] uppercase tracking-widest pl-1 block">Bırakış Lokasyonu</label>
+                            <div className="relative flex items-center bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl h-14 px-4 focus-within:border-primary-500/50 transition-all opacity-75">
+                                <MapPin className="w-5 h-5 text-primary-500 shrink-0 mr-3" />
+                                <select
+                                    name="dropoffBranchId"
+                                    className="w-full bg-transparent text-[#111111] font-semibold text-sm outline-none appearance-none cursor-not-allowed pr-2"
+                                    value={filters.dropoffBranchId}
+                                    onChange={(e) => setFilters(prev => ({ ...prev, dropoffBranchId: e.target.value }))}
+                                    disabled
+                                >
+                                    <option value="">Lokasyon Seçiniz</option>
+                                    {branches.map(branch => (
+                                        <option key={branch.id} value={branch.id}>
+                                            {branch.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Alış Tarihi */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-[#777777] uppercase tracking-widest pl-1 block">Alış Tarihi</label>
+                            <div className="relative flex items-center bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl h-14 px-4 focus-within:border-primary-500/50 transition-all">
+                                <Calendar className="w-5 h-5 text-primary-500 shrink-0 mr-3" />
                                 <DatePicker
                                     selected={parseDateString(filters.pickupDate)}
                                     onChange={(date: Date | null) => {
@@ -529,14 +601,22 @@ export const Home = () => {
                                     }}
                                     dateFormat="dd/MM/yyyy"
                                     locale="tr"
-                                    placeholderText="Seçiniz"
-                                    className="w-full px-4 py-4 bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl text-[#111111] font-medium text-lg"
+                                    placeholderText="Alış Tarihi Seçiniz"
+                                    className="w-full bg-transparent border-none p-0 text-[#111111] font-semibold text-sm outline-none cursor-pointer focus:ring-0"
                                     minDate={new Date()}
                                     withPortal
                                 />
+                                <span className="text-[10px] font-black text-primary-500 bg-primary-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0 ml-2 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> 12:00
+                                </span>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-[#777777] uppercase tracking-wide">Teslim Tarihi</label>
+                        </div>
+
+                        {/* Bırakış Tarihi */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-[#777777] uppercase tracking-widest pl-1 block">Bırakış Tarihi</label>
+                            <div className="relative flex items-center bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl h-14 px-4 focus-within:border-primary-500/50 transition-all">
+                                <Calendar className="w-5 h-5 text-primary-500 shrink-0 mr-3" />
                                 <DatePicker
                                     selected={parseDateString(filters.dropoffDate)}
                                     onChange={(date: Date | null) => {
@@ -545,88 +625,26 @@ export const Home = () => {
                                     }}
                                     dateFormat="dd/MM/yyyy"
                                     locale="tr"
-                                    placeholderText="Seçiniz"
-                                    className="w-full px-4 py-4 bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl text-[#111111] font-medium text-lg"
+                                    placeholderText="Bırakış Tarihi Seçiniz"
+                                    className="w-full bg-transparent border-none p-0 text-[#111111] font-semibold text-sm outline-none cursor-pointer focus:ring-0"
                                     minDate={parseDateString(filters.pickupDate) || new Date()}
                                     withPortal
                                 />
-                            </div>
-                        </div>
-
-                        <div className="space-y-4 pt-4 border-t border-[#E5E5E5]">
-                            <Input
-                                label="Marka / Model"
-                                name="brand"
-                                placeholder="Örn: BMW"
-                                value={filters.brand}
-                                onChange={handleFilterChange}
-                                className="bg-[#F5F5F5] border-[#E5E5E5] text-[#111111] h-12"
-                            />
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-[#777777] uppercase tracking-wide">Kategori</label>
-                                <select
-                                    name="category"
-                                    className="w-full px-4 py-3 bg-[#F5F5F5] border border-[#E5E5E5] rounded-2xl text-[#111111] appearance-none h-12"
-                                    value={filters.category}
-                                    onChange={handleFilterChange}
-                                >
-                                    <option value="" className="bg-white">Tüm Kategoriler</option>
-                                    {categories.map(cat => (
-                                        <option key={cat} value={cat} className="bg-white">
-                                            {translateCategory(cat)}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <Input
-                                    label="Min (₺)"
-                                    name="minPrice"
-                                    type="number"
-                                    placeholder="0"
-                                    value={filters.minPrice}
-                                    onChange={handleFilterChange}
-                                    className="bg-[#F5F5F5] border-[#E5E5E5] text-[#111111]"
-                                />
-                                <Input
-                                    label="Max (₺)"
-                                    name="maxPrice"
-                                    type="number"
-                                    placeholder="Max"
-                                    value={filters.maxPrice}
-                                    onChange={handleFilterChange}
-                                    className="bg-[#F5F5F5] border-[#E5E5E5] text-[#111111]"
-                                />
+                                <span className="text-[10px] font-black text-primary-500 bg-primary-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0 ml-2 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> 12:00
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-6 border-t border-[#E5E5E5] bg-[#F5F5F5]">
-                        <Button
-                            onClick={() => {
-                                fetchCars(1, false);
-                                setIsMobileSearchOpen(false);
-                            }}
-                            className="w-full h-14 text-lg font-bold bg-primary-600 text-white hover:bg-primary-500 shadow-lg shadow-primary-500/30 rounded-2xl flex items-center justify-center gap-2"
-                        >
-                            <Search className="w-5 h-5" /> SONUÇLARI GÖSTER
-                        </Button>
-                        {Object.values(filters).some(x => x !== '') && (
-                            <button
-                                onClick={() => {
-                                    resetFilters();
-                                    setIsMobileSearchOpen(false);
-                                }}
-                                className="w-full mt-3 py-3 text-sm font-medium text-[#777777] hover:text-[#111111]"
-                            >
-                                Filtreleri Temizle
-                            </button>
-                        )}
-                    </div>
+                    <button
+                        onClick={() => fetchCars(1, false)}
+                        className="w-full h-14 bg-primary-500 hover:bg-primary-600 text-white font-black tracking-widest rounded-2xl shadow-lg shadow-primary-500/20 transition-all flex items-center justify-center gap-2 text-sm uppercase"
+                    >
+                        <Search className="w-5 h-5" /> Müsait Araçları Bul
+                    </button>
                 </div>
-            )}
+            </div>
 
             {/* Campaign Carousel */}
             <div className="container mx-auto px-4 mt-6 md:mt-24">
@@ -676,11 +694,7 @@ export const Home = () => {
 
             {/* Brand Carousel */}
             <div className="container mx-auto px-4 md:px-6 mt-10 md:mt-16 mb-0 relative group/carousel">
-                <div
-                    className="relative flex items-center justify-center"
-                    onMouseEnter={() => setIsPaused(true)}
-                    onMouseLeave={() => setIsPaused(false)}
-                >
+                <div className="relative flex items-center justify-center">
                     {brands.length >= 8 && (
                         <button
                             onClick={scrollLeft}
@@ -797,6 +811,12 @@ export const Home = () => {
                                     key={car.id}
                                     car={car}
                                     brandLogoUrl={brands.find(b => b.name.toLowerCase() === car.brand.toLowerCase())?.logoUrl}
+                                    searchParams={{
+                                        pickupDate: filters.pickupDate,
+                                        dropoffDate: filters.dropoffDate,
+                                        pickupBranchId: filters.pickupBranchId,
+                                        dropoffBranchId: filters.dropoffBranchId
+                                    }}
                                 />
                             ))}
                         </div>

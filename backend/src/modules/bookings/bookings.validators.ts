@@ -26,7 +26,9 @@ const baseBookingSchemaObject = z.object({
 });
 
 // Customer booking schema - no auth required
-export const createBookingSchema = baseBookingSchemaObject.refine(
+export const createBookingSchema = baseBookingSchemaObject.extend({
+    kvkkAccepted: z.literal(true, { errorMap: () => ({ message: 'KVKK ve Açık Rıza Metni\'ni onaylamanız gerekmektedir' }) }),
+}).refine(
     (data) => data.dropoffDate >= data.pickupDate,
     { message: 'Teslim tarihi alış tarihinden önce olamaz', path: ['dropoffDate'] }
 );

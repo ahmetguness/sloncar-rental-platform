@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut, Menu, X, User, Building2 } from 'lucide-react';
+import { LogOut, Menu, X, User, Building2, Phone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import logo from '../../assets/logo/logo.jpg';
 import { Footer } from './Footer';
@@ -263,6 +263,44 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
             <main className="flex-grow pt-0">
                 {children}
             </main>
+
+            {/* Floating Action Buttons for Call and WhatsApp */}
+            {!isAdmin && (
+                <div className="fixed bottom-6 right-6 z-[999] flex flex-col gap-3">
+                    {/* Telefonla Ara Button */}
+                    <a
+                        href="tel:05462392626"
+                        className="group flex items-center justify-center w-14 h-14 bg-primary-500 text-white rounded-full shadow-[0_8px_30px_rgba(227,6,19,0.3)] hover:shadow-[0_8px_30px_rgba(227,6,19,0.5)] transition-all duration-300 hover:scale-110 relative"
+                        aria-label="Telefonla Ara"
+                        title="Telefonla Ara"
+                    >
+                        {/* Tooltip */}
+                        <span className="absolute right-16 bg-[#222222] text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap shadow-md border border-white/10">
+                            Telefonla Ara
+                        </span>
+                        <Phone className="w-6 h-6 animate-pulse" />
+                    </a>
+
+                    {/* WhatsApp Button */}
+                    <a
+                        href="https://wa.me/905462392626"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center justify-center w-14 h-14 bg-[#25D366] text-white rounded-full shadow-[0_8px_30px_rgba(37,211,102,0.3)] hover:shadow-[0_8px_30px_rgba(37,211,102,0.5)] transition-all duration-300 hover:scale-110 relative"
+                        aria-label="WhatsApp Destek"
+                        title="WhatsApp Destek"
+                    >
+                        {/* Tooltip */}
+                        <span className="absolute right-16 bg-[#222222] text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap shadow-md border border-white/10">
+                            WhatsApp Destek
+                        </span>
+                        {/* WhatsApp Custom SVG Icon */}
+                        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+                            <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.982L2 22l5.202-1.364a9.92 9.92 0 0 0 4.804 1.233h.004c5.507 0 9.99-4.479 9.992-9.985.002-2.668-1.037-5.176-2.927-7.07C17.186 2.92 14.68 2.001 12.012 2zm5.727 14.043c-.315.89-.927 1.6-1.745 2.033-.426.223-.88.358-1.346.4-1.258.115-2.522-.193-3.666-.867a10.82 10.82 0 0 1-4.22-4.218 8.16 8.16 0 0 1-.958-3.048c-.027-.852.274-1.684.857-2.3.208-.219.46-.388.74-.492.203-.075.418-.112.634-.11h.466c.153.003.303.048.43.13.178.113.313.284.382.484.288.706.672 1.383 1.144 2.014.12.16.173.36.143.559a.86.86 0 0 1-.363.535l-.578.434c-.16.12-.227.332-.162.524.364.717.854 1.372 1.45 1.93.567.534 1.217.962 1.927 1.267.185.08.402.03.535-.12l.537-.537c.137-.137.333-.204.526-.18.66.082 1.312.247 1.938.491.226.087.397.27.467.502.262.868.106 1.796-.425 2.534z" />
+                        </svg>
+                    </a>
+                </div>
+            )}
 
             {/* Footer */}
             {/* Footer */}

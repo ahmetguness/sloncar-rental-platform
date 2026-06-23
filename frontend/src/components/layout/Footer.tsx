@@ -126,7 +126,9 @@ export const Footer = () => {
                     <div className="flex flex-wrap justify-center md:justify-start gap-x-4 sm:gap-x-8 gap-y-3 sm:gap-y-4 text-[9px] sm:text-[10px] font-black text-gray-500 uppercase tracking-[0.15em] sm:tracking-[0.2em]">
                         <span>Vergi No: 934 049 6595</span>
                         <span>MERSİS No: 0934049659500001</span>
-                        <span>Yönetmelik Uyumluluğu: KVKK 6698</span>
+                        <Link href="/sozlesmeler/kvkk" className="hover:text-white transition-colors cursor-pointer">
+                            Yönetmelik Uyumluluğu: KVKK 6698
+                        </Link>
                     </div>
                     <p className="text-[11px] font-bold text-gray-500 tracking-tight group">
                         &copy; {new Date().getFullYear()} Yaman Filo. Seçkin yaşam tarzları için tasarlandı.

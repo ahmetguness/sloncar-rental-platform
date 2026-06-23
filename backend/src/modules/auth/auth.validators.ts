@@ -10,6 +10,7 @@ const baseRegisterFields = {
     name: z.string().min(2, 'Ad en az 2 karakter olmalıdır'),
     phone: z.string().min(1, 'Telefon numarası zorunludur'),
     emailCampaignEnabled: z.boolean().optional(),
+    kvkkAccepted: z.literal(true, { errorMap: () => ({ message: 'KVKK ve Açık Rıza Metni\'ni onaylamanız gerekmektedir' }) }),
 };
 
 // Bireysel kayıt şeması

@@ -91,6 +91,13 @@ export const brandService = {
     }
 };
 
+export const branchService = {
+    getAll: async () => {
+        const response = await api.get<{ success: boolean; data: { id: string; name: string; city: string }[] }>('/branches');
+        return response.data.data;
+    }
+};
+
 export const bookingService = {
     create: async (data: CreateBookingRequest) => {
         const response = await api.post<{ data: { bookingCode: string; booking: Booking } }>('/bookings', data);

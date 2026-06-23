@@ -213,6 +213,9 @@ model User {
   emailInsuranceEnabled  Boolean @default(true)
   emailCampaignEnabled  Boolean @default(true)
 
+  kvkkAccepted   Boolean   @default(false)
+  kvkkAcceptedAt DateTime?
+
   version   Int      @default(0) // Optimistic locking
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -272,6 +275,9 @@ model Booking {
   paymentRef      String?
   paidAt          DateTime?
   expiresAt       DateTime? // For 10-minute payment window
+
+  kvkkAccepted   Boolean   @default(false)
+  kvkkAcceptedAt DateTime?
 
   version   Int      @default(0) // Optimistic locking
   createdAt DateTime @default(now())

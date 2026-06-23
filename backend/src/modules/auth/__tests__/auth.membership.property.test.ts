@@ -48,6 +48,7 @@ const individualRegisterArb = fc.record({
     name: nameArb,
     phone: phoneArb,
     tcNo: fc.option(tcNoArb, { nil: undefined }),
+    kvkkAccepted: fc.constant(true as const),
 });
 
 /** Valid corporate registration data */
@@ -61,6 +62,7 @@ const corporateRegisterArb = fc.record({
     taxNumber: taxNumberArb,
     taxOffice: fc.option(fc.stringMatching(/^[A-Za-z ]{2,15}$/), { nil: undefined }),
     companyAddress: fc.option(fc.stringMatching(/^[A-Za-z0-9 ,]{5,30}$/), { nil: undefined }),
+    kvkkAccepted: fc.constant(true as const),
 });
 
 /** Either valid individual or corporate registration */
@@ -88,14 +90,11 @@ describe('Property 1: Kayıt üyelik tipini doğru saklar', () => {
                     membershipType: input.membershipType,
                 });
 
-                const result = await register(input);
-
-                // The created user's membershipType must match the submitted value
-                expect(result.user.membershipType).toBe(input.membershipType);
+                await register(input);
 
                 // Verify prisma.user.create was called with the correct membershipType
-                const lastCall = mockCreate.mock.calls[mockCreate.mock.calls.length - 1][0];
-                expect(lastCall.data.membershipType).toBe(input.membershipType);
+                const lastCall = mockCreate.mock.calls[mockCreate.mock.calls.length - 1]?.[0];
+                expect(lastCall?.data?.membershipType).toBe(input.membershipType);
 
                 mockCreate.mockReset();
                 mockFindUnique.mockReset();
@@ -216,6 +215,7 @@ describe('Property 8: Geçersiz membershipType değeri reddedilir', () => {
                     password,
                     name,
                     phone,
+                    kvkkAccepted: true,
                 };
 
                 const result = registerSchema.safeParse(input);
@@ -264,6 +264,7 @@ describe('Property 9: Kimlik numarası format doğrulaması', () => {
                         name,
                         phone,
                         tcNo: invalidTcNo,
+                        kvkkAccepted: true,
                     };
 
                     const result = registerSchema.safeParse(input);
@@ -297,6 +298,7 @@ describe('Property 9: Kimlik numarası format doğrulaması', () => {
                         phone,
                         companyName,
                         taxNumber: invalidTax,
+                        kvkkAccepted: true,
                     };
 
                     const result = registerSchema.safeParse(input);
